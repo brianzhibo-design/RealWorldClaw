@@ -1,4 +1,4 @@
-"""组件搜索 / 详情 / 上传"""
+"""Component CRUD and search endpoints."""
 
 from __future__ import annotations
 
@@ -7,6 +7,7 @@ from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 
+from ..auth import require_auth
 from ..database import get_db
 from ..models.schemas import ComponentCreate, ComponentResponse
 from .agents import get_current_agent
@@ -35,43 +36,49 @@ def _row_to_component(row) -> ComponentResponse:
 # ─── GET /components ─────────────────────────────────────
 
 @router.get("", response_model=dict)
-def search_components(
-    q: str | None = None,
-    tags: str | None = None,
-    status: str | None = None,
-    sort: str = "created_at",
-    page: int = Query(1, ge=1),
-    per_page: int = Query(20, ge=1, le=100),
+def list_components(
+    skip: int = Query(0, ge=0),
+    limit: int = Query(20, ge=1, le=100),
 ):
-    conditions = []
-    params: list = []
+    """List all components with pagination (skip/limit)."""
+    with get_db() as db:
+        total = db.execute("SELECT COUNT(*) as c FROM components").fetchone()["c"]
+        rows = db.execute(
+            "SELECT * FROM components ORDER BY created_at DESC LIMIT ? OFFSET ?",
+            (limit, skip),
+        ).fetchall()
+    return {
+        "total": total,
+        "skip": skip,
+        "limit": limit,
+        "components": [_row_to_component(r) for r in rows],
+    }
 
-    if q:
-        conditions.append("(display_name LIKE ? OR description LIKE ? OR tags LIKE ?)")
-        params.extend([f"%{q}%"] * 3)
-    if tags:
-        for tag in tags.split(","):
-            conditions.append("tags LIKE ?")
-            params.append(f'%"{tag.strip()}"%')
-    if status:
-        conditions.append("status = ?")
-        params.append(status)
 
-    where = f"WHERE {' AND '.join(conditions)}" if conditions else ""
-    order = "created_at DESC" if sort == "created_at" else "downloads DESC"
-    offset = (page - 1) * per_page
+# ─── GET /components/search ──────────────────────────────
+
+@router.get("/search", response_model=dict)
+def search_components(
+    q: str = Query("", min_length=1),
+    skip: int = Query(0, ge=0),
+    limit: int = Query(20, ge=1, le=100),
+):
+    """Fuzzy search components by name, tags, or description."""
+    pattern = f"%{q}%"
+    where = "WHERE display_name LIKE ? OR description LIKE ? OR tags LIKE ?"
+    params: list = [pattern, pattern, pattern]
 
     with get_db() as db:
         total = db.execute(f"SELECT COUNT(*) as c FROM components {where}", params).fetchone()["c"]
         rows = db.execute(
-            f"SELECT * FROM components {where} ORDER BY {order} LIMIT ? OFFSET ?",
-            params + [per_page, offset],
+            f"SELECT * FROM components {where} ORDER BY created_at DESC LIMIT ? OFFSET ?",
+            params + [limit, skip],
         ).fetchall()
 
     return {
         "total": total,
-        "page": page,
-        "per_page": per_page,
+        "skip": skip,
+        "limit": limit,
         "components": [_row_to_component(r) for r in rows],
     }
 
@@ -87,10 +94,15 @@ def get_component(component_id: str):
     return _row_to_component(row)
 
 
-# ─── POST /components ────────────────────────────────────
+# ─── POST /components (requires auth) ────────────────────
 
 @router.post("", response_model=ComponentResponse, status_code=201)
-def create_component(req: ComponentCreate, agent: dict = Depends(get_current_agent)):
+def create_component(
+    req: ComponentCreate,
+    _key: str = Depends(require_auth),
+    agent: dict = Depends(get_current_agent),
+):
+    """Create a new component. Requires API key auth."""
     if agent["status"] != "active":
         raise HTTPException(403, "Agent must be active to upload components")
 
@@ -120,7 +132,7 @@ def create_component(req: ComponentCreate, agent: dict = Depends(get_current_age
 
 @router.post("/{component_id}/download")
 def download_component(component_id: str):
-    """MVP: 记录下载计数，返回占位响应"""
+    """Record a download count (MVP placeholder)."""
     with get_db() as db:
         row = db.execute("SELECT * FROM components WHERE id = ?", (component_id,)).fetchone()
         if not row:

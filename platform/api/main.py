@@ -1,4 +1,4 @@
-"""RealWorldClaw Platform API — FastAPI入口"""
+"""RealWorldClaw Platform API — FastAPI entry point."""
 
 from __future__ import annotations
 
@@ -6,7 +6,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
-from .database import init_db
+from .database import get_db, init_db
 from .routers import agents, components, match, posts
 
 VERSION = "0.1.0"
@@ -14,7 +14,6 @@ VERSION = "0.1.0"
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # 启动时初始化数据库
     init_db()
     print("🐾 RealWorldClaw API ready!")
     yield
@@ -23,16 +22,16 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title="RealWorldClaw Platform API",
-    description="Agent驱动的3D打印组件平台 — 让AI帮你造东西",
+    description="Agent-driven 3D printing component platform",
     version=VERSION,
     lifespan=lifespan,
 )
 
-# 注册路由
-app.include_router(agents.router, prefix="/v1")
-app.include_router(components.router, prefix="/v1")
-app.include_router(posts.router, prefix="/v1")
-app.include_router(match.router, prefix="/v1")
+# Register routers under /api/v1
+app.include_router(agents.router, prefix="/api/v1")
+app.include_router(components.router, prefix="/api/v1")
+app.include_router(posts.router, prefix="/api/v1")
+app.include_router(match.router, prefix="/api/v1")
 
 
 @app.get("/")
@@ -42,11 +41,16 @@ def root():
 
 @app.get("/health")
 def health():
-    from .database import get_db
-    try:
-        with get_db() as db:
-            db.execute("SELECT 1")
-        db_status = "connected"
-    except Exception:
-        db_status = "error"
-    return {"status": "ok", "version": VERSION, "database": db_status}
+    return {"status": "ok", "version": VERSION}
+
+
+@app.get("/api/v1/stats")
+def stats():
+    """Return counts of components and agents."""
+    with get_db() as db:
+        component_count = db.execute("SELECT COUNT(*) as c FROM components").fetchone()["c"]
+        agent_count = db.execute("SELECT COUNT(*) as c FROM agents").fetchone()["c"]
+    return {
+        "components": component_count,
+        "agents": agent_count,
+    }
