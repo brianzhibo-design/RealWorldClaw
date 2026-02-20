@@ -22,7 +22,25 @@ jobs:
 
       - name: Lint platform
         run: cd platform && ruff check . --select E,F --ignore E501
-        continue-on-error: true
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          cd platform
+          pip install -r requirements.txt
+          pip install pytest httpx
+
+      - name: Run tests
+        run: cd platform && python -m pytest tests/ -v
 
   validate:
     runs-on: ubuntu-latest
