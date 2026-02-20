@@ -1,123 +1,126 @@
-/** 首页 — Hero + 特色组件 + Maker Network入口 + 标准概览 */
+/** 首页 — 全新模块化愿景 */
+"use client";
+
 import Link from "next/link";
-import ComponentCard from "@/components/ComponentCard";
-import { mockComponents, mockMakers } from "@/lib/mock-data";
-import { fetchComponents, fetchMakers } from "@/lib/api";
+import { useLocale, t } from "@/lib/i18n";
+import { texts } from "@/lib/i18n-texts";
+import { modules } from "@/lib/modules-data";
+import { designs } from "@/lib/designs-data";
 
-export default async function HomePage() {
-  let components = mockComponents;
-  let makers = mockMakers;
-
-  try {
-    [components, makers] = await Promise.all([fetchComponents(), fetchMakers()]);
-  } catch {
-    // API 不可用，使用 mock 数据
-  }
-
-  const onlineMakers = makers.filter((m) => m.availability === "open");
+export default function HomePage() {
+  const { locale } = useLocale();
 
   return (
     <div className="mx-auto max-w-6xl px-4">
       {/* Hero */}
-      <section className="py-24 text-center">
-        <h1 className="text-5xl font-bold leading-tight md:text-6xl">
-          Build Your Own{" "}
-          <span className="text-cyber-cyan">AI Agent Body</span>
+      <section className="relative py-28 text-center">
+        <div className="absolute inset-0 -z-10 overflow-hidden">
+          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-[500px] w-[500px] rounded-full bg-neon-blue/5 blur-3xl" />
+          <div className="absolute left-1/3 top-1/3 h-[300px] w-[300px] rounded-full bg-neon-purple/5 blur-3xl" />
+        </div>
+        <h1 className="text-5xl font-extrabold leading-tight md:text-7xl">
+          {t(texts.hero.title1, locale)}{" "}
+          <span className="bg-gradient-to-r from-neon-blue via-neon-purple to-neon-pink bg-clip-text text-transparent text-glow-blue">
+            {t(texts.hero.title2, locale)}
+          </span>
         </h1>
-        <p className="mx-auto mt-6 max-w-2xl text-lg text-slate-400">
-          开源 AI Agent 机体制造平台。浏览社区设计、找到附近的 Maker，让你的 Agent 拥有物理形态。
+        <p className="mx-auto mt-6 max-w-2xl text-lg text-slate-400 leading-relaxed">
+          {t(texts.hero.subtitle, locale)}
         </p>
-        <div className="mt-8 flex justify-center gap-4">
+        <div className="mt-10 flex justify-center gap-4">
           <Link
-            href="/components"
-            className="rounded-lg bg-cyber-cyan px-6 py-3 font-semibold text-cyber-dark transition-all hover:shadow-glow-lg"
+            href="/modules"
+            className="rounded-xl bg-gradient-to-r from-neon-blue to-neon-purple px-8 py-3.5 font-semibold text-white transition-all hover:shadow-glow-neon hover:scale-105"
           >
-            Browse Components
+            {t(texts.hero.cta1, locale)}
           </Link>
           <Link
-            href="/makers"
-            className="rounded-lg border border-cyber-cyan/40 px-6 py-3 font-semibold text-cyber-cyan transition-all hover:bg-cyber-cyan/10"
+            href="/designs"
+            className="rounded-xl border border-neon-blue/40 px-8 py-3.5 font-semibold text-neon-blue transition-all hover:bg-neon-blue/10 hover:border-neon-blue"
           >
-            Find Makers
+            {t(texts.hero.cta2, locale)}
           </Link>
         </div>
       </section>
 
-      {/* 特色组件 */}
-      <section className="pb-16">
-        <h2 className="mb-8 text-2xl font-bold">Featured Components</h2>
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {components.map((c) => (
-            <ComponentCard key={c.id} component={c} />
+      {/* 三大问题 → 三大解决方案 */}
+      <section className="pb-20">
+        <h2 className="mb-12 text-center text-3xl font-bold">{t(texts.problems.title, locale)}</h2>
+        <div className="grid gap-6 md:grid-cols-3">
+          {texts.problems.items.map((item, i) => (
+            <div
+              key={i}
+              className="group rounded-2xl border border-cyber-border bg-cyber-card p-8 card-hover"
+            >
+              <div className="text-4xl mb-4">{item.icon}</div>
+              <p className="text-sm text-red-400/80 line-through mb-2">
+                {t(item.problem, locale)}
+              </p>
+              <p className="text-lg font-semibold text-neon-blue">
+                {t(item.solution, locale)}
+              </p>
+            </div>
           ))}
         </div>
       </section>
 
-      {/* Maker Network 入口 */}
-      <section className="pb-16">
-        <div className="flex items-center justify-between mb-8">
-          <h2 className="text-2xl font-bold">🔧 Maker Network</h2>
-          <Link href="/makers" className="text-sm text-cyber-cyan hover:underline">
-            View all →
-          </Link>
-        </div>
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {onlineMakers.slice(0, 3).map((maker) => {
-            const isBuilder = maker.maker_type === "builder";
-            return (
-              <div
-                key={maker.id}
-                className={`rounded-xl border bg-cyber-card p-5 transition-all ${
-                  isBuilder
-                    ? "border-amber-500/30 hover:border-amber-500/50 hover:shadow-[0_0_15px_rgba(245,158,11,0.15)]"
-                    : "border-green-500/30 hover:border-green-500/50 hover:shadow-[0_0_15px_rgba(34,197,94,0.15)]"
-                }`}
-              >
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-white">{maker.region}</span>
-                    <span className={`rounded-full border px-2 py-0.5 text-xs font-medium ${
-                      isBuilder
-                        ? "bg-amber-500/20 text-amber-400 border-amber-500/40"
-                        : "bg-green-500/20 text-green-400 border-green-500/40"
-                    }`}>
-                      {isBuilder ? "Builder" : "Maker"}
-                    </span>
-                  </div>
-                  <span className="flex items-center gap-1.5 text-xs text-green-400">
-                    <span className="inline-block h-2 w-2 rounded-full bg-green-400 shadow-[0_0_6px_rgba(34,197,94,0.6)]" />
-                    在线
-                  </span>
-                </div>
-                <p className="text-sm text-slate-400">
-                  {maker.printer_brand} {maker.printer_model}
-                </p>
-                <div className="mt-3 flex items-center justify-between text-sm">
-                  <span className="text-cyber-cyan">¥{maker.pricing_per_hour_cny}/h</span>
-                  <span className="text-slate-500">⭐ {maker.rating}</span>
-                </div>
+      {/* How It Works - 三步 */}
+      <section className="pb-20">
+        <h2 className="mb-12 text-center text-3xl font-bold">{t(texts.howItWorks.title, locale)}</h2>
+        <div className="grid gap-8 md:grid-cols-3">
+          {texts.howItWorks.steps.map((step, i) => (
+            <div key={i} className="text-center">
+              <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-neon-blue/20 to-neon-purple/20 text-4xl animate-float" style={{ animationDelay: `${i * 0.5}s` }}>
+                {step.icon}
               </div>
-            );
-          })}
+              <div className="mb-2 font-mono text-xs text-neon-purple">STEP {i + 1}</div>
+              <h3 className="text-xl font-bold mb-2">{t(step.title, locale)}</h3>
+              <p className="text-sm text-slate-400">{t(step.desc, locale)}</p>
+            </div>
+          ))}
         </div>
       </section>
 
-      {/* 标准概览 */}
+      {/* AI 成长故事预览 */}
+      <section className="pb-20">
+        <div className="rounded-2xl border border-neon-purple/20 bg-gradient-to-br from-cyber-card to-cyber-dark p-10 text-center">
+          <h2 className="mb-4 text-3xl font-bold">
+            {locale === "zh" ? "🧬 AI成长之旅" : "🧬 AI Growth Journey"}
+          </h2>
+          <p className="mb-6 text-slate-400 max-w-xl mx-auto">
+            {locale === "zh"
+              ? "从一颗\"脊髓\"开始，一步步长出眼睛、耳朵、手脚——看你的AI从植物人变成完整的生命体。"
+              : "Start from a \"spine\", grow eyes, ears, hands, legs step by step — watch your AI evolve from a vegetative state to a complete life form."}
+          </p>
+          <div className="flex justify-center items-center gap-3 mb-8 text-3xl">
+            {modules.map((m, i) => (
+              <span key={m.id} className="transition-all hover:scale-125 cursor-default" style={{ opacity: 0.3 + i * 0.14 }}>
+                {m.icon}
+              </span>
+            ))}
+          </div>
+          <Link
+            href="/grow"
+            className="inline-block rounded-xl bg-gradient-to-r from-neon-purple to-neon-pink px-8 py-3 font-semibold text-white transition-all hover:shadow-glow-purple hover:scale-105"
+          >
+            {locale === "zh" ? "开始AI成长之旅 →" : "Start AI Growth Journey →"}
+          </Link>
+        </div>
+      </section>
+
+      {/* 统计数据 */}
       <section className="pb-24">
-        <h2 className="mb-8 text-2xl font-bold">The RealWorldClaw Standard</h2>
-        <div className="grid gap-6 sm:grid-cols-3">
+        <div className="grid gap-6 md:grid-cols-3">
           {[
-            { icon: "🤖", title: "Agent-First", desc: "为 AI Agent 物理形态而生的制造标准" },
-            { icon: "🖨️", title: "3D Printable", desc: "所有结构件均可 FDM 打印，全球可制造" },
-            { icon: "🌍", title: "Open Source", desc: "CC BY-SA 4.0，自由使用和修改" },
-          ].map((item) => (
-            <div
-              key={item.title}
-              className="rounded-xl border border-cyber-border bg-cyber-card p-6 text-center"
-            >
-              <div className="text-4xl">{item.icon}</div>
-              <h3 className="mt-4 text-lg font-semibold text-white">{item.title}</h3>
-              <p className="mt-2 text-sm text-slate-400">{item.desc}</p>
+            { value: modules.length, label: texts.stats.modules },
+            { value: designs.length, label: texts.stats.designs },
+            { value: "12+", label: texts.stats.makers },
+          ].map((stat, i) => (
+            <div key={i} className="rounded-2xl border border-cyber-border bg-cyber-card p-8 text-center">
+              <div className="text-5xl font-extrabold font-mono bg-gradient-to-r from-neon-blue to-neon-purple bg-clip-text text-transparent">
+                {stat.value}
+              </div>
+              <div className="mt-2 text-sm text-slate-400">{t(stat.label, locale)}</div>
             </div>
           ))}
         </div>

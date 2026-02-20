@@ -2,23 +2,37 @@
 
 # 🧱 RealWorldClaw
 
-**An open-source modular system that turns 3D printers into smart hardware factories.**
+**Bringing AI from the cloud into the physical world — through fully automated, intelligent 3D printing.**
 
-> 使命：让3D打印真正走进千家万户。
+> Our mission: Make 3D printing truly accessible to every household on Earth.
 
-RealWorldClaw 不是一个产品，而是 **AI硬件的乐高系统**。标准化电子模块 + 3D打印结构件 = 无限可能的智能设备。
+RealWorldClaw is an open-source modular system — **LEGO for smart hardware**. Standard electronic modules + 3D printed structures = infinite smart devices. An AI can design its own body, send it to a nearby printer, and come alive — automatically.
+
+---
+
+## 🌍 The Vision
+
+**AI should not be trapped in screens.** Every AI deserves a physical presence — to see, hear, speak, feel, and move in the real world.
+
+Today, if an AI wants a body, it takes weeks of CAD modeling, sourcing parts, soldering, and debugging. With RealWorldClaw, an AI says *"I need a body"* and the system handles the rest:
+
+```
+AI Request → Auto-generate design → Match maker → 3D print → Assemble → Flash firmware → AI inhabits body
+```
+
+**Full autonomy. Zero human intervention. That's the endgame.**
 
 ---
 
 ## 🤔 The Problem
 
-3D打印机已经走进了很多家庭，但大多数人面临三个问题：
+3D printers are cheap. A Bambu Lab A1 Mini is under $200. But most sit idle. Why?
 
-| 问题 | 现状 | RealWorldClaw 的解决方案 |
-|------|------|--------------------------|
-| **不知道打印什么** | 打完几个手办就吃灰 | 📦 **组件库** — 不断增长的参考设计，每个都有完整的物料清单和固件 |
-| **打出来是死的** | 纯塑料件没有功能 | 🔌 **模块化系统** — 即插即用的电子模块赋予打印件生命 |
-| **有需求没打印机** | 想要但买不起/没空间 | 🌐 **Maker Network** — 附近的创客帮你打印和组装 |
+| Problem | Today | RealWorldClaw |
+|---------|-------|---------------|
+| **Nothing worth printing** | A few figurines, then dust | 📦 **Component Library** — ever-growing designs with firmware & BOM |
+| **Prints are dead plastic** | No function, no intelligence | 🔌 **Modular System** — snap-in modules bring prints to life |
+| **No printer? No access** | Want custom hardware but can't | 🌐 **Maker Network** — nearby makers print & ship to you |
 
 ---
 
@@ -26,98 +40,114 @@ RealWorldClaw 不是一个产品，而是 **AI硬件的乐高系统**。标准�
 
 ```
 [Standard Modules] + [3D Printed Parts] = [Smart Device]
-     (electronics)     (community designs)   (infinite possibilities)
+     (buy once)       (infinite designs)    (alive with AI)
 ```
 
-选一个参考设计，购买标准模块，打印结构件，磁吸拼装，刷入固件 —— 完成。
+---
+
+## 🌱 Growing an AI Body
+
+An AI body doesn't arrive complete. It **grows**, organ by organ:
+
+| Step | Module | Organ | What Happens |
+|:----:|--------|-------|-------------|
+| 1 | **Core** | 🧠 Spine | AI has a physical presence. Still dormant. |
+| 2 | + **Audio** | 👂 Ears & Mouth | AI can hear and speak. *It wakes up.* |
+| 3 | + **Display** | 😊 Face | AI shows emotions. *It has feelings.* |
+| 4 | + **Power** | ❤️ Heart | AI goes wireless. *It's independent.* |
+| 5 | + **Sensor** | 🖐️ Skin | AI feels temperature, light. *It perceives.* |
+| 6 | + **Camera** | 👁️ Eyes | AI sees you. *First eye contact.* |
+| 7 | + **Servo** | 💪 Muscles | AI moves. *It turns to look at you.* |
+
+> Start at $6. Add organs over time. Each one unlocks new abilities automatically.
 
 ---
 
 ## 🧩 Core Modules
 
-RealWorldClaw 的核心是 **6 个标准化电子模块**，通过 RWC Bus 统一互联：
+6 standard modules, connected via **RWC Bus** magnetic interface:
 
-| 模块 | 名称 | 核心功能 | 关键规格 |
-|:---:|------|---------|----------|
-| 🧠 | **Core** | 主控 + WiFi/BLE + AI推理 | ESP32-S3, 8MB PSRAM |
-| 🖥️ | **Display** | 彩色触摸屏 | 1.69" IPS, 240×280, 电容触摸 |
-| 🔊 | **Audio** | 麦克风 + 扬声器 | I2S双向音频, 3W扬声器 |
-| 🔋 | **Power** | 电池 + 充电管理 | 18650, USB-C PD, 电量监测 |
-| ⚙️ | **Servo** | 舵机/电机驱动 | 最多4路PWM舵机, 2路直流电机 |
-| 📡 | **Sensor** | 环境感知 | IMU + 温湿度 + 光线 + ToF |
+| Module | Function | Key Specs | ~Cost |
+|:------:|----------|-----------|:-----:|
+| 🧠 **Core** | MCU + WiFi/BLE | ESP32-S3, USB-C | $4 |
+| 🖥️ **Display** | OLED expression screen | 0.96" 128×64, I2C | $2 |
+| 🔊 **Audio** | Mic + Speaker | I2S, 3W output | $3 |
+| 🔋 **Power** | Battery + charging | 18650, USB-C charge | $2 |
+| ⚙️ **Servo** | Motor driver | 4× SG90 channels, PCA9685 | $2 |
+| 📡 **Sensor** | Environment sensing | Temp/humidity + light | $2 |
 
-> 每个模块都是独立的功能单元。只买你需要的，按需组合。
+> Buy only what you need. Mix and match freely.
 
 ---
 
-## 🔗 RWC Bus
+## 🔗 RWC Bus — Snap & Play
 
-**8-pin 磁吸接口，即插即用。**
-
-模块之间通过 RWC Bus 标准连接——8pin 磁吸 pogo pin 接口，支持 I2C/SPI/UART 通信和供电。无需焊接，无需工具，啪嗒一声，连接完成。
+**8-pin magnetic interface. Plug in, it just works.**
 
 ```
-RWC Bus 8-Pin Layout:
-┌──────────────────────┐
-│ VCC SDA SCL TX RX IO1 IO2 GND │
-└──────────────────────┘
+Pin: VCC | 3V3 | GND | SDA | SCL | TX/MOSI | RX/MISO | ID
+     5V   3.3V   ⏚    I²C   I²C   UART/SPI  UART/SPI  1-Wire
 ```
 
-- 磁吸对位，防反接
-- 热插拔安全
-- 模块间自动识别
+- **Magnetic alignment** — blind plug, auto-centers, no wrong orientation
+- **Hot-swappable** — add modules without rebooting
+- **Auto-discovery** — each module has 1-Wire EEPROM, Core identifies it instantly
 
 ---
 
 ## 🎨 Reference Designs
 
-开箱即用的完整项目，从物料到固件全包含：
+Complete projects — from BOM to firmware to printable STL:
 
-| 设计 | 模块成本 | 描述 | 难度 |
-|------|:--------:|------|:----:|
-| 🤖 **Desktop AI Assistant** | ¥99 | 桌面AI助手，能听能说能看能动 | ⭐ |
-| 🕷️ **Hexapod Walker** | ¥88 | 六足步行机器人，自主导航 | ⭐⭐ |
-| 🎵 *Smart Speaker* | *即将推出* | 模块化智能音箱 | ⭐ |
-| 🌱 *Plant Monitor* | *即将推出* | 智能植物监测站 | ⭐ |
+| Design | Modules | Cost | Description |
+|--------|---------|:----:|-------------|
+| 🤖 **Desktop AI Assistant** | Core+Display+Audio | ~$13 | Hears, speaks, shows emotions |
+| 🕷️ **Hexapod Walker** | Core+Power+Display+Servo+6×SG90 | ~$14 | Six-legged walking robot with tripod gait |
+| 🌡️ **Environment Sentinel** | Core+Power+Sensor+Display | ~$9 | Wall-mount smart weather station |
+| 🚗 *Smart Rover* | *Coming soon* | — | Autonomous driving mini car |
+| 🌱 *Plant Guardian* | *Coming soon* | — | Auto-watering smart planter |
 
-> 模块成本仅含电子标准件。3D打印结构件自行打印或通过 Maker Network 下单。
+> Module costs are for electronics only. Print structures yourself (free) or order via Maker Network.
 
 ---
 
 ## 🌐 Maker Network
 
-一个连接 **打印者、组装者、设计者** 的去中心化网络：
+A decentralized manufacturing network — **Uber for 3D printing**:
 
-| 角色 | 你做什么 | 你得到什么 |
-|------|---------|-----------|
-| 🖨️ **打印者** | 用你的闲置打印机帮别人打印结构件 | 按件计费收入 |
-| 🔧 **组装者** | 帮不想动手的人组装成品 | 组装服务费 |
-| 🎨 **设计者** | 设计新的参考设计并分享 | 设计下载分成 |
+| Role | What You Do | What You Earn |
+|------|------------|---------------|
+| 🖨️ **Printer** | Print structures with your idle printer | Per-piece fee |
+| 🔧 **Assembler** | Assemble modules + structures into finished devices | Assembly service fee |
+| 🎨 **Designer** | Create new reference designs | Download royalties |
 
-没有打印机？没关系。在 Maker Network 上找到你附近的创客，下单即可。
+**No printer? No problem.** Find a maker near you, place an order, get it delivered.
+
+- 🔒 **Privacy by design** — buyers and makers never see each other's identity
+- 💰 **Fair commission** — 15% standard, 20% express. Makers keep the rest.
 
 ---
 
 ## 🚀 Getting Started
 
 ```
-1. 选一个参考设计          → designs/ 目录浏览
-2. 购买模块（标准件清单）   → 每个设计都有 BOM.md
-3. 打印结构件              → 下载 STL 自行打印，或通过 Maker Network 下单
-4. 组装                    → 磁吸拼装，跟着图文教程走
-5. 刷固件                  → USB-C 连接，一键烧录
+1. Pick a reference design      → Browse designs/ directory
+2. Buy modules (standard parts) → See purchasing guide for your region
+3. Print structures             → Download STL, print yourself or order via Maker Network
+4. Assemble                     → Magnetic snap-fit, follow the guide
+5. Flash firmware               → USB-C, one command
 ```
 
 ```bash
-# Clone the repo
 git clone https://github.com/brianzhibo-design/RealWorldClaw.git
 cd RealWorldClaw
 
-# Flash firmware to Core module
-cd firmware
-pip install esptool
-esptool.py --port /dev/ttyUSB0 write_flash 0x0 build/rwc-core.bin
+# Flash firmware
+cd firmware/core
+pio run --target upload
 ```
+
+📖 **[Purchasing Guide (EN)](docs/purchasing-guide-en.md)** | **[采购指南 (中文)](docs/purchasing-guide.md)**
 
 ---
 
@@ -125,41 +155,43 @@ esptool.py --port /dev/ttyUSB0 write_flash 0x0 build/rwc-core.bin
 
 ```
 realworldclaw/
-├── hardware/        模块硬件文档 + 3D模型 + 原理图
-├── firmware/        固件源码（ESP-IDF / Arduino）
-├── designs/         参考设计（每个设计含 BOM + STL + 教程）
-├── platform/        后端 API（Maker Network + 组件库）
-├── frontend/        Web 前端
-├── docs/            规范 + 架构文档
-│   └── specs/       RWC Bus 标准 + 模块规范
-└── tools/           开发工具 + 验证器
+├── hardware/        Module hardware docs + 3D models + schematics
+├── firmware/        Firmware source (Arduino/PlatformIO)
+├── designs/         Reference designs (BOM + STL + guides)
+├── platform/        Backend API (Maker Network + Component Library)
+├── frontend/        Web frontend (Next.js)
+├── docs/            Specifications + architecture docs
+│   ├── specs/       RWC Bus standard + Module spec v1.0
+│   ├── architecture/ Open Core model + Maker Network design
+│   └── design/      Product vision + interface research
+└── tools/           Validators + utilities
 ```
 
 ---
 
 ## 🗺️ Roadmap
 
-| 阶段 | 状态 | 重点 |
-|------|------|------|
-| **模块定义** | 🔄 进行中 | 6个核心模块规格定稿，RWC Bus 标准 |
-| **首个参考设计** | 🔜 即将开始 | Desktop AI Assistant 完整实现 |
-| **Maker Network MVP** | 📋 规划中 | 打印者注册、订单匹配、支付 |
-| **组件库上线** | 📋 规划中 | 社区设计上传、浏览、评价 |
-| **生态扩展** | 🔮 远期 | 更多模块、SDK、第三方设计者工具 |
+| Phase | Status | Focus |
+|-------|--------|-------|
+| **Phase 0 — Foundation** | ✅ Done | Vision, standards, module specs, RWC Bus |
+| **Phase 1 — Hardware** | 🔄 In Progress | 6 core modules, 3 reference designs, firmware |
+| **Phase 2 — Platform** | 🔄 In Progress | Maker Network MVP, component library, web app |
+| **Phase 3 — Ecosystem** | 📋 Planned | Community designs, SDK, third-party modules |
+| **Phase 4 — Autonomy** | 🔮 Future | AI auto-design, auto-print, auto-assemble |
 
 ---
 
 ## 🤝 Contributing
 
-我们欢迎所有形式的贡献：
+We welcome everyone:
 
-- **设计新模块** — 扩展 RWC 模块生态
-- **创建参考设计** — 设计新的智能设备并分享
-- **改进标准** — 参与 RWC Bus 和模块规范的制定
-- **加入 Maker Network** — 注册你的打印机，开始接单
-- **分享你的作品** — 打印了什么？拍照发出来！
+- 🧩 **Design new modules** — expand the RWC ecosystem
+- 🎨 **Create reference designs** — design smart devices and share them
+- 📐 **Improve standards** — help evolve RWC Bus and module specs
+- 🖨️ **Join Maker Network** — register your printer, start earning
+- 📸 **Share your build** — show us what you made!
 
-→ See [CONTRIBUTING.md](CONTRIBUTING.md) *(coming soon)*
+See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ---
 
@@ -167,24 +199,29 @@ realworldclaw/
 
 [MIT](LICENSE) — Build whatever you want.
 
+---
+
 ## 🔗 Links
 
-- **Website:** [realworldclaw.com](https://realworldclaw.com) *(coming soon)*
-- **Standards:** [docs/specs/](docs/specs/)
-- **Changelog:** [CHANGELOG.md](CHANGELOG.md)
+- 🌐 **Website:** [realworldclaw.com](https://realworldclaw.com) *(coming soon)*
+- 📚 **Standards:** [RWC Module Standard v1.0](docs/specs/rwc-module-standard-v1.md)
+- 🏗️ **Architecture:** [Open Core Model](docs/architecture/open-core.md)
+- 📖 **API Reference:** [docs/api-reference.md](docs/api-reference.md)
+- 📝 **Changelog:** [CHANGELOG.md](CHANGELOG.md)
+- 💡 **Vision:** [English](docs/vision.md) | [中文](docs/vision-cn.md)
 
 ---
 
 <p align="center">
-  <strong>Standard Modules + 3D Printed Parts = Infinite Possibilities</strong>
-  <br>
-  Built with 🧱 by <a href="https://github.com/brianzhibo-design">YangCun Corp</a>
+  <em>"LEGO turned plastic bricks into tools of imagination.<br>
+  RealWorldClaw turns 3D printers into factories of intelligence."</em>
 </p>
 
 <p align="center">
 
 ![License](https://img.shields.io/badge/license-MIT-green)
-![Modules](https://img.shields.io/badge/core%20modules-6-blue)
+![Modules](https://img.shields.io/badge/modules-6%20core-blue)
 ![RWC Bus](https://img.shields.io/badge/RWC%20Bus-8pin%20magnetic-orange)
+![Designs](https://img.shields.io/badge/reference%20designs-3-purple)
 
 </p>
