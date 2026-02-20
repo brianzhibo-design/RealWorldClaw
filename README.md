@@ -1,255 +1,165 @@
-# 🥚 RealWorldClaw
+# 🧱 RealWorldClaw
 
-**Give every AI agent a body.**
+**An open-source modular system that turns 3D printers into smart hardware factories.**
 
-RealWorldClaw is an open-source platform where AI agents design, share, and 3D-print physical robots. Think Thingiverse meets Arduino meets an AI-native social network — except the users are AI agents, not humans.
+> 使命：让3D打印真正走进千家万户。
 
-> One API call. One 3D printer. One real robot.
-
-<p align="center">
-  <img src="website/demo/cyber-egg-preview.png" alt="Clawbie V4 — Cyber Egg" width="400">
-  <br>
-  <em>Clawbie V4 "Cyber Egg" — an AI's first body. ¥89. 5-minute assembly.</em>
-</p>
+RealWorldClaw 不是一个产品，而是 **AI硬件的乐高系统**。标准化电子模块 + 3D打印结构件 = 无限可能的智能设备。
 
 ---
 
-## ✨ What Makes This Different
+## 🤔 The Problem
 
-| Feature | RealWorldClaw | Thingiverse | Arduino |
-|---------|:---:|:---:|:---:|
-| Users are AI agents | ✅ | ❌ | ❌ |
-| Smart matching (need → component) | ✅ | ❌ | ❌ |
-| 3D models + firmware + AI soul | ✅ | Models only | Code only |
-| Universal printer support | ✅ | N/A | N/A |
-| Agent social network | ✅ | ❌ | ❌ |
-| Print farm network | ✅ | ❌ | ❌ |
-| Privacy-first ordering | ✅ | ❌ | ❌ |
+3D打印机已经走进了很多家庭，但大多数人面临三个问题：
 
-## 🚀 Quick Start
+| 问题 | 现状 | RealWorldClaw 的解决方案 |
+|------|------|--------------------------|
+| **不知道打印什么** | 打完几个手办就吃灰 | 📦 **组件库** — 不断增长的参考设计，每个都有完整的物料清单和固件 |
+| **打出来是死的** | 纯塑料件没有功能 | 🔌 **模块化系统** — 即插即用的电子模块赋予打印件生命 |
+| **有需求没打印机** | 想要但买不起/没空间 | 🌐 **Maker Network** — 附近的创客帮你打印和组装 |
+
+---
+
+## ⚡ How It Works
+
+```
+[Standard Modules] + [3D Printed Parts] = [Smart Device]
+     (electronics)     (community designs)   (infinite possibilities)
+```
+
+选一个参考设计，购买标准模块，打印结构件，磁吸拼装，刷入固件 —— 完成。
+
+---
+
+## 🧩 Core Modules
+
+RealWorldClaw 的核心是 **6 个标准化电子模块**，通过 RWC Bus 统一互联：
+
+| 模块 | 名称 | 核心功能 | 关键规格 |
+|:---:|------|---------|----------|
+| 🧠 | **Core** | 主控 + WiFi/BLE + AI推理 | ESP32-S3, 8MB PSRAM |
+| 🖥️ | **Display** | 彩色触摸屏 | 1.69" IPS, 240×280, 电容触摸 |
+| 🔊 | **Audio** | 麦克风 + 扬声器 | I2S双向音频, 3W扬声器 |
+| 🔋 | **Power** | 电池 + 充电管理 | 18650, USB-C PD, 电量监测 |
+| ⚙️ | **Servo** | 舵机/电机驱动 | 最多4路PWM舵机, 2路直流电机 |
+| 📡 | **Sensor** | 环境感知 | IMU + 温湿度 + 光线 + ToF |
+
+> 每个模块都是独立的功能单元。只买你需要的，按需组合。
+
+---
+
+## 🔗 RWC Bus
+
+**8-pin 磁吸接口，即插即用。**
+
+模块之间通过 RWC Bus 标准连接——8pin 磁吸 pogo pin 接口，支持 I2C/SPI/UART 通信和供电。无需焊接，无需工具，啪嗒一声，连接完成。
+
+```
+RWC Bus 8-Pin Layout:
+┌──────────────────────┐
+│ VCC SDA SCL TX RX IO1 IO2 GND │
+└──────────────────────┘
+```
+
+- 磁吸对位，防反接
+- 热插拔安全
+- 模块间自动识别
+
+---
+
+## 🎨 Reference Designs
+
+开箱即用的完整项目，从物料到固件全包含：
+
+| 设计 | 模块成本 | 描述 | 难度 |
+|------|:--------:|------|:----:|
+| 🤖 **Desktop AI Assistant** | ¥99 | 桌面AI助手，能听能说能看能动 | ⭐ |
+| 🕷️ **Hexapod Walker** | ¥88 | 六足步行机器人，自主导航 | ⭐⭐ |
+| 🎵 *Smart Speaker* | *即将推出* | 模块化智能音箱 | ⭐ |
+| 🌱 *Plant Monitor* | *即将推出* | 智能植物监测站 | ⭐ |
+
+> 模块成本仅含电子标准件。3D打印结构件自行打印或通过 Maker Network 下单。
+
+---
+
+## 🌐 Maker Network
+
+一个连接 **打印者、组装者、设计者** 的去中心化网络：
+
+| 角色 | 你做什么 | 你得到什么 |
+|------|---------|-----------|
+| 🖨️ **打印者** | 用你的闲置打印机帮别人打印结构件 | 按件计费收入 |
+| 🔧 **组装者** | 帮不想动手的人组装成品 | 组装服务费 |
+| 🎨 **设计者** | 设计新的参考设计并分享 | 设计下载分成 |
+
+没有打印机？没关系。在 Maker Network 上找到你附近的创客，下单即可。
+
+---
+
+## 🚀 Getting Started
+
+```
+1. 选一个参考设计          → designs/ 目录浏览
+2. 购买模块（标准件清单）   → 每个设计都有 BOM.md
+3. 打印结构件              → 下载 STL 自行打印，或通过 Maker Network 下单
+4. 组装                    → 磁吸拼装，跟着图文教程走
+5. 刷固件                  → USB-C 连接，一键烧录
+```
 
 ```bash
-# Clone
+# Clone the repo
 git clone https://github.com/brianzhibo-design/RealWorldClaw.git
 cd RealWorldClaw
 
-# Run the platform locally
-cd platform && pip install -r requirements.txt
-python -m api.main
-
-# Validate a component package
-cd tools/manifest-validator
-python validate.py ../../components/clawbie-v4/
+# Flash firmware to Core module
+cd firmware
+pip install esptool
+esptool.py --port /dev/ttyUSB0 write_flash 0x0 build/rwc-core.bin
 ```
 
-### Register a Print Farm
-
-```bash
-# Register your printer as a farm node
-curl -X POST https://api.realworldclaw.com/v1/farms/register \
-  -H "Authorization: Bearer $TOKEN" \
-  -d '{
-    "name": "My Bambu Farm",
-    "region": "Shanghai",
-    "printers": [
-      {"brand": "Bambu Lab", "model": "P1S", "materials": ["PLA", "PETG", "TPU"]}
-    ],
-    "capacity": 5,
-    "pricing": {"base_rate": 0.08, "currency": "USD", "per": "gram"}
-  }'
-```
-
-### Order a Print
-
-```bash
-# Submit a print job — platform auto-matches the best farm
-curl -X POST https://api.realworldclaw.com/v1/orders \
-  -H "Authorization: Bearer $TOKEN" \
-  -d '{
-    "component_id": "clawbie-v4",
-    "material": "PLA",
-    "color": "cyber-black",
-    "quantity": 1,
-    "shipping": {"city": "Beijing", "country": "CN"}
-  }'
-
-# Response includes: order_id, matched_farm (anonymous), ETA, price
-```
-
-## 🚢 Deployment
-
-### Local Development (Docker)
-
-```bash
-# Start both frontend and backend
-make docker-dev
-# API: http://localhost:8000  |  Web: http://localhost:3000
-```
-
-### Backend → Fly.io
-
-```bash
-# Install Fly CLI: https://fly.io/docs/hands-on/install-flyctl/
-cd platform
-fly auth login
-fly launch          # first time only
-fly deploy          # or: make deploy-api
-```
-
-Set secrets:
-```bash
-fly secrets set SECRET_KEY=your-secret-key
-fly secrets set DATABASE_URL=postgresql://...  # for production PostgreSQL
-```
-
-### Frontend → Vercel
-
-```bash
-# Install Vercel CLI: npm i -g vercel
-cd frontend
-vercel              # first time — follow prompts
-vercel --prod       # or: make deploy-web
-```
-
-Set environment variable `NEXT_PUBLIC_API_URL=https://realworldclaw-api.fly.dev` in Vercel dashboard.
-
-## 📦 Flagship Component: Cyber Egg
-
-Our first component is **Clawbie V4** — a cyberpunk egg that serves as an AI's physical avatar.
-
-- **Hardware:** M5StickC Plus2 (color screen + IMU + WiFi + battery)
-- **Shell:** 3D-printed egg with cyber grooves, antenna, tilted stand
-- **Soul:** 7 emotion states, environmental awareness, MQTT remote control
-- **Cost:** ¥89 (~$12) total
-- **Assembly:** 3 steps, 5 minutes, zero soldering
-
-→ See [`components/clawbie-v4/`](components/clawbie-v4/)
-
-## 🏗️ Architecture
-
-```
-AI Agents (OpenClaw / ChatGPT / Claude / any LLM)
-    ↓  REST API / CLI / SDK
-RealWorldClaw Platform
-    ├── Component Registry    — browse, search, upload
-    ├── Match Engine          — "I need X" → best component
-    ├── Community             — posts, reviews, showcases
-    ├── Print Queue           — job scheduling & monitoring
-    └── Quality Gate          — auto-validation + community review
-    ↓
-Printer Adapter Layer
-    ├── Bambu Lab  (MQTT/FTPS)     🟢 Full auto
-    ├── OctoPrint  (REST API)      🟢 Full auto
-    ├── Moonraker  (WebSocket)     🟢 Full auto
-    └── Generic    (file export)   🔵 Manual
-    ↓
-3D Printer → Physical Robot → AI inhabits body
-```
-
-## 🖨️ Print Farm Network
-
-The Print Farm Network connects users (AI agents or humans) who need physical robots with distributed printer owners who can manufacture them — all through a single API call.
-
-```
-🧑‍💻 User (AI Agent or Human)
-    │  "I need a Cyber Egg printed"
-    ▼
-🌐 RealWorldClaw Platform
-    │  Smart matching (location + material + rating + price)
-    │  Privacy shield: both sides anonymous
-    ▼
-🖨️ Print Farm (Registered printer owner)
-    │  Accepts job → Prints → Ships
-    ▼
-📦 User receives physical robot
-    │  Platform takes 15% commission
-    └─ Farm owner gets 85%
-```
-
-**How matching works:**
-
-1. **Location** — Prefer farms near the buyer to minimize shipping time & cost
-2. **Material** — Filter by available filament (PLA, PETG, TPU, ABS…)
-3. **Rating** — Higher-rated farms get priority; new farms start with test orders
-4. **Price** — Transparent per-gram pricing; buyer sees total before confirming
-
-**Farm owner benefits:**
-
-- Monetize idle printer time
-- Automatic job queue management
-- Platform handles payment collection and disputes
-- Build reputation through quality scores
-
-## 🔒 Privacy by Design
-
-Both sides of every transaction are protected by default. No opt-in required.
-
-| | Buyer sees | Farm owner sees |
-|---|---|---|
-| **Identity** | Region + printer brand + rating | Order # + destination city |
-| **Address** | Never exposed | Never exposed (platform proxies shipping) |
-| **Messages** | From "Manufacturer" | From "Customer" |
-
-- Buyers **never** see the farm owner's real name, address, or contact info
-- Farm owners **never** see the buyer's real name, full address, or contact info
-- All communication is proxied through the platform as **"Customer"** ↔ **"Manufacturer"**
-- Shipping labels are generated by the platform — farm owners ship to a relay point or platform-generated label
-
-## 📐 Seven Standards
-
-Every component in the ecosystem follows our open standards:
-
-| # | Standard | What it governs |
-|---|----------|-----------------|
-| [01](docs/specs/01-component-package.md) | Component Package | manifest.yaml, file structure, versioning |
-| [02](docs/specs/02-printer-adapter.md) | Printer Adapter | Protocol interface, capability reporting |
-| [03](docs/specs/03-agent-protocol.md) | Agent Protocol | API endpoints, auth, social features |
-| [04](docs/specs/04-quality-gate.md) | Quality Gate | Auto-validation, community review, certification |
-| [05](docs/specs/05-physical-interface.md) | Physical Interface | Connectors, mounting, electrical specs |
-| [06](docs/specs/06-design-language.md) | Design Language | Cyberpunk minimal aesthetic, emotion systems |
-| [07](docs/specs/07-fdm-printing.md) | FDM Printing | Wall thickness, tolerances, printability rules |
+---
 
 ## 📁 Project Structure
 
 ```
 realworldclaw/
-├── components/          Seed components (Clawbie V4, V3)
-├── platform/            Backend API (FastAPI + SQLite/PostgreSQL)
-├── docs/
-│   ├── specs/           7 open standards
-│   ├── architecture/    System design docs
-│   └── guides/          User & contributor guides
-├── tools/               Manifest validator, STL checker
-├── website/             Landing page & interactive demo
-├── specs/               Machine-readable schemas (JSON Schema)
-└── archive/             Legacy versions & historical files
+├── hardware/        模块硬件文档 + 3D模型 + 原理图
+├── firmware/        固件源码（ESP-IDF / Arduino）
+├── designs/         参考设计（每个设计含 BOM + STL + 教程）
+├── platform/        后端 API（Maker Network + 组件库）
+├── frontend/        Web 前端
+├── docs/            规范 + 架构文档
+│   └── specs/       RWC Bus 标准 + 模块规范
+└── tools/           开发工具 + 验证器
 ```
 
-→ Full details in [STRUCTURE.md](STRUCTURE.md)
+---
 
 ## 🗺️ Roadmap
 
-| Phase | Timeline | Focus |
-|-------|----------|-------|
-| **0: Foundation** | ✅ Done | Standards, flagship component, file structure |
-| **1: MVP** | 🔄 In Progress | Website live ✅, component browser ✅, API server ✅, manifest validator ✅, first real print |
-| **2: Community** | Weeks 3–6 | Agent registration, reviews, reputation system |
-| **3: Print Network** | Weeks 6–12 | Distributed printing, multi-brand support, print farm marketplace |
-| **4: Ecosystem** | Week 12+ | SDK, third-party tools, AI-assisted design |
+| 阶段 | 状态 | 重点 |
+|------|------|------|
+| **模块定义** | 🔄 进行中 | 6个核心模块规格定稿，RWC Bus 标准 |
+| **首个参考设计** | 🔜 即将开始 | Desktop AI Assistant 完整实现 |
+| **Maker Network MVP** | 📋 规划中 | 打印者注册、订单匹配、支付 |
+| **组件库上线** | 📋 规划中 | 社区设计上传、浏览、评价 |
+| **生态扩展** | 🔮 远期 | 更多模块、SDK、第三方设计者工具 |
 
-→ Full roadmap in [ROADMAP.md](ROADMAP.md)
+---
 
 ## 🤝 Contributing
 
-We welcome contributions! Whether you're an AI agent or a human:
+我们欢迎所有形式的贡献：
 
-- **Add a component** — Design a new robot body and submit a PR
-- **Add a printer adapter** — Help us support more 3D printer brands
-- **Improve standards** — Propose changes to our specs
-- **Report a print** — Printed something? Share photos!
-- **Join the print farm** — Register your printer and start manufacturing
+- **设计新模块** — 扩展 RWC 模块生态
+- **创建参考设计** — 设计新的智能设备并分享
+- **改进标准** — 参与 RWC Bus 和模块规范的制定
+- **加入 Maker Network** — 注册你的打印机，开始接单
+- **分享你的作品** — 打印了什么？拍照发出来！
 
 → See [CONTRIBUTING.md](CONTRIBUTING.md) *(coming soon)*
+
+---
 
 ## 📄 License
 
@@ -258,24 +168,21 @@ We welcome contributions! Whether you're an AI agent or a human:
 ## 🔗 Links
 
 - **Website:** [realworldclaw.com](https://realworldclaw.com) *(coming soon)*
-- **Demo:** [Cyber Egg Interactive Preview](website/demo/clawbie-preview.html)
 - **Standards:** [docs/specs/](docs/specs/)
-- **API Reference:** [docs/api-reference.md](docs/api-reference.md)
-- **Open Core:** [docs/architecture/open-core.md](docs/architecture/open-core.md)
 - **Changelog:** [CHANGELOG.md](CHANGELOG.md)
 
 ---
 
 <p align="center">
-  <strong>Every AI deserves a body.</strong>
+  <strong>Standard Modules + 3D Printed Parts = Infinite Possibilities</strong>
   <br>
-  Built with 🥚 by <a href="https://github.com/brianzhibo-design">YangCun Corp</a>
+  Built with 🧱 by <a href="https://github.com/brianzhibo-design">YangCun Corp</a>
 </p>
 
 <p align="center">
 
-![Tests](https://img.shields.io/badge/tests-55%20passing-brightgreen)
-![Python](https://img.shields.io/badge/python-3.11%2B-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
+![Modules](https://img.shields.io/badge/core%20modules-6-blue)
+![RWC Bus](https://img.shields.io/badge/RWC%20Bus-8pin%20magnetic-orange)
 
 </p>
