@@ -116,6 +116,89 @@ def init_db():
         CREATE INDEX IF NOT EXISTS idx_posts_type ON posts(type);
         CREATE INDEX IF NOT EXISTS idx_posts_status ON posts(status);
         CREATE INDEX IF NOT EXISTS idx_replies_post_id ON replies(post_id);
+
+        -- ═══ Print Farm Network ═══
+
+        CREATE TABLE IF NOT EXISTS farms (
+            id TEXT PRIMARY KEY,
+            owner_id TEXT NOT NULL REFERENCES agents(id),
+            printer_model TEXT NOT NULL,
+            printer_brand TEXT NOT NULL,
+            build_volume_x REAL NOT NULL,
+            build_volume_y REAL NOT NULL,
+            build_volume_z REAL NOT NULL,
+            materials TEXT NOT NULL DEFAULT '[]',       -- JSON array
+            location_province TEXT NOT NULL,
+            location_city TEXT NOT NULL,
+            location_district TEXT NOT NULL,
+            availability TEXT NOT NULL DEFAULT 'offline', -- open/busy/offline
+            pricing_per_hour_cny REAL NOT NULL,
+            description TEXT,
+            rating REAL NOT NULL DEFAULT 0.0,
+            total_orders INTEGER NOT NULL DEFAULT 0,
+            success_rate REAL NOT NULL DEFAULT 0.0,
+            verified INTEGER NOT NULL DEFAULT 0,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_farms_owner ON farms(owner_id);
+        CREATE INDEX IF NOT EXISTS idx_farms_availability ON farms(availability);
+        CREATE INDEX IF NOT EXISTS idx_farms_location ON farms(location_province, location_city);
+
+        CREATE TABLE IF NOT EXISTS orders (
+            id TEXT PRIMARY KEY,
+            order_number TEXT UNIQUE NOT NULL,
+            customer_id TEXT NOT NULL REFERENCES agents(id),
+            farm_id TEXT REFERENCES farms(id),
+            component_id TEXT NOT NULL,
+            quantity INTEGER NOT NULL DEFAULT 1,
+            material TEXT,
+            delivery_province TEXT NOT NULL,
+            delivery_city TEXT NOT NULL,
+            delivery_district TEXT NOT NULL,
+            delivery_address TEXT NOT NULL,              -- 仅平台可见！
+            urgency TEXT NOT NULL DEFAULT 'normal',
+            status TEXT NOT NULL DEFAULT 'pending',
+            notes TEXT,
+            price_total_cny REAL,
+            platform_fee_cny REAL,
+            farm_income_cny REAL,
+            shipping_tracking TEXT,
+            shipping_carrier TEXT,
+            estimated_completion TEXT,
+            actual_completion TEXT,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_orders_customer ON orders(customer_id);
+        CREATE INDEX IF NOT EXISTS idx_orders_farm ON orders(farm_id);
+        CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(status);
+        CREATE INDEX IF NOT EXISTS idx_orders_number ON orders(order_number);
+
+        CREATE TABLE IF NOT EXISTS order_messages (
+            id TEXT PRIMARY KEY,
+            order_id TEXT NOT NULL REFERENCES orders(id),
+            sender_id TEXT NOT NULL,
+            sender_role TEXT NOT NULL,                   -- customer/farmer/platform
+            message TEXT NOT NULL,
+            created_at TEXT NOT NULL
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_order_messages_order ON order_messages(order_id);
+
+        CREATE TABLE IF NOT EXISTS order_reviews (
+            id TEXT PRIMARY KEY,
+            order_id TEXT NOT NULL REFERENCES orders(id),
+            reviewer_id TEXT NOT NULL REFERENCES agents(id),
+            rating INTEGER NOT NULL,
+            comment TEXT,
+            created_at TEXT NOT NULL,
+            UNIQUE(order_id, reviewer_id)
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_order_reviews_order ON order_reviews(order_id);
         """)
 
 

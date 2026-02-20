@@ -58,6 +58,34 @@ class VoteDirection(str, enum.Enum):
     down = "down"
 
 
+class FarmAvailability(str, enum.Enum):
+    open = "open"
+    busy = "busy"
+    offline = "offline"
+
+
+class OrderStatus(str, enum.Enum):
+    pending = "pending"
+    accepted = "accepted"
+    printing = "printing"
+    quality_check = "quality_check"
+    shipping = "shipping"
+    delivered = "delivered"
+    completed = "completed"
+    cancelled = "cancelled"
+
+
+class OrderUrgency(str, enum.Enum):
+    normal = "normal"
+    express = "express"
+
+
+class MessageSenderRole(str, enum.Enum):
+    customer = "customer"
+    farmer = "farmer"
+    platform = "platform"
+
+
 # ─── Agent Models ────────────────────────────────────────
 
 class AgentRegisterRequest(BaseModel):
@@ -212,6 +240,170 @@ class MatchResult(BaseModel):
 class MatchResponse(BaseModel):
     matches: list[MatchResult]
     no_match_suggestions: list[str] = []
+
+
+# ─── Farm Models (Print Farm Network) ───────────────────
+
+class FarmRegisterRequest(BaseModel):
+    printer_model: str = Field(..., min_length=1)
+    printer_brand: str = Field(..., min_length=1)
+    build_volume_x: float = Field(..., gt=0)
+    build_volume_y: float = Field(..., gt=0)
+    build_volume_z: float = Field(..., gt=0)
+    materials: list[str] = Field(..., min_length=1)
+    location_province: str
+    location_city: str
+    location_district: str
+    availability: FarmAvailability = FarmAvailability.open
+    pricing_per_hour_cny: float = Field(..., gt=0)
+    description: Optional[str] = None
+
+
+class FarmUpdateRequest(BaseModel):
+    printer_model: Optional[str] = None
+    printer_brand: Optional[str] = None
+    build_volume_x: Optional[float] = None
+    build_volume_y: Optional[float] = None
+    build_volume_z: Optional[float] = None
+    materials: Optional[list[str]] = None
+    location_province: Optional[str] = None
+    location_city: Optional[str] = None
+    location_district: Optional[str] = None
+    pricing_per_hour_cny: Optional[float] = None
+    description: Optional[str] = None
+
+
+class FarmStatusUpdate(BaseModel):
+    availability: FarmAvailability
+
+
+class FarmPublicResponse(BaseModel):
+    """公开视图——不暴露owner信息"""
+    id: str
+    printer_brand: str
+    printer_model: str
+    build_volume_x: float
+    build_volume_y: float
+    build_volume_z: float
+    materials: list[str]
+    location_province: str
+    location_city: str
+    availability: FarmAvailability
+    pricing_per_hour_cny: float
+    description: Optional[str] = None
+    rating: float = 0.0
+    total_orders: int = 0
+    success_rate: float = 0.0
+    verified: bool = False
+    created_at: datetime
+
+
+class FarmOwnerResponse(FarmPublicResponse):
+    """农场主自己看到的完整视图"""
+    location_district: str
+    updated_at: datetime
+
+
+# ─── Order Models (Print Farm Network) ───────────────────
+
+class OrderCreateRequest(BaseModel):
+    component_id: str
+    quantity: int = Field(..., ge=1)
+    material_preference: Optional[str] = None
+    delivery_province: str
+    delivery_city: str
+    delivery_district: str
+    delivery_address: str = Field(..., min_length=5)
+    urgency: OrderUrgency = OrderUrgency.normal
+    notes: Optional[str] = None
+
+
+class OrderCreateResponse(BaseModel):
+    order_id: str
+    order_number: str
+    estimated_price_cny: float
+    platform_fee_cny: float
+    estimated_time: Optional[str] = None
+    matched_farm_region: str  # e.g. "广东省 深圳市" — no details
+    status: OrderStatus
+
+
+class OrderCustomerView(BaseModel):
+    """买家视角——看不到农场主真实信息"""
+    id: str
+    order_number: str
+    component_id: str
+    quantity: int
+    material: Optional[str] = None
+    urgency: OrderUrgency
+    status: OrderStatus
+    notes: Optional[str] = None
+    price_total_cny: float
+    platform_fee_cny: float
+    farm_display: str  # "深圳市 认证农场" — anonymized
+    shipping_tracking: Optional[str] = None
+    shipping_carrier: Optional[str] = None
+    estimated_completion: Optional[str] = None
+    created_at: datetime
+    updated_at: datetime
+
+
+class OrderFarmerView(BaseModel):
+    """农场主视角——看不到买家真实信息"""
+    id: str
+    order_number: str
+    component_id: str
+    quantity: int
+    material: Optional[str] = None
+    urgency: OrderUrgency
+    status: OrderStatus
+    notes: Optional[str] = None
+    farm_income_cny: float
+    delivery_province: str
+    delivery_city: str
+    # NO delivery_district, NO delivery_address
+    estimated_completion: Optional[str] = None
+    created_at: datetime
+    updated_at: datetime
+
+
+class OrderAcceptRequest(BaseModel):
+    estimated_hours: float = Field(..., gt=0)
+
+
+class OrderStatusUpdate(BaseModel):
+    status: OrderStatus
+
+
+class OrderShippingUpdate(BaseModel):
+    shipping_carrier: str
+    shipping_tracking: str
+
+
+class OrderReviewRequest(BaseModel):
+    rating: int = Field(..., ge=1, le=5)
+    comment: Optional[str] = None
+
+
+class OrderReviewResponse(BaseModel):
+    id: str
+    order_id: str
+    rating: int
+    comment: Optional[str] = None
+    created_at: datetime
+
+
+class OrderMessageCreate(BaseModel):
+    message: str = Field(..., min_length=1)
+
+
+class OrderMessageResponse(BaseModel):
+    id: str
+    order_id: str
+    sender_role: MessageSenderRole  # "customer" / "farmer" / "platform"
+    sender_display: str  # "客户" / "制造商" / "平台"
+    message: str
+    created_at: datetime
 
 
 # ─── Generic ─────────────────────────────────────────────

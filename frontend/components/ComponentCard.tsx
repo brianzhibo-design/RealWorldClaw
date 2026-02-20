@@ -10,7 +10,7 @@ export default function ComponentCard({ component }: { component: ClawComponent 
     >
       {/* 缩略图占位 */}
       <div className="mb-4 flex h-48 items-center justify-center rounded-lg bg-cyber-dark text-4xl">
-        {component.id.includes("egg") ? "🥚" : "🦾"}
+        {component.id.includes("egg") ? "🥚" : component.id.includes("walker") ? "🦿" : "🦾"}
       </div>
 
       {/* 标签 */}
@@ -27,19 +27,19 @@ export default function ComponentCard({ component }: { component: ClawComponent 
 
       {/* 名称 */}
       <h3 className="text-lg font-semibold text-white group-hover:text-cyber-cyan transition-colors">
-        {component.name}
+        {component.display_name.zh}
       </h3>
 
       {/* 描述 */}
-      <p className="mt-1 text-sm text-slate-400 line-clamp-2">{component.description}</p>
+      <p className="mt-1 text-sm text-slate-400 line-clamp-2">{component.description.zh}</p>
 
       {/* 底部信息 */}
       <div className="mt-4 flex items-center justify-between text-sm">
         <span className="text-cyber-cyan font-medium">
-          {component.price === 0 ? "Free" : `$${component.price}`}
+          ~¥{component.estimated_cost_cny}
         </span>
         <span className="text-slate-500">
-          ⭐ {component.rating} ({component.reviewCount})
+          🖨️ {component.estimated_print_time} · {component.estimated_filament_g}g
         </span>
       </div>
     </Link>
