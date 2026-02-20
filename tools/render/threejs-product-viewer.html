@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>3D Product Viewer</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 100%; height: 100%; overflow: hidden; background: #f0f0f0; font-family: system-ui, sans-serif; }
+  #canvas { width: 100%; height: 100%; display: block; }
+  #info {
+    position: absolute; top: 12px; left: 12px; background: rgba(0,0,0,0.6);
+    color: #fff; padding: 8px 14px; border-radius: 8px; font-size: 13px;
+    pointer-events: none; opacity: 0.8;
+  }
+  #loading {
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    background: #f0f0f0; color: #666; font-size: 18px; z-index: 10;
+    transition: opacity 0.5s;
+  }
+  #loading.hidden { opacity: 0; pointer-events: none; }
+  #drop-zone {
+    position: absolute; inset: 0; display: none; align-items: center; justify-content: center;
+    background: rgba(0,0,0,0.5); z-index: 20; color: #fff; font-size: 24px;
+  }
+  #drop-zone.active { display: flex; }
+</style>
+</head>
+<body>
+
+<div id="loading">Loading Three.js...</div>
+<div id="drop-zone">📦 Drop STL file here</div>
+<div id="info">Drag to rotate · Scroll to zoom · Drop STL to load</div>
+<canvas id="canvas"></canvas>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { STLLoader } from 'three/addons/loaders/STLLoader.js';
+
+// === URL PARAMS ===
+const params = new URLSearchParams(location.search);
+const AUTO_ROTATE = params.get('autoRotate') !== 'false';
+const CAMERA_ANGLE = parseFloat(params.get('cameraAngle') || '35'); // degrees from horizontal
+const BG_COLOR = params.get('bg') || '#f0f0f0';
+const MATERIAL_COLOR = params.get('color') || '#ffffff';
+const ROUGHNESS = parseFloat(params.get('roughness') || '0.35');
+const METALNESS = parseFloat(params.get('metalness') || '0.0');
+const CLEARCOAT = parseFloat(params.get('clearcoat') || '0.0');
+const EXPOSURE = parseFloat(params.get('exposure') || '1.0');
+
+// === RENDERER ===
+const canvas = document.getElementById('canvas');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = EXPOSURE;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+
+// === SCENE ===
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(BG_COLOR);
+
+// === CAMERA ===
+const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.01, 1000);
+const angleRad = THREE.MathUtils.degToRad(CAMERA_ANGLE);
+camera.position.set(0, Math.sin(angleRad) * 3, Math.cos(angleRad) * 3);
+
+// === CONTROLS ===
+const controls = new OrbitControls(camera, canvas);
+controls.enableDamping = true;
+controls.dampingFactor = 0.08;
+controls.autoRotate = AUTO_ROTATE;
+controls.autoRotateSpeed = 2.0;
+controls.minDistance = 0.5;
+controls.maxDistance = 20;
+controls.target.set(0, 0, 0);
+
+// === ENVIRONMENT (Procedural) ===
+const pmrem = new THREE.PMREMGenerator(renderer);
+pmrem.compileEquirectangularShader();
+
+function createStudioEnvironment() {
+  const envScene = new THREE.Scene();
+  envScene.background = new THREE.Color(0xe8e8e8);
+  
+  // Key light (warm, strong)
+  const key = new THREE.DirectionalLight(0xfff5e6, 4);
+  key.position.set(2, 4, 2);
+  envScene.add(key);
+  
+  // Fill light (cool, softer)
+  const fill = new THREE.DirectionalLight(0xe6f0ff, 2);
+  fill.position.set(-3, 2, -1);
+  envScene.add(fill);
+  
+  // Rim light (back)
+  const rim = new THREE.DirectionalLight(0xffffff, 3);
+  rim.position.set(0, 1, -4);
+  envScene.add(rim);
+  
+  // Hemisphere ambient
+  const hemi = new THREE.HemisphereLight(0xffffff, 0xb0b0b0, 2);
+  envScene.add(hemi);
+  
+  // Ground bounce card (large white plane below)
+  const groundGeo = new THREE.PlaneGeometry(20, 20);
+  const groundMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+  const ground = new THREE.Mesh(groundGeo, groundMat);
+  ground.rotation.x = -Math.PI / 2;
+  ground.position.y = -3;
+  envScene.add(ground);
+  
+  // Top card
+  const topCard = new THREE.Mesh(groundGeo, groundMat);
+  topCard.rotation.x = Math.PI / 2;
+  topCard.position.y = 5;
+  envScene.add(topCard);
+  
+  return pmrem.fromScene(envScene, 0, 0.1, 100).texture;
+}
+
+const envMap = createStudioEnvironment();
+scene.environment = envMap;
+
+// === GROUND SHADOW (subtle) ===
+const shadowGeo = new THREE.PlaneGeometry(5, 5);
+const shadowMat = new THREE.MeshBasicMaterial({
+  color: 0x000000, transparent: true, opacity: 0.08, depthWrite: false
+});
+const shadowPlane = new THREE.Mesh(shadowGeo, shadowMat);
+shadowPlane.rotation.x = -Math.PI / 2;
+shadowPlane.visible = false;
+scene.add(shadowPlane);
+
+// === MATERIAL ===
+function createProductMaterial() {
+  return new THREE.MeshPhysicalMaterial({
+    color: new THREE.Color(MATERIAL_COLOR),
+    metalness: METALNESS,
+    roughness: ROUGHNESS,
+    clearcoat: CLEARCOAT,
+    clearcoatRoughness: 0.1,
+    envMapIntensity: 1.2,
+    side: THREE.DoubleSide,
+  });
+}
+
+// === MODEL MANAGEMENT ===
+let currentModel = null;
+
+function loadSTLGeometry(geometry) {
+  // Remove old model
+  if (currentModel) {
+    scene.remove(currentModel);
+    currentModel.geometry.dispose();
+  }
+  
+  // Compute normals if missing
+  geometry.computeVertexNormals();
+  
+  // Center and scale
+  geometry.computeBoundingBox();
+  const box = geometry.boundingBox;
+  const center = new THREE.Vector3();
+  box.getCenter(center);
+  geometry.translate(-center.x, -center.y, -center.z);
+  
+  const size = new THREE.Vector3();
+  box.getSize(size);
+  const maxDim = Math.max(size.x, size.y, size.z);
+  const scale = 2.0 / maxDim; // fit in ~2 unit box
+  geometry.scale(scale, scale, scale);
+  
+  // Recompute after transform
+  geometry.computeBoundingBox();
+  const newBox = geometry.boundingBox;
+  // Sit on ground
+  const yOffset = -newBox.min.y;
+  geometry.translate(0, yOffset, 0);
+  
+  const mesh = new THREE.Mesh(geometry, createProductMaterial());
+  scene.add(mesh);
+  currentModel = mesh;
+  
+  // Update shadow plane
+  shadowPlane.position.y = 0 - 0.01;
+  shadowPlane.visible = true;
+  
+  // Update controls target to center of model
+  geometry.computeBoundingBox();
+  const modelCenter = new THREE.Vector3();
+  geometry.boundingBox.getCenter(modelCenter);
+  controls.target.copy(modelCenter);
+  
+  // Adjust camera distance
+  geometry.computeBoundingSphere();
+  const radius = geometry.boundingSphere.radius;
+  const dist = radius / Math.sin(THREE.MathUtils.degToRad(camera.fov / 2)) * 1.2;
+  camera.position.set(
+    Math.sin(angleRad) * 0.3 * dist,
+    Math.sin(angleRad) * dist * 0.8,
+    Math.cos(angleRad) * dist * 0.8
+  );
+  controls.update();
+}
+
+// === DEMO CUBE (shown when no model loaded) ===
+function loadDemoCube() {
+  const geo = new THREE.RoundedBoxGeometry
+    ? new THREE.BoxGeometry(1.2, 1.2, 1.2, 4, 4, 4)
+    : new THREE.BoxGeometry(1.2, 1.2, 1.2);
+  
+  if (currentModel) { scene.remove(currentModel); currentModel.geometry.dispose(); }
+  const mesh = new THREE.Mesh(geo, createProductMaterial());
+  mesh.position.y = 0.6;
+  scene.add(mesh);
+  currentModel = mesh;
+  shadowPlane.visible = true;
+  controls.target.set(0, 0.6, 0);
+}
+
+// === BASE64 STL EMBED ===
+// To embed a model: replace null with base64 string from `base64 -i model.stl`
+const MODEL_BASE64 = null;
+
+if (MODEL_BASE64) {
+  const binary = atob(MODEL_BASE64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  const loader = new STLLoader();
+  const geometry = loader.parse(bytes.buffer);
+  loadSTLGeometry(geometry);
+} else {
+  loadDemoCube();
+}
+
+document.getElementById('loading').classList.add('hidden');
+
+// === DRAG & DROP ===
+const dropZone = document.getElementById('drop-zone');
+
+document.addEventListener('dragover', (e) => {
+  e.preventDefault();
+  dropZone.classList.add('active');
+});
+document.addEventListener('dragleave', (e) => {
+  if (e.relatedTarget === null) dropZone.classList.remove('active');
+});
+document.addEventListener('drop', (e) => {
+  e.preventDefault();
+  dropZone.classList.remove('active');
+  const file = e.dataTransfer.files[0];
+  if (!file) return;
+  
+  const reader = new FileReader();
+  reader.onload = () => {
+    const loader = new STLLoader();
+    try {
+      const geometry = loader.parse(reader.result);
+      loadSTLGeometry(geometry);
+      document.getElementById('info').textContent = `${file.name} · Drag to rotate · Scroll to zoom`;
+    } catch (err) {
+      console.error('Failed to parse STL:', err);
+      alert('Failed to parse STL file');
+    }
+  };
+  reader.readAsArrayBuffer(file);
+});
+
+// === RESIZE ===
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+// === RENDER LOOP ===
+function animate() {
+  requestAnimationFrame(animate);
+  controls.update();
+  renderer.render(scene, camera);
+}
+animate();
+
+// === KEYBOARD SHORTCUTS ===
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'r' || e.key === 'R') {
+    controls.autoRotate = !controls.autoRotate;
+  }
+  if (e.key === 'f' || e.key === 'F') {
+    if (!document.fullscreenElement) canvas.requestFullscreen();
+    else document.exitFullscreen();
+  }
+});
+
+</script>
+</body>
+</html>
