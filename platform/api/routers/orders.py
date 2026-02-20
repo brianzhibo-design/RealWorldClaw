@@ -1,9 +1,13 @@
-"""订单系统路由 — Print Farm Network
+"""订单系统路由 — Maker Network
 
 核心隐私规则：
-- 买家永远看不到农场主真实身份/地址
-- 农场主永远看不到买家真实身份/详细地址
+- 买家永远看不到Maker真实身份/地址
+- Maker永远看不到买家真实身份/详细地址
 - 消息中转显示"客户"/"制造商"
+
+订单类型：
+- print_only: 只打印零件，maker和builder都能接
+- full_build: 成品组装，只有builder能接
 """
 
 from __future__ import annotations
@@ -27,7 +31,7 @@ from ..models.schemas import (
     OrderShippingUpdate,
     OrderStatusUpdate,
 )
-from ..services.matching import match_farm_for_order
+from ..services.matching import match_maker_for_order
 from .agents import get_current_agent
 
 router = APIRouter(prefix="/orders", tags=["orders"])
@@ -36,7 +40,7 @@ router = APIRouter(prefix="/orders", tags=["orders"])
 
 PLATFORM_FEE_NORMAL = 0.15
 PLATFORM_FEE_EXPRESS = 0.20
-_ROLE_DISPLAY = {"customer": "客户", "farmer": "制造商", "platform": "平台"}
+_ROLE_DISPLAY = {"customer": "客户", "maker": "制造商", "platform": "平台"}
 
 
 # ─── Helpers ─────────────────────────────────────────────
@@ -48,16 +52,18 @@ def _generate_order_number() -> str:
 
 
 def _customer_view(row: dict) -> dict:
-    """买家视角：隐藏农场主信息"""
-    farm_display = "待匹配"
-    if row.get("farm_id"):
+    """买家视角：隐藏Maker信息"""
+    maker_display = "待匹配"
+    if row.get("maker_id"):
         with get_db() as db:
-            farm = db.execute("SELECT location_city FROM farms WHERE id = ?", (row["farm_id"],)).fetchone()
-            if farm:
-                farm_display = f"{farm['location_city']} 认证农场"
+            maker = db.execute("SELECT location_city, maker_type FROM makers WHERE id = ?", (row["maker_id"],)).fetchone()
+            if maker:
+                type_label = "Builder" if maker["maker_type"] == "builder" else "Maker"
+                maker_display = f"{maker['location_city']} 认证{type_label}"
     return {
         "id": row["id"],
         "order_number": row["order_number"],
+        "order_type": row.get("order_type", "print_only"),
         "component_id": row["component_id"],
         "quantity": row["quantity"],
         "material": row["material"],
@@ -66,7 +72,7 @@ def _customer_view(row: dict) -> dict:
         "notes": row["notes"],
         "price_total_cny": row["price_total_cny"] or 0,
         "platform_fee_cny": row["platform_fee_cny"] or 0,
-        "farm_display": farm_display,
+        "maker_display": maker_display,
         "shipping_tracking": row["shipping_tracking"],
         "shipping_carrier": row["shipping_carrier"],
         "estimated_completion": row["estimated_completion"],
@@ -75,18 +81,19 @@ def _customer_view(row: dict) -> dict:
     }
 
 
-def _farmer_view(row: dict) -> dict:
-    """农场主视角：只看到省+市，隐藏区和详细地址"""
+def _maker_view(row: dict) -> dict:
+    """Maker视角：只看到省+市，隐藏区和详细地址"""
     return {
         "id": row["id"],
         "order_number": row["order_number"],
+        "order_type": row.get("order_type", "print_only"),
         "component_id": row["component_id"],
         "quantity": row["quantity"],
         "material": row["material"],
         "urgency": row["urgency"],
         "status": row["status"],
         "notes": row["notes"],
-        "farm_income_cny": row["farm_income_cny"] or 0,
+        "maker_income_cny": row["maker_income_cny"] or 0,
         "delivery_province": row["delivery_province"],
         "delivery_city": row["delivery_city"],
         # NO district, NO address — 隐私保护
@@ -99,10 +106,10 @@ def _farmer_view(row: dict) -> dict:
 def _get_user_role_for_order(db, order: dict, agent_id: str) -> str | None:
     if order["customer_id"] == agent_id:
         return "customer"
-    if order["farm_id"]:
-        farm = db.execute("SELECT owner_id FROM farms WHERE id = ?", (order["farm_id"],)).fetchone()
-        if farm and farm["owner_id"] == agent_id:
-            return "farmer"
+    if order["maker_id"]:
+        maker = db.execute("SELECT owner_id FROM makers WHERE id = ?", (order["maker_id"],)).fetchone()
+        if maker and maker["owner_id"] == agent_id:
+            return "maker"
     return None
 
 
@@ -115,41 +122,43 @@ def create_order(body: OrderCreateRequest, agent: dict = Depends(get_current_age
     order_number = _generate_order_number()
 
     with get_db() as db:
-        matches = match_farm_for_order(
+        matches = match_maker_for_order(
             db,
             body.delivery_province, body.delivery_city, body.delivery_district,
             body.material_preference,
+            order_type=body.order_type.value if body.order_type else "print_only",
         )
 
-        farm_id = None
-        farm_region = "待匹配"
+        maker_id = None
+        maker_region = "待匹配"
         estimated_price = 0.0
 
         if matches:
             best = matches[0]
-            farm_id = best["id"]
-            farm_region = f"{best['location_province']} {best['location_city']}"
+            maker_id = best["id"]
+            maker_region = f"{best['location_province']} {best['location_city']}"
             estimated_price = round(best["pricing_per_hour_cny"] * body.quantity * 2, 2)
 
         fee_rate = PLATFORM_FEE_EXPRESS if body.urgency == "express" else PLATFORM_FEE_NORMAL
         platform_fee = round(estimated_price * fee_rate, 2)
-        farm_income = round(estimated_price - platform_fee, 2)
+        maker_income = round(estimated_price - platform_fee, 2)
 
         db.execute(
             """INSERT INTO orders
-               (id, order_number, customer_id, farm_id, component_id, quantity, material,
+               (id, order_number, order_type, customer_id, maker_id, component_id, quantity, material,
                 delivery_province, delivery_city, delivery_district, delivery_address,
                 urgency, status, notes,
-                price_total_cny, platform_fee_cny, farm_income_cny,
+                price_total_cny, platform_fee_cny, maker_income_cny,
                 created_at, updated_at)
-               VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+               VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
             (
-                order_id, order_number, agent["id"], farm_id,
+                order_id, order_number, body.order_type.value if body.order_type else "print_only",
+                agent["id"], maker_id,
                 body.component_id, body.quantity, body.material_preference,
                 body.delivery_province, body.delivery_city, body.delivery_district,
-                body.delivery_address,  # 仅存数据库，不给农场主看
+                body.delivery_address,  # 仅存数据库，不给Maker看
                 body.urgency.value, "pending", body.notes,
-                estimated_price, platform_fee, farm_income,
+                estimated_price, platform_fee, maker_income,
                 now, now,
             ),
         )
@@ -157,10 +166,11 @@ def create_order(body: OrderCreateRequest, agent: dict = Depends(get_current_age
     return {
         "order_id": order_id,
         "order_number": order_number,
+        "order_type": body.order_type.value if body.order_type else "print_only",
         "estimated_price_cny": estimated_price,
         "platform_fee_cny": platform_fee,
         "estimated_time": "48小时" if body.urgency == "normal" else "24小时",
-        "matched_farm_region": farm_region,
+        "matched_maker_region": maker_region,
         "status": "pending",
     }
 
@@ -176,21 +186,21 @@ def list_orders(agent: dict = Depends(get_current_agent), page: int = Query(1, g
             (agent_id, per_page, offset),
         ).fetchall()
 
-        farm_ids = [r["id"] for r in db.execute("SELECT id FROM farms WHERE owner_id = ?", (agent_id,)).fetchall()]
+        maker_ids = [r["id"] for r in db.execute("SELECT id FROM makers WHERE owner_id = ?", (agent_id,)).fetchall()]
 
-    results: dict = {"as_customer": [], "as_farmer": []}
+    results: dict = {"as_customer": [], "as_maker": []}
     for r in customer_orders:
         results["as_customer"].append(_customer_view(dict(r)))
 
-    if farm_ids:
-        placeholders = ",".join("?" * len(farm_ids))
+    if maker_ids:
+        placeholders = ",".join("?" * len(maker_ids))
         with get_db() as db:
-            farmer_orders = db.execute(
-                f"SELECT * FROM orders WHERE farm_id IN ({placeholders}) ORDER BY created_at DESC LIMIT ? OFFSET ?",
-                farm_ids + [per_page, offset],
+            maker_orders = db.execute(
+                f"SELECT * FROM orders WHERE maker_id IN ({placeholders}) ORDER BY created_at DESC LIMIT ? OFFSET ?",
+                maker_ids + [per_page, offset],
             ).fetchall()
-        for r in farmer_orders:
-            results["as_farmer"].append(_farmer_view(dict(r)))
+        for r in maker_orders:
+            results["as_maker"].append(_maker_view(dict(r)))
 
     return results
 
@@ -206,8 +216,8 @@ def get_order(order_id: str, agent: dict = Depends(get_current_agent)):
 
     if role == "customer":
         return {"role": "customer", "order": _customer_view(order)}
-    elif role == "farmer":
-        return {"role": "farmer", "order": _farmer_view(order)}
+    elif role == "maker":
+        return {"role": "maker", "order": _maker_view(order)}
     raise HTTPException(status_code=403, detail="Not your order")
 
 
@@ -223,12 +233,12 @@ def accept_order(order_id: str, body: OrderAcceptRequest, agent: dict = Depends(
 
         if order["status"] != "pending":
             raise HTTPException(status_code=400, detail="Order is not pending")
-        if not order["farm_id"]:
-            raise HTTPException(status_code=400, detail="No farm assigned")
+        if not order["maker_id"]:
+            raise HTTPException(status_code=400, detail="No maker assigned")
 
-        farm = db.execute("SELECT owner_id FROM farms WHERE id = ?", (order["farm_id"],)).fetchone()
-        if not farm or farm["owner_id"] != agent["id"]:
-            raise HTTPException(status_code=403, detail="Not assigned to your farm")
+        maker = db.execute("SELECT owner_id FROM makers WHERE id = ?", (order["maker_id"],)).fetchone()
+        if not maker or maker["owner_id"] != agent["id"]:
+            raise HTTPException(status_code=403, detail="Not assigned to your maker profile")
 
         est = (datetime.now(timezone.utc) + timedelta(hours=body.estimated_hours)).isoformat()
         db.execute(
@@ -245,7 +255,8 @@ def update_order_status(order_id: str, body: OrderStatusUpdate, agent: dict = De
 
     valid_transitions = {
         "accepted": ["printing"],
-        "printing": ["quality_check"],
+        "printing": ["assembling", "quality_check"],
+        "assembling": ["quality_check"],
         "quality_check": ["shipping"],
         "shipping": ["delivered"],
     }
@@ -257,8 +268,8 @@ def update_order_status(order_id: str, body: OrderStatusUpdate, agent: dict = De
         order = dict(row)
 
         role = _get_user_role_for_order(db, order, agent["id"])
-        if role != "farmer":
-            raise HTTPException(status_code=403, detail="Only farm owner can update status")
+        if role != "maker":
+            raise HTTPException(status_code=403, detail="Only maker can update status")
 
         allowed = valid_transitions.get(order["status"], [])
         if body.status.value not in allowed:
@@ -280,8 +291,8 @@ def update_shipping(order_id: str, body: OrderShippingUpdate, agent: dict = Depe
         order = dict(row)
 
         role = _get_user_role_for_order(db, order, agent["id"])
-        if role != "farmer":
-            raise HTTPException(status_code=403, detail="Only farm owner can add shipping info")
+        if role != "maker":
+            raise HTTPException(status_code=403, detail="Only maker can add shipping info")
 
         db.execute(
             "UPDATE orders SET shipping_carrier = ?, shipping_tracking = ?, updated_at = ? WHERE id = ?",
@@ -310,8 +321,8 @@ def confirm_delivery(order_id: str, agent: dict = Depends(get_current_agent)):
             "UPDATE orders SET status = 'completed', actual_completion = ?, updated_at = ? WHERE id = ?",
             (now, now, order_id),
         )
-        if order["farm_id"]:
-            db.execute("UPDATE farms SET total_orders = total_orders + 1 WHERE id = ?", (order["farm_id"],))
+        if order["maker_id"]:
+            db.execute("UPDATE makers SET total_orders = total_orders + 1 WHERE id = ?", (order["maker_id"],))
 
     return {"order_id": order_id, "status": "completed"}
 
@@ -344,14 +355,14 @@ def review_order(order_id: str, body: OrderReviewRequest, agent: dict = Depends(
             (review_id, order_id, agent["id"], body.rating, body.comment, now),
         )
 
-        # 更新农场平均评分
-        if order["farm_id"]:
+        # 更新Maker平均评分
+        if order["maker_id"]:
             avg = db.execute(
-                "SELECT AVG(r.rating) as avg_r FROM order_reviews r JOIN orders o ON r.order_id = o.id WHERE o.farm_id = ?",
-                (order["farm_id"],),
+                "SELECT AVG(r.rating) as avg_r FROM order_reviews r JOIN orders o ON r.order_id = o.id WHERE o.maker_id = ?",
+                (order["maker_id"],),
             ).fetchone()
             if avg and avg["avg_r"]:
-                db.execute("UPDATE farms SET rating = ? WHERE id = ?", (round(avg["avg_r"], 2), order["farm_id"]))
+                db.execute("UPDATE makers SET rating = ? WHERE id = ?", (round(avg["avg_r"], 2), order["maker_id"]))
 
     return {"id": review_id, "order_id": order_id, "rating": body.rating, "comment": body.comment, "created_at": now}
 

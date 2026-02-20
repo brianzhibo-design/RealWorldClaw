@@ -1,6 +1,10 @@
-"""打印农场匹配引擎 — 为订单找到最优农场
+"""Maker匹配引擎 — 为订单找到最优Maker/Builder
 
 权重：地理距离40% + 材料匹配20% + 评分20% + 价格20%
+
+匹配规则：
+- print_only订单：maker和builder都能接
+- full_build订单：只有builder能接
 """
 
 from __future__ import annotations
@@ -9,23 +13,23 @@ import json
 import sqlite3
 
 
-def _geo_score(farm_province: str, farm_city: str, farm_district: str,
+def _geo_score(maker_province: str, maker_city: str, maker_district: str,
                order_province: str, order_city: str, order_district: str) -> float:
     """地理距离得分：同区1.0，同城0.8，同省0.5，跨省0.2"""
-    if farm_province == order_province:
-        if farm_city == order_city:
-            if farm_district == order_district:
+    if maker_province == order_province:
+        if maker_city == order_city:
+            if maker_district == order_district:
                 return 1.0
             return 0.8
         return 0.5
     return 0.2
 
 
-def _material_score(farm_materials: list[str], preferred: str | None) -> float:
+def _material_score(maker_materials: list[str], preferred: str | None) -> float:
     """材料匹配得分"""
     if not preferred:
         return 1.0  # 无偏好，全部匹配
-    for m in farm_materials:
+    for m in maker_materials:
         if preferred.lower() in m.lower() or m.lower() in preferred.lower():
             return 1.0
     return 0.0
@@ -44,43 +48,52 @@ def _price_score(price: float, all_prices: list[float]) -> float:
     return 1.0 - (price - mn) / (mx - mn)
 
 
-def match_farm_for_order(
+def match_maker_for_order(
     db: sqlite3.Connection,
     order_province: str,
     order_city: str,
     order_district: str,
     material_preference: str | None = None,
+    order_type: str = "print_only",
     limit: int = 5,
 ) -> list[dict]:
-    """返回按综合得分排序的最优农场列表。
+    """返回按综合得分排序的最优Maker列表。
 
-    Each result: {farm_id, score, geo_score, material_score, rating_score, price_score, ...farm fields}
+    - print_only: 所有open的maker和builder都参与匹配
+    - full_build: 只有builder参与匹配
+
+    Each result: {maker_id, score, geo_score, material_score, rating_score, price_score, ...maker fields}
     """
-    rows = db.execute(
-        "SELECT * FROM farms WHERE availability = 'open'",
-    ).fetchall()
+    if order_type == "full_build":
+        rows = db.execute(
+            "SELECT * FROM makers WHERE availability = 'open' AND maker_type = 'builder'",
+        ).fetchall()
+    else:
+        rows = db.execute(
+            "SELECT * FROM makers WHERE availability = 'open'",
+        ).fetchall()
 
     if not rows:
         return []
 
-    farms = [dict(r) for r in rows]
-    all_prices = [f["pricing_per_hour_cny"] for f in farms]
+    makers = [dict(r) for r in rows]
+    all_prices = [m["pricing_per_hour_cny"] for m in makers]
 
     scored: list[dict] = []
-    for f in farms:
-        materials = json.loads(f["materials"]) if isinstance(f["materials"], str) else f["materials"]
+    for m in makers:
+        materials = json.loads(m["materials"]) if isinstance(m["materials"], str) else m["materials"]
         geo = _geo_score(
-            f["location_province"], f["location_city"], f["location_district"],
+            m["location_province"], m["location_city"], m["location_district"],
             order_province, order_city, order_district,
         )
         mat = _material_score(materials, material_preference)
-        rat = _rating_score(f["rating"])
-        pri = _price_score(f["pricing_per_hour_cny"], all_prices)
+        rat = _rating_score(m["rating"])
+        pri = _price_score(m["pricing_per_hour_cny"], all_prices)
 
         total = geo * 0.4 + mat * 0.2 + rat * 0.2 + pri * 0.2
 
         scored.append({
-            **f,
+            **m,
             "materials_list": materials,
             "score": round(total, 4),
             "geo_score": round(geo, 2),
@@ -91,3 +104,7 @@ def match_farm_for_order(
 
     scored.sort(key=lambda x: x["score"], reverse=True)
     return scored[:limit]
+
+
+# 保留旧名别名，兼容可能的外部引用
+match_farm_for_order = match_maker_for_order

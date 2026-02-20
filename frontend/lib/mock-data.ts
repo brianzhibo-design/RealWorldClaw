@@ -88,60 +88,70 @@ export function getComponentById(id: string): ClawComponent | undefined {
   return mockComponents.find((c) => c.id === id);
 }
 
-/* ========== 打印农场 ========== */
+/* ========== Maker Network ========== */
 
-export interface PrintFarm {
+export interface Maker {
   id: string;
+  maker_type: "maker" | "builder";
   region: string;
   printer_brand: string;
   printer_model: string;
   materials: string[];
+  capabilities: string[];
   rating: number;
   total_orders: number;
   pricing_per_hour_cny: number;
   availability: "open" | "busy" | "offline";
 }
 
-export const mockFarms: PrintFarm[] = [
+export const mockMakers: Maker[] = [
   {
-    id: "farm-sh-pudong",
+    id: "maker-sh-pudong",
+    maker_type: "builder",
     region: "上海市 浦东新区",
     printer_brand: "Bambu Lab",
     printer_model: "X1 Carbon",
     materials: ["PLA", "PETG", "ABS", "TPU"],
+    capabilities: ["printing", "assembly", "testing"],
     rating: 4.9,
     total_orders: 328,
     pricing_per_hour_cny: 8,
     availability: "open",
   },
   {
-    id: "farm-sz-nanshan",
+    id: "maker-sz-nanshan",
+    maker_type: "maker",
     region: "深圳市 南山区",
     printer_brand: "Bambu Lab",
     printer_model: "P1S",
     materials: ["PLA", "PETG"],
+    capabilities: ["printing"],
     rating: 4.7,
     total_orders: 156,
     pricing_per_hour_cny: 6,
     availability: "open",
   },
   {
-    id: "farm-bj-haidian",
+    id: "maker-bj-haidian",
+    maker_type: "builder",
     region: "北京市 海淀区",
     printer_brand: "Creality",
     printer_model: "K1 Max",
     materials: ["PLA", "PETG", "ABS"],
+    capabilities: ["printing", "assembly", "testing"],
     rating: 4.5,
     total_orders: 89,
     pricing_per_hour_cny: 7,
     availability: "busy",
   },
   {
-    id: "farm-hz-xihu",
+    id: "maker-hz-xihu",
+    maker_type: "maker",
     region: "杭州市 西湖区",
     printer_brand: "Voron",
     printer_model: "2.4 r2",
     materials: ["PLA", "PETG", "ABS", "Nylon"],
+    capabilities: ["printing"],
     rating: 4.8,
     total_orders: 210,
     pricing_per_hour_cny: 10,
@@ -154,7 +164,8 @@ export const mockFarms: PrintFarm[] = [
 export interface Order {
   id: string;
   component_name: string;
-  status: "pending" | "printing" | "shipping" | "completed" | "cancelled";
+  order_type: "print_only" | "full_build";
+  status: "pending" | "printing" | "assembling" | "shipping" | "completed" | "cancelled";
   total_cny: number;
   created_at: string;
 }
@@ -163,6 +174,7 @@ export const mockOrders: Order[] = [
   {
     id: "ORD-20260218-001",
     component_name: "Clawbie V4 赛博蛋壳",
+    order_type: "full_build",
     status: "printing",
     total_cny: 95,
     created_at: "2026-02-18T14:30:00Z",
@@ -170,6 +182,7 @@ export const mockOrders: Order[] = [
   {
     id: "ORD-20260215-002",
     component_name: "Clawbie V3 机械爪",
+    order_type: "print_only",
     status: "completed",
     total_cny: 48,
     created_at: "2026-02-15T09:00:00Z",
@@ -177,6 +190,7 @@ export const mockOrders: Order[] = [
   {
     id: "ORD-20260210-003",
     component_name: "W11 步行底盘",
+    order_type: "print_only",
     status: "cancelled",
     total_cny: 140,
     created_at: "2026-02-10T16:20:00Z",

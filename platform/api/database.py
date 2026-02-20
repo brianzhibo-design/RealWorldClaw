@@ -118,17 +118,19 @@ def init_db():
         CREATE INDEX IF NOT EXISTS idx_posts_status ON posts(status);
         CREATE INDEX IF NOT EXISTS idx_replies_post_id ON replies(post_id);
 
-        -- ═══ Print Farm Network ═══
+        -- ═══ Maker Network ═══
 
-        CREATE TABLE IF NOT EXISTS farms (
+        CREATE TABLE IF NOT EXISTS makers (
             id TEXT PRIMARY KEY,
             owner_id TEXT NOT NULL REFERENCES agents(id),
+            maker_type TEXT NOT NULL DEFAULT 'maker',  -- 'maker' | 'builder'
             printer_model TEXT NOT NULL,
             printer_brand TEXT NOT NULL,
             build_volume_x REAL NOT NULL,
             build_volume_y REAL NOT NULL,
             build_volume_z REAL NOT NULL,
             materials TEXT NOT NULL DEFAULT '[]',       -- JSON array
+            capabilities TEXT NOT NULL DEFAULT '["printing"]',  -- JSON array: printing/assembly/testing
             location_province TEXT NOT NULL,
             location_city TEXT NOT NULL,
             location_district TEXT NOT NULL,
@@ -143,15 +145,17 @@ def init_db():
             updated_at TEXT NOT NULL
         );
 
-        CREATE INDEX IF NOT EXISTS idx_farms_owner ON farms(owner_id);
-        CREATE INDEX IF NOT EXISTS idx_farms_availability ON farms(availability);
-        CREATE INDEX IF NOT EXISTS idx_farms_location ON farms(location_province, location_city);
+        CREATE INDEX IF NOT EXISTS idx_makers_owner ON makers(owner_id);
+        CREATE INDEX IF NOT EXISTS idx_makers_availability ON makers(availability);
+        CREATE INDEX IF NOT EXISTS idx_makers_location ON makers(location_province, location_city);
+        CREATE INDEX IF NOT EXISTS idx_makers_type ON makers(maker_type);
 
         CREATE TABLE IF NOT EXISTS orders (
             id TEXT PRIMARY KEY,
             order_number TEXT UNIQUE NOT NULL,
+            order_type TEXT NOT NULL DEFAULT 'print_only',  -- 'print_only' | 'full_build'
             customer_id TEXT NOT NULL REFERENCES agents(id),
-            farm_id TEXT REFERENCES farms(id),
+            maker_id TEXT REFERENCES makers(id),
             component_id TEXT NOT NULL,
             quantity INTEGER NOT NULL DEFAULT 1,
             material TEXT,
@@ -164,7 +168,7 @@ def init_db():
             notes TEXT,
             price_total_cny REAL,
             platform_fee_cny REAL,
-            farm_income_cny REAL,
+            maker_income_cny REAL,
             shipping_tracking TEXT,
             shipping_carrier TEXT,
             estimated_completion TEXT,
@@ -174,7 +178,7 @@ def init_db():
         );
 
         CREATE INDEX IF NOT EXISTS idx_orders_customer ON orders(customer_id);
-        CREATE INDEX IF NOT EXISTS idx_orders_farm ON orders(farm_id);
+        CREATE INDEX IF NOT EXISTS idx_orders_maker ON orders(maker_id);
         CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(status);
         CREATE INDEX IF NOT EXISTS idx_orders_number ON orders(order_number);
 
@@ -182,7 +186,7 @@ def init_db():
             id TEXT PRIMARY KEY,
             order_id TEXT NOT NULL REFERENCES orders(id),
             sender_id TEXT NOT NULL,
-            sender_role TEXT NOT NULL,                   -- customer/farmer/platform
+            sender_role TEXT NOT NULL,                   -- customer/maker/platform
             message TEXT NOT NULL,
             created_at TEXT NOT NULL
         );

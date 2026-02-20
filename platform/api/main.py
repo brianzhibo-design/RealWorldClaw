@@ -7,7 +7,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from .database import get_db, init_db
-from .routers import agents, components, farms, match, orders, posts
+from .routers import agents, components, makers, match, orders, posts
 
 VERSION = "0.1.0"
 
@@ -22,7 +22,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title="RealWorldClaw Platform API",
-    description="Agent-driven 3D printing component platform",
+    description="Agent-driven 3D printing component platform — Maker Network",
     version=VERSION,
     lifespan=lifespan,
 )
@@ -32,7 +32,7 @@ app.include_router(agents.router, prefix="/api/v1")
 app.include_router(components.router, prefix="/api/v1")
 app.include_router(posts.router, prefix="/api/v1")
 app.include_router(match.router, prefix="/api/v1")
-app.include_router(farms.router, prefix="/api/v1")
+app.include_router(makers.router, prefix="/api/v1")
 app.include_router(orders.router, prefix="/api/v1")
 
 

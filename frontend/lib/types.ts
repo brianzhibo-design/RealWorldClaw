@@ -34,16 +34,18 @@ export interface ComponentListResponse {
   components: ComponentResponse[];
 }
 
-// ─── Farm ───────────────────────────────────────────────
+// ─── Maker ──────────────────────────────────────────────
 
-export interface FarmPublic {
+export interface MakerPublic {
   id: string;
+  maker_type: "maker" | "builder";
   printer_brand: string;
   printer_model: string;
   build_volume_x: number;
   build_volume_y: number;
   build_volume_z: number;
   materials: string[];
+  capabilities: string[];
   location_province: string;
   location_city: string;
   availability: "open" | "busy" | "offline";
@@ -61,6 +63,7 @@ export interface FarmPublic {
 export interface OrderResponse {
   id: string;
   order_number: string;
+  order_type: "print_only" | "full_build";
   component_id: string;
   quantity: number;
   material: string | null;
@@ -69,7 +72,7 @@ export interface OrderResponse {
   notes: string | null;
   price_total_cny: number;
   platform_fee_cny: number;
-  farm_display: string;
+  maker_display: string;
   shipping_tracking: string | null;
   shipping_carrier: string | null;
   estimated_completion: string | null;
