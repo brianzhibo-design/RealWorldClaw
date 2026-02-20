@@ -1,0 +1,48 @@
+name: Hexapod Walker
+id: hexapod-walker
+version: 1.0.0
+description: 六足行走机器人 - RealWorldClaw参考设计#2
+author: RealWorldClaw
+
+difficulty: intermediate
+build_time: 2h
+cost_cny: 88
+
+modules:
+  - id: core
+    quantity: 1
+  - id: power
+    quantity: 1
+  - id: display
+    quantity: 1
+  - id: servo
+    quantity: 1
+
+additional_parts:
+  - name: SG90 Servo
+    quantity: 6
+    cost_cny: 5
+  - name: M2x8 Screw
+    quantity: 18
+  - name: Dupont Wire
+    quantity: 12
+
+printed_parts:
+  - file: models/body.stl
+    quantity: 1
+    material: PLA
+    supports: false
+  - file: models/leg.stl
+    quantity: 6
+    material: PLA
+    supports: false
+
+firmware: firmware/examples/hexapod_gait.cpp
+
+servo_channels:
+  0: leg_1_right_front
+  1: leg_2_left_front
+  2: leg_3_right_mid
+  3: leg_4_left_mid
+  4: leg_5_right_rear
+  5: leg_6_left_rear
