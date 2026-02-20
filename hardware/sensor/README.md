@@ -8,13 +8,16 @@
 - BH1750 光照传感器（I2C 0x23，1-65535 lx）
 - 3.3V供电（从Bus 3V3取电）
 
-## RWC Bus连接
-| Pin | 功能 |
-|-----|------|
+## RWC Bus引脚映射
+| Bus Pin | 功能 |
+|---------|------|
+| 5V | 未使用 |
 | 3V3 | 模块供电 |
 | GND | 公共地 |
 | SDA | I2C数据（SHT30 + BH1750共享） |
 | SCL | I2C时钟 |
+| TX-MOSI | 未使用 |
+| RX-MISO | 未使用 |
 | ID | DS28E05 1-Wire EEPROM |
 
 ## BOM
@@ -30,7 +33,7 @@
 | 7 | PCB (20×20mm) | 2层 | 1 | 0.8 |
 | | **合计** | | | **≈¥10.0** |
 
-注：超预算约¥2，同样因Pogo Pin和EEPROM。批量可降。
+注：Pogo Pin和EEPROM占成本较大，批量采购可降低。
 
 ## 模块ID
 DS28E05 EEPROM内容: `{"type":"sensor","ver":"1.0","sensors":["sht30","bh1750"]}`

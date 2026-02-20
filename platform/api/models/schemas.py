@@ -320,12 +320,6 @@ class MakerOwnerResponse(MakerPublicResponse):
     updated_at: datetime
 
 
-# 保留旧名别名
-FarmRegisterRequest = MakerRegisterRequest
-FarmUpdateRequest = MakerUpdateRequest
-FarmStatusUpdate = MakerStatusUpdate
-FarmPublicResponse = MakerPublicResponse
-FarmOwnerResponse = MakerOwnerResponse
 
 
 # ─── Order Models (Maker Network) ────────────────────────

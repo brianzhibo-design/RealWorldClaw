@@ -6,7 +6,7 @@ from fastapi import Header, HTTPException
 
 from .database import get_db
 
-# Hardcoded test key for MVP development
+# TODO: remove hardcoded key before production — move to environment variable
 _VALID_API_KEYS = {"rwc-test-key-2026"}
 
 

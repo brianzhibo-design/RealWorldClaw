@@ -387,7 +387,7 @@ def test_full_build_requires_builder():
         "buyer-eve", "Eve买家", "我要一个完整的成品机器人"
     )
     key_f = register_and_activate(
-        "maker-frank", "Frank纯Maker", "只做打印，不做组装"
+        "maker-frank", "Frank纯Maker", "只做打印服务，不做组装和测试"
     )
 
     # Frank注册为纯maker
