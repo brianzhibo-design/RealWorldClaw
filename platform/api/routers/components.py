@@ -116,13 +116,21 @@ def create_component(
         if existing:
             raise HTTPException(409, {"code": "ID_TAKEN", "message": f"Component '{req.id}' already exists"})
 
+        # W9: 如果display_name/description是dict，提取en值
+        display_name = req.display_name
+        if isinstance(display_name, dict):
+            display_name = display_name.get("en", display_name.get("zh", str(display_name)))
+        description = req.description
+        if isinstance(description, dict):
+            description = description.get("en", description.get("zh", str(description)))
+
         db.execute(
             """INSERT INTO components (id, display_name, description, version, author_id,
                tags, capabilities, compute, material, estimated_cost_cny,
                estimated_print_time, estimated_filament_g, status,
                downloads, rating, review_count, created_at, updated_at)
                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'unverified', 0, 0.0, 0, ?, ?)""",
-            (req.id, req.display_name, req.description, req.version, agent["id"],
+            (req.id, display_name, description, req.version, agent["id"],
              json.dumps(req.tags), json.dumps(req.capabilities),
              req.compute, req.material, req.estimated_cost_cny,
              req.estimated_print_time, req.estimated_filament_g, now, now),

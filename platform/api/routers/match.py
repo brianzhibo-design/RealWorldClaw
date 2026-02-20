@@ -55,7 +55,15 @@ def _compute_score(component: dict, req: MatchRequest) -> tuple[float, str]:
         elif cost <= req.budget_cny * 1.3:
             score += 0.05
 
-    # 5. 社区评价加分 (0-0.1)
+    # 5. 材料匹配 (0-0.15)
+    component_material = (component.get("material") or "").lower()
+    printer_materials = [m.lower() for m in getattr(req, "printer_materials", None) or []]
+    if component_material and printer_materials:
+        if component_material in printer_materials:
+            score += 0.15
+            reasons.append(f"材料匹配 ({component_material})")
+
+    # 6. 社区评价加分 (0-0.1)
     if component["review_count"] > 0:
         score += min(component["rating"] / 5.0 * 0.1, 0.1)
 

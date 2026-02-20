@@ -48,10 +48,10 @@ def list_posts(
     conditions = []
     params: list = []
     if type:
-        conditions.append("type = ?")
+        conditions.append("posts.type = ?")
         params.append(type)
     if status:
-        conditions.append("status = ?")
+        conditions.append("posts.status = ?")
         params.append(status)
 
     where = f"WHERE {' AND '.join(conditions)}" if conditions else ""

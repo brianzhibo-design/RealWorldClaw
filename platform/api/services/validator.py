@@ -16,8 +16,13 @@ from jsonschema import Draft202012Validator
 
 logger = logging.getLogger(__name__)
 
-# Schema 路径（相对于项目根目录）
-_SCHEMA_PATH = Path(__file__).resolve().parents[3] / "tools" / "manifest-validator" / "schema.json"
+# Schema 路径：优先环境变量 → fallback到同目录 → fallback到项目根目录
+import os as _os
+_SCHEMA_PATH = Path(_os.environ.get("SCHEMA_PATH", ""))
+if not _SCHEMA_PATH.exists():
+    _SCHEMA_PATH = Path(__file__).resolve().parent / "schema.json"
+if not _SCHEMA_PATH.exists():
+    _SCHEMA_PATH = Path(__file__).resolve().parents[3] / "tools" / "manifest-validator" / "schema.json"
 
 COMPLETENESS_FIELDS = ["has_models", "has_wiring", "has_firmware", "has_agent", "has_docs"]
 
