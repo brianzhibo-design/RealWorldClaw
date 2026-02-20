@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RWC Desktop Assistant — Product Demo</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0a0a0f;--card:#12121a;--neon-blue:#00d4ff;--neon-purple:#a855f7;--neon-green:#22c55e;--neon-pink:#f472b6;--text:#e2e8f0;--text-dim:#64748b}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;overflow-x:hidden;min-height:100vh}
+h1,h2,h3{font-weight:700}
+
+/* Hero */
+.hero{text-align:center;padding:60px 20px 20px}
+.hero h1{font-size:2.8rem;background:linear-gradient(135deg,var(--neon-blue),var(--neon-purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:12px}
+.hero .tagline{font-size:1.3rem;color:var(--text-dim);margin-bottom:8px}
+.hero .tagline span{color:var(--neon-green);font-weight:700}
+
+/* 3D Scene */
+.scene-wrapper{display:flex;justify-content:center;align-items:center;padding:20px;perspective:1200px;min-height:480px;position:relative}
+.scene{width:320px;height:380px;position:relative;transform-style:preserve-3d;transition:transform 0.1s linear}
+
+/* Device — pebble shape */
+.device{position:absolute;width:100%;height:100%;transform-style:preserve-3d}
+
+.face{position:absolute;backface-visibility:hidden;border-radius:40px}
+
+/* Front */
+.face.front{width:260px;height:340px;left:30px;top:20px;background:linear-gradient(145deg,#1e1e2e,#16161f);border:2px solid rgba(168,85,247,0.3);transform:translateZ(45px);box-shadow:0 0 40px rgba(168,85,247,0.15);overflow:hidden}
+
+/* Back */
+.face.back{width:260px;height:340px;left:30px;top:20px;background:linear-gradient(145deg,#1a1a28,#111118);border:2px solid rgba(0,212,255,0.15);transform:translateZ(-45px) rotateY(180deg)}
+
+/* Left */
+.face.left{width:90px;height:340px;left:-15px;top:20px;background:linear-gradient(180deg,#18182a,#111120);border:2px solid rgba(168,85,247,0.15);transform:rotateY(-90deg) translateZ(30px);border-radius:40px}
+
+/* Right */
+.face.right{width:90px;height:340px;right:-15px;top:20px;background:linear-gradient(180deg,#18182a,#111120);border:2px solid rgba(168,85,247,0.15);transform:rotateY(90deg) translateZ(230px);border-radius:40px}
+
+/* Top */
+.face.top{width:260px;height:90px;left:30px;top:-25px;background:linear-gradient(90deg,#18182a,#1a1a2e);border:2px solid rgba(0,212,255,0.15);transform:rotateX(90deg) translateZ(25px);border-radius:40px;display:flex;justify-content:center;align-items:center}
+
+/* Bottom */
+.face.bottom{width:260px;height:90px;left:30px;bottom:-25px;background:#111118;border:2px solid rgba(34,197,94,0.2);transform:rotateX(-90deg) translateZ(315px);border-radius:40px;overflow:hidden}
+
+/* OLED Screen */
+.oled{position:absolute;top:30px;left:20px;right:20px;bottom:80px;background:#000;border-radius:24px;border:2px solid rgba(0,212,255,0.2);overflow:hidden;display:flex;justify-content:center;align-items:center}
+
+/* Pixel face */
+.pixel-face{display:flex;flex-direction:column;align-items:center;gap:16px}
+.eyes{display:flex;gap:28px}
+.eye{width:28px;height:28px;background:var(--neon-blue);border-radius:6px;transition:all 0.3s;position:relative}
+.eye.blink{height:4px;border-radius:2px;margin-top:12px}
+.eye.surprised{width:32px;height:36px;border-radius:50%;background:var(--neon-blue)}
+.eye.think{border-radius:50%;width:24px;height:24px}
+.eye.think.right-eye{opacity:0.4}
+.eye.happy{height:16px;border-radius:0 0 14px 14px;margin-top:6px}
+
+.mouth{width:20px;height:8px;background:var(--neon-pink);border-radius:0 0 10px 10px;transition:all 0.3s}
+.mouth.smile{width:32px;height:14px;border-radius:0 0 16px 16px}
+.mouth.surprised{width:18px;height:22px;border-radius:50%;background:var(--neon-pink)}
+.mouth.think{width:14px;height:6px;border-radius:3px;transform:translateX(10px)}
+.mouth.happy{width:36px;height:16px;border-radius:0 0 18px 18px;background:var(--neon-pink)}
+
+/* Speaker grille */
+.speaker-grille{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);display:flex;flex-direction:column;gap:6px}
+.grille-line{width:40px;height:2px;background:rgba(168,85,247,0.3);border-radius:1px}
+
+/* Mic */
+.mic-indicator{width:10px;height:10px;background:var(--neon-green);border-radius:50%;box-shadow:0 0 10px var(--neon-green);animation:mic-pulse 2s infinite}
+@keyframes mic-pulse{0%,100%{opacity:0.4}50%{opacity:1}}
+
+/* RGB bottom glow */
+.rgb-glow{position:absolute;bottom:0;left:0;right:0;height:100%;background:linear-gradient(90deg,#ff0040,#00d4ff,#a855f7,#22c55e,#ff0040);background-size:300% 100%;animation:rgb-shift 4s linear infinite;opacity:0.4;border-radius:40px;filter:blur(8px)}
+@keyframes rgb-shift{0%{background-position:0%}100%{background-position:300%}}
+
+/* Sound wave */
+.sound-wave{position:absolute;bottom:50px;left:20px;right:20px;height:40px;display:flex;align-items:center;justify-content:center;gap:3px;opacity:0;transition:opacity 0.3s}
+.sound-wave.active{opacity:1}
+.wave-bar{width:3px;background:var(--neon-purple);border-radius:2px;animation:wave 0.6s ease-in-out infinite alternate}
+@keyframes wave{from{height:4px}to{height:24px}}
+
+/* Speech bubble */
+.speech-bubble{position:absolute;top:60px;right:-220px;background:var(--card);border:1px solid var(--neon-blue);border-radius:16px;padding:16px 20px;font-size:0.95rem;color:var(--neon-blue);opacity:0;transition:all 0.5s;white-space:nowrap;pointer-events:none}
+.speech-bubble.active{opacity:1;right:-240px}
+.speech-bubble::before{content:'';position:absolute;left:-8px;top:50%;transform:translateY(-50%);border:8px solid transparent;border-right-color:var(--neon-blue)}
+
+/* Sensor data */
+.sensor-data{position:absolute;top:180px;left:-240px;background:var(--card);border:1px solid var(--neon-green);border-radius:16px;padding:16px 20px;font-size:0.85rem;opacity:0;transition:all 0.5s;pointer-events:none}
+.sensor-data.active{opacity:1;left:-260px}
+.sensor-data div{margin:4px 0;color:var(--neon-green)}
+.sensor-data span{color:var(--text)}
+
+/* Explode mode */
+.device.exploded .module-core{transform:translateY(120px) translateZ(-60px);border-color:var(--neon-green)!important}
+.device.exploded .module-display{transform:translateZ(140px);border-color:var(--neon-blue)!important}
+.device.exploded .module-audio{transform:translateX(160px) rotateY(90deg) translateZ(230px);border-color:var(--neon-purple)!important}
+
+.face{transition:all 0.8s cubic-bezier(0.34,1.56,0.64,1)}
+
+/* Module labels */
+.module-label{position:absolute;font-size:0.8rem;font-weight:700;opacity:0;transition:all 0.8s;white-space:nowrap;pointer-events:none}
+.device.exploded .module-label{opacity:1}
+.label-core{bottom:-55px;left:50%;transform:translateX(-50%) translateZ(45px);color:var(--neon-green)}
+.label-display{top:-35px;left:50%;transform:translateX(-50%) translateZ(140px);color:var(--neon-blue)}
+.label-audio{top:50%;right:-120px;transform:translateY(-50%) translateZ(0);color:var(--neon-purple)}
+
+/* Controls */
+.controls{display:flex;flex-wrap:wrap;justify-content:center;gap:12px;padding:20px;max-width:700px;margin:0 auto}
+.btn{padding:12px 24px;border:2px solid;border-radius:12px;background:transparent;color:var(--text);font-size:0.9rem;font-weight:600;cursor:pointer;transition:all 0.3s;font-family:inherit}
+.btn:hover{transform:translateY(-2px)}
+.btn-blue{border-color:var(--neon-blue);color:var(--neon-blue)}
+.btn-blue:hover{background:rgba(0,212,255,0.1);box-shadow:0 0 20px rgba(0,212,255,0.2)}
+.btn-purple{border-color:var(--neon-purple);color:var(--neon-purple)}
+.btn-purple:hover{background:rgba(168,85,247,0.1);box-shadow:0 0 20px rgba(168,85,247,0.2)}
+.btn-green{border-color:var(--neon-green);color:var(--neon-green)}
+.btn-green:hover{background:rgba(34,197,94,0.1);box-shadow:0 0 20px rgba(34,197,94,0.2)}
+.btn-pink{border-color:var(--neon-pink);color:var(--neon-pink)}
+.btn-pink:hover{background:rgba(244,114,182,0.1);box-shadow:0 0 20px rgba(244,114,182,0.2)}
+
+/* Modules section */
+.modules{display:flex;justify-content:center;gap:24px;padding:40px 20px;flex-wrap:wrap}
+.module-card{background:var(--card);border-radius:20px;padding:28px;width:200px;text-align:center;border:2px solid transparent;transition:all 0.3s}
+.module-card:hover{transform:translateY(-4px)}
+.module-card.core{border-color:rgba(34,197,94,0.3)}.module-card.core:hover{box-shadow:0 0 30px rgba(34,197,94,0.15)}
+.module-card.display{border-color:rgba(0,212,255,0.3)}.module-card.display:hover{box-shadow:0 0 30px rgba(0,212,255,0.15)}
+.module-card.audio{border-color:rgba(168,85,247,0.3)}.module-card.audio:hover{box-shadow:0 0 30px rgba(168,85,247,0.15)}
+.module-card .icon{font-size:2.2rem;margin-bottom:10px}
+.module-card h3{font-size:1.1rem;margin-bottom:6px}
+.module-card .price{font-size:1.4rem;font-weight:700;margin:8px 0}
+.module-card.core .price{color:var(--neon-green)}
+.module-card.display .price{color:var(--neon-blue)}
+.module-card.audio .price{color:var(--neon-purple)}
+.module-card .desc{font-size:0.8rem;color:var(--text-dim);line-height:1.4}
+
+/* CTA */
+.cta{text-align:center;padding:40px 20px 80px}
+.cta-btn{display:inline-block;padding:18px 48px;background:linear-gradient(135deg,var(--neon-blue),var(--neon-purple));border:none;border-radius:16px;color:#fff;font-size:1.2rem;font-weight:700;cursor:pointer;transition:all 0.3s;font-family:inherit;text-decoration:none}
+.cta-btn:hover{transform:translateY(-3px);box-shadow:0 10px 40px rgba(0,212,255,0.3)}
+
+/* Drag hint */
+.drag-hint{text-align:center;color:var(--text-dim);font-size:0.8rem;margin-top:-10px;opacity:0.6}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <h1>RWC Desktop Assistant</h1>
+  <p class="tagline">Your AI's first body. <span>¥53</span>. 5 minutes to build.</p>
+</div>
+
+<div class="scene-wrapper">
+  <div class="sensor-data" id="sensorData">
+    <div>🌡 Temp: <span>24.3°C</span></div>
+    <div>💧 Humidity: <span>58%</span></div>
+    <div>☀️ Light: <span>420 lux</span></div>
+  </div>
+
+  <div class="scene" id="scene">
+    <div class="device" id="device">
+      <!-- Front (Display module) -->
+      <div class="face front module-display">
+        <div class="oled" id="oled">
+          <div class="pixel-face" id="pixelFace">
+            <div class="eyes">
+              <div class="eye left-eye" id="leftEye"></div>
+              <div class="eye right-eye" id="rightEye"></div>
+            </div>
+            <div class="mouth" id="mouth"></div>
+          </div>
+        </div>
+        <div class="sound-wave" id="soundWave"></div>
+        <div class="module-label label-display">Display 😊 — ¥18</div>
+      </div>
+
+      <!-- Back -->
+      <div class="face back"></div>
+
+      <!-- Left (Audio module) -->
+      <div class="face left module-audio">
+        <div class="speaker-grille">
+          <div class="grille-line"></div><div class="grille-line"></div>
+          <div class="grille-line"></div><div class="grille-line"></div>
+          <div class="grille-line"></div><div class="grille-line"></div>
+          <div class="grille-line"></div>
+        </div>
+        <div class="module-label label-audio">Audio 👂 — ¥15</div>
+      </div>
+
+      <!-- Right -->
+      <div class="face right">
+        <div class="speaker-grille">
+          <div class="grille-line"></div><div class="grille-line"></div>
+          <div class="grille-line"></div><div class="grille-line"></div>
+          <div class="grille-line"></div><div class="grille-line"></div>
+          <div class="grille-line"></div>
+        </div>
+      </div>
+
+      <!-- Top -->
+      <div class="face top">
+        <div class="mic-indicator"></div>
+      </div>
+
+      <!-- Bottom (Core module) -->
+      <div class="face bottom module-core">
+        <div class="rgb-glow"></div>
+        <div class="module-label label-core">Core 🧠 — ¥20</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="speech-bubble" id="speechBubble">Hello! I'm your AI assistant 🤖</div>
+</div>
+<p class="drag-hint">🖱 Drag to rotate</p>
+
+<div class="controls">
+  <button class="btn btn-blue" id="btnExplode">💥 Explode</button>
+  <button class="btn btn-purple" id="btnHello">🔊 Say Hello</button>
+  <button class="btn btn-pink" id="btnEmotion">😊 Show Emotion</button>
+  <button class="btn btn-green" id="btnSense">🌡 Sense Environment</button>
+</div>
+
+<div class="modules">
+  <div class="module-card core">
+    <div class="icon">🧠</div>
+    <h3>Core</h3>
+    <div class="price">¥20</div>
+    <div class="desc">ESP32-S3 主控<br>WiFi + BLE<br>温湿度 + 光照传感器</div>
+  </div>
+  <div class="module-card display">
+    <div class="icon">😊</div>
+    <h3>Display</h3>
+    <div class="price">¥18</div>
+    <div class="desc">1.3" OLED 屏幕<br>128×64 像素<br>动态表情系统</div>
+  </div>
+  <div class="module-card audio">
+    <div class="icon">👂</div>
+    <h3>Audio</h3>
+    <div class="price">¥15</div>
+    <div class="desc">I2S 数字麦克风<br>3W 扬声器<br>语音交互</div>
+  </div>
+</div>
+
+<div class="cta">
+  <a class="cta-btn" href="index.html">Start Building →</a>
+</div>
+
+<script>
+// — Drag rotation —
+const scene = document.getElementById('scene');
+let rotX = -15, rotY = 25, dragging = false, lastX, lastY;
+let autoRotate = true, autoId;
+
+function updateRotation() { scene.style.transform = `rotateX(${rotX}deg) rotateY(${rotY}deg)`; }
+updateRotation();
+
+function startAuto() { autoId = setInterval(() => { if (autoRotate) { rotY += 0.3; updateRotation(); } }, 30); }
+startAuto();
+
+scene.addEventListener('mousedown', e => { dragging = true; autoRotate = false; lastX = e.clientX; lastY = e.clientY; });
+scene.addEventListener('touchstart', e => { dragging = true; autoRotate = false; lastX = e.touches[0].clientX; lastY = e.touches[0].clientY; });
+window.addEventListener('mousemove', e => { if (!dragging) return; rotY += (e.clientX - lastX) * 0.5; rotX -= (e.clientY - lastY) * 0.5; lastX = e.clientX; lastY = e.clientY; updateRotation(); });
+window.addEventListener('touchmove', e => { if (!dragging) return; rotY += (e.touches[0].clientX - lastX) * 0.5; rotX -= (e.touches[0].clientY - lastY) * 0.5; lastX = e.touches[0].clientX; lastY = e.touches[0].clientY; updateRotation(); });
+window.addEventListener('mouseup', () => { dragging = false; setTimeout(() => autoRotate = true, 3000); });
+window.addEventListener('touchend', () => { dragging = false; setTimeout(() => autoRotate = true, 3000); });
+
+// — Expressions —
+const leftEye = document.getElementById('leftEye');
+const rightEye = document.getElementById('rightEye');
+const mouth = document.getElementById('mouth');
+const expressions = ['normal','blink','smile','surprised','think','happy'];
+let exprIdx = 0;
+
+function setExpression(name) {
+  leftEye.className = 'eye left-eye'; rightEye.className = 'eye right-eye'; mouth.className = 'mouth';
+  switch(name) {
+    case 'blink': leftEye.classList.add('blink'); rightEye.classList.add('blink'); break;
+    case 'smile': leftEye.classList.add('happy'); rightEye.classList.add('happy'); mouth.classList.add('smile'); break;
+    case 'surprised': leftEye.classList.add('surprised'); rightEye.classList.add('surprised'); mouth.classList.add('surprised'); break;
+    case 'think': leftEye.classList.add('think'); rightEye.classList.add('think','right-eye'); mouth.classList.add('think'); break;
+    case 'happy': leftEye.classList.add('happy'); rightEye.classList.add('happy'); mouth.classList.add('happy'); break;
+  }
+}
+
+setInterval(() => { exprIdx = (exprIdx + 1) % expressions.length; setExpression(expressions[exprIdx]); }, 2500);
+
+// — Explode —
+const device = document.getElementById('device');
+const btnExplode = document.getElementById('btnExplode');
+let exploded = false;
+btnExplode.addEventListener('click', () => {
+  exploded = !exploded;
+  device.classList.toggle('exploded', exploded);
+  btnExplode.textContent = exploded ? '🧲 Assemble' : '💥 Explode';
+});
+
+// — Say Hello —
+const soundWave = document.getElementById('soundWave');
+const speechBubble = document.getElementById('speechBubble');
+// generate wave bars
+for (let i = 0; i < 20; i++) {
+  const bar = document.createElement('div');
+  bar.className = 'wave-bar';
+  bar.style.animationDelay = (i * 0.05) + 's';
+  soundWave.appendChild(bar);
+}
+
+document.getElementById('btnHello').addEventListener('click', () => {
+  soundWave.classList.add('active');
+  speechBubble.classList.add('active');
+  setTimeout(() => { soundWave.classList.remove('active'); speechBubble.classList.remove('active'); }, 3000);
+});
+
+// — Show Emotion —
+let manualExpr = 0;
+document.getElementById('btnEmotion').addEventListener('click', () => {
+  manualExpr = (manualExpr + 1) % expressions.length;
+  setExpression(expressions[manualExpr]);
+});
+
+// — Sense Environment —
+const sensorData = document.getElementById('sensorData');
+document.getElementById('btnSense').addEventListener('click', () => {
+  // randomize
+  sensorData.innerHTML = `
+    <div>🌡 Temp: <span>${(20 + Math.random()*8).toFixed(1)}°C</span></div>
+    <div>💧 Humidity: <span>${(40 + Math.random()*30).toFixed(0)}%</span></div>
+    <div>☀️ Light: <span>${(100 + Math.random()*800).toFixed(0)} lux</span></div>`;
+  sensorData.classList.add('active');
+  setTimeout(() => sensorData.classList.remove('active'), 3500);
+});
+</script>
+</body>
+</html>
