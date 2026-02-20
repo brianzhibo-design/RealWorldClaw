@@ -1,424 +1,443 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>RealWorldClaw — Product Demo</title>
+<title>RWC Desktop Assistant</title>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@300;400;500;600;700&family=Jura:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-:root{
-  --cyan:#00ffd5;--magenta:#ff2d95;--yellow:#ffe600;--green:#39ff14;
-  --bg:#0a0a0f;--panel:rgba(255,255,255,0.03);
-}
-@font-face{font-family:'Pixel';src:local('Courier New')}
-body{background:var(--bg);color:#e0e0e0;font-family:'Inter','SF Pro',system-ui,sans-serif;overflow-x:hidden;min-height:100vh}
-h1,h2,h3{font-weight:700}
+:root{--cyan:#00e5ff;--purple:#a855f7;--bg:#060a1a;--cyan-dim:rgba(0,229,255,.15);--purple-dim:rgba(168,85,247,.15)}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);font-family:'Jura',sans-serif;color:#e0e0e0}
+canvas#particles{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0}
 
-/* Top bar */
-.topbar{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:16px 32px;background:rgba(10,10,15,0.85);backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,0.06)}
-.topbar .logo{font-size:18px;font-weight:800;letter-spacing:2px;color:#fff}
-.topbar .logo span{color:var(--cyan)}
-.topbar .controls{display:flex;gap:8px}
-.btn{padding:8px 18px;border:1px solid rgba(255,255,255,0.15);border-radius:6px;background:rgba(255,255,255,0.04);color:#ccc;font-size:13px;cursor:pointer;transition:all .2s;font-family:inherit;letter-spacing:0.5px}
-.btn:hover{background:rgba(255,255,255,0.1);color:#fff;border-color:rgba(255,255,255,0.3)}
-.btn.active{background:var(--cyan);color:#000;border-color:var(--cyan);font-weight:600}
-.btn.accent{background:var(--magenta);color:#fff;border-color:var(--magenta)}
-.btn.accent:hover{background:#ff4da6}
+/* Boot overlay */
+#boot-overlay{position:fixed;inset:0;z-index:1000;background:var(--bg);display:flex;align-items:center;justify-content:center;transition:opacity .8s ease}
+#boot-overlay.fade-out{opacity:0;pointer-events:none}
+#boot-terminal{font-family:'Chakra Petch',monospace;font-size:15px;color:var(--cyan);max-width:520px;width:90%;line-height:2}
+#boot-terminal .line{opacity:0;transform:translateX(-8px);transition:opacity .3s,transform .3s}
+#boot-terminal .line.show{opacity:1;transform:translateX(0)}
+#boot-terminal .line.highlight{color:#fff;font-weight:600;text-shadow:0 0 20px var(--cyan)}
+#boot-cursor{display:inline-block;width:10px;height:18px;background:var(--cyan);animation:blink .6s infinite;vertical-align:middle;margin-left:4px;box-shadow:0 0 8px var(--cyan)}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
 
-/* Scene */
-.scene-wrap{width:100%;height:100vh;display:flex;align-items:center;justify-content:center;perspective:1200px;padding-top:60px}
-.scene{width:500px;height:500px;position:relative;transform-style:preserve-3d;transition:transform .6s cubic-bezier(.25,.46,.45,.94)}
-.auto-rotate .scene{animation:autoRotate 20s linear infinite}
-@keyframes autoRotate{from{transform:rotateY(0) rotateX(-15deg)}to{transform:rotateY(360deg) rotateX(-15deg)}}
+/* Main content */
+#main-content{position:relative;z-index:1;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:0;transition:opacity 1.2s ease .3s;pointer-events:none}
+#main-content.visible{opacity:1;pointer-events:all}
 
-/* ====== BASE (hexagonal) ====== */
-.base{position:absolute;bottom:60px;left:50%;transform:translateX(-50%) rotateX(90deg) translateZ(-20px);width:280px;height:280px;transform-style:preserve-3d}
-.base-plate{position:absolute;width:280px;height:280px;clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);background:rgba(0,255,213,0.06);border:1.5px solid rgba(0,255,213,0.25);backdrop-filter:blur(4px);transition:all .6s}
-.base-plate.top{transform:translateZ(20px)}
-.base-plate.bottom{transform:translateZ(-20px);background:rgba(0,255,213,0.03)}
-.base-side{position:absolute;width:280px;height:40px;background:rgba(0,255,213,0.04);border:1px solid rgba(0,255,213,0.12)}
+/* Product scene */
+#product-scene{position:relative;width:600px;height:520px;perspective:1200px;cursor:pointer}
+#product-3d{width:100%;height:100%;transform-style:preserve-3d;transition:transform .15s ease-out}
 
-/* PCB traces inside base */
-.pcb-layer{position:absolute;width:280px;height:280px;clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);transform:translateZ(0px);overflow:hidden;pointer-events:none}
-.pcb-layer svg{width:100%;height:100%;opacity:0.6}
+/* Info section */
+#info-section{text-align:center;margin-top:24px;max-width:640px}
+#info-section h1{font-family:'Chakra Petch',sans-serif;font-size:36px;font-weight:700;color:#fff;letter-spacing:2px;text-shadow:0 0 30px rgba(0,229,255,.4)}
+#info-section .tagline{font-size:16px;color:rgba(255,255,255,.6);margin:8px 0 20px;font-style:italic;letter-spacing:1px}
+.module-list{display:flex;gap:16px;justify-content:center;margin:16px 0}
+.module-card{background:rgba(0,229,255,.06);border:1px solid rgba(0,229,255,.15);border-radius:12px;padding:14px 20px;min-width:150px;text-align:center;backdrop-filter:blur(8px);transition:all .3s}
+.module-card:hover{border-color:var(--cyan);box-shadow:0 0 20px rgba(0,229,255,.15)}
+.module-card .name{font-family:'Chakra Petch',sans-serif;font-size:13px;font-weight:600;color:var(--cyan);text-transform:uppercase;letter-spacing:1px}
+.module-card .price{font-size:20px;color:#fff;margin-top:4px;font-weight:700}
+.total-price{font-size:14px;color:rgba(255,255,255,.4);margin:12px 0 4px;font-family:'Chakra Petch',sans-serif}
+.total-price span{font-size:28px;color:#fff;font-weight:700}
+.cta-btn{display:inline-block;margin-top:16px;padding:14px 40px;font-family:'Chakra Petch',sans-serif;font-size:16px;font-weight:600;color:var(--bg);background:linear-gradient(135deg,var(--cyan),#00b8d4);border:none;border-radius:50px;cursor:pointer;letter-spacing:2px;text-transform:uppercase;position:relative;overflow:hidden;transition:all .3s;text-decoration:none}
+.cta-btn:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(0,229,255,.4)}
+.cta-btn::after{content:'';position:absolute;inset:-2px;border-radius:52px;background:linear-gradient(135deg,var(--cyan),var(--purple));z-index:-1;opacity:0;transition:opacity .3s}
+.cta-btn:hover::after{opacity:1}
 
-/* RGB underglow */
-.underglow{position:absolute;width:260px;height:260px;left:10px;top:10px;clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);transform:translateZ(-22px);background:conic-gradient(var(--cyan),var(--magenta),var(--yellow),var(--green),var(--cyan));filter:blur(18px);opacity:0.5;animation:rgbSpin 4s linear infinite}
-@keyframes rgbSpin{to{filter:blur(18px) hue-rotate(360deg)}}
+/* Mood indicator */
+#mood-indicator{position:fixed;top:20px;right:20px;z-index:10;font-family:'Chakra Petch',sans-serif;font-size:12px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:2px}
+#mood-name{color:var(--cyan);font-weight:600}
 
-/* ESP32 chip on base */
-.esp32{position:absolute;width:50px;height:34px;background:#1a1a1a;border:1px solid rgba(0,255,213,0.4);border-radius:3px;transform:translateZ(2px);left:115px;top:120px;display:flex;align-items:center;justify-content:center;font-size:7px;color:var(--cyan);font-family:'Courier New',monospace;letter-spacing:0.5px;box-shadow:0 0 10px rgba(0,255,213,0.15)}
-.esp32::after{content:'';position:absolute;width:4px;height:2px;background:rgba(0,255,213,0.6);box-shadow:-8px 0 0 rgba(0,255,213,0.6),8px 0 0 rgba(0,255,213,0.6),-16px 0 0 rgba(0,255,213,0.6),16px 0 0 rgba(0,255,213,0.6),-8px -18px 0 rgba(0,255,213,0.4),0 -18px 0 rgba(0,255,213,0.4),8px -18px 0 rgba(0,255,213,0.4),-8px 18px 0 rgba(0,255,213,0.4),0 18px 0 rgba(0,255,213,0.4),8px 18px 0 rgba(0,255,213,0.4);top:50%;left:50%;transform:translate(-50%,-50%)}
-
-/* ====== DISPLAY MODULE ====== */
-.display-module{position:absolute;bottom:140px;left:50%;transform:translateX(-50%);transform-style:preserve-3d;transition:all .8s cubic-bezier(.25,.46,.45,.94)}
-.display-bracket{position:absolute;width:6px;height:60px;background:linear-gradient(to bottom,rgba(255,255,255,0.15),rgba(255,255,255,0.05));bottom:-60px;left:50%;transform:translateX(-50%);border-radius:3px}
-.display-bracket::before,.display-bracket::after{content:'';position:absolute;width:6px;height:60px;background:inherit;border-radius:3px}
-.display-bracket::before{left:-30px}
-.display-bracket::after{left:30px}
-.screen-frame{width:140px;height:100px;background:#000;border:2px solid rgba(255,255,255,0.2);border-radius:6px;position:relative;overflow:hidden;box-shadow:0 0 30px rgba(0,255,213,0.1),inset 0 0 20px rgba(0,0,0,0.8)}
-.screen-content{width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#000}
-
-/* Pixel face */
-.pixel-face{display:grid;gap:0;image-rendering:pixelated}
-.face-canvas{width:100px;height:70px}
-
-/* ====== AUDIO MODULE ====== */
-.audio-module{position:absolute;bottom:140px;transform-style:preserve-3d;transition:all .8s cubic-bezier(.25,.46,.45,.94)}
-.audio-module.left{left:50%;transform:translateX(-180px) translateZ(30px)}
-.audio-module.right{left:50%;transform:translateX(110px) translateZ(30px)}
-.speaker-box{width:60px;height:70px;background:rgba(30,30,40,0.9);border:1.5px solid rgba(255,255,255,0.15);border-radius:8px;position:relative;overflow:hidden}
-.speaker-grille{position:absolute;inset:8px;display:grid;grid-template-columns:repeat(5,1fr);grid-template-rows:repeat(6,1fr);gap:2px}
-.grille-dot{width:100%;height:100%;border-radius:50%;background:rgba(255,255,255,0.08)}
-.mic-indicator{position:absolute;bottom:4px;left:50%;transform:translateX(-50%);width:6px;height:6px;border-radius:50%;background:var(--magenta);animation:breathe 2s ease-in-out infinite}
-.speaker-mount{position:absolute;width:30px;height:4px;background:rgba(255,255,255,0.1);border-radius:2px}
-
-/* ====== CONNECTOR PINS ====== */
-.connector{position:absolute;display:flex;gap:4px;transform-style:preserve-3d}
-.pin{width:5px;height:5px;border-radius:50%;background:var(--cyan);box-shadow:0 0 6px var(--cyan),0 0 12px rgba(0,255,213,0.3);animation:breathe 2s ease-in-out infinite}
-.pin:nth-child(2){animation-delay:.25s}
-.pin:nth-child(3){animation-delay:.5s}
-.pin:nth-child(4){animation-delay:.75s}
-.pin:nth-child(5){animation-delay:1s}
-.pin:nth-child(6){animation-delay:1.25s}
-.pin:nth-child(7){animation-delay:1.5s}
-.pin:nth-child(8){animation-delay:1.75s}
-@keyframes breathe{0%,100%{opacity:.3;transform:scale(1)}50%{opacity:1;transform:scale(1.4)}}
-
-/* ====== MODULE LABELS ====== */
-.module-label{position:absolute;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.5);white-space:nowrap;pointer-events:none;font-family:'Courier New',monospace}
-.module-label .label-line{display:block;width:30px;height:1px;background:rgba(255,255,255,0.2);margin-bottom:4px}
-.module-label .label-detail{font-size:8px;color:rgba(255,255,255,0.25);letter-spacing:1px;margin-top:2px}
-
-/* ====== EXPLODE / ASSEMBLE ====== */
-.exploded .display-module{transform:translateX(-50%) translateY(-80px)}
-.exploded .audio-module.left{transform:translateX(-260px) translateZ(30px)}
-.exploded .audio-module.right{transform:translateX(190px) translateZ(30px)}
-.exploded .base{transform:translateX(-50%) rotateX(90deg) translateZ(-80px)}
-
-/* ====== SOUND WAVE ====== */
-.sound-wave{position:absolute;bottom:160px;left:50%;transform:translateX(-50%);display:flex;gap:3px;align-items:center;opacity:0;transition:opacity .3s;pointer-events:none}
-.sound-wave.active{opacity:1}
-.wave-bar{width:3px;background:var(--cyan);border-radius:2px;animation:waveAnim .6s ease-in-out infinite alternate}
-.wave-bar:nth-child(1){height:8px;animation-delay:0s}
-.wave-bar:nth-child(2){height:16px;animation-delay:.1s}
-.wave-bar:nth-child(3){height:24px;animation-delay:.2s}
-.wave-bar:nth-child(4){height:20px;animation-delay:.3s}
-.wave-bar:nth-child(5){height:28px;animation-delay:.15s}
-.wave-bar:nth-child(6){height:16px;animation-delay:.25s}
-.wave-bar:nth-child(7){height:10px;animation-delay:.35s}
-@keyframes waveAnim{to{height:4px}}
-
-/* ====== INFO PANEL ====== */
-.info-panel{position:fixed;right:24px;top:50%;transform:translateY(-50%);width:260px;display:flex;flex-direction:column;gap:8px;z-index:50}
-.info-card{padding:14px 16px;background:var(--panel);border:1px solid rgba(255,255,255,0.06);border-radius:8px;backdrop-filter:blur(10px);transition:all .3s;cursor:pointer}
-.info-card:hover{border-color:rgba(0,255,213,0.3);background:rgba(0,255,213,0.03)}
-.info-card h3{font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--cyan);margin-bottom:6px}
-.info-card p{font-size:11px;line-height:1.5;color:rgba(255,255,255,0.5)}
-.info-card .spec{font-family:'Courier New',monospace;font-size:10px;color:rgba(255,255,255,0.3);margin-top:6px}
-
-/* ====== DRAG ====== */
-.scene-wrap{cursor:grab}
-.scene-wrap:active{cursor:grabbing}
-
-/* ====== RESPONSIVE ====== */
-@media(max-width:900px){
-  .info-panel{position:fixed;bottom:0;right:0;left:0;top:auto;transform:none;width:100%;flex-direction:row;overflow-x:auto;padding:12px;gap:8px}
-  .info-card{min-width:200px}
-}
-
-/* Scanline overlay */
-.scanlines{position:fixed;inset:0;pointer-events:none;z-index:999;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.03) 2px,rgba(0,0,0,0.03) 4px)}
+/* Scanline */
+#scanline{position:fixed;top:0;left:0;width:100%;height:100%;z-index:999;pointer-events:none;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.03) 2px,rgba(0,0,0,.03) 4px)}
 </style>
 </head>
 <body>
+<div id="scanline"></div>
+<canvas id="particles"></canvas>
 
-<div class="scanlines"></div>
-
-<div class="topbar">
-  <div class="logo"><span>RWC</span> RealWorldClaw</div>
-  <div class="controls">
-    <button class="btn" id="btnRotate" onclick="toggleRotate()">Auto Rotate</button>
-    <button class="btn" id="btnExplode" onclick="toggleExplode()">Explode</button>
-    <button class="btn accent" id="btnHello" onclick="sayHello()">Say Hello</button>
-  </div>
+<!-- Boot Overlay -->
+<div id="boot-overlay">
+<div id="boot-terminal">
+<div class="line">> RWC Core Module v1.0</div>
+<div class="line">> Initializing HAL subsystem...</div>
+<div class="line">> Scanning RWC Bus...</div>
+<div class="line">> Display Module <span style="color:#4ade80">[CONNECTED]</span></div>
+<div class="line">> Audio Module <span style="color:#4ade80">[CONNECTED]</span></div>
+<div class="line">> WiFi: <span style="color:#4ade80">Connected</span></div>
+<div class="line">> AI Agent: <span style="color:#4ade80">Online</span></div>
+<div class="line highlight">> Hello, World.<span id="boot-cursor"></span></div>
+</div>
 </div>
 
-<div class="scene-wrap auto-rotate" id="sceneWrap">
-  <div class="scene" id="scene">
+<!-- Main Content -->
+<div id="main-content">
+<div id="mood-indicator">mood: <span id="mood-name">happy</span></div>
 
-    <!-- === BASE === -->
-    <div class="base" id="base">
-      <div class="base-plate top">
-        <svg class="pcb-layer" viewBox="0 0 280 280" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <style>
-              .trace{fill:none;stroke:rgba(57,255,20,0.35);stroke-width:1.2}
-              .trace-thick{fill:none;stroke:rgba(57,255,20,0.2);stroke-width:2.5}
-              .pad{fill:rgba(57,255,20,0.3)}
-            </style>
-          </defs>
-          <!-- PCB traces -->
-          <path class="trace-thick" d="M140 40 L140 120 L200 140 L240 140"/>
-          <path class="trace-thick" d="M140 40 L140 120 L80 140 L40 140"/>
-          <path class="trace" d="M100 60 L100 100 L60 130"/>
-          <path class="trace" d="M180 60 L180 100 L220 130"/>
-          <path class="trace" d="M70 180 L120 160 L160 160 L210 180"/>
-          <path class="trace" d="M140 170 L140 230"/>
-          <path class="trace" d="M90 200 L130 190 L170 190 L200 200"/>
-          <path class="trace" d="M60 100 L90 110 L90 150"/>
-          <path class="trace" d="M220 100 L190 110 L190 150"/>
-          <!-- Pads -->
-          <circle class="pad" cx="140" cy="40" r="4"/>
-          <circle class="pad" cx="240" cy="140" r="4"/>
-          <circle class="pad" cx="40" cy="140" r="4"/>
-          <circle class="pad" cx="140" cy="230" r="4"/>
-          <circle class="pad" cx="70" cy="180" r="3"/>
-          <circle class="pad" cx="210" cy="180" r="3"/>
-          <rect class="pad" x="88" y="98" width="8" height="5" rx="1"/>
-          <rect class="pad" x="184" y="98" width="8" height="5" rx="1"/>
-        </svg>
-      </div>
-      <div class="base-plate bottom"></div>
-      <div class="underglow"></div>
-      <div class="esp32">ESP32-S3</div>
+<div id="product-scene">
+<div id="product-3d">
+<svg id="product-svg" viewBox="0 0 600 520" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<!-- Multi-layer glow filters -->
+<filter id="glow-soft" x="-50%" y="-50%" width="200%" height="200%">
+<feGaussianBlur in="SourceGraphic" stdDeviation="6" result="b1"/>
+<feGaussianBlur in="SourceGraphic" stdDeviation="15" result="b2"/>
+<feGaussianBlur in="SourceGraphic" stdDeviation="30" result="b3"/>
+<feMerge><feMergeNode in="b3"/><feMergeNode in="b2"/><feMergeNode in="b1"/><feMergeNode in="SourceGraphic"/></feMerge>
+</filter>
+<filter id="glow-strong" x="-80%" y="-80%" width="260%" height="260%">
+<feGaussianBlur in="SourceGraphic" stdDeviation="4" result="b1"/>
+<feGaussianBlur in="SourceGraphic" stdDeviation="12" result="b2"/>
+<feGaussianBlur in="SourceGraphic" stdDeviation="28" result="b3"/>
+<feGaussianBlur in="SourceGraphic" stdDeviation="50" result="b4"/>
+<feMerge><feMergeNode in="b4"/><feMergeNode in="b3"/><feMergeNode in="b2"/><feMergeNode in="b1"/><feMergeNode in="SourceGraphic"/></feMerge>
+</filter>
+<filter id="glow-ambient" x="-100%" y="-100%" width="300%" height="300%">
+<feGaussianBlur in="SourceGraphic" stdDeviation="40"/>
+</filter>
+<filter id="glow-dot" x="-200%" y="-200%" width="500%" height="500%">
+<feGaussianBlur in="SourceGraphic" stdDeviation="3" result="b1"/>
+<feGaussianBlur in="SourceGraphic" stdDeviation="8" result="b2"/>
+<feMerge><feMergeNode in="b2"/><feMergeNode in="b1"/><feMergeNode in="SourceGraphic"/></feMerge>
+</filter>
+<filter id="screen-glow" x="-30%" y="-30%" width="160%" height="160%">
+<feGaussianBlur in="SourceGraphic" stdDeviation="8" result="b1"/>
+<feGaussianBlur in="SourceGraphic" stdDeviation="20" result="b2"/>
+<feMerge><feMergeNode in="b2"/><feMergeNode in="b1"/><feMergeNode in="SourceGraphic"/></feMerge>
+</filter>
+<!-- PCB trace pattern -->
+<pattern id="pcb-traces" x="0" y="0" width="60" height="60" patternUnits="userSpaceOnUse">
+<line x1="0" y1="10" x2="30" y2="10" stroke="rgba(0,229,255,.08)" stroke-width=".5"/>
+<line x1="30" y1="10" x2="30" y2="30" stroke="rgba(0,229,255,.08)" stroke-width=".5"/>
+<line x1="30" y1="30" x2="60" y2="30" stroke="rgba(0,229,255,.08)" stroke-width=".5"/>
+<line x1="15" y1="0" x2="15" y2="20" stroke="rgba(0,229,255,.06)" stroke-width=".3"/>
+<line x1="15" y1="20" x2="45" y2="20" stroke="rgba(0,229,255,.06)" stroke-width=".3"/>
+<line x1="45" y1="20" x2="45" y2="45" stroke="rgba(0,229,255,.06)" stroke-width=".3"/>
+<line x1="45" y1="45" x2="60" y2="45" stroke="rgba(0,229,255,.06)" stroke-width=".3"/>
+<circle cx="30" cy="10" r="1.5" fill="rgba(0,229,255,.1)"/>
+<circle cx="45" cy="45" r="1" fill="rgba(0,229,255,.08)"/>
+<rect x="8" y="38" width="6" height="4" rx="1" fill="none" stroke="rgba(0,229,255,.06)" stroke-width=".3"/>
+<line x1="0" y1="50" x2="20" y2="50" stroke="rgba(168,85,247,.05)" stroke-width=".3"/>
+<line x1="20" y1="50" x2="20" y2="60" stroke="rgba(168,85,247,.05)" stroke-width=".3"/>
+</pattern>
+<!-- Speaker grille pattern -->
+<pattern id="speaker-grille" x="0" y="0" width="8" height="8" patternUnits="userSpaceOnUse">
+<circle cx="4" cy="4" r="2" fill="none" stroke="rgba(255,255,255,.12)" stroke-width=".4"/>
+</pattern>
+<!-- Gradients -->
+<radialGradient id="base-grad" cx="50%" cy="40%" r="55%">
+<stop offset="0%" stop-color="rgba(0,229,255,.12)"/>
+<stop offset="60%" stop-color="rgba(0,229,255,.04)"/>
+<stop offset="100%" stop-color="rgba(6,10,26,.6)"/>
+</radialGradient>
+<linearGradient id="screen-frame-grad" x1="0" y1="0" x2="0" y2="1">
+<stop offset="0%" stop-color="#1a1a2e"/>
+<stop offset="50%" stop-color="#0d1117"/>
+<stop offset="100%" stop-color="#1a1a2e"/>
+</linearGradient>
+<linearGradient id="screen-inner-grad" x1="0" y1="0" x2="0" y2="1">
+<stop offset="0%" stop-color="#020408"/>
+<stop offset="100%" stop-color="#060a14"/>
+</linearGradient>
+<linearGradient id="audio-grad" x1="0" y1="0" x2="1" y2="1">
+<stop offset="0%" stop-color="#141420"/>
+<stop offset="100%" stop-color="#0d0d18"/>
+</linearGradient>
+</defs>
 
-      <!-- Module label: Core -->
-      <div class="module-label" style="left:50%;bottom:-30px;transform:translateX(-50%) rotateX(-90deg);text-align:center">
-        <span class="label-line" style="margin:0 auto 4px"></span>
-        Core Module
-        <span class="label-detail">ESP32-S3 · 8MB PSRAM · RWC Bus</span>
-      </div>
-    </div>
+<!-- ===== AMBIENT LIGHT ===== -->
+<ellipse cx="300" cy="400" rx="200" ry="40" fill="rgba(0,229,255,.06)" filter="url(#glow-ambient)"/>
+<ellipse cx="300" cy="340" rx="80" ry="120" fill="rgba(168,85,247,.03)" filter="url(#glow-ambient)"/>
 
-    <!-- === DISPLAY === -->
-    <div class="display-module" id="displayModule">
-      <div class="screen-frame">
-        <div class="screen-content">
-          <canvas class="face-canvas" id="faceCanvas" width="100" height="70"></canvas>
-        </div>
-      </div>
-      <div class="display-bracket"></div>
+<!-- ===== BASE PLATFORM ===== -->
+<g id="base-group">
+<!-- Shadow -->
+<ellipse cx="300" cy="420" rx="180" ry="45" fill="rgba(0,0,0,.5)" filter="url(#glow-ambient)"/>
+<!-- Main base body -->
+<ellipse cx="300" cy="400" rx="170" ry="40" fill="url(#base-grad)" stroke="rgba(0,229,255,.2)" stroke-width="1"/>
+<!-- PCB traces inside -->
+<ellipse cx="300" cy="400" rx="160" ry="35" fill="url(#pcb-traces)" opacity=".8"/>
+<!-- Top surface highlight -->
+<ellipse cx="300" cy="395" rx="155" ry="32" fill="none" stroke="rgba(0,229,255,.1)" stroke-width=".5"/>
+<!-- Edge glow -->
+<ellipse cx="300" cy="400" rx="172" ry="42" fill="none" stroke="rgba(0,229,255,.3)" stroke-width="1.5" filter="url(#glow-soft)"/>
+<!-- Inner ring detail -->
+<ellipse cx="300" cy="400" rx="100" ry="22" fill="none" stroke="rgba(0,229,255,.06)" stroke-width=".5" stroke-dasharray="4 6"/>
+<!-- Center hex accent -->
+<polygon points="300,385 310,390 310,398 300,403 290,398 290,390" fill="none" stroke="rgba(0,229,255,.15)" stroke-width=".5"/>
+<!-- Radial lines on base -->
+<line x1="300" y1="400" x2="300" y2="360" stroke="rgba(0,229,255,.04)" stroke-width=".3"/>
+<line x1="300" y1="400" x2="380" y2="375" stroke="rgba(0,229,255,.04)" stroke-width=".3"/>
+<line x1="300" y1="400" x2="220" y2="375" stroke="rgba(0,229,255,.04)" stroke-width=".3"/>
+<line x1="300" y1="400" x2="430" y2="400" stroke="rgba(0,229,255,.04)" stroke-width=".3"/>
+<line x1="300" y1="400" x2="170" y2="400" stroke="rgba(0,229,255,.04)" stroke-width=".3"/>
+</g>
 
-      <!-- Connector pins: display to base -->
-      <div class="connector" style="bottom:-64px;left:50%;transform:translateX(-50%)">
-        <div class="pin"></div><div class="pin"></div><div class="pin"></div><div class="pin"></div>
-        <div class="pin"></div><div class="pin"></div><div class="pin"></div><div class="pin"></div>
-      </div>
+<!-- ===== DISPLAY MODULE ===== -->
+<g id="display-group">
+<!-- Stand/neck connecting screen to base -->
+<rect x="292" y="350" width="16" height="45" rx="3" fill="#0a0a14" stroke="rgba(0,229,255,.12)" stroke-width=".5"/>
+<line x1="295" y1="355" x2="295" y2="390" stroke="rgba(0,229,255,.06)" stroke-width=".3"/>
+<line x1="300" y1="352" x2="300" y2="392" stroke="rgba(0,229,255,.08)" stroke-width=".3"/>
+<line x1="305" y1="355" x2="305" y2="390" stroke="rgba(0,229,255,.06)" stroke-width=".3"/>
 
-      <!-- Module label: Display -->
-      <div class="module-label" style="right:-120px;top:20px">
-        <span class="label-line"></span>
-        Display
-        <span class="label-detail">1.3" OLED · 128×64 · I²C</span>
-      </div>
-    </div>
+<!-- Screen outer frame -->
+<rect x="240" y="160" width="120" height="195" rx="12" fill="url(#screen-frame-grad)" stroke="rgba(0,229,255,.2)" stroke-width="1.2"/>
+<!-- Frame tech texture lines -->
+<line x1="244" y1="180" x2="244" y2="340" stroke="rgba(0,229,255,.06)" stroke-width=".3"/>
+<line x1="247" y1="175" x2="247" y2="345" stroke="rgba(0,229,255,.04)" stroke-width=".3"/>
+<line x1="356" y1="180" x2="356" y2="340" stroke="rgba(0,229,255,.06)" stroke-width=".3"/>
+<line x1="353" y1="175" x2="353" y2="345" stroke="rgba(0,229,255,.04)" stroke-width=".3"/>
+<!-- Top camera dot -->
+<circle cx="300" cy="170" r="2" fill="#1a1a2e" stroke="rgba(0,229,255,.2)" stroke-width=".5"/>
+<circle cx="300" cy="170" r=".8" fill="rgba(0,229,255,.4)"/>
 
-    <!-- === AUDIO LEFT (Speaker) === -->
-    <div class="audio-module left" id="audioLeft">
-      <div class="speaker-box">
-        <div class="speaker-grille" id="grille1"></div>
-      </div>
+<!-- Screen inner (display area) -->
+<rect id="screen-bg" x="252" y="180" width="96" height="160" rx="6" fill="url(#screen-inner-grad)"/>
 
-      <div class="connector" style="position:absolute;right:-14px;top:50%;transform:translateY(-50%);flex-direction:column">
-        <div class="pin"></div><div class="pin"></div><div class="pin"></div><div class="pin"></div>
-        <div class="pin"></div><div class="pin"></div><div class="pin"></div><div class="pin"></div>
-      </div>
+<!-- Screen glow overlay -->
+<rect x="252" y="180" width="96" height="160" rx="6" fill="rgba(0,229,255,.02)" id="screen-glow-overlay"/>
 
-      <div class="module-label" style="left:-100px;top:10px;text-align:right">
-        <span class="label-line" style="margin-left:auto"></span>
-        Speaker
-        <span class="label-detail">I²S DAC · 3W</span>
-      </div>
-    </div>
+<!-- Face elements -->
+<g id="face" transform="translate(300,260)">
+<!-- Left eye -->
+<g id="left-eye">
+<rect x="-22" y="-18" width="16" height="16" rx="3" fill="var(--cyan)" opacity=".9">
+<animate attributeName="height" values="16;2;16" dur=".2s" begin="3s" repeatCount="indefinite" repeatDur="indefinite" keyTimes="0;0.5;1" calcMode="spline" keySplines="0.4 0 0.6 1;0.4 0 0.6 1"/>
+<animate attributeName="y" values="-18;-11;-18" dur=".2s" begin="3s" repeatCount="indefinite" repeatDur="indefinite" keyTimes="0;0.5;1" calcMode="spline" keySplines="0.4 0 0.6 1;0.4 0 0.6 1"/>
+</rect>
+</g>
+<!-- Right eye -->
+<g id="right-eye">
+<rect x="6" y="-18" width="16" height="16" rx="3" fill="var(--cyan)" opacity=".9">
+<animate attributeName="height" values="16;2;16" dur=".2s" begin="3s" repeatCount="indefinite" repeatDur="indefinite" keyTimes="0;0.5;1" calcMode="spline" keySplines="0.4 0 0.6 1;0.4 0 0.6 1"/>
+<animate attributeName="y" values="-18;-11;-18" dur=".2s" begin="3s" repeatCount="indefinite" repeatDur="indefinite" keyTimes="0;0.5;1" calcMode="spline" keySplines="0.4 0 0.6 1;0.4 0 0.6 1"/>
+</rect>
+</g>
+<!-- Mouth -->
+<g id="mouth">
+<rect x="-10" y="10" width="20" height="4" rx="2" fill="var(--cyan)" opacity=".6"/>
+</g>
+</g>
 
-    <!-- === AUDIO RIGHT (Mic) === -->
-    <div class="audio-module right" id="audioRight">
-      <div class="speaker-box">
-        <div class="speaker-grille" id="grille2"></div>
-        <div class="mic-indicator"></div>
-      </div>
+<!-- Screen reflection -->
+<rect x="254" y="182" width="40" height="80" rx="4" fill="rgba(255,255,255,.02)" transform="rotate(-5,274,222)"/>
 
-      <div class="connector" style="position:absolute;left:-14px;top:50%;transform:translateY(-50%);flex-direction:column">
-        <div class="pin"></div><div class="pin"></div><div class="pin"></div><div class="pin"></div>
-        <div class="pin"></div><div class="pin"></div><div class="pin"></div><div class="pin"></div>
-      </div>
+<!-- Screen border glow -->
+<rect x="250" y="178" width="100" height="164" rx="8" fill="none" stroke="rgba(0,229,255,.15)" stroke-width="1" filter="url(#screen-glow)"/>
+</g>
 
-      <div class="module-label" style="right:-100px;top:10px">
-        <span class="label-line"></span>
-        Microphone
-        <span class="label-detail">I²S PDM · -26dBFS</span>
-      </div>
-    </div>
+<!-- ===== AUDIO MODULE ===== -->
+<g id="audio-group">
+<!-- Arm connecting to base -->
+<path d="M 370 395 Q 400 385 415 360 L 415 310 Q 415 300 410 295" fill="none" stroke="rgba(0,229,255,.1)" stroke-width="2"/>
+<!-- Module body -->
+<rect x="390" y="270" width="50" height="75" rx="10" fill="url(#audio-grad)" stroke="rgba(0,229,255,.15)" stroke-width="1"/>
+<!-- Speaker grille -->
+<circle cx="415" cy="300" r="16" fill="url(#speaker-grille)" stroke="rgba(255,255,255,.1)" stroke-width=".5"/>
+<circle cx="415" cy="300" r="16" fill="none" stroke="rgba(0,229,255,.1)" stroke-width=".8"/>
+<!-- Inner speaker circles -->
+<circle cx="415" cy="300" r="10" fill="none" stroke="rgba(255,255,255,.06)" stroke-width=".3"/>
+<circle cx="415" cy="300" r="5" fill="none" stroke="rgba(255,255,255,.04)" stroke-width=".3"/>
+<circle cx="415" cy="300" r="2" fill="rgba(0,229,255,.15)"/>
+<!-- Microphone hole -->
+<circle cx="415" cy="330" r="3" fill="#0a0a14" stroke="rgba(168,85,247,.2)" stroke-width=".5"/>
+<circle cx="415" cy="330" r="1" fill="rgba(168,85,247,.3)"/>
+<!-- LED indicator -->
+<circle cx="430" cy="280" r="2" fill="rgba(0,229,255,.8)" id="audio-led">
+<animate attributeName="opacity" values=".3;1;.3" dur="2s" repeatCount="indefinite"/>
+</circle>
+<circle cx="430" cy="280" r="2" fill="rgba(0,229,255,.4)" filter="url(#glow-dot)"/>
+<!-- Volume lines on side -->
+<line x1="395" y1="312" x2="404" y2="312" stroke="rgba(255,255,255,.06)" stroke-width=".3"/>
+<line x1="395" y1="316" x2="404" y2="316" stroke="rgba(255,255,255,.06)" stroke-width=".3"/>
+<line x1="395" y1="320" x2="404" y2="320" stroke="rgba(255,255,255,.06)" stroke-width=".3"/>
+</g>
 
-    <!-- === SOUND WAVE === -->
-    <div class="sound-wave" id="soundWave">
-      <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
-      <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
-      <div class="wave-bar"></div>
-    </div>
+<!-- ===== MAGNETIC CONNECTION POINTS ===== -->
+<g id="connection-points">
+<!-- Base to display -->
+<circle cx="300" cy="393" r="3" fill="rgba(0,229,255,.8)" filter="url(#glow-dot)">
+<animate attributeName="opacity" values=".4;1;.4" dur="2.5s" repeatCount="indefinite"/>
+</circle>
+<circle cx="300" cy="393" r="1.5" fill="#fff" opacity=".6"/>
+<!-- Base to audio -->
+<circle cx="375" cy="395" r="3" fill="rgba(168,85,247,.8)" filter="url(#glow-dot)">
+<animate attributeName="opacity" values=".4;1;.4" dur="2.5s" repeatCount="indefinite" begin=".8s"/>
+</circle>
+<circle cx="375" cy="395" r="1.5" fill="#fff" opacity=".4"/>
+<!-- Audio arm joint -->
+<circle cx="412" cy="295" r="2" fill="rgba(0,229,255,.6)" filter="url(#glow-dot)">
+<animate attributeName="opacity" values=".3;.9;.3" dur="2.5s" repeatCount="indefinite" begin="1.6s"/>
+</circle>
+</g>
 
-  </div>
+<!-- ===== FLOATING PARTICLES AROUND PRODUCT ===== -->
+<g id="float-particles" opacity=".5">
+<circle cx="200" cy="280" r="1" fill="var(--cyan)"><animate attributeName="cy" values="280;270;280" dur="4s" repeatCount="indefinite"/><animate attributeName="opacity" values=".2;.6;.2" dur="4s" repeatCount="indefinite"/></circle>
+<circle cx="420" cy="240" r=".8" fill="var(--purple)"><animate attributeName="cy" values="240;228;240" dur="3.5s" repeatCount="indefinite"/><animate attributeName="opacity" values=".1;.5;.1" dur="3.5s" repeatCount="indefinite"/></circle>
+<circle cx="180" cy="350" r=".6" fill="var(--cyan)"><animate attributeName="cy" values="350;342;350" dur="5s" repeatCount="indefinite"/></circle>
+<circle cx="460" cy="350" r=".7" fill="var(--purple)"><animate attributeName="cy" values="350;340;350" dur="4.2s" repeatCount="indefinite"/></circle>
+</g>
+</svg>
+</div>
 </div>
 
-<!-- INFO PANEL -->
-<div class="info-panel">
-  <div class="info-card" onmouseenter="highlight('base')" onmouseleave="unhighlight()">
-    <h3>⬡ Core</h3>
-    <p>开放式六角底盘，半透明设计让你看见ESP32-S3芯片和PCB走线。RWC Bus 8-pin磁吸接口。</p>
-    <div class="spec">ESP32-S3 · Wi-Fi 6 · BLE 5.0 · 8MB PSRAM</div>
-  </div>
-  <div class="info-card" onmouseenter="highlight('display')" onmouseleave="unhighlight()">
-    <h3>◻ Display</h3>
-    <p>1.3" OLED悬浮在支架上，像素风表情实时渲染。不是嵌入——是展示。</p>
-    <div class="spec">SH1106 · 128×64 · I²C @400kHz</div>
-  </div>
-  <div class="info-card" onmouseenter="highlight('audio')" onmouseleave="unhighlight()">
-    <h3>🔊 Audio</h3>
-    <p>外露挂载的喇叭和麦克风模块。能看到出音孔栅格和PDM麦克风指示灯。</p>
-    <div class="spec">MAX98357A DAC · SPH0645 PDM Mic</div>
-  </div>
-  <div class="info-card">
-    <h3>⊙ RWC Bus</h3>
-    <p>8-pin磁吸连接协议。呼吸灯显示连接状态——亮起即就绪。</p>
-    <div class="spec">I²C + I²S + PWR + GND · Hot-swap</div>
-  </div>
+<!-- Info Section -->
+<div id="info-section">
+<h1>RWC Desktop Assistant</h1>
+<p class="tagline">"Your AI's first voice in the real world."</p>
+<div class="module-list">
+<div class="module-card">
+<div class="name">Core Module</div>
+<div class="price">¥25</div>
+</div>
+<div class="module-card">
+<div class="name">Display</div>
+<div class="price">¥15</div>
+</div>
+<div class="module-card">
+<div class="name">Audio</div>
+<div class="price">¥13</div>
+</div>
+</div>
+<div class="total-price">Total: <span>¥53</span></div>
+<a class="cta-btn" href="#">Build Yours →</a>
+</div>
 </div>
 
 <script>
-// Grille dots
-['grille1','grille2'].forEach(id=>{
-  const g=document.getElementById(id);
-  for(let i=0;i<30;i++){const d=document.createElement('div');d.className='grille-dot';g.appendChild(d)}
+// ===== PARTICLE NETWORK BACKGROUND =====
+(function(){
+const c=document.getElementById('particles'),ctx=c.getContext('2d');
+let W,H,particles=[];
+function resize(){W=c.width=window.innerWidth;H=c.height=window.innerHeight}
+window.addEventListener('resize',resize);resize();
+const COUNT=80;
+class P{
+constructor(){this.reset()}
+reset(){this.x=Math.random()*W;this.y=Math.random()*H;this.vx=(Math.random()-.5)*.3;this.vy=(Math.random()-.5)*.3;this.r=Math.random()*1.5+.5;this.o=Math.random()*.4+.1}
+update(){this.x+=this.vx;this.y+=this.vy;if(this.x<0||this.x>W)this.vx*=-1;if(this.y<0||this.y>H)this.vy*=-1}
+}
+for(let i=0;i<COUNT;i++)particles.push(new P());
+function draw(){
+ctx.clearRect(0,0,W,H);
+for(let i=0;i<COUNT;i++){
+const p=particles[i];p.update();
+ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+ctx.fillStyle=i%5===0?`rgba(168,85,247,${p.o})`:`rgba(0,229,255,${p.o})`;
+ctx.fill();
+for(let j=i+1;j<COUNT;j++){
+const q=particles[j],dx=p.x-q.x,dy=p.y-q.y,d=Math.sqrt(dx*dx+dy*dy);
+if(d<150){
+ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(q.x,q.y);
+ctx.strokeStyle=`rgba(0,229,255,${.08*(1-d/150)})`;
+ctx.lineWidth=.5;ctx.stroke();
+}
+}
+}
+requestAnimationFrame(draw);
+}
+draw();
+})();
+
+// ===== BOOT SEQUENCE =====
+(function(){
+const lines=document.querySelectorAll('#boot-terminal .line');
+const overlay=document.getElementById('boot-overlay');
+const main=document.getElementById('main-content');
+let i=0;
+const delays=[300,500,600,400,400,400,500,800];
+function showNext(){
+if(i>=lines.length){
+setTimeout(()=>{
+overlay.classList.add('fade-out');
+main.classList.add('visible');
+setTimeout(()=>overlay.style.display='none',900);
+},600);
+return;
+}
+lines[i].classList.add('show');
+const d=delays[i]||400;
+i++;
+setTimeout(showNext,d);
+}
+setTimeout(showNext,500);
+})();
+
+// ===== 3D PARALLAX =====
+(function(){
+const scene=document.getElementById('product-3d');
+document.addEventListener('mousemove',e=>{
+const cx=window.innerWidth/2,cy=window.innerHeight/2;
+const dx=(e.clientX-cx)/cx,dy=(e.clientY-cy)/cy;
+scene.style.transform=`rotateY(${dx*8}deg) rotateX(${-dy*5}deg)`;
 });
+})();
 
-// === PIXEL FACE ===
-const canvas=document.getElementById('faceCanvas');
-const ctx=canvas.getContext('2d');
-const W=100,H=70;
-
-const faces=[
-  // happy
-  {eyes:[[28,20,12,8],[60,20,12,8]],mouth:[[30,48,40,6]],mouthType:'smile'},
-  // blink
-  {eyes:[[28,24,12,2],[60,24,12,2]],mouth:[[30,48,40,6]],mouthType:'smile'},
-  // surprised
-  {eyes:[[30,18,10,12],[62,18,10,12]],mouth:[[42,46,16,10]],mouthType:'o'},
-  // sleepy
-  {eyes:[[28,24,12,3],[60,24,12,3]],mouth:[[35,50,30,4]],mouthType:'flat'},
+// ===== MOOD SWITCHING =====
+(function(){
+const moods=[
+{name:'happy',eyeColor:'#00e5ff',mouthW:20,mouthH:4,mouthY:10,mouthRx:2,eyeH:16,eyeRx:3},
+{name:'excited',eyeColor:'#4ade80',mouthW:24,mouthH:8,mouthY:8,mouthRx:4,eyeH:20,eyeRx:5},
+{name:'sleepy',eyeColor:'#a78bfa',mouthW:14,mouthH:3,mouthY:14,mouthRx:2,eyeH:6,eyeRx:3},
+{name:'curious',eyeColor:'#facc15',mouthW:10,mouthH:10,mouthY:10,mouthRx:5,eyeH:18,eyeRx:6},
+{name:'chill',eyeColor:'#f472b6',mouthW:16,mouthH:3,mouthY:12,mouthRx:2,eyeH:10,eyeRx:3}
 ];
+let ci=0;
+const leftEye=document.querySelector('#left-eye rect');
+const rightEye=document.querySelector('#right-eye rect');
+const mouth=document.querySelector('#mouth rect');
+const moodLabel=document.getElementById('mood-name');
+const screenGlow=document.getElementById('screen-glow-overlay');
 
-let currentFace=0;
-let frameCount=0;
-
-function drawFace(face){
-  ctx.clearRect(0,0,W,H);
-  // eyes
-  ctx.fillStyle='#00ffd5';
-  face.eyes.forEach(([x,y,w,h])=>{ctx.fillRect(x,y,w,h)});
-  // mouth
-  if(face.mouthType==='smile'){
-    ctx.fillStyle='#00ffd5';
-    const[x,y,w,h]=face.mouth[0];
-    ctx.fillRect(x,y,w,h);
-    ctx.fillRect(x-4,y-4,6,4);
-    ctx.fillRect(x+w-2,y-4,6,4);
-  }else if(face.mouthType==='o'){
-    ctx.strokeStyle='#00ffd5';ctx.lineWidth=2;
-    const[x,y,w,h]=face.mouth[0];
-    ctx.strokeRect(x,y,w,h);
-  }else{
-    ctx.fillStyle='#00ffd5';
-    const[x,y,w,h]=face.mouth[0];
-    ctx.fillRect(x,y,w,h);
-  }
+function applyMood(m){
+leftEye.setAttribute('fill',m.eyeColor);
+rightEye.setAttribute('fill',m.eyeColor);
+leftEye.setAttribute('height',m.eyeH);
+rightEye.setAttribute('height',m.eyeH);
+leftEye.setAttribute('rx',m.eyeRx);
+rightEye.setAttribute('rx',m.eyeRx);
+mouth.setAttribute('fill',m.eyeColor);
+mouth.setAttribute('width',m.mouthW);
+mouth.setAttribute('x',-m.mouthW/2);
+mouth.setAttribute('height',m.mouthH);
+mouth.setAttribute('y',m.mouthY);
+mouth.setAttribute('rx',m.mouthRx);
+moodLabel.textContent=m.name;
+moodLabel.style.color=m.eyeColor;
+screenGlow.setAttribute('fill',m.eyeColor.replace(')',',0.03)').replace('rgb','rgba').replace('#',''));
+// Simple hex to rgba for screen glow
+const hex=m.eyeColor;
+if(hex.startsWith('#')){
+const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
+screenGlow.setAttribute('fill',`rgba(${r},${g},${b},0.03)`);
+}
 }
 
-function animateFace(){
-  frameCount++;
-  // blink every ~80 frames
-  if(frameCount%80===0){
-    drawFace(faces[1]);
-    setTimeout(()=>drawFace(faces[currentFace]),150);
-  }
-  // cycle expression every 200 frames
-  if(frameCount%200===0){
-    currentFace=(currentFace===0)?2:(currentFace===2)?3:0;
-    drawFace(faces[currentFace]);
-  }
-  requestAnimationFrame(animateFace);
-}
-drawFace(faces[0]);
-animateFace();
+// Auto cycle
+setInterval(()=>{ci=(ci+1)%moods.length;applyMood(moods[ci])},4000);
 
-// === DRAG ROTATE ===
-const sceneWrap=document.getElementById('sceneWrap');
-const scene=document.getElementById('scene');
-let isDrag=false,startX,startY,rotX=-15,rotY=0;
-
-sceneWrap.addEventListener('mousedown',e=>{
-  if(e.target.closest('.topbar,.info-panel'))return;
-  isDrag=true;startX=e.clientX;startY=e.clientY;
-  sceneWrap.classList.remove('auto-rotate');
-  document.getElementById('btnRotate').classList.remove('active');
+// Click to switch
+document.getElementById('product-scene').addEventListener('click',()=>{
+ci=(ci+1)%moods.length;applyMood(moods[ci]);
 });
-window.addEventListener('mousemove',e=>{
-  if(!isDrag)return;
-  rotY+=(e.clientX-startX)*0.4;
-  rotX-=(e.clientY-startY)*0.4;
-  rotX=Math.max(-60,Math.min(60,rotX));
-  startX=e.clientX;startY=e.clientY;
-  scene.style.transform=`rotateX(${rotX}deg) rotateY(${rotY}deg)`;
+
+// Blink timing - restart blink animations periodically
+setInterval(()=>{
+const eyeRects=document.querySelectorAll('#left-eye rect, #right-eye rect');
+eyeRects.forEach(r=>{
+const anims=r.querySelectorAll('animate');
+anims.forEach(a=>{
+a.setAttribute('begin',(performance.now()/1000)+'s');
+// Next blink in 2-5s
+const next=Math.random()*3+2;
+a.setAttribute('repeatDur',`${next}s`);
 });
-window.addEventListener('mouseup',()=>isDrag=false);
-
-// === CONTROLS ===
-function toggleRotate(){
-  const w=document.getElementById('sceneWrap');
-  const b=document.getElementById('btnRotate');
-  w.classList.toggle('auto-rotate');
-  b.classList.toggle('active');
-  if(w.classList.contains('auto-rotate')){
-    scene.style.transform='';
-  }
-}
-
-let exploded=false;
-function toggleExplode(){
-  exploded=!exploded;
-  scene.classList.toggle('exploded',exploded);
-  const b=document.getElementById('btnExplode');
-  b.textContent=exploded?'Assemble':'Explode';
-  b.classList.toggle('active',exploded);
-}
-
-function sayHello(){
-  const sw=document.getElementById('soundWave');
-  sw.classList.add('active');
-  // show surprised face
-  drawFace(faces[2]);
-  setTimeout(()=>{
-    sw.classList.remove('active');
-    drawFace(faces[0]);
-  },2000);
-}
-
-function highlight(mod){
-  // subtle glow effect on hover
-  if(mod==='base')document.querySelector('.base-plate.top').style.borderColor='rgba(0,255,213,0.6)';
-  if(mod==='display')document.querySelector('.screen-frame').style.borderColor='rgba(0,255,213,0.6)';
-  if(mod==='audio'){
-    document.querySelectorAll('.speaker-box').forEach(s=>s.style.borderColor='rgba(255,45,149,0.6)');
-  }
-}
-function unhighlight(){
-  document.querySelector('.base-plate.top').style.borderColor='';
-  document.querySelector('.screen-frame').style.borderColor='';
-  document.querySelectorAll('.speaker-box').forEach(s=>s.style.borderColor='');
-}
-
-// Start with auto-rotate active
-document.getElementById('btnRotate').classList.add('active');
+});
+},3500);
+})();
 </script>
 </body>
 </html>
