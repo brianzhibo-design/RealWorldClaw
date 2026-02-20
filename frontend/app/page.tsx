@@ -2,9 +2,19 @@
 import Link from "next/link";
 import ComponentCard from "@/components/ComponentCard";
 import { mockComponents, mockFarms } from "@/lib/mock-data";
+import { fetchComponents, fetchFarms } from "@/lib/api";
 
-export default function HomePage() {
-  const openFarms = mockFarms.filter((f) => f.availability === "open");
+export default async function HomePage() {
+  let components = mockComponents;
+  let farms = mockFarms;
+
+  try {
+    [components, farms] = await Promise.all([fetchComponents(), fetchFarms()]);
+  } catch {
+    // API 不可用，使用 mock 数据
+  }
+
+  const openFarms = farms.filter((f) => f.availability === "open");
 
   return (
     <div className="mx-auto max-w-6xl px-4">
@@ -37,7 +47,7 @@ export default function HomePage() {
       <section className="pb-16">
         <h2 className="mb-8 text-2xl font-bold">Featured Components</h2>
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {mockComponents.map((c) => (
+          {components.map((c) => (
             <ComponentCard key={c.id} component={c} />
           ))}
         </div>
