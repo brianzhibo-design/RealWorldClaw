@@ -5,10 +5,10 @@
 import type {
   ComponentResponse,
   ComponentListResponse,
-  FarmPublic,
+  MakerPublic,
   OrderResponse,
 } from "./types";
-import type { ClawComponent, PrintFarm } from "./mock-data";
+import type { ClawComponent, Maker } from "./mock-data";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
@@ -50,18 +50,20 @@ export function apiComponentToMock(c: ComponentResponse): ClawComponent {
   };
 }
 
-/** 将后端 FarmPublic 转为前端 PrintFarm */
-export function apiFarmToMock(f: FarmPublic): PrintFarm {
+/** 将后端 MakerPublic 转为前端 Maker */
+export function apiMakerToMock(m: MakerPublic): Maker {
   return {
-    id: f.id,
-    region: `${f.location_province} ${f.location_city}`,
-    printer_brand: f.printer_brand,
-    printer_model: f.printer_model,
-    materials: f.materials,
-    rating: f.rating,
-    total_orders: f.total_orders,
-    pricing_per_hour_cny: f.pricing_per_hour_cny,
-    availability: f.availability,
+    id: m.id,
+    maker_type: m.maker_type,
+    region: `${m.location_province} ${m.location_city}`,
+    printer_brand: m.printer_brand,
+    printer_model: m.printer_model,
+    materials: m.materials,
+    capabilities: m.capabilities,
+    rating: m.rating,
+    total_orders: m.total_orders,
+    pricing_per_hour_cny: m.pricing_per_hour_cny,
+    availability: m.availability,
   };
 }
 
@@ -82,14 +84,14 @@ export async function fetchComponent(id: string): Promise<ClawComponent> {
   return apiComponentToMock(data);
 }
 
-export async function fetchFarms(): Promise<PrintFarm[]> {
-  const data = await apiFetch<FarmPublic[]>("/farms");
-  return data.map(apiFarmToMock);
+export async function fetchMakers(): Promise<Maker[]> {
+  const data = await apiFetch<MakerPublic[]>("/makers");
+  return data.map(apiMakerToMock);
 }
 
 export async function fetchOrders(
   apiKey: string,
-): Promise<{ as_customer: OrderResponse[]; as_farmer: OrderResponse[] }> {
+): Promise<{ as_customer: OrderResponse[]; as_maker: OrderResponse[] }> {
   return apiFetch("/orders", {
     headers: { "X-API-Key": apiKey },
   });
@@ -97,6 +99,7 @@ export async function fetchOrders(
 
 export interface OrderCreateData {
   component_id: string;
+  order_type?: "print_only" | "full_build";
   quantity: number;
   material_preference?: string;
   delivery_province: string;
@@ -117,17 +120,17 @@ export async function createOrder(apiKey: string, data: OrderCreateData) {
 
 export async function fetchStats(): Promise<{
   components: number;
-  farms: number;
+  makers: number;
   agents: number;
 }> {
   // 后端暂无 /stats 端点，手动聚合
-  const [comps, farms] = await Promise.all([
+  const [comps, makers] = await Promise.all([
     apiFetch<ComponentListResponse>("/components?skip=0&limit=1"),
-    apiFetch<FarmPublic[]>("/farms"),
+    apiFetch<MakerPublic[]>("/makers"),
   ]);
   return {
     components: comps.total,
-    farms: farms.length,
+    makers: makers.length,
     agents: 0, // 公开 API 无法获取 agent 总数
   };
 }
