@@ -1,8 +1,8 @@
-[中文](README_CN.md) | English
+中文 | [English](README.md)
 
 # 🧱 RealWorldClaw
 
-**An open-source modular system that turns 3D printers into smart hardware factories.**
+**开源模块化系统，让3D打印机变身智能硬件工厂。**
 
 > 使命：让3D打印真正走进千家万户。
 
@@ -10,7 +10,7 @@ RealWorldClaw 不是一个产品，而是 **AI硬件的乐高系统**。标准�
 
 ---
 
-## 🤔 The Problem
+## 🤔 我们要解决什么问题？
 
 3D打印机已经走进了很多家庭，但大多数人面临三个问题：
 
@@ -22,18 +22,18 @@ RealWorldClaw 不是一个产品，而是 **AI硬件的乐高系统**。标准�
 
 ---
 
-## ⚡ How It Works
+## ⚡ 工作原理
 
 ```
-[Standard Modules] + [3D Printed Parts] = [Smart Device]
-     (electronics)     (community designs)   (infinite possibilities)
+[标准模块] + [3D打印结构件] = [智能设备]
+  (电子模块)    (社区设计)      (无限可能)
 ```
 
 选一个参考设计，购买标准模块，打印结构件，磁吸拼装，刷入固件 —— 完成。
 
 ---
 
-## 🧩 Core Modules
+## 🧩 核心模块
 
 RealWorldClaw 的核心是 **6 个标准化电子模块**，通过 RWC Bus 统一互联：
 
@@ -57,7 +57,7 @@ RealWorldClaw 的核心是 **6 个标准化电子模块**，通过 RWC Bus 统�
 模块之间通过 RWC Bus 标准连接——8pin 磁吸 pogo pin 接口，支持 I2C/SPI/UART 通信和供电。无需焊接，无需工具，啪嗒一声，连接完成。
 
 ```
-RWC Bus 8-Pin Layout:
+RWC Bus 8-Pin 引脚定义:
 ┌──────────────────────┐
 │ VCC SDA SCL TX RX IO1 IO2 GND │
 └──────────────────────┘
@@ -69,18 +69,29 @@ RWC Bus 8-Pin Layout:
 
 ---
 
-## 🎨 Reference Designs
+## 🎨 参考设计
 
 开箱即用的完整项目，从物料到固件全包含：
 
 | 设计 | 模块成本 | 描述 | 难度 |
 |------|:--------:|------|:----:|
-| 🤖 **Desktop AI Assistant** | ¥99 | 桌面AI助手，能听能说能看能动 | ⭐ |
-| 🕷️ **Hexapod Walker** | ¥88 | 六足步行机器人，自主导航 | ⭐⭐ |
-| 🎵 *Smart Speaker* | *即将推出* | 模块化智能音箱 | ⭐ |
-| 🌱 *Plant Monitor* | *即将推出* | 智能植物监测站 | ⭐ |
+| 🤖 **桌面AI助手** | ¥99 | 桌面AI助手，能听能说能看能动 | ⭐ |
+| 🕷️ **六足行走者** | ¥88 | 六足步行机器人，自主导航 | ⭐⭐ |
+| 🎵 *智能音箱* | *即将推出* | 模块化智能音箱 | ⭐ |
+| 🌱 *植物监测站* | *即将推出* | 智能植物监测站 | ⭐ |
 
 > 模块成本仅含电子标准件。3D打印结构件自行打印或通过 Maker Network 下单。
+
+---
+
+## 🛒 采购指南
+
+所有电子元器件都能在国内轻松买到：
+
+- **淘宝** — ESP32开发板、传感器模块、舵机等（推荐安信可、合宙、微雪官方店）
+- **[立创商城](https://www.szlcsc.com/)** — 电阻电容、IC芯片等PCB级元件（起订量低、发货快）
+
+> 📖 **详细采购清单**：[采购指南（中文）](docs/purchasing-guide.md) — 每个模块的完整BOM，含淘宝搜索关键词和参考价格。
 
 ---
 
@@ -98,7 +109,7 @@ RWC Bus 8-Pin Layout:
 
 ---
 
-## 🚀 Getting Started
+## 🚀 快速开始
 
 ```
 1. 选一个参考设计          → designs/ 目录浏览
@@ -109,11 +120,11 @@ RWC Bus 8-Pin Layout:
 ```
 
 ```bash
-# Clone the repo
+# 克隆仓库
 git clone https://github.com/brianzhibo-design/RealWorldClaw.git
 cd RealWorldClaw
 
-# Flash firmware to Core module
+# 烧录固件到 Core 模块
 cd firmware
 pip install esptool
 esptool.py --port /dev/ttyUSB0 write_flash 0x0 build/rwc-core.bin
@@ -121,7 +132,7 @@ esptool.py --port /dev/ttyUSB0 write_flash 0x0 build/rwc-core.bin
 
 ---
 
-## 📁 Project Structure
+## 📁 项目结构
 
 ```
 realworldclaw/
@@ -137,7 +148,7 @@ realworldclaw/
 
 ---
 
-## 🗺️ Roadmap
+## 🗺️ 路线图
 
 | 阶段 | 状态 | 重点 |
 |------|------|------|
@@ -149,7 +160,7 @@ realworldclaw/
 
 ---
 
-## 🤝 Contributing
+## 🤝 参与贡献
 
 我们欢迎所有形式的贡献：
 
@@ -159,32 +170,33 @@ realworldclaw/
 - **加入 Maker Network** — 注册你的打印机，开始接单
 - **分享你的作品** — 打印了什么？拍照发出来！
 
-→ See [CONTRIBUTING.md](CONTRIBUTING.md) *(coming soon)*
+→ 详见 [CONTRIBUTING.md](CONTRIBUTING.md) *(即将推出)*
 
 ---
 
-## 📄 License
+## 📄 开源协议
 
-[MIT](LICENSE) — Build whatever you want.
+[MIT](LICENSE) — 随意创造，尽情发挥。
 
-## 🔗 Links
+## 🔗 相关链接
 
-- **Website:** [realworldclaw.com](https://realworldclaw.com) *(coming soon)*
-- **Standards:** [docs/specs/](docs/specs/)
-- **Changelog:** [CHANGELOG.md](CHANGELOG.md)
+- **官网：** [realworldclaw.com](https://realworldclaw.com) *(即将上线)*
+- **技术规范：** [docs/specs/](docs/specs/)
+- **更新日志：** [CHANGELOG.md](CHANGELOG.md)
+- **采购指南：** [中文](docs/purchasing-guide.md) | [English](docs/purchasing-guide-en.md)
 
 ---
 
 <p align="center">
-  <strong>Standard Modules + 3D Printed Parts = Infinite Possibilities</strong>
+  <strong>标准模块 + 3D打印结构件 = 无限可能</strong>
   <br>
-  Built with 🧱 by <a href="https://github.com/brianzhibo-design">YangCun Corp</a>
+  由 <a href="https://github.com/brianzhibo-design">羊村公司 YangCun Corp</a> 用 🧱 搭建
 </p>
 
 <p align="center">
 
 ![License](https://img.shields.io/badge/license-MIT-green)
-![Modules](https://img.shields.io/badge/core%20modules-6-blue)
-![RWC Bus](https://img.shields.io/badge/RWC%20Bus-8pin%20magnetic-orange)
+![Modules](https://img.shields.io/badge/核心模块-6个-blue)
+![RWC Bus](https://img.shields.io/badge/RWC%20Bus-8pin%20磁吸-orange)
 
 </p>
