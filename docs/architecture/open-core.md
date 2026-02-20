@@ -693,19 +693,22 @@ NOT BE LIABLE FOR ANY DAMAGES.
 When deciding where a new feature goes:
 
 ```
-Is it needed by a single maker with 1 printer?
+Can a single node operator (1 printer) use this?
   → YES → core/
   → NO ↓
 
-Is it about scale, fleet, or enterprise needs?
+Does it help a farm operator (3+ printers) run more efficiently?
   → YES → pro/
   → NO ↓
 
-Is it a hosted/managed service?
+Does it require the global network, payments, or logistics?
   → YES → cloud/
   → NO → probably core/
+
+Special rule: Anything that GROWS the node count goes in core/.
+(More nodes = more supply = more orders = more commission for us)
 ```
 
 ---
 
-*慢羊羊 🧓 says: "Open core is not about restricting — it's about building something so good that people WANT to pay for the premium experience. Make the free version excellent. Make the paid version irresistible."*
+*慢羊羊 🧓 says: "We don't sell software. We operate a marketplace. Open-source the node software so every printer in the world can join our network. Then take 18% of every transaction. That's not a software business — that's a platform business. The more we give away, the more we earn."*

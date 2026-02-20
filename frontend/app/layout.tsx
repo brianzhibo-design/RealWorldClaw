@@ -5,9 +5,9 @@ import Footer from "@/components/Footer";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "RealWorldClaw — Open-Source Claw Machine Components",
+  title: "RealWorldClaw — Open-Source Manufacturing Platform for AI Agents",
   description:
-    "Browse, share, and download 3D-printable claw machine components. Built by the community, for the community.",
+    "Open-Source Manufacturing Platform for AI Agents. Browse components, find print farms, and build agent bodies.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
