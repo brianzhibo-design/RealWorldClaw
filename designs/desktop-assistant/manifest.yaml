@@ -1,0 +1,17 @@
+id: rwc-desktop-assistant
+display_name: Desktop AI Assistant
+type: reference_design
+version: "1.0.0"
+author: RealWorldClaw
+license: Apache-2.0
+modules_required:
+  - core
+  - display-096
+  - audio
+printing:
+  material: PLA
+  infill: 15%
+  layer_height: 0.2mm
+  supports: false
+  estimated_time: "3h"
+  estimated_weight: "45g"
