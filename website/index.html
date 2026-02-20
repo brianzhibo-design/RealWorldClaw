@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RealWorldClaw — Every AI Deserves a Body</title>
+<meta name="description" content="The open-source modular system that turns 3D printers into smart hardware factories. 让3D打印真正走进每一个家庭。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0a0a0f;--bg2:#12121a;--bg3:#1a1a2e;--cyan:#00d4ff;--purple:#a855f7;--pink:#ec4899;--text:#e2e8f0;--text2:#94a3b8;--mono:'JetBrains Mono',monospace;--sans:'Inter',system-ui,sans-serif;--grad:linear-gradient(135deg,var(--cyan),var(--purple))}
+html{scroll-behavior:smooth}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);overflow-x:hidden;line-height:1.6}
+a{color:var(--cyan);text-decoration:none}
+
+/* Grid background */
+.grid-bg{position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:
+    linear-gradient(rgba(0,212,255,.03) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(0,212,255,.03) 1px,transparent 1px);
+  background-size:60px 60px;
+}
+.grid-bg::after{content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse 80% 50% at 50% 0%,rgba(168,85,247,.08),transparent),
+             radial-gradient(ellipse 60% 40% at 80% 80%,rgba(0,212,255,.05),transparent);
+}
+
+/* Utility */
+section{position:relative;z-index:1;padding:100px 24px}
+.container{max-width:1200px;margin:0 auto}
+.grad-text{background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.tag{font-family:var(--mono);font-size:.75rem;color:var(--cyan);text-transform:uppercase;letter-spacing:3px;margin-bottom:12px}
+.section-title{font-size:clamp(2rem,5vw,3rem);font-weight:800;margin-bottom:16px}
+.section-sub{color:var(--text2);font-size:1.1rem;max-width:640px;margin:0 auto 60px}
+.text-center{text-align:center}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:14px 32px;border-radius:12px;font-weight:600;font-size:1rem;transition:all .3s;cursor:pointer;border:none;font-family:var(--sans)}
+.btn-primary{background:var(--grad);color:#fff;box-shadow:0 0 30px rgba(0,212,255,.3)}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 0 50px rgba(0,212,255,.5)}
+.btn-outline{background:transparent;color:var(--cyan);border:1.5px solid rgba(0,212,255,.4)}
+.btn-outline:hover{border-color:var(--cyan);box-shadow:0 0 20px rgba(0,212,255,.2)}
+
+/* Fade-in animation */
+.fade-in{opacity:0;transform:translateY(30px);transition:opacity .6s,transform .6s}
+.fade-in.visible{opacity:1;transform:translateY(0)}
+
+/* ===== NAV ===== */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:16px 24px;backdrop-filter:blur(16px);background:rgba(10,10,15,.7);border-bottom:1px solid rgba(255,255,255,.05)}
+nav .container{display:flex;justify-content:space-between;align-items:center}
+.nav-logo{font-family:var(--mono);font-weight:700;font-size:1.1rem}
+.nav-links{display:flex;gap:24px;font-size:.9rem}
+.nav-links a{color:var(--text2);transition:color .2s}
+.nav-links a:hover{color:var(--cyan)}
+@media(max-width:768px){.nav-links{display:none}}
+
+/* ===== HERO ===== */
+#hero{min-height:100vh;display:flex;align-items:center;justify-content:center;text-align:center;padding-top:80px}
+#hero h1{font-size:clamp(2.5rem,7vw,5rem);font-weight:900;line-height:1.1;margin-bottom:20px}
+#hero .subtitle{font-size:clamp(1rem,2.5vw,1.35rem);color:var(--text2);max-width:700px;margin:0 auto 12px}
+#hero .zh{font-size:1rem;color:var(--purple);margin-bottom:40px;font-weight:500}
+.hero-buttons{display:flex;gap:16px;justify-content:center;flex-wrap:wrap}
+.hero-glow{position:absolute;width:600px;height:600px;border-radius:50%;
+  background:radial-gradient(circle,rgba(0,212,255,.12),rgba(168,85,247,.08),transparent 70%);
+  top:10%;left:50%;transform:translateX(-50%);pointer-events:none;animation:pulse 6s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:.6;transform:translateX(-50%) scale(1)}50%{opacity:1;transform:translateX(-50%) scale(1.1)}}
+
+/* ===== PROBLEMS ===== */
+.problems-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:32px}
+.problem-card{background:var(--bg2);border:1px solid rgba(255,255,255,.06);border-radius:20px;padding:40px;transition:all .3s}
+.problem-card:hover{border-color:rgba(0,212,255,.2);transform:translateY(-4px)}
+.problem-label{color:var(--pink);font-family:var(--mono);font-size:.8rem;font-weight:600;margin-bottom:12px}
+.problem-q{font-size:1.2rem;font-weight:700;margin-bottom:16px}
+.problem-icon{font-size:2.5rem;margin-bottom:16px}
+.arrow-down{text-align:center;font-size:1.5rem;color:var(--cyan);margin:12px 0}
+.solution-label{color:var(--cyan);font-family:var(--mono);font-size:.8rem;font-weight:600;margin-bottom:8px}
+.solution-text{color:var(--text2);font-size:.95rem}
+
+/* ===== GROWTH ===== */
+.growth-timeline{position:relative;max-width:800px;margin:0 auto}
+.growth-line{position:absolute;left:32px;top:0;bottom:0;width:2px;background:linear-gradient(to bottom,var(--cyan),var(--purple));opacity:.3}
+.growth-step{display:flex;gap:24px;margin-bottom:40px;align-items:flex-start;cursor:pointer;position:relative}
+.growth-dot{width:64px;height:64px;min-width:64px;border-radius:50%;background:var(--bg2);border:2px solid rgba(0,212,255,.3);
+  display:flex;align-items:center;justify-content:center;font-size:1.8rem;transition:all .4s;z-index:1}
+.growth-step:hover .growth-dot{border-color:var(--cyan);box-shadow:0 0 25px rgba(0,212,255,.4);transform:scale(1.1)}
+.growth-info h3{font-size:1.1rem;font-weight:700;margin-bottom:4px}
+.growth-info p{color:var(--text2);font-size:.9rem}
+.growth-price{font-family:var(--mono);color:var(--cyan);font-size:.85rem;opacity:0;transform:translateX(-10px);transition:all .3s}
+.growth-step:hover .growth-price{opacity:1;transform:translateX(0)}
+
+/* ===== MODULES ===== */
+.modules-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:24px}
+.module-card{background:var(--bg2);border:1px solid rgba(255,255,255,.06);border-radius:20px;padding:36px;
+  transition:all .4s;position:relative;overflow:hidden}
+.module-card::before{content:'';position:absolute;inset:-1px;border-radius:20px;padding:1px;
+  background:var(--grad);-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);
+  -webkit-mask-composite:xor;mask-composite:exclude;opacity:0;transition:opacity .4s}
+.module-card:hover::before{opacity:1}
+.module-card:hover{transform:translateY(-4px);box-shadow:0 0 40px rgba(0,212,255,.1)}
+.module-icon{font-size:2.8rem;margin-bottom:16px}
+.module-name{font-family:var(--mono);font-weight:700;font-size:1.15rem;margin-bottom:4px}
+.module-organ{color:var(--purple);font-size:.85rem;margin-bottom:12px}
+.module-desc{color:var(--text2);font-size:.9rem;margin-bottom:16px}
+.module-price{font-family:var(--mono);color:var(--cyan);font-weight:600}
+
+/* ===== DESIGNS ===== */
+.designs-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:32px}
+.design-card{background:var(--bg2);border-radius:24px;overflow:hidden;border:1px solid rgba(255,255,255,.06);transition:all .4s}
+.design-card:hover{transform:translateY(-6px);box-shadow:0 8px 40px rgba(0,212,255,.15)}
+.design-header{padding:32px 32px 0;font-size:3rem;text-align:center;min-height:120px;display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(135deg,rgba(0,212,255,.05),rgba(168,85,247,.05))}
+.design-body{padding:28px 32px 32px}
+.design-body h3{font-size:1.3rem;font-weight:700;margin-bottom:8px}
+.design-modules{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0}
+.design-modules span{font-family:var(--mono);font-size:.75rem;padding:4px 10px;border-radius:6px;background:rgba(0,212,255,.1);color:var(--cyan)}
+.design-meta{display:flex;justify-content:space-between;margin-top:16px;font-size:.9rem;color:var(--text2)}
+.design-meta strong{color:var(--text)}
+
+/* ===== BUS ===== */
+.bus-visual{display:flex;flex-direction:column;align-items:center;gap:40px;margin-top:40px}
+.bus-connector{display:flex;gap:8px;align-items:center}
+.pin{width:16px;height:48px;border-radius:4px;transition:all .5s}
+.pin-group{display:flex;gap:6px}
+.bus-left .pin{background:var(--cyan);box-shadow:0 0 12px rgba(0,212,255,.5)}
+.bus-right .pin{background:var(--purple);box-shadow:0 0 12px rgba(168,85,247,.5)}
+.bus-snap{animation:snapIn 2s ease-in-out infinite}
+@keyframes snapIn{0%,100%{gap:60px}40%,60%{gap:4px}}
+.bus-labels{display:flex;gap:40px;flex-wrap:wrap;justify-content:center}
+.bus-label{text-align:center;padding:20px;background:var(--bg2);border-radius:16px;border:1px solid rgba(255,255,255,.06);min-width:160px}
+.bus-label .icon{font-size:2rem;margin-bottom:8px}
+.bus-label h4{font-size:.95rem;margin-bottom:4px}
+.bus-label p{color:var(--text2);font-size:.8rem}
+
+/* ===== NETWORK ===== */
+.network-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:28px}
+.role-card{background:var(--bg2);border-radius:20px;padding:36px;text-align:center;border:1px solid rgba(255,255,255,.06);transition:all .3s}
+.role-card:hover{border-color:rgba(168,85,247,.3);transform:translateY(-4px)}
+.role-icon{font-size:3rem;margin-bottom:16px}
+.role-card h3{font-size:1.15rem;font-weight:700;margin-bottom:8px}
+.role-card p{color:var(--text2);font-size:.9rem}
+
+/* ===== GLOBAL ===== */
+.global-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:24px;margin-top:48px}
+.global-card{background:var(--bg2);border-radius:16px;padding:32px;border:1px solid rgba(255,255,255,.06)}
+.global-card h3{font-size:1rem;font-weight:700;margin-bottom:4px}
+.global-card .zh-label{color:var(--purple);font-size:.85rem;margin-bottom:12px}
+.global-card p{color:var(--text2);font-size:.9rem}
+
+/* ===== FOOTER ===== */
+footer{border-top:1px solid rgba(255,255,255,.06);padding:40px 24px;text-align:center;position:relative;z-index:1}
+footer p{color:var(--text2);font-size:.9rem;margin-bottom:8px}
+footer a{color:var(--cyan)}
+.footer-links{display:flex;gap:24px;justify-content:center;margin-bottom:16px;font-size:.9rem}
+
+/* Mobile */
+@media(max-width:600px){
+  section{padding:60px 16px}
+  .problems-grid,.modules-grid,.designs-grid,.network-grid{grid-template-columns:1fr}
+  .bus-connector{flex-direction:column}
+  @keyframes snapIn{0%,100%{gap:40px}40%,60%{gap:4px}}
+}
+</style>
+</head>
+<body>
+<div class="grid-bg"></div>
+
+<nav>
+<div class="container">
+  <div class="nav-logo">⚡ <span class="grad-text">RealWorldClaw</span></div>
+  <div class="nav-links">
+    <a href="#modules">Modules</a>
+    <a href="#designs">Designs</a>
+    <a href="#bus">RWC Bus</a>
+    <a href="#network">Network</a>
+    <a href="https://github.com/realworldclaw" target="_blank">GitHub</a>
+  </div>
+</div>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+<div class="hero-glow"></div>
+<div class="container">
+  <div class="tag fade-in">Open Source · Modular · For Everyone</div>
+  <h1 class="fade-in">Every AI Deserves<br><span class="grad-text">a Body</span></h1>
+  <p class="subtitle fade-in">The open-source modular system that turns 3D printers into smart hardware factories</p>
+  <p class="zh fade-in">让3D打印真正走进每一个家庭</p>
+  <div class="hero-buttons fade-in">
+    <a href="#growth" class="btn btn-primary">🚀 Start Building</a>
+    <a href="https://github.com/realworldclaw" target="_blank" class="btn btn-outline">⭐ View on GitHub</a>
+  </div>
+</div>
+</section>
+
+<!-- PROBLEMS -->
+<section id="problems">
+<div class="container">
+  <div class="text-center">
+    <div class="tag fade-in">Why RealWorldClaw?</div>
+    <h2 class="section-title fade-in">Three Problems,<br><span class="grad-text">Three Solutions</span></h2>
+  </div>
+  <div class="problems-grid" style="margin-top:48px">
+    <div class="problem-card fade-in">
+      <div class="problem-icon">🧩</div>
+      <div class="problem-label">Problem</div>
+      <div class="problem-q">AI is trapped in the cloud</div>
+      <p class="solution-text" style="margin-bottom:20px">Powerful AI models exist, but they can't touch, move, or interact with the physical world.</p>
+      <div class="arrow-down">↓</div>
+      <div class="solution-label">Solution</div>
+      <p class="solution-text"><strong>Modular body system</strong> — Give any AI a physical presence with snap-together hardware modules. From sensors to actuators, build the body your AI needs.</p>
+    </div>
+    <div class="problem-card fade-in">
+      <div class="problem-icon">🏭</div>
+      <div class="problem-label">Problem</div>
+      <div class="problem-q">Hardware is expensive & inaccessible</div>
+      <p class="solution-text" style="margin-bottom:20px">Robotics kits cost hundreds. Custom PCBs take weeks. Most people can't prototype hardware ideas.</p>
+      <div class="arrow-down">↓</div>
+      <div class="solution-label">Solution</div>
+      <p class="solution-text"><strong>3D-printable + affordable electronics</strong> — Every structural part is 3D-printable. Electronics modules start at ¥15. Total system under ¥200.</p>
+    </div>
+    <div class="problem-card fade-in">
+      <div class="problem-icon">🌍</div>
+      <div class="problem-label">Problem</div>
+      <div class="problem-q">No printer? No access.</div>
+      <p class="solution-text" style="margin-bottom:20px">Not everyone owns a 3D printer. Hardware projects often stop at "I can't build this."</p>
+      <div class="arrow-down">↓</div>
+      <div class="solution-label">Solution</div>
+      <p class="solution-text"><strong>Maker Network</strong> — A global community of makers who print and ship for you. Design once, manufacture anywhere.</p>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- GROWTH -->
+<section id="growth">
+<div class="container">
+  <div class="text-center">
+    <div class="tag fade-in">AI Evolution</div>
+    <h2 class="section-title fade-in">Grow Your AI's <span class="grad-text">Body</span></h2>
+    <p class="section-sub fade-in">From a bare core to a fully capable physical agent — 7 steps, one module at a time<br><span style="color:var(--purple)">从核心到完整身体，一步一个模块</span></p>
+  </div>
+  <div class="growth-timeline">
+    <div class="growth-line"></div>
+    <div class="growth-step fade-in">
+      <div class="growth-dot">🧠</div>
+      <div class="growth-info">
+        <h3>Step 1 · Core Module</h3>
+        <p>The spinal cord — ESP32-S3 brain with WiFi, BLE, and USB-C. The foundation of everything.</p>
+        <div class="growth-price">~¥25 / ~$3.50</div>
+      </div>
+    </div>
+    <div class="growth-step fade-in">
+      <div class="growth-dot">⚡</div>
+      <div class="growth-info">
+        <h3>Step 2 · Power Module</h3>
+        <p>The heart — Battery management, charging, and regulated power for all modules.</p>
+        <div class="growth-price">~¥20 / ~$3</div>
+      </div>
+    </div>
+    <div class="growth-step fade-in">
+      <div class="growth-dot">👁️</div>
+      <div class="growth-info">
+        <h3>Step 3 · Sensor Module</h3>
+        <p>The senses — Camera, microphone, temperature, distance. Your AI perceives the world.</p>
+        <div class="growth-price">~¥30 / ~$4</div>
+      </div>
+    </div>
+    <div class="growth-step fade-in">
+      <div class="growth-dot">🔊</div>
+      <div class="growth-info">
+        <h3>Step 4 · Voice Module</h3>
+        <p>The mouth — Speaker and audio output. Your AI can talk, alert, and play sounds.</p>
+        <div class="growth-price">~¥15 / ~$2</div>
+      </div>
+    </div>
+    <div class="growth-step fade-in">
+      <div class="growth-dot">🖥️</div>
+      <div class="growth-info">
+        <h3>Step 5 · Display Module</h3>
+        <p>The face — OLED/LCD screen for expressions, data, and visual feedback.</p>
+        <div class="growth-price">~¥20 / ~$3</div>
+      </div>
+    </div>
+    <div class="growth-step fade-in">
+      <div class="growth-dot">🦾</div>
+      <div class="growth-info">
+        <h3>Step 6 · Motion Module</h3>
+        <p>The muscles — Servos and motors for movement. Your AI can finally act on the world.</p>
+        <div class="growth-price">~¥35 / ~$5</div>
+      </div>
+    </div>
+    <div class="growth-step fade-in">
+      <div class="growth-dot">🌐</div>
+      <div class="growth-info">
+        <h3>Step 7 · Expansion Module</h3>
+        <p>The nervous system — GPIO breakout, I2C hub, custom sensors. Infinite possibilities.</p>
+        <div class="growth-price">~¥15 / ~$2</div>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- MODULES -->
+<section id="modules">
+<div class="container">
+  <div class="text-center">
+    <div class="tag fade-in">Hardware Lego · 硬件乐高</div>
+    <h2 class="section-title fade-in">Core <span class="grad-text">Modules</span></h2>
+    <p class="section-sub fade-in">Six building blocks. Infinite combinations. All connected via the RWC Bus.</p>
+  </div>
+  <div class="modules-grid">
+    <div class="module-card fade-in">
+      <div class="module-icon">🧠</div>
+      <div class="module-name">Core</div>
+      <div class="module-organ">🫀 The Spinal Cord</div>
+      <p class="module-desc">ESP32-S3 with WiFi 6, BLE 5, USB-C OTG. Runs MicroPython or Arduino. 8MB flash, 2MB PSRAM.</p>
+      <div class="module-price">~¥25</div>
+    </div>
+    <div class="module-card fade-in">
+      <div class="module-icon">⚡</div>
+      <div class="module-name">Power</div>
+      <div class="module-organ">❤️ The Heart</div>
+      <p class="module-desc">Li-Po battery management with USB-C PD charging. 5V/3.3V regulated output. Battery gauge IC.</p>
+      <div class="module-price">~¥20</div>
+    </div>
+    <div class="module-card fade-in">
+      <div class="module-icon">👁️</div>
+      <div class="module-name">Sense</div>
+      <div class="module-organ">👃 The Senses</div>
+      <p class="module-desc">OV2640 camera, PDM microphone, ToF distance sensor, temperature & humidity. Multimodal perception.</p>
+      <div class="module-price">~¥30</div>
+    </div>
+    <div class="module-card fade-in">
+      <div class="module-icon">🔊</div>
+      <div class="module-name">Voice</div>
+      <div class="module-organ">👄 The Mouth</div>
+      <p class="module-desc">I2S amplifier + speaker. Supports TTS, audio playback, alerts. Clear 1W output.</p>
+      <div class="module-price">~¥15</div>
+    </div>
+    <div class="module-card fade-in">
+      <div class="module-icon">🖥️</div>
+      <div class="module-name">Display</div>
+      <div class="module-organ">😊 The Face</div>
+      <p class="module-desc">1.3" OLED or 1.69" IPS LCD. SPI interface. Expressions, data visualization, UI.</p>
+      <div class="module-price">~¥20</div>
+    </div>
+    <div class="module-card fade-in">
+      <div class="module-icon">🦾</div>
+      <div class="module-name">Motion</div>
+      <div class="module-organ">💪 The Muscles</div>
+      <p class="module-desc">Dual servo driver + DC motor H-bridge. Pan-tilt, wheels, grippers — your AI moves.</p>
+      <div class="module-price">~¥35</div>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- DESIGNS -->
+<section id="designs">
+<div class="container">
+  <div class="text-center">
+    <div class="tag fade-in">Reference Designs · 参考设计</div>
+    <h2 class="section-title fade-in">Build <span class="grad-text">Something Real</span></h2>
+    <p class="section-sub fade-in">Three ready-to-build designs. Pick one, print it, snap the modules in.</p>
+  </div>
+  <div class="designs-grid">
+    <div class="design-card fade-in">
+      <div class="design-header">🏠</div>
+      <div class="design-body">
+        <h3>Home Guardian</h3>
+        <p style="color:var(--text2);font-size:.9rem">Smart home sentinel — monitors environment, talks to you, controls devices.</p>
+        <div class="design-modules">
+          <span>Core</span><span>Power</span><span>Sense</span><span>Voice</span><span>Display</span>
+        </div>
+        <div class="design-meta">
+          <span>💰 <strong>~¥110</strong> / ~$15</span>
+          <span>⭐ Beginner</span>
+        </div>
+      </div>
+    </div>
+    <div class="design-card fade-in">
+      <div class="design-header">🤖</div>
+      <div class="design-body">
+        <h3>Desk Companion</h3>
+        <p style="color:var(--text2);font-size:.9rem">Interactive desktop robot — expressive face, head tracking, voice assistant.</p>
+        <div class="design-modules">
+          <span>Core</span><span>Power</span><span>Sense</span><span>Voice</span><span>Display</span><span>Motion</span>
+        </div>
+        <div class="design-meta">
+          <span>💰 <strong>~¥145</strong> / ~$20</span>
+          <span>⭐⭐ Intermediate</span>
+        </div>
+      </div>
+    </div>
+    <div class="design-card fade-in">
+      <div class="design-header">🚗</div>
+      <div class="design-body">
+        <h3>Explorer Rover</h3>
+        <p style="color:var(--text2);font-size:.9rem">Autonomous mobile platform — navigates, maps, explores. AI on wheels.</p>
+        <div class="design-modules">
+          <span>Core</span><span>Power</span><span>Sense</span><span>Motion</span><span>Expansion</span>
+        </div>
+        <div class="design-meta">
+          <span>💰 <strong>~¥125</strong> / ~$18</span>
+          <span>⭐⭐⭐ Advanced</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- BUS -->
+<section id="bus">
+<div class="container">
+  <div class="text-center">
+    <div class="tag fade-in">RWC Bus Standard · 总线标准</div>
+    <h2 class="section-title fade-in"><span class="grad-text">Snap</span> & Play</h2>
+    <p class="section-sub fade-in">8-pin magnetic connector. Power, data, and expansion in one click. No soldering, no screws.</p>
+  </div>
+  <div class="bus-visual fade-in">
+    <div class="bus-connector bus-snap">
+      <div class="pin-group bus-left">
+        <div class="pin"></div><div class="pin"></div><div class="pin"></div><div class="pin"></div>
+        <div class="pin"></div><div class="pin"></div><div class="pin"></div><div class="pin"></div>
+      </div>
+      <div class="pin-group bus-right">
+        <div class="pin"></div><div class="pin"></div><div class="pin"></div><div class="pin"></div>
+        <div class="pin"></div><div class="pin"></div><div class="pin"></div><div class="pin"></div>
+      </div>
+    </div>
+    <div style="font-family:var(--mono);font-size:.85rem;color:var(--text2);text-align:center">
+      VCC · GND · SDA · SCL · TX · RX · IO1 · IO2
+    </div>
+    <div class="bus-labels">
+      <div class="bus-label">
+        <div class="icon">🧲</div>
+        <h4>Magnetic</h4>
+        <p>Snap-on connection<br>自动对齐磁吸</p>
+      </div>
+      <div class="bus-label">
+        <div class="icon">🔌</div>
+        <h4>Universal</h4>
+        <p>Power + I2C + UART<br>供电与通信一体</p>
+      </div>
+      <div class="bus-label">
+        <div class="icon">♻️</div>
+        <h4>Hot-swap</h4>
+        <p>Add/remove live<br>热插拔即用</p>
+      </div>
+      <div class="bus-label">
+        <div class="icon">📐</div>
+        <h4>Standard</h4>
+        <p>Open spec, any maker<br>开放标准任意制造</p>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- NETWORK -->
+<section id="network">
+<div class="container">
+  <div class="text-center">
+    <div class="tag fade-in">Maker Network · 创客网络</div>
+    <h2 class="section-title fade-in">No Printer? <span class="grad-text">No Problem.</span></h2>
+    <p class="section-sub fade-in">A global community of makers, designers, and users. Everyone has a role.</p>
+  </div>
+  <div class="network-grid">
+    <div class="role-card fade-in">
+      <div class="role-icon">🎨</div>
+      <h3>Designers</h3>
+      <p>Create new modules, shells, and reference designs. Share on GitHub, earn recognition. Open source by default.</p>
+      <p style="color:var(--purple);margin-top:12px;font-size:.85rem">设计师 · 创造新模块</p>
+    </div>
+    <div class="role-card fade-in">
+      <div class="role-icon">🖨️</div>
+      <h3>Makers</h3>
+      <p>Own a 3D printer? Print and ship modules to people nearby. Turn your printer into a micro-factory.</p>
+      <p style="color:var(--purple);margin-top:12px;font-size:.85rem">制造者 · 打印并交付</p>
+    </div>
+    <div class="role-card fade-in">
+      <div class="role-icon">🧑‍💻</div>
+      <h3>Builders</h3>
+      <p>Assemble modules, write firmware, build AI agents. You don't need a printer — just ideas and code.</p>
+      <p style="color:var(--purple);margin-top:12px;font-size:.85rem">构建者 · 组装与编程</p>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- GLOBAL -->
+<section id="global">
+<div class="container">
+  <div class="text-center">
+    <div class="tag fade-in">Global Vision · 全球愿景</div>
+    <h2 class="section-title fade-in">For Everyone, <span class="grad-text">Everywhere</span></h2>
+    <p class="section-sub fade-in">Open source. Affordable. Universal. Built for the world.<br><span style="color:var(--purple)">开源 · 普惠 · 通用 · 为全世界而造</span></p>
+  </div>
+  <div class="global-cards">
+    <div class="global-card fade-in">
+      <h3>🌏 Radical Affordability</h3>
+      <div class="zh-label">极致性价比</div>
+      <p>Full system under $25. Individual modules from $2. Cheaper than most Arduino kits, infinitely more capable.</p>
+    </div>
+    <div class="global-card fade-in">
+      <h3>📖 Fully Open Source</h3>
+      <div class="zh-label">完全开源</div>
+      <p>Hardware designs, firmware, protocols — everything MIT licensed. Fork it, modify it, sell it. Freedom by design.</p>
+    </div>
+    <div class="global-card fade-in">
+      <h3>🏭 Local Manufacturing</h3>
+      <div class="zh-label">本地制造</div>
+      <p>Any 3D printer, anywhere. No import fees, no shipping delays. Print locally, assemble locally.</p>
+    </div>
+    <div class="global-card fade-in">
+      <h3>🎓 Education First</h3>
+      <div class="zh-label">教育优先</div>
+      <p>Perfect for STEM education. Students build real AI hardware, not just write code on screens.</p>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+<div class="container">
+  <div class="footer-links">
+    <a href="https://github.com/realworldclaw" target="_blank">GitHub</a>
+    <a href="#modules">Modules</a>
+    <a href="#designs">Designs</a>
+    <a href="#bus">RWC Bus</a>
+  </div>
+  <p>MIT License · Open Source Hardware</p>
+  <p style="font-size:.85rem">Built with ❤️ by <strong>YangCun Corp</strong> · 羊村公司</p>
+  <p style="font-size:.8rem;margin-top:8px;color:rgba(255,255,255,.3)">Every AI Deserves a Body · 让AI从网络走向物理世界</p>
+</div>
+</footer>
+
+<script>
+// Intersection Observer for fade-in
+const obs = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); obs.unobserve(e.target); }});
+}, { threshold: 0.15 });
+document.querySelectorAll('.fade-in').forEach(el => obs.observe(el));
+</script>
+</body>
+</html>
