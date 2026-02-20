@@ -1,0 +1,56 @@
+id: rwc-environment-sentinel
+display_name: Environment Sentinel 环境哨兵
+type: reference_design
+version: "1.0.0"
+author: RealWorldClaw
+license: Apache-2.0
+
+description: >
+  墙挂式智能环境监测站。实时显示温湿度和光照，
+  通过WiFi连接AI Agent，异常时推送告警。
+  最便宜的参考设计，展示模块系统的灵活性。
+
+modules_required:
+  - core
+  - power
+  - sensor
+  - display-096
+
+bom_cost_cny: 57
+difficulty: beginner
+
+features:
+  - 温湿度实时监测 (SHT40)
+  - 光照强度监测 (BH1750)
+  - OLED 实时显示
+  - WiFi 数据上报 (MQTT/HTTP)
+  - AI Agent 告警推送
+  - 墙挂 / 桌面两用
+  - 深度睡眠低功耗模式
+
+printing:
+  material: PLA
+  infill: 15%
+  layer_height: 0.2mm
+  supports: false
+  estimated_time: "2h"
+  estimated_weight: "35g"
+
+enclosure:
+  dimensions: [100, 80, 25]  # mm
+  features:
+    - OLED display window
+    - Sensor ventilation grille
+    - Wall-mount keyhole
+    - Foldable kickstand
+    - USB-C port cutout
+
+firmware:
+  example: firmware/examples/env_sentinel.cpp
+  platform: esp32-s3
+  framework: arduino
+  libraries:
+    - Adafruit SHT4x
+    - BH1750
+    - Adafruit SSD1306
+    - PubSubClient
