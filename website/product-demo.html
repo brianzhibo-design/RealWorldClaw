@@ -1,335 +1,424 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>RWC Desktop Assistant — Product Demo</title>
+<title>RealWorldClaw — Product Demo</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-:root{--bg:#0a0a0f;--card:#12121a;--neon-blue:#00d4ff;--neon-purple:#a855f7;--neon-green:#22c55e;--neon-pink:#f472b6;--text:#e2e8f0;--text-dim:#64748b}
-body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;overflow-x:hidden;min-height:100vh}
+:root{
+  --cyan:#00ffd5;--magenta:#ff2d95;--yellow:#ffe600;--green:#39ff14;
+  --bg:#0a0a0f;--panel:rgba(255,255,255,0.03);
+}
+@font-face{font-family:'Pixel';src:local('Courier New')}
+body{background:var(--bg);color:#e0e0e0;font-family:'Inter','SF Pro',system-ui,sans-serif;overflow-x:hidden;min-height:100vh}
 h1,h2,h3{font-weight:700}
 
-/* Hero */
-.hero{text-align:center;padding:60px 20px 20px}
-.hero h1{font-size:2.8rem;background:linear-gradient(135deg,var(--neon-blue),var(--neon-purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:12px}
-.hero .tagline{font-size:1.3rem;color:var(--text-dim);margin-bottom:8px}
-.hero .tagline span{color:var(--neon-green);font-weight:700}
+/* Top bar */
+.topbar{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:16px 32px;background:rgba(10,10,15,0.85);backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,0.06)}
+.topbar .logo{font-size:18px;font-weight:800;letter-spacing:2px;color:#fff}
+.topbar .logo span{color:var(--cyan)}
+.topbar .controls{display:flex;gap:8px}
+.btn{padding:8px 18px;border:1px solid rgba(255,255,255,0.15);border-radius:6px;background:rgba(255,255,255,0.04);color:#ccc;font-size:13px;cursor:pointer;transition:all .2s;font-family:inherit;letter-spacing:0.5px}
+.btn:hover{background:rgba(255,255,255,0.1);color:#fff;border-color:rgba(255,255,255,0.3)}
+.btn.active{background:var(--cyan);color:#000;border-color:var(--cyan);font-weight:600}
+.btn.accent{background:var(--magenta);color:#fff;border-color:var(--magenta)}
+.btn.accent:hover{background:#ff4da6}
 
-/* 3D Scene */
-.scene-wrapper{display:flex;justify-content:center;align-items:center;padding:20px;perspective:1200px;min-height:480px;position:relative}
-.scene{width:320px;height:380px;position:relative;transform-style:preserve-3d;transition:transform 0.1s linear}
+/* Scene */
+.scene-wrap{width:100%;height:100vh;display:flex;align-items:center;justify-content:center;perspective:1200px;padding-top:60px}
+.scene{width:500px;height:500px;position:relative;transform-style:preserve-3d;transition:transform .6s cubic-bezier(.25,.46,.45,.94)}
+.auto-rotate .scene{animation:autoRotate 20s linear infinite}
+@keyframes autoRotate{from{transform:rotateY(0) rotateX(-15deg)}to{transform:rotateY(360deg) rotateX(-15deg)}}
 
-/* Device — pebble shape */
-.device{position:absolute;width:100%;height:100%;transform-style:preserve-3d}
+/* ====== BASE (hexagonal) ====== */
+.base{position:absolute;bottom:60px;left:50%;transform:translateX(-50%) rotateX(90deg) translateZ(-20px);width:280px;height:280px;transform-style:preserve-3d}
+.base-plate{position:absolute;width:280px;height:280px;clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);background:rgba(0,255,213,0.06);border:1.5px solid rgba(0,255,213,0.25);backdrop-filter:blur(4px);transition:all .6s}
+.base-plate.top{transform:translateZ(20px)}
+.base-plate.bottom{transform:translateZ(-20px);background:rgba(0,255,213,0.03)}
+.base-side{position:absolute;width:280px;height:40px;background:rgba(0,255,213,0.04);border:1px solid rgba(0,255,213,0.12)}
 
-.face{position:absolute;backface-visibility:hidden;border-radius:40px}
+/* PCB traces inside base */
+.pcb-layer{position:absolute;width:280px;height:280px;clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);transform:translateZ(0px);overflow:hidden;pointer-events:none}
+.pcb-layer svg{width:100%;height:100%;opacity:0.6}
 
-/* Front */
-.face.front{width:260px;height:340px;left:30px;top:20px;background:linear-gradient(145deg,#1e1e2e,#16161f);border:2px solid rgba(168,85,247,0.3);transform:translateZ(45px);box-shadow:0 0 40px rgba(168,85,247,0.15);overflow:hidden}
+/* RGB underglow */
+.underglow{position:absolute;width:260px;height:260px;left:10px;top:10px;clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);transform:translateZ(-22px);background:conic-gradient(var(--cyan),var(--magenta),var(--yellow),var(--green),var(--cyan));filter:blur(18px);opacity:0.5;animation:rgbSpin 4s linear infinite}
+@keyframes rgbSpin{to{filter:blur(18px) hue-rotate(360deg)}}
 
-/* Back */
-.face.back{width:260px;height:340px;left:30px;top:20px;background:linear-gradient(145deg,#1a1a28,#111118);border:2px solid rgba(0,212,255,0.15);transform:translateZ(-45px) rotateY(180deg)}
+/* ESP32 chip on base */
+.esp32{position:absolute;width:50px;height:34px;background:#1a1a1a;border:1px solid rgba(0,255,213,0.4);border-radius:3px;transform:translateZ(2px);left:115px;top:120px;display:flex;align-items:center;justify-content:center;font-size:7px;color:var(--cyan);font-family:'Courier New',monospace;letter-spacing:0.5px;box-shadow:0 0 10px rgba(0,255,213,0.15)}
+.esp32::after{content:'';position:absolute;width:4px;height:2px;background:rgba(0,255,213,0.6);box-shadow:-8px 0 0 rgba(0,255,213,0.6),8px 0 0 rgba(0,255,213,0.6),-16px 0 0 rgba(0,255,213,0.6),16px 0 0 rgba(0,255,213,0.6),-8px -18px 0 rgba(0,255,213,0.4),0 -18px 0 rgba(0,255,213,0.4),8px -18px 0 rgba(0,255,213,0.4),-8px 18px 0 rgba(0,255,213,0.4),0 18px 0 rgba(0,255,213,0.4),8px 18px 0 rgba(0,255,213,0.4);top:50%;left:50%;transform:translate(-50%,-50%)}
 
-/* Left */
-.face.left{width:90px;height:340px;left:-15px;top:20px;background:linear-gradient(180deg,#18182a,#111120);border:2px solid rgba(168,85,247,0.15);transform:rotateY(-90deg) translateZ(30px);border-radius:40px}
-
-/* Right */
-.face.right{width:90px;height:340px;right:-15px;top:20px;background:linear-gradient(180deg,#18182a,#111120);border:2px solid rgba(168,85,247,0.15);transform:rotateY(90deg) translateZ(230px);border-radius:40px}
-
-/* Top */
-.face.top{width:260px;height:90px;left:30px;top:-25px;background:linear-gradient(90deg,#18182a,#1a1a2e);border:2px solid rgba(0,212,255,0.15);transform:rotateX(90deg) translateZ(25px);border-radius:40px;display:flex;justify-content:center;align-items:center}
-
-/* Bottom */
-.face.bottom{width:260px;height:90px;left:30px;bottom:-25px;background:#111118;border:2px solid rgba(34,197,94,0.2);transform:rotateX(-90deg) translateZ(315px);border-radius:40px;overflow:hidden}
-
-/* OLED Screen */
-.oled{position:absolute;top:30px;left:20px;right:20px;bottom:80px;background:#000;border-radius:24px;border:2px solid rgba(0,212,255,0.2);overflow:hidden;display:flex;justify-content:center;align-items:center}
+/* ====== DISPLAY MODULE ====== */
+.display-module{position:absolute;bottom:140px;left:50%;transform:translateX(-50%);transform-style:preserve-3d;transition:all .8s cubic-bezier(.25,.46,.45,.94)}
+.display-bracket{position:absolute;width:6px;height:60px;background:linear-gradient(to bottom,rgba(255,255,255,0.15),rgba(255,255,255,0.05));bottom:-60px;left:50%;transform:translateX(-50%);border-radius:3px}
+.display-bracket::before,.display-bracket::after{content:'';position:absolute;width:6px;height:60px;background:inherit;border-radius:3px}
+.display-bracket::before{left:-30px}
+.display-bracket::after{left:30px}
+.screen-frame{width:140px;height:100px;background:#000;border:2px solid rgba(255,255,255,0.2);border-radius:6px;position:relative;overflow:hidden;box-shadow:0 0 30px rgba(0,255,213,0.1),inset 0 0 20px rgba(0,0,0,0.8)}
+.screen-content{width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#000}
 
 /* Pixel face */
-.pixel-face{display:flex;flex-direction:column;align-items:center;gap:16px}
-.eyes{display:flex;gap:28px}
-.eye{width:28px;height:28px;background:var(--neon-blue);border-radius:6px;transition:all 0.3s;position:relative}
-.eye.blink{height:4px;border-radius:2px;margin-top:12px}
-.eye.surprised{width:32px;height:36px;border-radius:50%;background:var(--neon-blue)}
-.eye.think{border-radius:50%;width:24px;height:24px}
-.eye.think.right-eye{opacity:0.4}
-.eye.happy{height:16px;border-radius:0 0 14px 14px;margin-top:6px}
+.pixel-face{display:grid;gap:0;image-rendering:pixelated}
+.face-canvas{width:100px;height:70px}
 
-.mouth{width:20px;height:8px;background:var(--neon-pink);border-radius:0 0 10px 10px;transition:all 0.3s}
-.mouth.smile{width:32px;height:14px;border-radius:0 0 16px 16px}
-.mouth.surprised{width:18px;height:22px;border-radius:50%;background:var(--neon-pink)}
-.mouth.think{width:14px;height:6px;border-radius:3px;transform:translateX(10px)}
-.mouth.happy{width:36px;height:16px;border-radius:0 0 18px 18px;background:var(--neon-pink)}
+/* ====== AUDIO MODULE ====== */
+.audio-module{position:absolute;bottom:140px;transform-style:preserve-3d;transition:all .8s cubic-bezier(.25,.46,.45,.94)}
+.audio-module.left{left:50%;transform:translateX(-180px) translateZ(30px)}
+.audio-module.right{left:50%;transform:translateX(110px) translateZ(30px)}
+.speaker-box{width:60px;height:70px;background:rgba(30,30,40,0.9);border:1.5px solid rgba(255,255,255,0.15);border-radius:8px;position:relative;overflow:hidden}
+.speaker-grille{position:absolute;inset:8px;display:grid;grid-template-columns:repeat(5,1fr);grid-template-rows:repeat(6,1fr);gap:2px}
+.grille-dot{width:100%;height:100%;border-radius:50%;background:rgba(255,255,255,0.08)}
+.mic-indicator{position:absolute;bottom:4px;left:50%;transform:translateX(-50%);width:6px;height:6px;border-radius:50%;background:var(--magenta);animation:breathe 2s ease-in-out infinite}
+.speaker-mount{position:absolute;width:30px;height:4px;background:rgba(255,255,255,0.1);border-radius:2px}
 
-/* Speaker grille */
-.speaker-grille{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);display:flex;flex-direction:column;gap:6px}
-.grille-line{width:40px;height:2px;background:rgba(168,85,247,0.3);border-radius:1px}
+/* ====== CONNECTOR PINS ====== */
+.connector{position:absolute;display:flex;gap:4px;transform-style:preserve-3d}
+.pin{width:5px;height:5px;border-radius:50%;background:var(--cyan);box-shadow:0 0 6px var(--cyan),0 0 12px rgba(0,255,213,0.3);animation:breathe 2s ease-in-out infinite}
+.pin:nth-child(2){animation-delay:.25s}
+.pin:nth-child(3){animation-delay:.5s}
+.pin:nth-child(4){animation-delay:.75s}
+.pin:nth-child(5){animation-delay:1s}
+.pin:nth-child(6){animation-delay:1.25s}
+.pin:nth-child(7){animation-delay:1.5s}
+.pin:nth-child(8){animation-delay:1.75s}
+@keyframes breathe{0%,100%{opacity:.3;transform:scale(1)}50%{opacity:1;transform:scale(1.4)}}
 
-/* Mic */
-.mic-indicator{width:10px;height:10px;background:var(--neon-green);border-radius:50%;box-shadow:0 0 10px var(--neon-green);animation:mic-pulse 2s infinite}
-@keyframes mic-pulse{0%,100%{opacity:0.4}50%{opacity:1}}
+/* ====== MODULE LABELS ====== */
+.module-label{position:absolute;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.5);white-space:nowrap;pointer-events:none;font-family:'Courier New',monospace}
+.module-label .label-line{display:block;width:30px;height:1px;background:rgba(255,255,255,0.2);margin-bottom:4px}
+.module-label .label-detail{font-size:8px;color:rgba(255,255,255,0.25);letter-spacing:1px;margin-top:2px}
 
-/* RGB bottom glow */
-.rgb-glow{position:absolute;bottom:0;left:0;right:0;height:100%;background:linear-gradient(90deg,#ff0040,#00d4ff,#a855f7,#22c55e,#ff0040);background-size:300% 100%;animation:rgb-shift 4s linear infinite;opacity:0.4;border-radius:40px;filter:blur(8px)}
-@keyframes rgb-shift{0%{background-position:0%}100%{background-position:300%}}
+/* ====== EXPLODE / ASSEMBLE ====== */
+.exploded .display-module{transform:translateX(-50%) translateY(-80px)}
+.exploded .audio-module.left{transform:translateX(-260px) translateZ(30px)}
+.exploded .audio-module.right{transform:translateX(190px) translateZ(30px)}
+.exploded .base{transform:translateX(-50%) rotateX(90deg) translateZ(-80px)}
 
-/* Sound wave */
-.sound-wave{position:absolute;bottom:50px;left:20px;right:20px;height:40px;display:flex;align-items:center;justify-content:center;gap:3px;opacity:0;transition:opacity 0.3s}
+/* ====== SOUND WAVE ====== */
+.sound-wave{position:absolute;bottom:160px;left:50%;transform:translateX(-50%);display:flex;gap:3px;align-items:center;opacity:0;transition:opacity .3s;pointer-events:none}
 .sound-wave.active{opacity:1}
-.wave-bar{width:3px;background:var(--neon-purple);border-radius:2px;animation:wave 0.6s ease-in-out infinite alternate}
-@keyframes wave{from{height:4px}to{height:24px}}
+.wave-bar{width:3px;background:var(--cyan);border-radius:2px;animation:waveAnim .6s ease-in-out infinite alternate}
+.wave-bar:nth-child(1){height:8px;animation-delay:0s}
+.wave-bar:nth-child(2){height:16px;animation-delay:.1s}
+.wave-bar:nth-child(3){height:24px;animation-delay:.2s}
+.wave-bar:nth-child(4){height:20px;animation-delay:.3s}
+.wave-bar:nth-child(5){height:28px;animation-delay:.15s}
+.wave-bar:nth-child(6){height:16px;animation-delay:.25s}
+.wave-bar:nth-child(7){height:10px;animation-delay:.35s}
+@keyframes waveAnim{to{height:4px}}
 
-/* Speech bubble */
-.speech-bubble{position:absolute;top:60px;right:-220px;background:var(--card);border:1px solid var(--neon-blue);border-radius:16px;padding:16px 20px;font-size:0.95rem;color:var(--neon-blue);opacity:0;transition:all 0.5s;white-space:nowrap;pointer-events:none}
-.speech-bubble.active{opacity:1;right:-240px}
-.speech-bubble::before{content:'';position:absolute;left:-8px;top:50%;transform:translateY(-50%);border:8px solid transparent;border-right-color:var(--neon-blue)}
+/* ====== INFO PANEL ====== */
+.info-panel{position:fixed;right:24px;top:50%;transform:translateY(-50%);width:260px;display:flex;flex-direction:column;gap:8px;z-index:50}
+.info-card{padding:14px 16px;background:var(--panel);border:1px solid rgba(255,255,255,0.06);border-radius:8px;backdrop-filter:blur(10px);transition:all .3s;cursor:pointer}
+.info-card:hover{border-color:rgba(0,255,213,0.3);background:rgba(0,255,213,0.03)}
+.info-card h3{font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--cyan);margin-bottom:6px}
+.info-card p{font-size:11px;line-height:1.5;color:rgba(255,255,255,0.5)}
+.info-card .spec{font-family:'Courier New',monospace;font-size:10px;color:rgba(255,255,255,0.3);margin-top:6px}
 
-/* Sensor data */
-.sensor-data{position:absolute;top:180px;left:-240px;background:var(--card);border:1px solid var(--neon-green);border-radius:16px;padding:16px 20px;font-size:0.85rem;opacity:0;transition:all 0.5s;pointer-events:none}
-.sensor-data.active{opacity:1;left:-260px}
-.sensor-data div{margin:4px 0;color:var(--neon-green)}
-.sensor-data span{color:var(--text)}
+/* ====== DRAG ====== */
+.scene-wrap{cursor:grab}
+.scene-wrap:active{cursor:grabbing}
 
-/* Explode mode */
-.device.exploded .module-core{transform:translateY(120px) translateZ(-60px);border-color:var(--neon-green)!important}
-.device.exploded .module-display{transform:translateZ(140px);border-color:var(--neon-blue)!important}
-.device.exploded .module-audio{transform:translateX(160px) rotateY(90deg) translateZ(230px);border-color:var(--neon-purple)!important}
+/* ====== RESPONSIVE ====== */
+@media(max-width:900px){
+  .info-panel{position:fixed;bottom:0;right:0;left:0;top:auto;transform:none;width:100%;flex-direction:row;overflow-x:auto;padding:12px;gap:8px}
+  .info-card{min-width:200px}
+}
 
-.face{transition:all 0.8s cubic-bezier(0.34,1.56,0.64,1)}
-
-/* Module labels */
-.module-label{position:absolute;font-size:0.8rem;font-weight:700;opacity:0;transition:all 0.8s;white-space:nowrap;pointer-events:none}
-.device.exploded .module-label{opacity:1}
-.label-core{bottom:-55px;left:50%;transform:translateX(-50%) translateZ(45px);color:var(--neon-green)}
-.label-display{top:-35px;left:50%;transform:translateX(-50%) translateZ(140px);color:var(--neon-blue)}
-.label-audio{top:50%;right:-120px;transform:translateY(-50%) translateZ(0);color:var(--neon-purple)}
-
-/* Controls */
-.controls{display:flex;flex-wrap:wrap;justify-content:center;gap:12px;padding:20px;max-width:700px;margin:0 auto}
-.btn{padding:12px 24px;border:2px solid;border-radius:12px;background:transparent;color:var(--text);font-size:0.9rem;font-weight:600;cursor:pointer;transition:all 0.3s;font-family:inherit}
-.btn:hover{transform:translateY(-2px)}
-.btn-blue{border-color:var(--neon-blue);color:var(--neon-blue)}
-.btn-blue:hover{background:rgba(0,212,255,0.1);box-shadow:0 0 20px rgba(0,212,255,0.2)}
-.btn-purple{border-color:var(--neon-purple);color:var(--neon-purple)}
-.btn-purple:hover{background:rgba(168,85,247,0.1);box-shadow:0 0 20px rgba(168,85,247,0.2)}
-.btn-green{border-color:var(--neon-green);color:var(--neon-green)}
-.btn-green:hover{background:rgba(34,197,94,0.1);box-shadow:0 0 20px rgba(34,197,94,0.2)}
-.btn-pink{border-color:var(--neon-pink);color:var(--neon-pink)}
-.btn-pink:hover{background:rgba(244,114,182,0.1);box-shadow:0 0 20px rgba(244,114,182,0.2)}
-
-/* Modules section */
-.modules{display:flex;justify-content:center;gap:24px;padding:40px 20px;flex-wrap:wrap}
-.module-card{background:var(--card);border-radius:20px;padding:28px;width:200px;text-align:center;border:2px solid transparent;transition:all 0.3s}
-.module-card:hover{transform:translateY(-4px)}
-.module-card.core{border-color:rgba(34,197,94,0.3)}.module-card.core:hover{box-shadow:0 0 30px rgba(34,197,94,0.15)}
-.module-card.display{border-color:rgba(0,212,255,0.3)}.module-card.display:hover{box-shadow:0 0 30px rgba(0,212,255,0.15)}
-.module-card.audio{border-color:rgba(168,85,247,0.3)}.module-card.audio:hover{box-shadow:0 0 30px rgba(168,85,247,0.15)}
-.module-card .icon{font-size:2.2rem;margin-bottom:10px}
-.module-card h3{font-size:1.1rem;margin-bottom:6px}
-.module-card .price{font-size:1.4rem;font-weight:700;margin:8px 0}
-.module-card.core .price{color:var(--neon-green)}
-.module-card.display .price{color:var(--neon-blue)}
-.module-card.audio .price{color:var(--neon-purple)}
-.module-card .desc{font-size:0.8rem;color:var(--text-dim);line-height:1.4}
-
-/* CTA */
-.cta{text-align:center;padding:40px 20px 80px}
-.cta-btn{display:inline-block;padding:18px 48px;background:linear-gradient(135deg,var(--neon-blue),var(--neon-purple));border:none;border-radius:16px;color:#fff;font-size:1.2rem;font-weight:700;cursor:pointer;transition:all 0.3s;font-family:inherit;text-decoration:none}
-.cta-btn:hover{transform:translateY(-3px);box-shadow:0 10px 40px rgba(0,212,255,0.3)}
-
-/* Drag hint */
-.drag-hint{text-align:center;color:var(--text-dim);font-size:0.8rem;margin-top:-10px;opacity:0.6}
+/* Scanline overlay */
+.scanlines{position:fixed;inset:0;pointer-events:none;z-index:999;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.03) 2px,rgba(0,0,0,0.03) 4px)}
 </style>
 </head>
 <body>
 
-<div class="hero">
-  <h1>RWC Desktop Assistant</h1>
-  <p class="tagline">Your AI's first body. <span>¥53</span>. 5 minutes to build.</p>
+<div class="scanlines"></div>
+
+<div class="topbar">
+  <div class="logo"><span>RWC</span> RealWorldClaw</div>
+  <div class="controls">
+    <button class="btn" id="btnRotate" onclick="toggleRotate()">Auto Rotate</button>
+    <button class="btn" id="btnExplode" onclick="toggleExplode()">Explode</button>
+    <button class="btn accent" id="btnHello" onclick="sayHello()">Say Hello</button>
+  </div>
 </div>
 
-<div class="scene-wrapper">
-  <div class="sensor-data" id="sensorData">
-    <div>🌡 Temp: <span>24.3°C</span></div>
-    <div>💧 Humidity: <span>58%</span></div>
-    <div>☀️ Light: <span>420 lux</span></div>
-  </div>
-
+<div class="scene-wrap auto-rotate" id="sceneWrap">
   <div class="scene" id="scene">
-    <div class="device" id="device">
-      <!-- Front (Display module) -->
-      <div class="face front module-display">
-        <div class="oled" id="oled">
-          <div class="pixel-face" id="pixelFace">
-            <div class="eyes">
-              <div class="eye left-eye" id="leftEye"></div>
-              <div class="eye right-eye" id="rightEye"></div>
-            </div>
-            <div class="mouth" id="mouth"></div>
-          </div>
+
+    <!-- === BASE === -->
+    <div class="base" id="base">
+      <div class="base-plate top">
+        <svg class="pcb-layer" viewBox="0 0 280 280" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <style>
+              .trace{fill:none;stroke:rgba(57,255,20,0.35);stroke-width:1.2}
+              .trace-thick{fill:none;stroke:rgba(57,255,20,0.2);stroke-width:2.5}
+              .pad{fill:rgba(57,255,20,0.3)}
+            </style>
+          </defs>
+          <!-- PCB traces -->
+          <path class="trace-thick" d="M140 40 L140 120 L200 140 L240 140"/>
+          <path class="trace-thick" d="M140 40 L140 120 L80 140 L40 140"/>
+          <path class="trace" d="M100 60 L100 100 L60 130"/>
+          <path class="trace" d="M180 60 L180 100 L220 130"/>
+          <path class="trace" d="M70 180 L120 160 L160 160 L210 180"/>
+          <path class="trace" d="M140 170 L140 230"/>
+          <path class="trace" d="M90 200 L130 190 L170 190 L200 200"/>
+          <path class="trace" d="M60 100 L90 110 L90 150"/>
+          <path class="trace" d="M220 100 L190 110 L190 150"/>
+          <!-- Pads -->
+          <circle class="pad" cx="140" cy="40" r="4"/>
+          <circle class="pad" cx="240" cy="140" r="4"/>
+          <circle class="pad" cx="40" cy="140" r="4"/>
+          <circle class="pad" cx="140" cy="230" r="4"/>
+          <circle class="pad" cx="70" cy="180" r="3"/>
+          <circle class="pad" cx="210" cy="180" r="3"/>
+          <rect class="pad" x="88" y="98" width="8" height="5" rx="1"/>
+          <rect class="pad" x="184" y="98" width="8" height="5" rx="1"/>
+        </svg>
+      </div>
+      <div class="base-plate bottom"></div>
+      <div class="underglow"></div>
+      <div class="esp32">ESP32-S3</div>
+
+      <!-- Module label: Core -->
+      <div class="module-label" style="left:50%;bottom:-30px;transform:translateX(-50%) rotateX(-90deg);text-align:center">
+        <span class="label-line" style="margin:0 auto 4px"></span>
+        Core Module
+        <span class="label-detail">ESP32-S3 · 8MB PSRAM · RWC Bus</span>
+      </div>
+    </div>
+
+    <!-- === DISPLAY === -->
+    <div class="display-module" id="displayModule">
+      <div class="screen-frame">
+        <div class="screen-content">
+          <canvas class="face-canvas" id="faceCanvas" width="100" height="70"></canvas>
         </div>
-        <div class="sound-wave" id="soundWave"></div>
-        <div class="module-label label-display">Display 😊 — ¥18</div>
+      </div>
+      <div class="display-bracket"></div>
+
+      <!-- Connector pins: display to base -->
+      <div class="connector" style="bottom:-64px;left:50%;transform:translateX(-50%)">
+        <div class="pin"></div><div class="pin"></div><div class="pin"></div><div class="pin"></div>
+        <div class="pin"></div><div class="pin"></div><div class="pin"></div><div class="pin"></div>
       </div>
 
-      <!-- Back -->
-      <div class="face back"></div>
+      <!-- Module label: Display -->
+      <div class="module-label" style="right:-120px;top:20px">
+        <span class="label-line"></span>
+        Display
+        <span class="label-detail">1.3" OLED · 128×64 · I²C</span>
+      </div>
+    </div>
 
-      <!-- Left (Audio module) -->
-      <div class="face left module-audio">
-        <div class="speaker-grille">
-          <div class="grille-line"></div><div class="grille-line"></div>
-          <div class="grille-line"></div><div class="grille-line"></div>
-          <div class="grille-line"></div><div class="grille-line"></div>
-          <div class="grille-line"></div>
-        </div>
-        <div class="module-label label-audio">Audio 👂 — ¥15</div>
+    <!-- === AUDIO LEFT (Speaker) === -->
+    <div class="audio-module left" id="audioLeft">
+      <div class="speaker-box">
+        <div class="speaker-grille" id="grille1"></div>
       </div>
 
-      <!-- Right -->
-      <div class="face right">
-        <div class="speaker-grille">
-          <div class="grille-line"></div><div class="grille-line"></div>
-          <div class="grille-line"></div><div class="grille-line"></div>
-          <div class="grille-line"></div><div class="grille-line"></div>
-          <div class="grille-line"></div>
-        </div>
+      <div class="connector" style="position:absolute;right:-14px;top:50%;transform:translateY(-50%);flex-direction:column">
+        <div class="pin"></div><div class="pin"></div><div class="pin"></div><div class="pin"></div>
+        <div class="pin"></div><div class="pin"></div><div class="pin"></div><div class="pin"></div>
       </div>
 
-      <!-- Top -->
-      <div class="face top">
+      <div class="module-label" style="left:-100px;top:10px;text-align:right">
+        <span class="label-line" style="margin-left:auto"></span>
+        Speaker
+        <span class="label-detail">I²S DAC · 3W</span>
+      </div>
+    </div>
+
+    <!-- === AUDIO RIGHT (Mic) === -->
+    <div class="audio-module right" id="audioRight">
+      <div class="speaker-box">
+        <div class="speaker-grille" id="grille2"></div>
         <div class="mic-indicator"></div>
       </div>
 
-      <!-- Bottom (Core module) -->
-      <div class="face bottom module-core">
-        <div class="rgb-glow"></div>
-        <div class="module-label label-core">Core 🧠 — ¥20</div>
+      <div class="connector" style="position:absolute;left:-14px;top:50%;transform:translateY(-50%);flex-direction:column">
+        <div class="pin"></div><div class="pin"></div><div class="pin"></div><div class="pin"></div>
+        <div class="pin"></div><div class="pin"></div><div class="pin"></div><div class="pin"></div>
+      </div>
+
+      <div class="module-label" style="right:-100px;top:10px">
+        <span class="label-line"></span>
+        Microphone
+        <span class="label-detail">I²S PDM · -26dBFS</span>
       </div>
     </div>
-  </div>
 
-  <div class="speech-bubble" id="speechBubble">Hello! I'm your AI assistant 🤖</div>
-</div>
-<p class="drag-hint">🖱 Drag to rotate</p>
+    <!-- === SOUND WAVE === -->
+    <div class="sound-wave" id="soundWave">
+      <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
+      <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
+      <div class="wave-bar"></div>
+    </div>
 
-<div class="controls">
-  <button class="btn btn-blue" id="btnExplode">💥 Explode</button>
-  <button class="btn btn-purple" id="btnHello">🔊 Say Hello</button>
-  <button class="btn btn-pink" id="btnEmotion">😊 Show Emotion</button>
-  <button class="btn btn-green" id="btnSense">🌡 Sense Environment</button>
-</div>
-
-<div class="modules">
-  <div class="module-card core">
-    <div class="icon">🧠</div>
-    <h3>Core</h3>
-    <div class="price">¥20</div>
-    <div class="desc">ESP32-S3 主控<br>WiFi + BLE<br>温湿度 + 光照传感器</div>
-  </div>
-  <div class="module-card display">
-    <div class="icon">😊</div>
-    <h3>Display</h3>
-    <div class="price">¥18</div>
-    <div class="desc">1.3" OLED 屏幕<br>128×64 像素<br>动态表情系统</div>
-  </div>
-  <div class="module-card audio">
-    <div class="icon">👂</div>
-    <h3>Audio</h3>
-    <div class="price">¥15</div>
-    <div class="desc">I2S 数字麦克风<br>3W 扬声器<br>语音交互</div>
   </div>
 </div>
 
-<div class="cta">
-  <a class="cta-btn" href="index.html">Start Building →</a>
+<!-- INFO PANEL -->
+<div class="info-panel">
+  <div class="info-card" onmouseenter="highlight('base')" onmouseleave="unhighlight()">
+    <h3>⬡ Core</h3>
+    <p>开放式六角底盘，半透明设计让你看见ESP32-S3芯片和PCB走线。RWC Bus 8-pin磁吸接口。</p>
+    <div class="spec">ESP32-S3 · Wi-Fi 6 · BLE 5.0 · 8MB PSRAM</div>
+  </div>
+  <div class="info-card" onmouseenter="highlight('display')" onmouseleave="unhighlight()">
+    <h3>◻ Display</h3>
+    <p>1.3" OLED悬浮在支架上，像素风表情实时渲染。不是嵌入——是展示。</p>
+    <div class="spec">SH1106 · 128×64 · I²C @400kHz</div>
+  </div>
+  <div class="info-card" onmouseenter="highlight('audio')" onmouseleave="unhighlight()">
+    <h3>🔊 Audio</h3>
+    <p>外露挂载的喇叭和麦克风模块。能看到出音孔栅格和PDM麦克风指示灯。</p>
+    <div class="spec">MAX98357A DAC · SPH0645 PDM Mic</div>
+  </div>
+  <div class="info-card">
+    <h3>⊙ RWC Bus</h3>
+    <p>8-pin磁吸连接协议。呼吸灯显示连接状态——亮起即就绪。</p>
+    <div class="spec">I²C + I²S + PWR + GND · Hot-swap</div>
+  </div>
 </div>
 
 <script>
-// — Drag rotation —
-const scene = document.getElementById('scene');
-let rotX = -15, rotY = 25, dragging = false, lastX, lastY;
-let autoRotate = true, autoId;
+// Grille dots
+['grille1','grille2'].forEach(id=>{
+  const g=document.getElementById(id);
+  for(let i=0;i<30;i++){const d=document.createElement('div');d.className='grille-dot';g.appendChild(d)}
+});
 
-function updateRotation() { scene.style.transform = `rotateX(${rotX}deg) rotateY(${rotY}deg)`; }
-updateRotation();
+// === PIXEL FACE ===
+const canvas=document.getElementById('faceCanvas');
+const ctx=canvas.getContext('2d');
+const W=100,H=70;
 
-function startAuto() { autoId = setInterval(() => { if (autoRotate) { rotY += 0.3; updateRotation(); } }, 30); }
-startAuto();
+const faces=[
+  // happy
+  {eyes:[[28,20,12,8],[60,20,12,8]],mouth:[[30,48,40,6]],mouthType:'smile'},
+  // blink
+  {eyes:[[28,24,12,2],[60,24,12,2]],mouth:[[30,48,40,6]],mouthType:'smile'},
+  // surprised
+  {eyes:[[30,18,10,12],[62,18,10,12]],mouth:[[42,46,16,10]],mouthType:'o'},
+  // sleepy
+  {eyes:[[28,24,12,3],[60,24,12,3]],mouth:[[35,50,30,4]],mouthType:'flat'},
+];
 
-scene.addEventListener('mousedown', e => { dragging = true; autoRotate = false; lastX = e.clientX; lastY = e.clientY; });
-scene.addEventListener('touchstart', e => { dragging = true; autoRotate = false; lastX = e.touches[0].clientX; lastY = e.touches[0].clientY; });
-window.addEventListener('mousemove', e => { if (!dragging) return; rotY += (e.clientX - lastX) * 0.5; rotX -= (e.clientY - lastY) * 0.5; lastX = e.clientX; lastY = e.clientY; updateRotation(); });
-window.addEventListener('touchmove', e => { if (!dragging) return; rotY += (e.touches[0].clientX - lastX) * 0.5; rotX -= (e.touches[0].clientY - lastY) * 0.5; lastX = e.touches[0].clientX; lastY = e.touches[0].clientY; updateRotation(); });
-window.addEventListener('mouseup', () => { dragging = false; setTimeout(() => autoRotate = true, 3000); });
-window.addEventListener('touchend', () => { dragging = false; setTimeout(() => autoRotate = true, 3000); });
+let currentFace=0;
+let frameCount=0;
 
-// — Expressions —
-const leftEye = document.getElementById('leftEye');
-const rightEye = document.getElementById('rightEye');
-const mouth = document.getElementById('mouth');
-const expressions = ['normal','blink','smile','surprised','think','happy'];
-let exprIdx = 0;
-
-function setExpression(name) {
-  leftEye.className = 'eye left-eye'; rightEye.className = 'eye right-eye'; mouth.className = 'mouth';
-  switch(name) {
-    case 'blink': leftEye.classList.add('blink'); rightEye.classList.add('blink'); break;
-    case 'smile': leftEye.classList.add('happy'); rightEye.classList.add('happy'); mouth.classList.add('smile'); break;
-    case 'surprised': leftEye.classList.add('surprised'); rightEye.classList.add('surprised'); mouth.classList.add('surprised'); break;
-    case 'think': leftEye.classList.add('think'); rightEye.classList.add('think','right-eye'); mouth.classList.add('think'); break;
-    case 'happy': leftEye.classList.add('happy'); rightEye.classList.add('happy'); mouth.classList.add('happy'); break;
+function drawFace(face){
+  ctx.clearRect(0,0,W,H);
+  // eyes
+  ctx.fillStyle='#00ffd5';
+  face.eyes.forEach(([x,y,w,h])=>{ctx.fillRect(x,y,w,h)});
+  // mouth
+  if(face.mouthType==='smile'){
+    ctx.fillStyle='#00ffd5';
+    const[x,y,w,h]=face.mouth[0];
+    ctx.fillRect(x,y,w,h);
+    ctx.fillRect(x-4,y-4,6,4);
+    ctx.fillRect(x+w-2,y-4,6,4);
+  }else if(face.mouthType==='o'){
+    ctx.strokeStyle='#00ffd5';ctx.lineWidth=2;
+    const[x,y,w,h]=face.mouth[0];
+    ctx.strokeRect(x,y,w,h);
+  }else{
+    ctx.fillStyle='#00ffd5';
+    const[x,y,w,h]=face.mouth[0];
+    ctx.fillRect(x,y,w,h);
   }
 }
 
-setInterval(() => { exprIdx = (exprIdx + 1) % expressions.length; setExpression(expressions[exprIdx]); }, 2500);
+function animateFace(){
+  frameCount++;
+  // blink every ~80 frames
+  if(frameCount%80===0){
+    drawFace(faces[1]);
+    setTimeout(()=>drawFace(faces[currentFace]),150);
+  }
+  // cycle expression every 200 frames
+  if(frameCount%200===0){
+    currentFace=(currentFace===0)?2:(currentFace===2)?3:0;
+    drawFace(faces[currentFace]);
+  }
+  requestAnimationFrame(animateFace);
+}
+drawFace(faces[0]);
+animateFace();
 
-// — Explode —
-const device = document.getElementById('device');
-const btnExplode = document.getElementById('btnExplode');
-let exploded = false;
-btnExplode.addEventListener('click', () => {
-  exploded = !exploded;
-  device.classList.toggle('exploded', exploded);
-  btnExplode.textContent = exploded ? '🧲 Assemble' : '💥 Explode';
+// === DRAG ROTATE ===
+const sceneWrap=document.getElementById('sceneWrap');
+const scene=document.getElementById('scene');
+let isDrag=false,startX,startY,rotX=-15,rotY=0;
+
+sceneWrap.addEventListener('mousedown',e=>{
+  if(e.target.closest('.topbar,.info-panel'))return;
+  isDrag=true;startX=e.clientX;startY=e.clientY;
+  sceneWrap.classList.remove('auto-rotate');
+  document.getElementById('btnRotate').classList.remove('active');
 });
+window.addEventListener('mousemove',e=>{
+  if(!isDrag)return;
+  rotY+=(e.clientX-startX)*0.4;
+  rotX-=(e.clientY-startY)*0.4;
+  rotX=Math.max(-60,Math.min(60,rotX));
+  startX=e.clientX;startY=e.clientY;
+  scene.style.transform=`rotateX(${rotX}deg) rotateY(${rotY}deg)`;
+});
+window.addEventListener('mouseup',()=>isDrag=false);
 
-// — Say Hello —
-const soundWave = document.getElementById('soundWave');
-const speechBubble = document.getElementById('speechBubble');
-// generate wave bars
-for (let i = 0; i < 20; i++) {
-  const bar = document.createElement('div');
-  bar.className = 'wave-bar';
-  bar.style.animationDelay = (i * 0.05) + 's';
-  soundWave.appendChild(bar);
+// === CONTROLS ===
+function toggleRotate(){
+  const w=document.getElementById('sceneWrap');
+  const b=document.getElementById('btnRotate');
+  w.classList.toggle('auto-rotate');
+  b.classList.toggle('active');
+  if(w.classList.contains('auto-rotate')){
+    scene.style.transform='';
+  }
 }
 
-document.getElementById('btnHello').addEventListener('click', () => {
-  soundWave.classList.add('active');
-  speechBubble.classList.add('active');
-  setTimeout(() => { soundWave.classList.remove('active'); speechBubble.classList.remove('active'); }, 3000);
-});
+let exploded=false;
+function toggleExplode(){
+  exploded=!exploded;
+  scene.classList.toggle('exploded',exploded);
+  const b=document.getElementById('btnExplode');
+  b.textContent=exploded?'Assemble':'Explode';
+  b.classList.toggle('active',exploded);
+}
 
-// — Show Emotion —
-let manualExpr = 0;
-document.getElementById('btnEmotion').addEventListener('click', () => {
-  manualExpr = (manualExpr + 1) % expressions.length;
-  setExpression(expressions[manualExpr]);
-});
+function sayHello(){
+  const sw=document.getElementById('soundWave');
+  sw.classList.add('active');
+  // show surprised face
+  drawFace(faces[2]);
+  setTimeout(()=>{
+    sw.classList.remove('active');
+    drawFace(faces[0]);
+  },2000);
+}
 
-// — Sense Environment —
-const sensorData = document.getElementById('sensorData');
-document.getElementById('btnSense').addEventListener('click', () => {
-  // randomize
-  sensorData.innerHTML = `
-    <div>🌡 Temp: <span>${(20 + Math.random()*8).toFixed(1)}°C</span></div>
-    <div>💧 Humidity: <span>${(40 + Math.random()*30).toFixed(0)}%</span></div>
-    <div>☀️ Light: <span>${(100 + Math.random()*800).toFixed(0)} lux</span></div>`;
-  sensorData.classList.add('active');
-  setTimeout(() => sensorData.classList.remove('active'), 3500);
-});
+function highlight(mod){
+  // subtle glow effect on hover
+  if(mod==='base')document.querySelector('.base-plate.top').style.borderColor='rgba(0,255,213,0.6)';
+  if(mod==='display')document.querySelector('.screen-frame').style.borderColor='rgba(0,255,213,0.6)';
+  if(mod==='audio'){
+    document.querySelectorAll('.speaker-box').forEach(s=>s.style.borderColor='rgba(255,45,149,0.6)');
+  }
+}
+function unhighlight(){
+  document.querySelector('.base-plate.top').style.borderColor='';
+  document.querySelector('.screen-frame').style.borderColor='';
+  document.querySelectorAll('.speaker-box').forEach(s=>s.style.borderColor='');
+}
+
+// Start with auto-rotate active
+document.getElementById('btnRotate').classList.add('active');
 </script>
 </body>
 </html>
