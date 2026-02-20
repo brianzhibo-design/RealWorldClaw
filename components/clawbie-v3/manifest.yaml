@@ -1,65 +1,84 @@
-name: clawbie-v3
+id: clawbie-v3
 version: 3.0.0
-codename: "RealWorld Claw"
-description: |
-  桌面机械蟹爪 — 一只AI控制的、能真正夹住东西的小蟹爪。
-  M5StickC Plus2 做大脑，SG90舵机驱动连杆机构，3D打印外壳。
+display_name:
+  en: "Clawbie V3 — Mechanical Crab Claw"
+  zh: "Clawbie V3 — 机械蟹爪"
+description:
+  en: "A desktop mechanical crab claw controlled by AI. M5StickC Plus2 brain with SG90 servo-driven linkage mechanism. 3D-printed shell with 5 parts, 5 expression modes, MQTT remote control. A robot that can actually grab things."
+  zh: "AI控制的桌面机械蟹爪。M5StickC Plus2做大脑，SG90舵机驱动连杆机构，3D打印外壳5个部件，5种表情模式，MQTT远程控制。一个真正能夹住东西的小机器人。"
+author: "YangCun Corp"
+license: MIT
+tags:
+  - robot
+  - mechanical
+  - servo
+  - claw
+  - esp32
+capabilities:
+  - display
+  - servo
+  - wifi
+  - mqtt
 
 hardware:
-  mcu: M5StickC Plus2
-  servos:
-    - type: SG90
-      purpose: claw open/close
-      gpio: 26
-    - type: SG90 (optional)
-      purpose: base rotation
-      gpio: 36
-  display: ST7789 135×240 (built-in)
-  imu: MPU6886 (built-in)
-  battery: 200mAh LiPo (built-in)
-  buttons:
-    - name: BtnA
-      gpio: 37
-      function: cycle mode
-    - name: BtnB
-      gpio: 39
-      function: grab
+  compute: esp32
+  sensors:
+    - model: MPU6886
+      interface: i2c
+      address: "0x68"
+  actuators:
+    - model: SG90
+      type: servo
+      interface: gpio
+      pin: 26
+    - model: SG90
+      type: servo
+      interface: gpio
+      pin: 36
+  power:
+    type: battery-lipo
+    voltage: "3.7V"
+    battery_capacity: "200mAh"
+  estimated_cost:
+    CNY: 95
+    USD: 13
 
-mechanical:
-  print_parts: 5
+printing:
+  files:
+    - path: models/clawbie-v3-base.stl
+      quantity: 1
+      notes: "Base unit with servo mount"
+    - path: models/clawbie-v3-claw.stl
+      quantity: 1
+      notes: "Claw linkage mechanism"
   material: PLA
-  print_time_estimate: "2.5-3h"
-  assembly_time: "10min"
-  claw_span: "40-50mm"
-  fasteners: "M3×8 screws ×4 + M3×12 screws ×2"
+  layer_height: "0.2mm"
+  infill: "30%"
+  supports: true
+  estimated_time: "2h30m"
+  estimated_filament: "50g"
+  min_bed_size: [120, 120]
 
-connectivity:
-  wifi: true
-  mqtt: true
-  protocol: "mqtt://{broker}:1883"
-  topics:
-    command: "clawbie/v3/{id}/cmd"
-    state: "clawbie/v3/{id}/state"
+physical:
+  module_size: custom
+  dimensions: [60, 50, 80]
+  weight: "85g"
+  mounting_types:
+    - desktop
 
-modes:
-  - name: idle
-    emoji: "😊"
-    description: slow breathing open/close
-  - name: grab
-    emoji: "🦀"
-    description: fast close + clamp
-  - name: wave
-    emoji: "👋"
-    description: rapid open/close ×3
-  - name: sleep
-    emoji: "😴"
-    description: slowly close, stay still
-  - name: excited
-    emoji: "🎉"
-    description: rapid wiggle + open/close
+communication:
+  protocol: mqtt
+  discovery: true
+  ota_update: true
 
-cost:
-  basic: "¥92"
-  full: "¥95"
+software:
+  firmware_platform: platformio
+  build_command: "pio run"
+  flash_command: "pio run -t upload"
 
-license: MIT
+completeness:
+  has_models: true
+  has_wiring: false
+  has_firmware: true
+  has_agent: true
+  has_docs: true
