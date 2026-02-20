@@ -96,12 +96,16 @@ class OctoPrintAdapter(PrinterAdapter):
         fname = remote_name or file_path.name
         session = await self._ensure_session()
         data = aiohttp.FormData()
-        data.add_field("file", open(file_path, "rb"), filename=fname)
-        async with session.post("/api/files/local", data=data, headers={"X-Api-Key": self.api_key}) as resp:
-            resp.raise_for_status()
-            result = await resp.json()
-            logger.info(f"文件上传成功: {fname}")
-            return result.get("files", {}).get("local", {}).get("name", fname)
+        fh = open(file_path, "rb")
+        try:
+            data.add_field("file", fh, filename=fname)
+            async with session.post("/api/files/local", data=data, headers={"X-Api-Key": self.api_key}) as resp:
+                resp.raise_for_status()
+                result = await resp.json()
+                logger.info(f"文件上传成功: {fname}")
+                return result.get("files", {}).get("local", {}).get("name", fname)
+        finally:
+            fh.close()
 
     async def start(self, filename: str) -> bool:
         """选择文件并开始打印"""
