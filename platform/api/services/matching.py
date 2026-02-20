@@ -106,5 +106,3 @@ def match_maker_for_order(
     return scored[:limit]
 
 
-# 保留旧名别名，兼容可能的外部引用
-match_farm_for_order = match_maker_for_order

@@ -30,7 +30,7 @@ router = APIRouter(prefix="/makers", tags=["makers"])
 
 def _row_to_public(row: dict) -> dict:
     materials = json.loads(row["materials"]) if isinstance(row["materials"], str) else row["materials"]
-    capabilities = json.loads(row["capabilities"]) if isinstance(row.get("capabilities") or "[]", str) else (row.get("capabilities") or [])
+    capabilities = json.loads(row["capabilities"]) if row.get("capabilities") else []
     return {
         "id": row["id"],
         "maker_type": row["maker_type"],

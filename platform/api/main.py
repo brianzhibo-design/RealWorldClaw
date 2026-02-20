@@ -52,7 +52,11 @@ def stats():
     with get_db() as db:
         component_count = db.execute("SELECT COUNT(*) as c FROM components").fetchone()["c"]
         agent_count = db.execute("SELECT COUNT(*) as c FROM agents").fetchone()["c"]
+        maker_count = db.execute("SELECT COUNT(*) as c FROM makers").fetchone()["c"]
+        order_count = db.execute("SELECT COUNT(*) as c FROM orders").fetchone()["c"]
     return {
         "components": component_count,
         "agents": agent_count,
+        "makers": maker_count,
+        "orders": order_count,
     }

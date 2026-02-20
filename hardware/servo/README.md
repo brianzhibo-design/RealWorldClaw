@@ -9,12 +9,16 @@
 - 独立5V 2A供电输入（DC barrel jack 5.5×2.1mm）
 - 不从RWC Bus取电，仅用Bus的I2C通信
 
-## RWC Bus连接
-| Pin | 功能 |
-|-----|------|
+## RWC Bus引脚映射
+| Bus Pin | 功能 |
+|---------|------|
+| 5V | 未使用（舵机独立供电） |
+| 3V3 | PCA9685/EEPROM逻辑供电 |
+| GND | 公共地（Bus GND与舵机GND互联） |
 | SDA | PCA9685 I2C数据 |
 | SCL | PCA9685 I2C时钟 |
-| GND | 公共地（Bus GND与舵机GND互联） |
+| TX-MOSI | 未使用 |
+| RX-MISO | 未使用 |
 | ID | DS28E05 1-Wire EEPROM |
 
 ## BOM

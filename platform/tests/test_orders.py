@@ -15,7 +15,7 @@ from api.main import app
 client = TestClient(app)
 
 CUSTOMER_KEY = "rwc_sk_customer"
-FARMER_KEY = "rwc_sk_farmer"
+MAKER_KEY = "rwc_sk_maker"
 
 
 # ─── Fixtures ────────────────────────────────────────────
@@ -49,12 +49,13 @@ def _seed_agent(agent_id: str, api_key: str, name: str | None = None) -> str:
 
 
 def _seed_world():
-    """创建买家 + 农场主 + 农场，返回 (customer_id, farmer_id, farm_id)"""
+    """创建买家 + 制造者 + Maker，返回 (customer_id, maker_id, maker_reg_id)"""
     customer_id = _seed_agent("ag_customer", CUSTOMER_KEY, "buyer")
-    farmer_id = _seed_agent("ag_farmer", FARMER_KEY, "farmer")
+    maker_id = _seed_agent("ag_maker", MAKER_KEY, "maker")
 
-    # 注册农场
-    resp = client.post("/api/v1/farms/register", json={
+    # 注册Maker
+    resp = client.post("/api/v1/makers/register", json={
+        "maker_type": "maker",
         "printer_model": "P1S",
         "printer_brand": "Bambu Lab",
         "build_volume_x": 256, "build_volume_y": 256, "build_volume_z": 256,
@@ -64,10 +65,10 @@ def _seed_world():
         "location_district": "南山区",
         "availability": "open",
         "pricing_per_hour_cny": 15.0,
-    }, headers=_auth(FARMER_KEY))
+    }, headers=_auth(MAKER_KEY))
     assert resp.status_code == 201
-    farm_id = resp.json()["id"]
-    return customer_id, farmer_id, farm_id
+    maker_reg_id = resp.json()["id"]
+    return customer_id, maker_id, maker_reg_id
 
 
 ORDER_BODY = {
@@ -114,22 +115,22 @@ class TestOrderList:
         assert resp.status_code == 200
         data = resp.json()
         assert len(data["as_customer"]) == 1
-        assert len(data["as_farmer"]) == 0
+        assert len(data["as_maker"]) == 0
 
-    def test_list_as_farmer(self):
+    def test_list_as_maker(self):
         _seed_world()
         _create_order()
-        resp = client.get("/api/v1/orders", headers=_auth(FARMER_KEY))
+        resp = client.get("/api/v1/orders", headers=_auth(MAKER_KEY))
         assert resp.status_code == 200
         data = resp.json()
-        assert len(data["as_farmer"]) >= 1
+        assert len(data["as_maker"]) >= 1
 
 
 # ─── 订单详情 — 隐私 ────────────────────────────────────
 
 class TestOrderDetailPrivacy:
     def test_customer_view_no_farmer_info(self):
-        """买家看不到农场主信息"""
+        """买家看不到制造者信息"""
         _seed_world()
         order = _create_order()
         resp = client.get(f"/api/v1/orders/{order['order_id']}", headers=_auth(CUSTOMER_KEY))
@@ -137,22 +138,22 @@ class TestOrderDetailPrivacy:
         data = resp.json()
         assert data["role"] == "customer"
         view = data["order"]
-        # 不应包含农场主收入、配送省市以外信息
-        assert "farm_income_cny" not in view
+        # 不应包含制造者收入、配送省市以外信息
+        assert "maker_income_cny" not in view
         assert "delivery_address" not in view
         assert "delivery_district" not in view
         assert "customer_id" not in view
-        assert "farm_id" not in view
-        assert "farm_display" in view
+        assert "maker_id" not in view
+        assert "maker_display" in view
 
     def test_farmer_view_no_buyer_address(self):
-        """农场主看不到买家详细地址"""
+        """制造者看不到买家详细地址"""
         _seed_world()
         order = _create_order()
-        resp = client.get(f"/api/v1/orders/{order['order_id']}", headers=_auth(FARMER_KEY))
+        resp = client.get(f"/api/v1/orders/{order['order_id']}", headers=_auth(MAKER_KEY))
         assert resp.status_code == 200
         data = resp.json()
-        assert data["role"] == "farmer"
+        assert data["role"] == "maker"
         view = data["order"]
         # 只有省+市，没有区和地址
         assert "delivery_address" not in view
@@ -179,11 +180,11 @@ class TestOrderAccept:
         order = _create_order()
         oid = order["order_id"]
 
-        # 农场主接单
+        # 制造者接单
         resp = client.put(
             f"/api/v1/orders/{oid}/accept",
             json={"estimated_hours": 24},
-            headers=_auth(FARMER_KEY),
+            headers=_auth(MAKER_KEY),
         )
         assert resp.status_code == 200
         assert resp.json()["status"] == "accepted"
@@ -203,9 +204,9 @@ class TestOrderAccept:
         order = _create_order()
         oid = order["order_id"]
         # accept once
-        client.put(f"/api/v1/orders/{oid}/accept", json={"estimated_hours": 24}, headers=_auth(FARMER_KEY))
+        client.put(f"/api/v1/orders/{oid}/accept", json={"estimated_hours": 24}, headers=_auth(MAKER_KEY))
         # accept again → 400
-        resp = client.put(f"/api/v1/orders/{oid}/accept", json={"estimated_hours": 24}, headers=_auth(FARMER_KEY))
+        resp = client.put(f"/api/v1/orders/{oid}/accept", json={"estimated_hours": 24}, headers=_auth(MAKER_KEY))
         assert resp.status_code == 400
 
 
@@ -229,18 +230,18 @@ class TestOrderMessages:
         assert msg["sender_display"] == "客户"
         assert msg["sender_role"] == "customer"
 
-        # 农场主发消息
+        # 制造者发消息
         # 先接单才有farmer角色
-        client.put(f"/api/v1/orders/{oid}/accept", json={"estimated_hours": 24}, headers=_auth(FARMER_KEY))
+        client.put(f"/api/v1/orders/{oid}/accept", json={"estimated_hours": 24}, headers=_auth(MAKER_KEY))
         resp = client.post(
             f"/api/v1/orders/{oid}/messages",
             json={"message": "已开始打印"},
-            headers=_auth(FARMER_KEY),
+            headers=_auth(MAKER_KEY),
         )
         assert resp.status_code == 201
         msg = resp.json()
         assert msg["sender_display"] == "制造商"
-        assert msg["sender_role"] == "farmer"
+        assert msg["sender_role"] == "maker"
 
     def test_get_messages_anonymized(self):
         """获取消息列表也不暴露真名"""
@@ -281,11 +282,11 @@ class TestOrderReview:
         oid = order["order_id"]
 
         # accept → printing → quality_check → shipping → delivered → confirm
-        client.put(f"/api/v1/orders/{oid}/accept", json={"estimated_hours": 24}, headers=_auth(FARMER_KEY))
-        client.put(f"/api/v1/orders/{oid}/status", json={"status": "printing"}, headers=_auth(FARMER_KEY))
-        client.put(f"/api/v1/orders/{oid}/status", json={"status": "quality_check"}, headers=_auth(FARMER_KEY))
-        client.put(f"/api/v1/orders/{oid}/status", json={"status": "shipping"}, headers=_auth(FARMER_KEY))
-        client.put(f"/api/v1/orders/{oid}/status", json={"status": "delivered"}, headers=_auth(FARMER_KEY))
+        client.put(f"/api/v1/orders/{oid}/accept", json={"estimated_hours": 24}, headers=_auth(MAKER_KEY))
+        client.put(f"/api/v1/orders/{oid}/status", json={"status": "printing"}, headers=_auth(MAKER_KEY))
+        client.put(f"/api/v1/orders/{oid}/status", json={"status": "quality_check"}, headers=_auth(MAKER_KEY))
+        client.put(f"/api/v1/orders/{oid}/status", json={"status": "shipping"}, headers=_auth(MAKER_KEY))
+        client.put(f"/api/v1/orders/{oid}/status", json={"status": "delivered"}, headers=_auth(MAKER_KEY))
         client.post(f"/api/v1/orders/{oid}/confirm", headers=_auth(CUSTOMER_KEY))
         return oid
 
@@ -320,6 +321,6 @@ class TestOrderReview:
         resp = client.post(
             f"/api/v1/orders/{oid}/review",
             json={"rating": 5},
-            headers=_auth(FARMER_KEY),
+            headers=_auth(MAKER_KEY),
         )
         assert resp.status_code == 403
