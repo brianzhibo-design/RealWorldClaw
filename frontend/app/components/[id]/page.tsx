@@ -2,6 +2,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { getComponentById, mockComponents } from "@/lib/mock-data";
+import { fetchComponent } from "@/lib/api";
 
 export function generateStaticParams() {
   return mockComponents.map((c) => ({ id: c.id }));
@@ -13,7 +14,14 @@ export default async function ComponentDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const component = getComponentById(id);
+
+  let component;
+  try {
+    component = await fetchComponent(id);
+  } catch {
+    // API 不可用，fallback 到 mock
+    component = getComponentById(id);
+  }
   if (!component) notFound();
 
   return (

@@ -1,5 +1,6 @@
 /** 打印农场浏览页 */
 import { mockFarms } from "@/lib/mock-data";
+import { fetchFarms } from "@/lib/api";
 import Link from "next/link";
 
 const statusConfig = {
@@ -8,7 +9,14 @@ const statusConfig = {
   offline: { label: "离线", color: "text-slate-500", dot: "bg-slate-500" },
 };
 
-export default function FarmsPage() {
+export default async function FarmsPage() {
+  let farms = mockFarms;
+  try {
+    farms = await fetchFarms();
+  } catch {
+    // API 不可用，使用 mock 数据
+  }
+
   return (
     <div className="mx-auto max-w-6xl px-4 py-12">
       <div className="flex items-center justify-between mb-8">
@@ -25,7 +33,7 @@ export default function FarmsPage() {
       </div>
 
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {mockFarms.map((farm) => {
+        {farms.map((farm) => {
           const status = statusConfig[farm.availability];
           const isOnline = farm.availability === "open";
           return (
