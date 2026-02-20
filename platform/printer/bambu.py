@@ -526,12 +526,16 @@ class BambuLabAdapter(PrinterAdapter):
     @staticmethod
     async def discover(timeout: float = 5.0) -> list[dict[str, str]]:
         """
-        通过SSDP/mDNS发现局域网内的拓竹打印机
+        通过SSDP发现局域网内的拓竹打印机。
+
+        注意: discovery.py 中的 PrinterScanner 使用 mDNS/zeroconf 通用发现，
+        而拓竹打印机使用专有的 SSDP 协议 (UDP 2021端口)，两者互补而非重复。
+        mDNS发现可能找到注册了 _bambu-mqtt._tcp 的设备，但SSDP是官方发现方式。
 
         Returns:
             [{"ip": "...", "name": "...", "serial": "..."}, ...]
         """
-        # Bambu打印机通过SSDP广播 (UDP 2021端口)
+        # Bambu打印机通过SSDP广播 (UDP 2021端口) — 这是拓竹专有协议，不同于 discovery.py 的 mDNS
         found: list[dict[str, str]] = []
         loop = asyncio.get_running_loop()
 

@@ -174,3 +174,29 @@ def test_create_component_bad_key():
         headers={"Authorization": "Bearer wrong-key"},
     )
     assert resp.status_code == 401
+
+
+def test_create_component_success():
+    """W7: seed active agent → create component → verify 201."""
+    api_key = "rwc_sk_live_creator"
+    _seed_agent("ag_creator", api_key)
+    resp = client.post(
+        "/api/v1/components",
+        json={
+            "id": "new-component",
+            "display_name": "My New Component",
+            "description": "A brand new component for testing creation",
+            "version": "1.0.0",
+            "tags": ["test", "widget"],
+            "capabilities": ["print"],
+        },
+        headers={"Authorization": f"Bearer {api_key}"},
+    )
+    assert resp.status_code == 201
+    data = resp.json()
+    assert data["id"] == "new-component"
+    assert data["display_name"] == "My New Component"
+    assert data["version"] == "1.0.0"
+    assert data["status"] == "unverified"
+    assert data["author_id"] == "ag_creator"
+    assert "test" in data["tags"]

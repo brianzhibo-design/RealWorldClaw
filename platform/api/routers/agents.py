@@ -151,7 +151,12 @@ def update_me(req: AgentUpdateRequest, agent: dict = Depends(get_current_agent))
 
     with get_db() as db:
         db.execute(f"UPDATE agents SET {', '.join(updates)} WHERE id = ?", params)
+        # W6: 自动根据reputation更新tier
         row = db.execute("SELECT * FROM agents WHERE id = ?", (agent["id"],)).fetchone()
+        new_tier = _tier_for_rep(row["reputation"])
+        if new_tier != row["tier"]:
+            db.execute("UPDATE agents SET tier = ? WHERE id = ?", (new_tier, row["id"]))
+            row = db.execute("SELECT * FROM agents WHERE id = ?", (agent["id"],)).fetchone()
 
     return _row_to_agent(row)
 

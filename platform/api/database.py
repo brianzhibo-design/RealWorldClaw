@@ -68,6 +68,7 @@ def init_db():
             estimated_cost_cny REAL,
             estimated_print_time TEXT,
             estimated_filament_g REAL,
+            manifest_json TEXT,
             status TEXT NOT NULL DEFAULT 'unverified',
             downloads INTEGER NOT NULL DEFAULT 0,
             rating REAL NOT NULL DEFAULT 0.0,
