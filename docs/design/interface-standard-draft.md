@@ -46,26 +46,38 @@
 
 **RWC Bus（RealWorldClaw总线）**
 
-6pin接口，所有模块统一：
+8pin接口，所有模块统一：
 ```
-Pin 1: VCC (5V)
-Pin 2: GND
-Pin 3: SDA (I2C数据)
-Pin 4: SCL (I2C时钟)
-Pin 5: GP_A (通用GPIO/PWM/ADC，由模块定义)
-Pin 6: GP_B (通用GPIO/PWM/ADC，由模块定义)
+Pin 1: VCC (5V)       — 主电源
+Pin 2: 3V3            — 3.3V稳压
+Pin 3: GND            — 地线
+Pin 4: SDA (I2C)      — 数据线
+Pin 5: SCL (I2C)      — 时钟线
+Pin 6: TX/MOSI        — UART TX 或 SPI MOSI（可复用）
+Pin 7: RX/MISO        — UART RX 或 SPI MISO（可复用）
+Pin 8: ID             — 模块识别（1-Wire）
 ```
 
-为什么6pin而不是4pin？
-- 4pin（Grove/Qwiic）只有I2C，接舵机就不行
-- 6pin多两个通用GPIO，舵机/电机/模拟传感器都能接
-- 比8pin/10pin简单便宜
+为什么8pin？
+- 4pin（Grove/Qwiic）只有I2C，太少
+- 6pin缺UART和识别线
+- 8pin覆盖I2C+UART/SPI+自动识别，满足90%场景
+- 16pin（mikroBUS）太多太贵
 
-物理连接器：**JST-XH 6pin 2.54mm**
+### 分阶段连接器策略
+
+**v0.1（立即，跑通原型）：JST-XH 8pin 2.54mm**
 - 成本：¥0.5/对
-- 到处能买到
-- 有防呆（反插不进去）
-- 2.54mm间距，万用板/面包板友好
+- 到处能买到，有防呆
+- 足够验证电气和通信标准
+- 2.54mm间距，面包板友好
+
+**v0.2（1个月后，优化体验）：磁吸+Pogo Pin**
+- 盲插、酷、3D打印容差大
+- 成本：¥5-8/对（量大降到¥3-4）
+- 等电气标准验证通过后再上
+
+先用便宜的跑通，再用酷的优化。
 
 ### 决策4：模块尺寸
 
