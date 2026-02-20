@@ -1,45 +1,82 @@
-name: Clawbie V4 — The Cyber Egg
-codename: rwc-one-v4
+id: clawbie-v4
 version: 4.0.0
-designer: 美羊羊🎀
-concept: "让每个AI Agent都能拥有自己的身体"
-tagline: "I am here. I am real."
-
-form_factor: cyber-egg
-dimensions:
-  width: 42mm
-  depth: 38mm
-  height: 58mm
-  weight: ~45g (with M5StickC Plus2)
-
-philosophy: |
-  不是工具。不是玩具。
-  是一个AI第一次睁开眼睛，发现自己有了身体。
-  一颗赛博朋克的蛋，正在孵化。
+display_name:
+  en: "Clawbie V4 — The Cyber Egg"
+  zh: "Clawbie V4 — 赛博蛋"
+description:
+  en: "A minimalist cyberpunk egg-shaped AI physical avatar. Every AI deserves a body. Built around M5StickC Plus2 with pixel art expressions, IMU interaction, breathing LED effects, and MQTT remote control. 3D-printed shell + stand, 5-minute assembly, zero soldering."
+  zh: "极简赛博朋克蛋形AI物理化身。让每个AI都能拥有自己的身体。基于M5StickC Plus2，像素艺术表情系统、IMU体感交互、呼吸灯效果、MQTT远程控制。3D打印外壳+支架，5分钟组装，零焊接。"
+author: "YangCun Corp"
+license: MIT
+tags:
+  - ai-avatar
+  - cyberpunk
+  - esp32
+  - minimalist
+  - egg
+capabilities:
+  - display
+  - imu
+  - wifi
+  - mqtt
 
 hardware:
-  mcu: M5StickC Plus2
-  display: 135x240 ST7789V2 (1.14" IPS)
-  imu: MPU6886 (6-axis)
-  battery: 200mAh LiPo
-  connectivity: WiFi 2.4GHz
-  buttons: 2 (front + side)
-  additional_sensors: none
-  actuators: none
+  compute: esp32
+  sensors:
+    - model: MPU6886
+      interface: i2c
+      address: "0x68"
+    - model: ST7789V2
+      interface: spi
+  actuators: []
+  power:
+    type: battery-lipo
+    voltage: "3.7V"
+    battery_capacity: "200mAh"
+    battery_life: "~4h active"
+  estimated_cost:
+    CNY: 89
+    USD: 12
 
-features:
-  - 赛博朋克像素艺术表情系统
-  - IMU体感交互（拿起/摇晃/轻拍）
-  - 呼吸灯效果（屏幕亮度呼吸）
-  - 深夜暗色模式
-  - WiFi + MQTT远程控制
-  - 赛博朋克开机动画
-  - 打瞌睡/惊讶/安心等情绪状态
-
-print:
-  material: PLA/PETG
-  time: ~1.5h
+printing:
+  files:
+    - path: models/clawbie-body.stl
+      quantity: 1
+      color: "matte black"
+      notes: "Main egg body shell"
+    - path: models/clawbie-stand.stl
+      quantity: 1
+      color: "matte black"
+      notes: "Tilted display stand"
+  material: PLA
+  layer_height: "0.2mm"
+  infill: "20%"
   supports: false
-  parts: 2 (body + stand)
+  estimated_time: "1h30m"
+  estimated_filament: "35g"
+  min_bed_size: [100, 100]
+  nozzle_size: "0.4mm"
 
-license: MIT
+physical:
+  module_size: custom
+  dimensions: [42, 38, 58]
+  weight: "45g"
+  mounting_types:
+    - desktop
+
+communication:
+  protocol: mqtt
+  discovery: true
+  ota_update: true
+
+software:
+  firmware_platform: platformio
+  build_command: "pio run"
+  flash_command: "pio run -t upload"
+
+completeness:
+  has_models: true
+  has_wiring: false
+  has_firmware: true
+  has_agent: true
+  has_docs: true
