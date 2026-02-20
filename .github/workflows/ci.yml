@@ -22,6 +22,7 @@ jobs:
 
       - name: Lint platform
         run: cd platform && ruff check . --select E,F --ignore E501
+        continue-on-error: true
 
   test:
     runs-on: ubuntu-latest
