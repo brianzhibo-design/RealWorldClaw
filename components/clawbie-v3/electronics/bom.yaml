@@ -1,0 +1,51 @@
+bill_of_materials:
+  - item: M5StickC Plus2
+    qty: 1
+    price_cny: 89
+    source: taobao/m5stack
+    notes: 主控，含屏幕+IMU+WiFi+按钮+电池
+
+  - item: SG90 微型舵机
+    qty: 1
+    price_cny: 3
+    source: taobao
+    notes: 蟹爪开合驱动
+
+  - item: SG90 微型舵机 (可选)
+    qty: 1
+    price_cny: 3
+    source: taobao
+    notes: 底座旋转（完整版）
+    optional: true
+
+  - item: 杜邦线 母-母
+    qty: 3
+    price_cny: 0.5
+    source: taobao
+    notes: 信号+VCC+GND，10cm长度即可
+
+  - item: M3×8 内六角螺丝
+    qty: 4
+    price_cny: 0.5
+    source: taobao
+    notes: 蟹爪枢轴 + 连杆连接
+
+  - item: M3×12 内六角螺丝
+    qty: 2
+    price_cny: 0.3
+    source: taobao
+    notes: 备用/底座固定
+
+  - item: M3 螺母
+    qty: 6
+    price_cny: 0.3
+    source: taobao
+    notes: 配合螺丝使用
+
+  - item: PLA 耗材
+    qty: ~30g
+    price_cny: 1
+    notes: 5个打印件总计
+
+total_basic: "¥92"
+total_full: "¥95"
