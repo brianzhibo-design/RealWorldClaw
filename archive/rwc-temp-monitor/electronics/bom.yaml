@@ -1,0 +1,162 @@
+# ─── 温湿度监控器 物料清单 (BOM) ───
+# RealWorldClaw 种子组件 #1
+# 预估总成本：¥25 / $4
+
+components:
+  - id: U1
+    name: ESP32-C3 SuperMini
+    description: 超小型ESP32-C3开发板，自带USB-C和板载天线
+    quantity: 1
+    package: 模块
+    specs:
+      mcu: ESP32-C3 (RISC-V, 160MHz)
+      flash: 4MB
+      ram: 400KB SRAM
+      wifi: 802.11 b/g/n
+      ble: BLE 5.0
+      gpio: 13
+      size: 22.5 x 18mm
+    price_cny: 9.9
+    price_usd: 1.50
+    supplier:
+      taobao: "https://item.taobao.com/item.htm — 搜索 'ESP32-C3 SuperMini'"
+      aliexpress: "https://aliexpress.com — 搜索 'ESP32 C3 SuperMini'"
+
+  - id: S1
+    name: DHT22 (AM2302)
+    description: 数字温湿度传感器，精度±0.5°C/±2%RH
+    quantity: 1
+    package: 4-pin SIP
+    specs:
+      temperature_range: "-40°C ~ +80°C"
+      temperature_accuracy: "±0.5°C"
+      humidity_range: "0 ~ 100% RH"
+      humidity_accuracy: "±2% RH"
+      voltage: "3.3V ~ 5.5V"
+      sampling_rate: "0.5Hz (每2秒一次)"
+      interface: "单总线 (One-Wire-like)"
+    price_cny: 5.5
+    price_usd: 0.80
+    supplier:
+      taobao: "搜索 'DHT22 AM2302 模块'"
+      aliexpress: "搜索 'DHT22 AM2302 sensor module'"
+
+  - id: R1
+    name: 10kΩ 电阻
+    description: DHT22数据线上拉电阻
+    quantity: 1
+    package: 0805 / 插件
+    specs:
+      resistance: 10kΩ
+      tolerance: "±5%"
+      power: "0.125W"
+    price_cny: 0.05
+    price_usd: 0.01
+    supplier:
+      taobao: "搜索 '10K电阻 插件' (一包100个约¥2)"
+
+  - id: D1
+    name: 3mm LED 绿色
+    description: 状态指示灯（WiFi连接/数据上报）
+    quantity: 1
+    package: 3mm 插件
+    specs:
+      color: 绿色
+      forward_voltage: "2.0 ~ 2.4V"
+      forward_current: "20mA"
+      wavelength: "520nm"
+    price_cny: 0.1
+    price_usd: 0.02
+    supplier:
+      taobao: "搜索 '3mm LED 绿色' (一包100个约¥3)"
+
+  - id: R2
+    name: 220Ω 电阻
+    description: LED限流电阻
+    quantity: 1
+    package: 0805 / 插件
+    specs:
+      resistance: 220Ω
+      tolerance: "±5%"
+      power: "0.125W"
+      note: "LED电流 ≈ (3.3V - 2.2V) / 220Ω ≈ 5mA"
+    price_cny: 0.05
+    price_usd: 0.01
+    supplier:
+      taobao: "搜索 '220R电阻 插件'"
+
+  - id: C1
+    name: 100nF 陶瓷电容
+    description: ESP32电源去耦电容
+    quantity: 1
+    package: 0805 / 插件
+    specs:
+      capacitance: 100nF
+      voltage: "50V"
+    price_cny: 0.05
+    price_usd: 0.01
+    supplier:
+      taobao: "搜索 '104电容'"
+
+  - id: W1
+    name: 杜邦线母对母
+    description: 模块间接线
+    quantity: 6
+    package: 20cm
+    specs:
+      length: 20cm
+      type: 母对母
+      awg: 28
+    price_cny: 1.0
+    price_usd: 0.15
+    supplier:
+      taobao: "搜索 '杜邦线 母对母 20cm' (一排40根约¥2)"
+
+  - id: P1
+    name: USB-C 数据线
+    description: 供电和烧录
+    quantity: 1
+    package: 1m
+    specs:
+      length: 1m
+      type: USB-A to USB-C
+      data: "USB 2.0"
+    price_cny: 3.0
+    price_usd: 0.50
+    supplier:
+      taobao: "搜索 'USB-C数据线 1米'"
+
+  - id: H1
+    name: M3×8mm 螺丝
+    description: 外壳安装螺丝
+    quantity: 4
+    package: 十字盘头
+    price_cny: 0.4
+    price_usd: 0.06
+    supplier:
+      taobao: "搜索 'M3×8 螺丝' (一包50个约¥3)"
+
+  - id: H2
+    name: M3 螺母
+    description: 外壳安装螺母
+    quantity: 4
+    package: 六角
+    price_cny: 0.2
+    price_usd: 0.03
+    supplier:
+      taobao: "搜索 'M3螺母' (一包100个约¥3)"
+
+tools_required:
+  - name: 3D打印机
+    note: "任意FDM打印机，最小打印面积120×120mm"
+  - name: 烙铁（可选）
+    note: "如需焊接而非杜邦线连接"
+  - name: 十字螺丝刀
+    note: "M3螺丝安装"
+  - name: 电脑
+    note: "烧录固件用，需USB口"
+
+total_cost:
+  CNY: ~25
+  USD: ~4
+  note: "批量购买更便宜，单件含运费可能稍高"

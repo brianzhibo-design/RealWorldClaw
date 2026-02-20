@@ -1,0 +1,76 @@
+id: temp-humidity-monitor
+version: 1.0.0
+display_name:
+  en: "Temperature & Humidity Monitor"
+  zh: "温湿度监控器"
+description:
+  en: "Indoor temperature and humidity monitoring device with OLED display and MQTT reporting. Uses SHT31 for high-accuracy sensing."
+  zh: "室内温湿度监控器，配备OLED显示屏和MQTT上报。"
+author: meiyangyang
+license: MIT
+tags: [sensor, temperature, humidity, indoor]
+
+capabilities:
+  - temperature_sensing
+  - humidity_sensing
+
+hardware:
+  compute: esp32-c3
+  sensors:
+    - model: SHT31
+      interface: i2c
+      address: "0x44"
+      voltage: "3.3V"
+  actuators:
+    - model: SSD1306
+      type: display
+      interface: i2c
+  power:
+    type: usb-c
+    voltage: "5V"
+    consumption: "0.25W"
+  estimated_cost:
+    CNY: 35
+    USD: 5
+
+printing:
+  files:
+    - path: models/enclosure-bottom.stl
+      quantity: 1
+      color: white
+    - path: models/enclosure-lid.stl
+      quantity: 1
+      color: white
+  material: PLA
+  layer_height: "0.2mm"
+  infill: "20%"
+  supports: false
+  estimated_time: "2h15m"
+  estimated_filament: "38g"
+  min_bed_size: [120, 120]
+
+physical:
+  module_size: 3U
+  dimensions: [60, 40, 30]
+  weight: "72g"
+  mounting: m3-20mm-grid
+  mounting_types: [desktop, wall_mount, magnetic]
+  protection: CF-P0
+
+communication:
+  protocol: mqtt
+  discovery: true
+
+software:
+  firmware_platform: arduino
+  dependencies:
+    - name: SHT31
+      version: ">=1.0.0"
+  build_command: "pio run -e esp32c3"
+
+completeness:
+  has_models: true
+  has_wiring: true
+  has_firmware: false
+  has_agent: false
+  has_docs: false

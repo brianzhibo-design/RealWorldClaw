@@ -1,0 +1,46 @@
+# Social Publish Skill - 平台配置
+# 美羊羊🎀 精心整理~
+
+chrome:
+  # macOS 默认路径
+  path: "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+  cdp_port: 9222
+  user_data_dir: "~/Library/Application Support/Google/Chrome"
+  # 启动参数
+  extra_args:
+    - "--disable-blink-features=AutomationControlled"
+
+platforms:
+  twitter:
+    name: "X (Twitter)"
+    base_url: "https://x.com"
+    compose_url: "https://x.com/compose/post"
+    max_images: 4
+    max_text: 280
+    login_check_selector: '[data-testid="SideNav_AccountSwitcher_Button"]'
+
+  wechat_mp:
+    name: "微信公众号"
+    base_url: "https://mp.weixin.qq.com"
+    compose_url: "https://mp.weixin.qq.com/cgi-bin/appmsg?t=media/appmsg_edit&action=edit&type=77"
+    max_images: 9
+    max_title: 20
+    max_body: 1000
+    login_check_selector: ".weui-desktop-account__nickname"
+
+  xiaohongshu:
+    name: "小红书"
+    base_url: "https://creator.xiaohongshu.com"
+    compose_url: "https://creator.xiaohongshu.com/publish/publish"
+    max_images: 9
+    max_title: 20
+    max_body: 1000
+    login_check_selector: ".user-name"
+
+publish:
+  dry_run: false
+  retry_count: 2
+  retry_delay: 3
+  screenshot_on_error: true
+  screenshot_dir: "./screenshots"
+  timeout: 30000  # ms
