@@ -1,3 +1,5 @@
+[中文](vision-cn.md) | English
+
 # RealWorldClaw Vision
 
 > The mission: **Turn 3D printers into smart hardware factories for everyone.**

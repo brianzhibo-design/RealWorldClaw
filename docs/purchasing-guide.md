@@ -1,3 +1,5 @@
+中文 | [English](purchasing-guide-en.md)
+
 # 🛒 RealWorldClaw 采购指南（BOM Purchasing Guide）
 
 > **沸羊羊 🐏 | 2026-02-21 | v1.0**
