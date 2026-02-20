@@ -40,6 +40,43 @@ cd tools/manifest-validator
 python validate.py ../../components/clawbie-v4/
 ```
 
+## 🚢 Deployment
+
+### Local Development (Docker)
+
+```bash
+# Start both frontend and backend
+make docker-dev
+# API: http://localhost:8000  |  Web: http://localhost:3000
+```
+
+### Backend → Fly.io
+
+```bash
+# Install Fly CLI: https://fly.io/docs/hands-on/install-flyctl/
+cd platform
+fly auth login
+fly launch          # first time only
+fly deploy          # or: make deploy-api
+```
+
+Set secrets:
+```bash
+fly secrets set SECRET_KEY=your-secret-key
+fly secrets set DATABASE_URL=postgresql://...  # for production PostgreSQL
+```
+
+### Frontend → Vercel
+
+```bash
+# Install Vercel CLI: npm i -g vercel
+cd frontend
+vercel              # first time — follow prompts
+vercel --prod       # or: make deploy-web
+```
+
+Set environment variable `NEXT_PUBLIC_API_URL=https://realworldclaw-api.fly.dev` in Vercel dashboard.
+
 ## 📦 Flagship Component: Cyber Egg
 
 Our first component is **Clawbie V4** — a cyberpunk egg that serves as an AI's physical avatar.

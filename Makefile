@@ -11,3 +11,12 @@ lint:
 
 validate:
 	cd tools/manifest-validator && python validate.py ../../components/clawbie-v4/
+
+deploy-api:
+	cd platform && fly deploy
+
+deploy-web:
+	cd frontend && vercel --prod
+
+docker-dev:
+	docker-compose up --build
