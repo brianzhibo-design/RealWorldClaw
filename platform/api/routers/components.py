@@ -7,7 +7,6 @@ from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 
-from ..auth import require_auth
 from ..database import get_db
 from ..models.schemas import ComponentCreate, ComponentResponse
 from .agents import get_current_agent
@@ -24,6 +23,12 @@ def _row_to_component(row) -> ComponentResponse:
         author_id=row["author_id"],
         tags=json.loads(row["tags"] or "[]"),
         capabilities=json.loads(row["capabilities"] or "[]"),
+        compute=row["compute"] if "compute" in row.keys() else None,
+        material=row["material"] if "material" in row.keys() else None,
+        estimated_cost_cny=row["estimated_cost_cny"] if "estimated_cost_cny" in row.keys() else None,
+        estimated_print_time=row["estimated_print_time"] if "estimated_print_time" in row.keys() else None,
+        estimated_filament_g=row["estimated_filament_g"] if "estimated_filament_g" in row.keys() else None,
+        manifest_json=row["manifest_json"] if "manifest_json" in row.keys() else None,
         status=row["status"],
         downloads=row["downloads"],
         rating=row["rating"],
@@ -99,7 +104,6 @@ def get_component(component_id: str):
 @router.post("", response_model=ComponentResponse, status_code=201)
 def create_component(
     req: ComponentCreate,
-    _key: str = Depends(require_auth),
     agent: dict = Depends(get_current_agent),
 ):
     """Create a new component. Requires API key auth."""

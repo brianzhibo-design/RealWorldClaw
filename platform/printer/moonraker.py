@@ -85,12 +85,16 @@ class MoonrakerAdapter(PrinterAdapter):
         fname = remote_name or file_path.name
         session = await self._ensure_session()
         data = aiohttp.FormData()
-        data.add_field("file", open(file_path, "rb"), filename=fname)
-        async with session.post("/server/files/upload", data=data) as resp:
-            resp.raise_for_status()
-            result = await resp.json()
-            logger.info(f"文件上传成功: {fname}")
-            return result.get("result", {}).get("item", {}).get("path", fname)
+        fh = open(file_path, "rb")
+        try:
+            data.add_field("file", fh, filename=fname)
+            async with session.post("/server/files/upload", data=data) as resp:
+                resp.raise_for_status()
+                result = await resp.json()
+                logger.info(f"文件上传成功: {fname}")
+                return result.get("result", {}).get("item", {}).get("path", fname)
+        finally:
+            fh.close()
 
     async def start(self, filename: str) -> bool:
         try:

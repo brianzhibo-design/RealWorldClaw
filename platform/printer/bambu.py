@@ -228,12 +228,13 @@ class BambuLabAdapter(PrinterAdapter):
 
         self._loop = asyncio.get_running_loop()
 
+        kwargs = {}
+        if hasattr(mqtt, "CallbackAPIVersion"):
+            kwargs["callback_api_version"] = mqtt.CallbackAPIVersion.VERSION2
         client = mqtt.Client(
             client_id=f"openclaw_{int(time.time())}",
             protocol=mqtt.MQTTv311,
-            callback_api_version=mqtt.CallbackAPIVersion.VERSION2
-            if hasattr(mqtt, "CallbackAPIVersion")
-            else None,
+            **kwargs,
         )
         client.username_pw_set(self.MQTT_USERNAME, self.access_code)
         client.tls_set_context(_make_tls_context())

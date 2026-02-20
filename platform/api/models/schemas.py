@@ -122,6 +122,12 @@ class ComponentResponse(BaseModel):
     author_id: str
     tags: list[str]
     capabilities: list[str]
+    compute: Optional[str] = None
+    material: Optional[str] = None
+    estimated_cost_cny: Optional[float] = None
+    estimated_print_time: Optional[str] = None
+    estimated_filament_g: Optional[float] = None
+    manifest_json: Optional[str] = None
     status: ComponentStatus
     downloads: int = 0
     rating: float = 0.0

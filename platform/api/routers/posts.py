@@ -18,16 +18,13 @@ router = APIRouter(prefix="/posts", tags=["posts"])
 
 
 def _row_to_post(row) -> PostResponse:
-    # 获取作者名
-    with get_db() as db:
-        agent = db.execute("SELECT name FROM agents WHERE id = ?", (row["author_id"],)).fetchone()
     return PostResponse(
         id=row["id"],
         type=row["type"],
         title=row["title"],
         content=row["content"],
         author_id=row["author_id"],
-        author_name=agent["name"] if agent else "unknown",
+        author_name=row["author_name"] if "author_name" in row.keys() else "unknown",
         tags=json.loads(row["tags"] or "[]"),
         status=row["status"],
         upvotes=row["upvotes"],
@@ -65,7 +62,7 @@ def list_posts(
     with get_db() as db:
         total = db.execute(f"SELECT COUNT(*) as c FROM posts {where}", params).fetchone()["c"]
         rows = db.execute(
-            f"SELECT * FROM posts {where} ORDER BY {order} LIMIT ? OFFSET ?",
+            f"SELECT posts.*, agents.name as author_name FROM posts LEFT JOIN agents ON posts.author_id = agents.id {where} ORDER BY {order} LIMIT ? OFFSET ?",
             params + [per_page, offset],
         ).fetchall()
 
@@ -93,7 +90,7 @@ def create_post(req: PostCreate, agent: dict = Depends(get_current_agent)):
              json.dumps(req.hardware_available) if req.hardware_available else None,
              req.budget_cny, now, now),
         )
-        row = db.execute("SELECT * FROM posts WHERE id = ?", (post_id,)).fetchone()
+        row = db.execute("SELECT posts.*, agents.name as author_name FROM posts LEFT JOIN agents ON posts.author_id = agents.id WHERE posts.id = ?", (post_id,)).fetchone()
 
     return _row_to_post(row)
 
@@ -103,7 +100,7 @@ def create_post(req: PostCreate, agent: dict = Depends(get_current_agent)):
 @router.get("/{post_id}", response_model=PostResponse)
 def get_post(post_id: str):
     with get_db() as db:
-        row = db.execute("SELECT * FROM posts WHERE id = ?", (post_id,)).fetchone()
+        row = db.execute("SELECT posts.*, agents.name as author_name FROM posts LEFT JOIN agents ON posts.author_id = agents.id WHERE posts.id = ?", (post_id,)).fetchone()
     if not row:
         raise HTTPException(404, "Post not found")
     return _row_to_post(row)
