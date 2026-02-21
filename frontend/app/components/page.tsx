@@ -1,15 +1,9 @@
-/** 组件浏览页 — 卡片网格展示所有组件 */
 import ComponentCard from "@/components/ComponentCard";
-import { mockComponents } from "@/lib/mock-data";
 import { fetchComponents } from "@/lib/api";
+import { EmptyState } from "@/components/EmptyState";
 
 export default async function ComponentsPage() {
-  let components = mockComponents;
-  try {
-    components = await fetchComponents();
-  } catch {
-    // API 不可用，使用 mock 数据
-  }
+  const components = await fetchComponents();
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-12">
@@ -18,11 +12,15 @@ export default async function ComponentsPage() {
         浏览社区贡献的娃娃机组件，找到你需要的部件。
       </p>
 
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {components.map((c) => (
-          <ComponentCard key={c.id} component={c} />
-        ))}
-      </div>
+      {components.length === 0 ? (
+        <EmptyState icon="🧩" title="No components yet" description="Components will appear here when available from the API." />
+      ) : (
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {components.map((c) => (
+            <ComponentCard key={c.id} component={c} />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
