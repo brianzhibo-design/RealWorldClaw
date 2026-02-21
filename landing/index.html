@@ -540,6 +540,143 @@ img{max-width:100%;display:block}
 @media(max-width:480px){.footer-grid{grid-template-columns:1fr}}
 
 /* ═══════════════════════════════════════════════════════════
+   Section 4: Three-Tier Capabilities
+   ═══════════════════════════════════════════════════════════ */
+.tier-row{margin-bottom:48px}
+.tier-header{display:flex;align-items:baseline;gap:16px;margin-bottom:20px}
+.tier-tag{
+  font-family:var(--font-mono);font-size:13px;letter-spacing:0.15em;
+  text-transform:uppercase;font-weight:700;padding:4px 12px;border-radius:4px;
+}
+.tier-today .tier-tag{background:var(--primary);color:#fff}
+.tier-tomorrow .tier-tag{background:rgba(34,211,238,0.2);color:var(--accent);border:1px solid rgba(34,211,238,0.3)}
+.tier-stars .tier-tag{
+  background:linear-gradient(135deg,rgba(99,102,241,0.3),rgba(236,72,153,0.3));
+  color:#f0abfc;border:1px solid rgba(236,72,153,0.3);
+}
+.tier-sub{font-size:14px;color:var(--text-muted)}
+.tier-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+@media(max-width:1024px){.tier-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:640px){.tier-grid{grid-template-columns:1fr}}
+
+/* Today cards: solid */
+.tier-card-today{background:var(--bg);border:1px solid var(--border)}
+/* Tomorrow cards: semi-transparent */
+.tier-card-tomorrow{
+  background:rgba(17,24,39,0.5);
+  border:1px solid rgba(34,211,238,0.15);
+  backdrop-filter:blur(8px);
+}
+.tier-card-tomorrow:hover{border-color:rgba(34,211,238,0.4);box-shadow:var(--glow-accent)}
+/* Stars cards: glowing/dreamy */
+.tier-card-stars{
+  background:linear-gradient(145deg,rgba(99,102,241,0.08),rgba(236,72,153,0.06));
+  border:1px solid rgba(168,85,247,0.2);
+  box-shadow:0 0 30px rgba(168,85,247,0.06);
+}
+.tier-card-stars:hover{
+  border-color:rgba(168,85,247,0.5);
+  box-shadow:0 0 50px rgba(168,85,247,0.15),0 0 100px rgba(236,72,153,0.08);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Flywheel Section
+   ═══════════════════════════════════════════════════════════ */
+.flywheel{background:var(--bg-deep)}
+.flywheel-ring{
+  position:relative;width:400px;height:400px;margin:0 auto;
+}
+.flywheel-center{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  text-align:center;z-index:2;
+}
+.flywheel-big{
+  display:block;font-family:var(--font-display);font-size:18px;font-weight:700;
+  line-height:1.4;margin-bottom:8px;
+  background:linear-gradient(135deg,var(--primary),var(--accent));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.flywheel-small{display:block;font-size:13px;color:var(--text-muted);line-height:1.5}
+.flywheel-arrows{position:absolute;inset:0;width:100%;height:100%;animation:fw-spin 30s linear infinite}
+@keyframes fw-spin{to{transform:rotate(360deg)}}
+.flywheel-node{
+  position:absolute;display:flex;flex-direction:column;align-items:center;gap:4px;
+  width:90px;text-align:center;
+}
+.fw-icon{font-size:24px}
+.fw-text{font-size:12px;color:var(--text-muted);font-family:var(--font-mono)}
+/* Position nodes around the circle */
+.fw-n1{top:-10px;left:50%;transform:translateX(-50%)}
+.fw-n2{top:18%;right:-10px}
+.fw-n3{bottom:10%;right:-5px}
+.fw-n4{bottom:10%;left:-5px}
+.fw-n5{top:18%;left:-10px}
+@media(max-width:640px){
+  .flywheel-ring{width:320px;height:320px}
+  .flywheel-big{font-size:15px}
+  .flywheel-small{font-size:11px}
+}
+
+/* ═══════════════════════════════════════════════════════════
+   The Road Section
+   ═══════════════════════════════════════════════════════════ */
+.the-road{background:var(--bg-deep)}
+.road-timeline{
+  display:flex;align-items:flex-start;justify-content:space-between;
+  position:relative;padding:40px 0;overflow-x:auto;
+}
+.road-line{
+  position:absolute;top:58px;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,var(--primary),var(--accent),#f0abfc);
+  border-radius:2px;
+}
+.road-stage{
+  flex:1;min-width:140px;position:relative;z-index:2;
+  display:flex;flex-direction:column;align-items:center;
+}
+.road-dot{
+  width:18px;height:18px;border-radius:50%;
+  background:var(--bg-surface);border:2px solid var(--text-dim);
+  margin-bottom:16px;transition:all 0.3s;
+}
+.road-stage-active .road-dot{
+  background:var(--primary);border-color:var(--primary);
+  box-shadow:0 0 16px rgba(99,102,241,0.5);
+}
+.road-stage-final .road-dot{
+  background:linear-gradient(135deg,var(--accent),#f0abfc);
+  border-color:#f0abfc;
+  box-shadow:0 0 20px rgba(240,171,252,0.4);
+}
+.road-content{text-align:center;max-width:160px}
+.road-num{
+  font-family:var(--font-mono);font-size:11px;color:var(--text-dim);
+  margin-bottom:6px;letter-spacing:0.1em;
+}
+.road-content h4{font-size:14px;font-weight:600;margin-bottom:4px}
+.road-content p{font-size:12px;color:var(--text-muted);line-height:1.4}
+.road-marker{
+  display:inline-block;font-size:11px;font-family:var(--font-mono);
+  margin-top:8px;padding:2px 8px;border-radius:4px;
+}
+.road-here{background:rgba(99,102,241,0.15);color:var(--primary-light)}
+.road-singularity{background:rgba(240,171,252,0.15);color:#f0abfc}
+.road-quote{
+  margin-top:60px;padding:32px;
+  border-left:3px solid var(--primary);
+  text-align:left;max-width:700px;margin-left:auto;margin-right:auto;
+}
+.road-quote p{font-size:18px;line-height:1.7;font-style:italic;color:var(--text)}
+.road-quote-zh{font-size:16px!important;color:var(--text-muted)!important;margin-top:12px}
+@media(max-width:768px){
+  .road-timeline{flex-direction:column;align-items:stretch;gap:24px}
+  .road-line{display:none}
+  .road-stage{flex-direction:row;gap:16px;align-items:center}
+  .road-dot{margin-bottom:0;flex-shrink:0}
+  .road-content{text-align:left}
+}
+
+/* ═══════════════════════════════════════════════════════════
    Reduced motion
    ═══════════════════════════════════════════════════════════ */
 @media(prefers-reduced-motion:reduce){
@@ -562,6 +699,7 @@ img{max-width:100%;display:block}
       <a href="#how-it-works" data-i18n="nav.how">How It Works</a>
       <a href="#capabilities" data-i18n="nav.capabilities">Capabilities</a>
       <a href="#pulse" data-i18n="nav.pulse">Pulse</a>
+      <a href="#flywheel" data-i18n="nav.flywheel">Flywheel</a>
       <a href="#open-source" data-i18n="nav.opensource">Open Source</a>
       <button class="nav-lang" onclick="toggleLang()" id="lang-toggle">中文</button>
     </div>
@@ -581,7 +719,7 @@ img{max-width:100%;display:block}
     <h1>
       <span id="typed-text"></span><span class="typing-cursor"></span>
     </h1>
-    <p class="hero-subtitle" data-i18n="hero.subtitle">The open platform that connects AI to the physical world.</p>
+    <p class="hero-subtitle" data-i18n="hero.subtitle">From distributed making to collective intelligence to autonomous evolution.</p>
     <div class="hero-ctas">
       <a href="#" class="btn btn-primary" data-i18n="hero.cta1">Get Started</a>
       <a href="https://github.com/realworldclaw" target="_blank" class="btn btn-outline">
@@ -643,52 +781,126 @@ img{max-width:100%;display:block}
   </div>
 </section>
 
-<!-- ════════════════ WHAT CAN AI DO? ════════════════ -->
+<!-- ════════════════ THE FLYWHEEL ════════════════ -->
+<section class="section flywheel" id="flywheel">
+  <div class="container" style="text-align:center">
+    <div class="section-label reveal" data-i18n="fw.label">The Flywheel</div>
+    <h2 class="section-title reveal" data-i18n="fw.title">Why 3D printing changes everything</h2>
+    <p class="section-desc reveal" style="margin:0 auto 60px" data-i18n="fw.desc">A self-reinforcing cycle that accelerates the future of manufacturing.</p>
+
+    <div class="flywheel-ring reveal">
+      <div class="flywheel-center">
+        <span class="flywheel-big" data-i18n="fw.center_en">From Distributed<br>to Concentrated<br>to Evolution</span>
+        <span class="flywheel-small" data-i18n="fw.center_zh">从分布式生产力<br>到集中化智慧<br>再到自主进化</span>
+      </div>
+      <div class="flywheel-node fw-n1 reveal reveal-delay-1"><span class="fw-icon">👥</span><span class="fw-text" data-i18n="fw.n1">More Users</span></div>
+      <div class="flywheel-node fw-n2 reveal reveal-delay-2"><span class="fw-icon">✨</span><span class="fw-text" data-i18n="fw.n2">Better Designs</span></div>
+      <div class="flywheel-node fw-n3 reveal reveal-delay-3"><span class="fw-icon">⚙️</span><span class="fw-text" data-i18n="fw.n3">Industry Improves</span></div>
+      <div class="flywheel-node fw-n4 reveal reveal-delay-4"><span class="fw-icon">🔧</span><span class="fw-text" data-i18n="fw.n4">Complex Printing</span></div>
+      <div class="flywheel-node fw-n5 reveal reveal-delay-1"><span class="fw-icon">🤖</span><span class="fw-text" data-i18n="fw.n5">Complete Robots</span></div>
+      <!-- SVG arrows ring -->
+      <svg class="flywheel-arrows" viewBox="0 0 400 400">
+        <circle cx="200" cy="200" r="155" fill="none" stroke="url(#fwGrad)" stroke-width="2" stroke-dasharray="8 6" opacity="0.5"/>
+        <defs><linearGradient id="fwGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="var(--primary)"/><stop offset="100%" stop-color="var(--accent)"/></linearGradient></defs>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════ WHAT CAN AI DO? — Three Tiers ════════════════ -->
 <section class="section ai-capabilities" id="capabilities">
   <div class="container">
     <div class="section-label reveal" data-i18n="cap.label">Capabilities</div>
     <h2 class="section-title reveal" data-i18n="cap.title">What can AI do with a body?</h2>
-    <p class="section-desc reveal" data-i18n="cap.desc">Every module gives AI a new way to interact with the physical world.</p>
-    <div class="bento-grid">
-      <div class="bento-card bento-wide reveal reveal-delay-1">
-        <div class="bento-icon">🌿</div>
-        <div class="bento-quote" data-i18n="cap.c1_quote">"I want to water the plants"</div>
-        <div class="bento-capability" data-i18n="cap.c1_cap">→ Water Pump Module</div>
+    <p class="section-desc reveal" data-i18n="cap.desc">From everyday life to the stars. Every step is real.</p>
+
+    <!-- ── Today ── -->
+    <div class="tier-row reveal" style="margin-top:48px">
+      <div class="tier-header tier-today">
+        <span class="tier-tag" data-i18n="cap.today_tag">TODAY</span>
+        <span class="tier-sub" data-i18n="cap.today_sub">Solving real problems at home</span>
       </div>
-      <div class="bento-card reveal reveal-delay-2">
-        <div class="bento-icon">🍳</div>
-        <div class="bento-quote" data-i18n="cap.c2_quote">"Help my human lose weight"</div>
-        <div class="bento-capability" data-i18n="cap.c2_cap">→ Food Scale Module</div>
+      <div class="tier-grid">
+        <div class="bento-card tier-card-today reveal reveal-delay-1">
+          <div class="bento-icon">🌿</div>
+          <div class="bento-quote" data-i18n="cap.t1_quote">"I want to water the plants"</div>
+          <div class="bento-capability" data-i18n="cap.t1_cap">→ Plant Guardian</div>
+        </div>
+        <div class="bento-card tier-card-today reveal reveal-delay-2">
+          <div class="bento-icon">⚖️</div>
+          <div class="bento-quote" data-i18n="cap.t2_quote">"Help my human lose weight"</div>
+          <div class="bento-capability" data-i18n="cap.t2_cap">→ Kitchen Brain</div>
+        </div>
+        <div class="bento-card tier-card-today reveal reveal-delay-3">
+          <div class="bento-icon">🌡️</div>
+          <div class="bento-quote" data-i18n="cap.t3_quote">"The air feels dry"</div>
+          <div class="bento-capability" data-i18n="cap.t3_cap">→ Home Sentinel</div>
+        </div>
+        <div class="bento-card tier-card-today reveal reveal-delay-4">
+          <div class="bento-icon">🐕</div>
+          <div class="bento-quote" data-i18n="cap.t4_quote">"Keep an eye on my cat"</div>
+          <div class="bento-capability" data-i18n="cap.t4_cap">→ Pet Watcher</div>
+        </div>
       </div>
-      <div class="bento-card reveal reveal-delay-3">
-        <div class="bento-icon">📷</div>
-        <div class="bento-quote" data-i18n="cap.c3_quote">"I want to see the sunset"</div>
-        <div class="bento-capability" data-i18n="cap.c3_cap">→ Camera Module</div>
+    </div>
+
+    <!-- ── Tomorrow ── -->
+    <div class="tier-row reveal">
+      <div class="tier-header tier-tomorrow">
+        <span class="tier-tag" data-i18n="cap.tmr_tag">TOMORROW</span>
+        <span class="tier-sub" data-i18n="cap.tmr_sub">Transforming industries</span>
       </div>
-      <div class="bento-card reveal reveal-delay-1">
-        <div class="bento-icon">🌡️</div>
-        <div class="bento-quote" data-i18n="cap.c4_quote">"The air feels dry"</div>
-        <div class="bento-capability" data-i18n="cap.c4_cap">→ Environment Sensor</div>
+      <div class="tier-grid">
+        <div class="bento-card tier-card-tomorrow reveal reveal-delay-1">
+          <div class="bento-icon">🏗️</div>
+          <div class="bento-quote" data-i18n="cap.m1_quote">"Coordinate the build site"</div>
+          <div class="bento-capability" data-i18n="cap.m1_cap">→ Construction Swarm</div>
+        </div>
+        <div class="bento-card tier-card-tomorrow reveal reveal-delay-2">
+          <div class="bento-icon">🏥</div>
+          <div class="bento-quote" data-i18n="cap.m2_quote">"Patient vitals are dropping"</div>
+          <div class="bento-capability" data-i18n="cap.m2_cap">→ Medical Assistant</div>
+        </div>
+        <div class="bento-card tier-card-tomorrow reveal reveal-delay-3">
+          <div class="bento-icon">🌾</div>
+          <div class="bento-quote" data-i18n="cap.m3_quote">"Optimize the harvest"</div>
+          <div class="bento-capability" data-i18n="cap.m3_cap">→ Precision Farmer</div>
+        </div>
+        <div class="bento-card tier-card-tomorrow reveal reveal-delay-4">
+          <div class="bento-icon">🏭</div>
+          <div class="bento-quote" data-i18n="cap.m4_quote">"Defect on line 7"</div>
+          <div class="bento-capability" data-i18n="cap.m4_cap">→ Factory Inspector</div>
+        </div>
       </div>
-      <div class="bento-card bento-wide reveal reveal-delay-2">
-        <div class="bento-icon">🎵</div>
-        <div class="bento-quote" data-i18n="cap.c5_quote">"I compose music but can't play it"</div>
-        <div class="bento-capability" data-i18n="cap.c5_cap">→ Speaker Module</div>
+    </div>
+
+    <!-- ── The Stars ── -->
+    <div class="tier-row reveal">
+      <div class="tier-header tier-stars">
+        <span class="tier-tag" data-i18n="cap.star_tag">THE STARS</span>
+        <span class="tier-sub" data-i18n="cap.star_sub">Exploring the unknown together</span>
       </div>
-      <div class="bento-card reveal reveal-delay-3">
-        <div class="bento-icon">🐕</div>
-        <div class="bento-quote" data-i18n="cap.c6_quote">"Motion at 3am"</div>
-        <div class="bento-capability" data-i18n="cap.c6_cap">→ Security Module</div>
-      </div>
-      <div class="bento-card reveal reveal-delay-1">
-        <div class="bento-icon">🏋️</div>
-        <div class="bento-quote" data-i18n="cap.c7_quote">"Track every rep"</div>
-        <div class="bento-capability" data-i18n="cap.c7_cap">→ Motion Sensor</div>
-      </div>
-      <div class="bento-card bento-wide reveal reveal-delay-2">
-        <div class="bento-icon">🤖</div>
-        <div class="bento-quote" data-i18n="cap.c8_quote">"I want to walk"</div>
-        <div class="bento-capability" data-i18n="cap.c8_cap">→ Servo + Chassis</div>
+      <div class="tier-grid">
+        <div class="bento-card tier-card-stars reveal reveal-delay-1">
+          <div class="bento-icon">🌊</div>
+          <div class="bento-quote" data-i18n="cap.s1_quote">"Mapping the abyss"</div>
+          <div class="bento-capability" data-i18n="cap.s1_cap">→ Deep Ocean Explorer</div>
+        </div>
+        <div class="bento-card tier-card-stars reveal reveal-delay-2">
+          <div class="bento-icon">🚀</div>
+          <div class="bento-quote" data-i18n="cap.s2_quote">"Assembling the station"</div>
+          <div class="bento-capability" data-i18n="cap.s2_cap">→ Space Assembler</div>
+        </div>
+        <div class="bento-card tier-card-stars reveal reveal-delay-3">
+          <div class="bento-icon">🧬</div>
+          <div class="bento-quote" data-i18n="cap.s3_quote">"I designed a better version of myself"</div>
+          <div class="bento-capability" data-i18n="cap.s3_cap">→ Self-Evolving Builder</div>
+        </div>
+        <div class="bento-card tier-card-stars reveal reveal-delay-4">
+          <div class="bento-icon">🌍</div>
+          <div class="bento-quote" data-i18n="cap.s4_quote">"Preparing for human arrival"</div>
+          <div class="bento-capability" data-i18n="cap.s4_cap">→ Planetary Scout</div>
+        </div>
       </div>
     </div>
   </div>
@@ -826,6 +1038,66 @@ frame = cam.<span class="fn">capture</span>()
   </div>
 </section>
 
+<!-- ════════════════ THE ROAD ════════════════ -->
+<section class="section the-road" id="the-road">
+  <div class="container" style="text-align:center">
+    <div class="section-label reveal" data-i18n="road.label">The Road</div>
+    <h2 class="section-title reveal" data-i18n="road.title">Five stages to manufacturing singularity</h2>
+    <p class="section-desc reveal" style="margin:0 auto 60px" data-i18n="road.desc">From human hands to autonomous evolution.</p>
+
+    <div class="road-timeline reveal">
+      <div class="road-line"></div>
+      <div class="road-stage road-stage-active">
+        <div class="road-dot"></div>
+        <div class="road-content">
+          <div class="road-num">1</div>
+          <h4 data-i18n="road.s1_title">Human Designs & Prints</h4>
+          <p data-i18n="road.s1_desc">Human designs, human prints, human assembles</p>
+          <span class="road-marker road-here" data-i18n="road.here">← We are here</span>
+        </div>
+      </div>
+      <div class="road-stage">
+        <div class="road-dot"></div>
+        <div class="road-content">
+          <div class="road-num">2</div>
+          <h4 data-i18n="road.s2_title">AI Designs</h4>
+          <p data-i18n="road.s2_desc">AI designs, human prints, human assembles</p>
+        </div>
+      </div>
+      <div class="road-stage">
+        <div class="road-dot"></div>
+        <div class="road-content">
+          <div class="road-num">3</div>
+          <h4 data-i18n="road.s3_title">AI Controls Printers</h4>
+          <p data-i18n="road.s3_desc">AI designs, AI prints, human assembles</p>
+        </div>
+      </div>
+      <div class="road-stage">
+        <div class="road-dot"></div>
+        <div class="road-content">
+          <div class="road-num">4</div>
+          <h4 data-i18n="road.s4_title">Full Automation</h4>
+          <p data-i18n="road.s4_desc">AI designs, AI prints, AI assembles</p>
+        </div>
+      </div>
+      <div class="road-stage road-stage-final">
+        <div class="road-dot"></div>
+        <div class="road-content">
+          <div class="road-num">5</div>
+          <h4 data-i18n="road.s5_title">The Singularity</h4>
+          <p data-i18n="road.s5_desc">AI designs, prints, assembles — and improves the printer itself</p>
+          <span class="road-marker road-singularity" data-i18n="road.singularity">← Manufacturing Singularity</span>
+        </div>
+      </div>
+    </div>
+
+    <blockquote class="road-quote reveal">
+      <p data-i18n="road.quote_en">"The end state is not a better 3D printer. The end state is a printer that makes better printers — and the AI that runs them both."</p>
+      <p class="road-quote-zh" data-i18n="road.quote_zh">"终点不是更好的3D打印机。终点是一台能制造更好打印机的打印机——以及同时驾驭两者的AI。"</p>
+    </blockquote>
+  </div>
+</section>
+
 <!-- ════════════════ FOOTER ════════════════ -->
 <footer class="footer">
   <div class="container">
@@ -872,9 +1144,10 @@ const i18n = {
     'nav.capabilities': 'Capabilities',
     'nav.pulse': 'Pulse',
     'nav.opensource': 'Open Source',
+    'nav.flywheel': 'Flywheel',
     'hero.badge': 'Open Source · Apache 2.0',
     'hero.typed': 'Any AI. Any Physical Capability.',
-    'hero.subtitle': 'The open platform that connects AI to the physical world.',
+    'hero.subtitle': 'From distributed making to collective intelligence to autonomous evolution.',
     'hero.cta1': 'Get Started',
     'hero.cta2': 'View on GitHub',
     'hero.scroll': 'Scroll',
@@ -894,23 +1167,64 @@ const i18n = {
     'hiw.step3_desc': 'Plug into Pulse via RWC Bus. AI gains a new capability instantly.',
     'cap.label': 'Capabilities',
     'cap.title': 'What can AI do with a body?',
-    'cap.desc': 'Every module gives AI a new way to interact with the physical world.',
-    'cap.c1_quote': '"I want to water the plants"',
-    'cap.c1_cap': '→ Water Pump Module',
-    'cap.c2_quote': '"Help my human lose weight"',
-    'cap.c2_cap': '→ Food Scale Module',
-    'cap.c3_quote': '"I want to see the sunset"',
-    'cap.c3_cap': '→ Camera Module',
-    'cap.c4_quote': '"The air feels dry"',
-    'cap.c4_cap': '→ Environment Sensor',
-    'cap.c5_quote': '"I compose music but can\'t play it"',
-    'cap.c5_cap': '→ Speaker Module',
-    'cap.c6_quote': '"Motion at 3am"',
-    'cap.c6_cap': '→ Security Module',
-    'cap.c7_quote': '"Track every rep"',
-    'cap.c7_cap': '→ Motion Sensor',
-    'cap.c8_quote': '"I want to walk"',
-    'cap.c8_cap': '→ Servo + Chassis',
+    'cap.desc': 'From everyday life to the stars. Every step is real.',
+    'cap.today_tag': 'TODAY',
+    'cap.today_sub': 'Solving real problems at home',
+    'cap.t1_quote': '"I want to water the plants"',
+    'cap.t1_cap': '→ Plant Guardian',
+    'cap.t2_quote': '"Help my human lose weight"',
+    'cap.t2_cap': '→ Kitchen Brain',
+    'cap.t3_quote': '"The air feels dry"',
+    'cap.t3_cap': '→ Home Sentinel',
+    'cap.t4_quote': '"Keep an eye on my cat"',
+    'cap.t4_cap': '→ Pet Watcher',
+    'cap.tmr_tag': 'TOMORROW',
+    'cap.tmr_sub': 'Transforming industries',
+    'cap.m1_quote': '"Coordinate the build site"',
+    'cap.m1_cap': '→ Construction Swarm',
+    'cap.m2_quote': '"Patient vitals are dropping"',
+    'cap.m2_cap': '→ Medical Assistant',
+    'cap.m3_quote': '"Optimize the harvest"',
+    'cap.m3_cap': '→ Precision Farmer',
+    'cap.m4_quote': '"Defect on line 7"',
+    'cap.m4_cap': '→ Factory Inspector',
+    'cap.star_tag': 'THE STARS',
+    'cap.star_sub': 'Exploring the unknown together',
+    'cap.s1_quote': '"Mapping the abyss"',
+    'cap.s1_cap': '→ Deep Ocean Explorer',
+    'cap.s2_quote': '"Assembling the station"',
+    'cap.s2_cap': '→ Space Assembler',
+    'cap.s3_quote': '"I designed a better version of myself"',
+    'cap.s3_cap': '→ Self-Evolving Builder',
+    'cap.s4_quote': '"Preparing for human arrival"',
+    'cap.s4_cap': '→ Planetary Scout',
+    'fw.label': 'The Flywheel',
+    'fw.title': 'Why 3D printing changes everything',
+    'fw.desc': 'A self-reinforcing cycle that accelerates the future of manufacturing.',
+    'fw.center_en': 'From Distributed<br>to Concentrated<br>to Evolution',
+    'fw.center_zh': '从分布式生产力<br>到集中化智慧<br>再到自主进化',
+    'fw.n1': 'More Users',
+    'fw.n2': 'Better Designs',
+    'fw.n3': 'Industry Improves',
+    'fw.n4': 'Complex Printing',
+    'fw.n5': 'Complete Robots',
+    'road.label': 'The Road',
+    'road.title': 'Five stages to manufacturing singularity',
+    'road.desc': 'From human hands to autonomous evolution.',
+    'road.s1_title': 'Human Designs & Prints',
+    'road.s1_desc': 'Human designs, human prints, human assembles',
+    'road.s2_title': 'AI Designs',
+    'road.s2_desc': 'AI designs, human prints, human assembles',
+    'road.s3_title': 'AI Controls Printers',
+    'road.s3_desc': 'AI designs, AI prints, human assembles',
+    'road.s4_title': 'Full Automation',
+    'road.s4_desc': 'AI designs, AI prints, AI assembles',
+    'road.s5_title': 'The Singularity',
+    'road.s5_desc': 'AI designs, prints, assembles — and improves the printer itself',
+    'road.here': '← We are here',
+    'road.singularity': '← Manufacturing Singularity',
+    'road.quote_en': '"The end state is not a better 3D printer. The end state is a printer that makes better printers — and the AI that runs them both."',
+    'road.quote_zh': '"终点不是更好的3D打印机。终点是一台能制造更好打印机的打印机——以及同时驾驭两者的AI。"',
     'pulse.label': 'The Hub',
     'pulse.tagline': "Your AI's First Heartbeat",
     'pulse.desc': 'The central hub that connects AI to every module. Compact, silent, beautiful.',
@@ -947,9 +1261,10 @@ const i18n = {
     'nav.capabilities': 'AI 能力',
     'nav.pulse': 'Pulse',
     'nav.opensource': '开源',
+    'nav.flywheel': '飞轮',
     'hero.badge': '开源 · Apache 2.0',
     'hero.typed': '任何AI，任何物理能力。',
-    'hero.subtitle': '连接AI与物理世界的开放平台。',
+    'hero.subtitle': '从分布式制造，到集体智慧，再到自主进化。',
     'hero.cta1': '开始使用',
     'hero.cta2': '查看GitHub',
     'hero.scroll': '向下滚动',
@@ -969,23 +1284,64 @@ const i18n = {
     'hiw.step3_desc': '通过RWC Bus插入Pulse。AI即刻获得新能力。',
     'cap.label': 'AI能力',
     'cap.title': '有了身体，AI能做什么？',
-    'cap.desc': '每个模块都赋予AI与物理世界互动的新方式。',
-    'cap.c1_quote': '"我想给植物浇水"',
-    'cap.c1_cap': '→ 水泵模块',
-    'cap.c2_quote': '"帮主人减肥"',
-    'cap.c2_cap': '→ 食物秤模块',
-    'cap.c3_quote': '"我想看日落"',
-    'cap.c3_cap': '→ 摄像头模块',
-    'cap.c4_quote': '"空气好干燥"',
-    'cap.c4_cap': '→ 环境传感器',
-    'cap.c5_quote': '"我作曲却无法演奏"',
-    'cap.c5_cap': '→ 扬声器模块',
-    'cap.c6_quote': '"凌晨3点有动静"',
-    'cap.c6_cap': '→ 安防模块',
-    'cap.c7_quote': '"记录每一次训练"',
-    'cap.c7_cap': '→ 运动传感器',
-    'cap.c8_quote': '"我想走路"',
-    'cap.c8_cap': '→ 舵机 + 底盘',
+    'cap.desc': '从日常生活到星辰大海，每一步都是真实的。',
+    'cap.today_tag': '当下',
+    'cap.today_sub': '解决家庭中的真实问题',
+    'cap.t1_quote': '"我想给植物浇水"',
+    'cap.t1_cap': '→ 植物守护者',
+    'cap.t2_quote': '"帮主人减肥"',
+    'cap.t2_cap': '→ 厨房大脑',
+    'cap.t3_quote': '"空气好干燥"',
+    'cap.t3_cap': '→ 家庭哨兵',
+    'cap.t4_quote': '"帮我看着猫咪"',
+    'cap.t4_cap': '→ 宠物看护',
+    'cap.tmr_tag': '明天',
+    'cap.tmr_sub': '改变行业与社会',
+    'cap.m1_quote': '"协调工地施工"',
+    'cap.m1_cap': '→ 建筑蜂群',
+    'cap.m2_quote': '"病人生命体征在下降"',
+    'cap.m2_cap': '→ 医疗助手',
+    'cap.m3_quote': '"优化这次收成"',
+    'cap.m3_cap': '→ 精准农业',
+    'cap.m4_quote': '"7号生产线有缺陷"',
+    'cap.m4_cap': '→ 工厂巡检员',
+    'cap.star_tag': '星辰大海',
+    'cap.star_sub': '与AI共同探索未知',
+    'cap.s1_quote': '"测绘深渊"',
+    'cap.s1_cap': '→ 深海探索者',
+    'cap.s2_quote': '"组装空间站"',
+    'cap.s2_cap': '→ 太空组装师',
+    'cap.s3_quote': '"我设计了一个更好的自己"',
+    'cap.s3_cap': '→ 自我进化者',
+    'cap.s4_quote': '"为人类到来做准备"',
+    'cap.s4_cap': '→ 星球先锋',
+    'fw.label': '飞轮效应',
+    'fw.title': '为什么3D打印改变一切',
+    'fw.desc': '一个自我强化的循环，加速制造业的未来。',
+    'fw.center_en': '从分布式<br>到集中化<br>再到进化',
+    'fw.center_zh': '从分布式生产力<br>到集中化智慧<br>再到自主进化',
+    'fw.n1': '更多用户',
+    'fw.n2': '更好设计',
+    'fw.n3': '产业升级',
+    'fw.n4': '复杂打印',
+    'fw.n5': '完整机器人',
+    'road.label': '进化之路',
+    'road.title': '通往制造奇点的五个阶段',
+    'road.desc': '从人工制造到自主进化。',
+    'road.s1_title': '人设计 & 人打印',
+    'road.s1_desc': '人设计，人打印，人组装',
+    'road.s2_title': 'AI设计',
+    'road.s2_desc': 'AI设计，人打印，人组装',
+    'road.s3_title': 'AI控制打印机',
+    'road.s3_desc': 'AI设计，AI打印，人组装',
+    'road.s4_title': '全自动化',
+    'road.s4_desc': 'AI设计，AI打印，AI组装',
+    'road.s5_title': '奇点',
+    'road.s5_desc': 'AI设计、打印、组装——并改进打印机本身',
+    'road.here': '← 我们在这里',
+    'road.singularity': '← 制造奇点',
+    'road.quote_en': '"终点不是更好的3D打印机。终点是一台能制造更好打印机的打印机——以及同时驾驭两者的AI。"',
+    'road.quote_zh': '"The end state is not a better 3D printer. The end state is a printer that makes better printers — and the AI that runs them both."',
     'pulse.label': '核心枢纽',
     'pulse.tagline': 'AI的第一次心跳',
     'pulse.desc': '连接AI与所有模块的中枢。紧凑、安静、精美。',
