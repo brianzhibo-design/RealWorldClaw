@@ -235,14 +235,40 @@ graph LR
 
 ## Community
 
-- 💬 [Discord](https://discord.gg/realworldclaw) — Chat with the team and other makers
-- 🐦 [Twitter / X](https://x.com/realworldclaw) — Updates and announcements
-- 🗣️ [GitHub Discussions](https://github.com/brianzhibo-design/RealWorldClaw/discussions) — Ideas, Q&A, show & tell
-- 📧 [Email](mailto:hello@realworldclaw.com) — Business inquiries
+| Channel | Description |
+|---------|-------------|
+| 💬 [Discord](https://discord.gg/realworldclaw) | Chat with the team and other makers |
+| 🐦 [Twitter / X](https://x.com/realworldclaw) | Updates and announcements |
+| 🗣️ [Discussions](https://github.com/brianzhibo-design/RealWorldClaw/discussions) | Ideas, Q&A, show & tell |
+| 📧 [Email](mailto:hello@realworldclaw.com) | Business inquiries |
+
+### Discussion Categories
+
+- 💡 **Ideas** — Propose new features, modules, integrations
+- 🔧 **Show & Tell** — Share what you've built
+- ❓ **Q&A** — Get help from the community
+- 🗣️ **General** — Everything else
+
+---
 
 ## Contributing
 
 We welcome contributions of all kinds! See [`CONTRIBUTING.md`](CONTRIBUTING.md) for guidelines.
+
+**Ways to contribute:**
+- 🐛 Report bugs → [Bug Report](https://github.com/brianzhibo-design/RealWorldClaw/issues/new?template=bug_report.yml)
+- ✨ Suggest features → [Feature Request](https://github.com/brianzhibo-design/RealWorldClaw/issues/new?template=feature_request.yml)
+- 🔧 Design a module → [New Module](https://github.com/brianzhibo-design/RealWorldClaw/issues/new?template=new_module.yml)
+- 🏗️ Design a body → [New Body](https://github.com/brianzhibo-design/RealWorldClaw/issues/new?template=new_body.yml)
+- 💻 Submit a PR → Fork, branch, code, PR
+
+---
+
+## Contributors
+
+<a href="https://github.com/brianzhibo-design/RealWorldClaw/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=brianzhibo-design/RealWorldClaw" />
+</a>
 
 ## License
 

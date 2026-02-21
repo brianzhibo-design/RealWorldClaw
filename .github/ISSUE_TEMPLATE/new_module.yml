@@ -1,0 +1,55 @@
+name: 🔧 New Module Design
+description: Propose a new expansion module for Energy Core
+labels: ["module-design"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Propose a new sensor/actuator module! The best ideas come from people we've never met.
+
+  - type: input
+    id: module-name
+    attributes:
+      label: Module Name
+      placeholder: e.g. "Soil Moisture Sensor Module"
+    validations:
+      required: true
+
+  - type: textarea
+    id: capability
+    attributes:
+      label: What capability does it give AI?
+      placeholder: |
+        What can an AI do with this module that it couldn't before?
+        e.g. "AI can monitor soil moisture and automatically water plants"
+    validations:
+      required: true
+
+  - type: textarea
+    id: sensors
+    attributes:
+      label: Required sensors/actuators
+      placeholder: |
+        List the hardware components needed:
+        - Capacitive soil moisture sensor
+        - 5V water pump relay
+        - etc.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: complexity
+    attributes:
+      label: Complexity
+      options:
+        - Beginner (simple wiring, basic 3D print)
+        - Intermediate (custom PCB or multi-part print)
+        - Advanced (precision assembly, special materials)
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      placeholder: Sketches, reference links, similar products, etc.

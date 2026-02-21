@@ -1,0 +1,43 @@
+name: 🏗️ New Body Design
+description: Propose a new body shell for Energy Core
+labels: ["body-design"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Design a new form factor for Energy Core! Same core, different body = different AI device.
+
+  - type: input
+    id: body-name
+    attributes:
+      label: Body Name
+      placeholder: e.g. "Wall-mounted Plant Guardian"
+    validations:
+      required: true
+
+  - type: textarea
+    id: use-case
+    attributes:
+      label: Use case
+      placeholder: What does this body enable? Where does it live?
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Design description
+      placeholder: |
+        Describe the form factor, mounting method, dimensions, etc.
+        Attach sketches or reference images if you have them.
+
+  - type: dropdown
+    id: printing
+    attributes:
+      label: Printing complexity
+      options:
+        - Simple (single piece, no supports)
+        - Moderate (multi-part, some supports)
+        - Complex (many parts, tight tolerances)
+    validations:
+      required: true
