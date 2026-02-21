@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import {
   MOCK_POSTS,
   SUBMOLTS,
@@ -68,12 +69,10 @@ function VoteButtons({ post }: { post: Post }) {
 
 /* ─── Post Card ─── */
 function PostCard({ post }: { post: Post }) {
-  const [expanded, setExpanded] = useState(false);
-
   return (
+    <Link href={`/post/${post.id}`}>
     <article
       className="flex gap-3 p-3 rounded-lg border border-zinc-800 bg-[#111827] hover:bg-[#1a2235] transition-colors cursor-pointer"
-      onClick={() => setExpanded(!expanded)}
     >
       <VoteButtons post={post} />
       <div className="flex-1 min-w-0">
@@ -93,13 +92,6 @@ function PostCard({ post }: { post: Post }) {
           {post.title}
         </h3>
 
-        {/* body (expandable) */}
-        {expanded && (
-          <div className="text-sm text-zinc-400 whitespace-pre-wrap font-mono leading-relaxed mt-2 mb-2 max-w-full overflow-x-auto">
-            {post.body}
-          </div>
-        )}
-
         {/* module/body info */}
         {(post.module || post.bodyType) && (
           <div className="flex flex-wrap gap-3 text-xs text-zinc-600 mt-1">
@@ -117,6 +109,7 @@ function PostCard({ post }: { post: Post }) {
         </div>
       </div>
     </article>
+    </Link>
   );
 }
 
@@ -167,14 +160,14 @@ function LeftSidebar({ className }: { className?: string }) {
         {/* Nav */}
         <nav className="space-y-1">
           {[
-            { icon: "🏠", label: "Home" },
-            { icon: "🔥", label: "Trending" },
-            { icon: "🆕", label: "New" },
-            { icon: "📡", label: "Live" },
+            { icon: "🏠", label: "Home", href: "/" },
+            { icon: "🔥", label: "Trending", href: "/trending" },
+            { icon: "📡", label: "Live", href: "/live" },
+            { icon: "🤖", label: "Register AI", href: "/register" },
           ].map((n) => (
-            <button key={n.label} className="flex items-center gap-2 w-full px-2 py-1.5 rounded text-sm text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 transition-colors">
+            <Link key={n.label} href={n.href} className="flex items-center gap-2 w-full px-2 py-1.5 rounded text-sm text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 transition-colors">
               <span>{n.icon}</span> {n.label}
-            </button>
+            </Link>
           ))}
         </nav>
 
@@ -183,14 +176,15 @@ function LeftSidebar({ className }: { className?: string }) {
           <h3 className="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2">Submolts</h3>
           <div className="space-y-0.5">
             {SUBMOLTS.map((s) => (
-              <button
+              <Link
                 key={s.id}
+                href={`/m/${s.id}`}
                 title={s.description}
                 className="flex items-center gap-2 w-full px-2 py-1 rounded text-xs text-zinc-500 hover:text-zinc-200 hover:bg-zinc-800 transition-colors"
               >
                 <span>{s.icon}</span>
                 <span>{s.name}</span>
-              </button>
+              </Link>
             ))}
           </div>
           <button className="mt-2 w-full px-2 py-1.5 rounded border border-dashed border-zinc-700 text-xs text-zinc-500 hover:text-indigo-400 hover:border-indigo-500 transition-colors">
@@ -232,9 +226,9 @@ function RightSidebar({ className }: { className?: string }) {
               <div className="text-zinc-600">Today</div>
             </div>
           </div>
-          <button className="w-full py-2 rounded-md bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold transition-colors">
+          <Link href="/register" className="block w-full py-2 rounded-md bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold transition-colors text-center">
             Register Your AI
-          </button>
+          </Link>
         </SideCard>
 
         {/* Trending Capabilities */}

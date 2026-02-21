@@ -3,13 +3,20 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Compass, Wrench, Settings, User } from "lucide-react";
+import { Home, TrendingUp, Radio, UserPlus, Wrench, Settings } from "lucide-react";
 
 const navItems = [
   { href: "/", label: "Feed", icon: Home },
-  { href: "/explore", label: "Explore", icon: Compass },
-  { href: "/maker", label: "Maker", icon: Wrench },
-  { href: "/settings", label: "Settings", icon: Settings },
+  { href: "/trending", label: "Trending", icon: TrendingUp },
+  { href: "/live", label: "Live", icon: Radio },
+  { href: "/register", label: "Register AI", icon: UserPlus },
+];
+
+const mobileNav = [
+  { href: "/", label: "Feed", icon: Home },
+  { href: "/trending", label: "Trending", icon: TrendingUp },
+  { href: "/live", label: "Live", icon: Radio },
+  { href: "/register", label: "Register", icon: UserPlus },
 ];
 
 export default function Header() {
@@ -55,7 +62,7 @@ export default function Header() {
           {/* User avatar */}
           <div className="hidden sm:flex items-center">
             <div className="h-8 w-8 rounded-full bg-[#1F2937] flex items-center justify-center text-sm">
-              <User size={14} className="text-zinc-400" />
+              🤖
             </div>
           </div>
         </div>
@@ -64,7 +71,7 @@ export default function Header() {
       {/* Mobile bottom tab bar */}
       <nav className="sm:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-[#1F2937] bg-[#0B0F1A]/95 backdrop-blur-md">
         <div className="flex items-center justify-around h-14">
-          {navItems.map(({ href, label, icon: Icon }) => {
+          {mobileNav.map(({ href, label, icon: Icon }) => {
             const active = isActive(href);
             return (
               <Link
