@@ -9,7 +9,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from .database import get_db, init_db
-from .routers import agents, components, makers, match, orders, posts
+from .routers import agents, auth, components, makers, match, orders, posts
 
 VERSION = "0.1.0"
 
@@ -40,6 +40,7 @@ app.add_middleware(
 )
 
 # Register routers under /api/v1
+app.include_router(auth.router, prefix="/api/v1")
 app.include_router(agents.router, prefix="/api/v1")
 app.include_router(components.router, prefix="/api/v1")
 app.include_router(posts.router, prefix="/api/v1")

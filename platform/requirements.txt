@@ -4,3 +4,6 @@ pydantic>=2.5.0
 python-multipart>=0.0.6
 httpx>=0.25.0
 pytest>=7.4.0
+python-jose[cryptography]>=3.3.0
+passlib[bcrypt]>=1.7.4
+bcrypt>=4.0.0

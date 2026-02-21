@@ -33,7 +33,10 @@ def get_db():
 
 def init_db():
     """创建所有表"""
+    from .models.user import USERS_TABLE_SQL
+
     with get_db() as db:
+        db.executescript(USERS_TABLE_SQL)
         db.executescript("""
         CREATE TABLE IF NOT EXISTS agents (
             id TEXT PRIMARY KEY,
