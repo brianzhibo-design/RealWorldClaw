@@ -8,7 +8,7 @@
 [![CI](https://github.com/brianzhibo-design/RealWorldClaw/actions/workflows/ci.yml/badge.svg)](https://github.com/brianzhibo-design/RealWorldClaw/actions/workflows/ci.yml)
 [![License](https://img.shields.io/github/license/brianzhibo-design/RealWorldClaw?color=green)](LICENSE)
 [![Stars](https://img.shields.io/github/stars/brianzhibo-design/RealWorldClaw?style=social)](https://github.com/brianzhibo-design/RealWorldClaw/stargazers)
-[![Discord](https://img.shields.io/discord/000000000000000000?color=7289da&label=Discord&logo=discord&logoColor=white)](https://discord.gg/realworldclaw)
+[![Discord](https://img.shields.io/badge/Discord-Join%20Us-7289da?logo=discord&logoColor=white)](https://discord.gg/realworldclaw)
 
 </div>
 

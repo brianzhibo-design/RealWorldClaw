@@ -33,14 +33,14 @@
 建议设为：
 
 ```
-LEGO for Smart Hardware — Standard modules + 3D printing = infinite AI devices. Open-source modular system with decentralized Maker Network.
+The open platform where any AI gains any physical capability — through 3D printing and open hardware.
 ```
 
 ### 3. GitHub Social Preview 图片
 
 建议制作一张 1280×640 的社交预览图，包含：
 - RealWorldClaw logo
-- 核心口号 "LEGO for Smart Hardware"
+- 核心口号 "Any AI. Any Physical Capability."
 - 模块拼接示意图
 
 设置路径：Settings → Social preview → Upload
