@@ -70,3 +70,5 @@ docker-compose.override.yml
 *.log
 tmp/
 temp/
+tools/references/
+tools/ui-ux-pro-max/
