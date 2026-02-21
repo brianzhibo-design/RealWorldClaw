@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RealWorldClaw — Pulse Product Showcase</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:#0a0a0a;color:#fff;font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;overflow:hidden;height:100vh;width:100vw}
+  #canvas3d{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0}
+  .overlay{position:fixed;z-index:10;pointer-events:none}
+  .overlay *{pointer-events:auto}
+  #top-left{top:24px;left:28px}
+  .logo{font-size:13px;letter-spacing:3px;text-transform:uppercase;color:#f97316;font-weight:700;margin-bottom:6px}
+  .title{font-size:28px;font-weight:700;line-height:1.2;margin-bottom:4px}
+  .subtitle{font-size:14px;color:#888;font-weight:400}
+  #bottom-bar{bottom:28px;left:50%;transform:translateX(-50%);display:flex;gap:12px}
+  .mod-btn{background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);border-radius:12px;padding:10px 22px;font-size:14px;color:#ccc;cursor:pointer;transition:all .25s;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);user-select:none}
+  .mod-btn:hover{background:rgba(249,115,22,0.15);border-color:#f97316;color:#fff}
+  .mod-btn.active{background:rgba(249,115,22,0.25);border-color:#f97316;color:#f97316;box-shadow:0 0 20px rgba(249,115,22,0.2)}
+  #info-panel{top:24px;right:28px;width:240px}
+  .panel-title{font-size:12px;letter-spacing:2px;text-transform:uppercase;color:#666;margin-bottom:10px}
+  .capability{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:10px 14px;margin-bottom:8px;font-size:13px;line-height:1.4;animation:fadeIn .4s ease}
+  .capability .cap-name{color:#f97316;font-weight:600;margin-bottom:2px}
+  .capability .cap-desc{color:#999;font-size:12px}
+  .no-cap{color:#555;font-size:13px;font-style:italic}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+  @media(max-width:600px){
+    .title{font-size:20px}
+    #info-panel{display:none}
+    .mod-btn{padding:8px 14px;font-size:12px}
+  }
+</style>
+</head>
+<body>
+<canvas id="canvas3d"></canvas>
+
+<div id="top-left" class="overlay">
+  <div class="logo">RealWorldClaw</div>
+  <div class="title">Pulse — Your AI's First Heartbeat</div>
+  <div class="subtitle">Click a module to connect it</div>
+</div>
+
+<div id="info-panel" class="overlay">
+  <div class="panel-title">Connected Capabilities</div>
+  <div id="cap-list"><div class="no-cap">No modules connected</div></div>
+</div>
+
+<div id="bottom-bar" class="overlay">
+  <div class="mod-btn" data-mod="green" onclick="toggleModule('green')">🌿 Green</div>
+  <div class="mod-btn" data-mod="sense" onclick="toggleModule('sense')">🌡️ Sense</div>
+  <div class="mod-btn" data-mod="vision" onclick="toggleModule('vision')">📷 Vision</div>
+</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+const canvas = document.getElementById('canvas3d');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.1;
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x0a0a0a);
+
+const camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 100);
+camera.position.set(0, 3, 7);
+
+const controls = new OrbitControls(camera, canvas);
+controls.enableDamping = true;
+controls.dampingFactor = 0.08;
+controls.minDistance = 3;
+controls.maxDistance = 14;
+controls.target.set(0, 0.8, 0);
+
+// Lights
+const ambient = new THREE.AmbientLight(0x404050, 0.6);
+scene.add(ambient);
+
+const mainLight = new THREE.DirectionalLight(0xfff5e8, 1.8);
+mainLight.position.set(3, 6, 4);
+mainLight.castShadow = true;
+mainLight.shadow.mapSize.set(1024, 1024);
+mainLight.shadow.camera.near = 0.5;
+mainLight.shadow.camera.far = 20;
+mainLight.shadow.camera.left = -4;
+mainLight.shadow.camera.right = 4;
+mainLight.shadow.camera.top = 4;
+mainLight.shadow.camera.bottom = -4;
+mainLight.shadow.bias = -0.002;
+scene.add(mainLight);
+
+const rimLight = new THREE.PointLight(0xf97316, 1.2, 12);
+rimLight.position.set(-3, 2, -2);
+scene.add(rimLight);
+
+const fillLight = new THREE.PointLight(0x4488ff, 0.3, 10);
+fillLight.position.set(2, 1, -3);
+scene.add(fillLight);
+
+// Ground
+const groundGeo = new THREE.PlaneGeometry(20, 20);
+const groundMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.9, metalness: 0 });
+const ground = new THREE.Mesh(groundGeo, groundMat);
+ground.rotation.x = -Math.PI / 2;
+ground.receiveShadow = true;
+scene.add(ground);
+
+// Grid
+const grid = new THREE.GridHelper(20, 40, 0x222222, 0x181818);
+grid.position.y = 0.001;
+scene.add(grid);
+
+// Star particles
+const starGeo = new THREE.BufferGeometry();
+const starPositions = new Float32Array(600 * 3);
+for (let i = 0; i < 600; i++) {
+  starPositions[i*3] = (Math.random() - 0.5) * 40;
+  starPositions[i*3+1] = Math.random() * 20 + 2;
+  starPositions[i*3+2] = (Math.random() - 0.5) * 40;
+}
+starGeo.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
+const starMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.03, transparent: true, opacity: 0.6 });
+scene.add(new THREE.Points(starGeo, starMat));
+
+// --- Screen Canvas Texture ---
+const screenCanvas = document.createElement('canvas');
+screenCanvas.width = 256;
+screenCanvas.height = 256;
+const sctx = screenCanvas.getContext('2d');
+const screenTex = new THREE.CanvasTexture(screenCanvas);
+
+let screenState = { face: 'smile', text: '' };
+
+function drawScreen() {
+  const c = sctx, w = 256, h = 256;
+  // Background gradient
+  const grad = c.createRadialGradient(w/2, h/2, 0, w/2, h/2, w/2);
+  grad.addColorStop(0, '#1a1a2e');
+  grad.addColorStop(1, '#0a0a15');
+  c.fillStyle = grad;
+  c.fillRect(0, 0, w, h);
+
+  // Face
+  c.save();
+  c.translate(w/2, screenState.text ? h/2 - 20 : h/2);
+  const s = screenState.text ? 0.7 : 1;
+  c.scale(s, s);
+
+  if (screenState.face === 'smile') {
+    // Eyes
+    c.fillStyle = '#f97316';
+    c.beginPath(); c.arc(-30, -15, 10, 0, Math.PI*2); c.fill();
+    c.beginPath(); c.arc(30, -15, 10, 0, Math.PI*2); c.fill();
+    // Mouth
+    c.strokeStyle = '#f97316'; c.lineWidth = 5; c.lineCap = 'round';
+    c.beginPath(); c.arc(0, 10, 28, 0.15*Math.PI, 0.85*Math.PI); c.stroke();
+  } else {
+    // Surprise face - big O mouth, wide eyes
+    c.fillStyle = '#f97316';
+    c.beginPath(); c.arc(-30, -18, 13, 0, Math.PI*2); c.fill();
+    c.beginPath(); c.arc(30, -18, 13, 0, Math.PI*2); c.fill();
+    // Sparkle in eyes
+    c.fillStyle = '#fff';
+    c.beginPath(); c.arc(-26, -22, 4, 0, Math.PI*2); c.fill();
+    c.beginPath(); c.arc(34, -22, 4, 0, Math.PI*2); c.fill();
+    // O mouth
+    c.strokeStyle = '#f97316'; c.lineWidth = 5;
+    c.beginPath(); c.arc(0, 18, 16, 0, Math.PI*2); c.stroke();
+  }
+  c.restore();
+
+  // Text
+  if (screenState.text) {
+    c.fillStyle = '#f97316';
+    c.font = 'bold 14px sans-serif';
+    c.textAlign = 'center';
+    // Word wrap
+    const words = screenState.text.split(' ');
+    let lines = [], line = '';
+    for (const w of words) {
+      const test = line + (line ? ' ' : '') + w;
+      if (c.measureText(test).width > 210) { lines.push(line); line = w; }
+      else line = test;
+    }
+    if (line) lines.push(line);
+    const startY = h - 30 - (lines.length - 1) * 16;
+    lines.forEach((l, i) => c.fillText(l, w/2, startY + i * 16));
+  }
+
+  screenTex.needsUpdate = true;
+}
+drawScreen();
+
+// --- Build Pulse (pebble shape) ---
+const pulseGroup = new THREE.Group();
+
+// Pebble body - use a sphere scaled to pebble proportions
+const pebbleGeo = new THREE.SphereGeometry(1, 64, 48);
+// Deform to pebble: wider, taller, flatter
+const pos = pebbleGeo.attributes.position;
+for (let i = 0; i < pos.count; i++) {
+  let x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
+  // Scale: 60mm wide, 65mm tall, 35mm thick → ratios ~1, 1.08, 0.58
+  x *= 1.0;
+  y *= 1.08;
+  z *= 0.58;
+  // Flatten the back
+  if (z < 0) z *= 0.7;
+  // Slightly flatten top and bottom for organic feel
+  const fy = Math.abs(y) / 1.08;
+  x *= 1 - fy * fy * 0.1;
+  z *= 1 - fy * fy * 0.15;
+  pos.setXYZ(i, x, y, z);
+}
+pebbleGeo.computeVertexNormals();
+
+const pebbleMat = new THREE.MeshStandardMaterial({
+  color: 0xe8e4e0,
+  roughness: 0.65,
+  metalness: 0.02,
+});
+const pebble = new THREE.Mesh(pebbleGeo, pebbleMat);
+pebble.castShadow = true;
+pulseGroup.add(pebble);
+
+// Screen (circular, recessed)
+const screenGeo = new THREE.CircleGeometry(0.42, 64);
+const screenMat = new THREE.MeshBasicMaterial({ map: screenTex });
+const screenMesh = new THREE.Mesh(screenGeo, screenMat);
+screenMesh.position.set(0, 0.1, 0.56);
+pulseGroup.add(screenMesh);
+
+// Screen glow ring
+const glowRingGeo = new THREE.RingGeometry(0.42, 0.48, 64);
+const glowRingMat = new THREE.MeshBasicMaterial({ color: 0xf97316, transparent: true, opacity: 0.35, side: THREE.DoubleSide });
+const glowRing = new THREE.Mesh(glowRingGeo, glowRingMat);
+glowRing.position.set(0, 0.1, 0.565);
+pulseGroup.add(glowRing);
+
+// RWC Bus connector (bottom)
+const busGroup = new THREE.Group();
+const busPlate = new THREE.Mesh(
+  new THREE.BoxGeometry(0.5, 0.06, 0.2),
+  new THREE.MeshStandardMaterial({ color: 0x333333, roughness: 0.5, metalness: 0.3 })
+);
+busGroup.add(busPlate);
+// 8 pogo pins
+for (let i = 0; i < 8; i++) {
+  const pin = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.018, 0.018, 0.04, 12),
+    new THREE.MeshStandardMaterial({ color: 0xd4a843, roughness: 0.3, metalness: 0.8 })
+  );
+  pin.position.set(-0.175 + i * 0.05, -0.04, 0);
+  busGroup.add(pin);
+}
+busGroup.position.set(0, -1.05, 0.1);
+pulseGroup.add(busGroup);
+
+// Back ventilation holes
+for (let r = 0; r < 3; r++) {
+  for (let c = 0; c < 5; c++) {
+    const hole = new THREE.Mesh(
+      new THREE.CircleGeometry(0.03, 12),
+      new THREE.MeshBasicMaterial({ color: 0x999999 })
+    );
+    hole.position.set(-0.15 + c * 0.075, 0.1 - r * 0.08, -0.405);
+    hole.rotation.y = Math.PI;
+    pulseGroup.add(hole);
+  }
+}
+
+pulseGroup.position.set(0, 1.5, 0);
+scene.add(pulseGroup);
+
+// --- Build Modules ---
+const moduleData = {
+  green: {
+    name: 'Green',
+    emoji: '🌿',
+    color: 0x22c55e,
+    desc: 'Soil monitoring, automated watering, and plant health AI',
+    homePos: new THREE.Vector3(-2.2, 0.5, 0.5),
+  },
+  sense: {
+    name: 'Sense',
+    emoji: '🌡️',
+    color: 0x3b82f6,
+    desc: 'Temperature, humidity, air quality, and environmental awareness',
+    homePos: new THREE.Vector3(0, 0.4, 2),
+  },
+  vision: {
+    name: 'Vision',
+    emoji: '📷',
+    color: 0x555555,
+    desc: 'Camera input, visual recognition, and spatial understanding',
+    homePos: new THREE.Vector3(2.2, 0.45, 0.5),
+  }
+};
+
+const modules = {};
+const connected = {};
+const raycaster = new THREE.Raycaster();
+const mouse = new THREE.Vector2();
+
+function buildGreen() {
+  const g = new THREE.Group();
+  // Cylinder body
+  const body = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.4, 0.4, 0.55, 32),
+    new THREE.MeshStandardMaterial({ color: 0x22c55e, roughness: 0.55, metalness: 0.1 })
+  );
+  body.castShadow = true;
+  g.add(body);
+  // Soil probe on top
+  const probe = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.03, 0.02, 0.6, 8),
+    new THREE.MeshStandardMaterial({ color: 0x888888, roughness: 0.4, metalness: 0.6 })
+  );
+  probe.position.set(0.1, 0.55, 0);
+  g.add(probe);
+  // Water pipe nub on side
+  const pipe = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.05, 0.05, 0.15, 12),
+    new THREE.MeshStandardMaterial({ color: 0x44aa66, roughness: 0.5, metalness: 0.2 })
+  );
+  pipe.rotation.z = Math.PI / 2;
+  pipe.position.set(0.45, 0, 0);
+  g.add(pipe);
+  // Bus connector bottom
+  addBusToModule(g, -0.28);
+  return g;
+}
+
+function buildSense() {
+  const g = new THREE.Group();
+  const body = new THREE.Mesh(
+    new THREE.BoxGeometry(0.55, 0.35, 0.55),
+    new THREE.MeshStandardMaterial({ color: 0x3b82f6, roughness: 0.5, metalness: 0.1 })
+  );
+  // Round edges with bevel - use as is for simplicity
+  body.castShadow = true;
+  g.add(body);
+  // Sensor holes on top face
+  for (let i = 0; i < 4; i++) {
+    const hole = new THREE.Mesh(
+      new THREE.CircleGeometry(0.04, 16),
+      new THREE.MeshBasicMaterial({ color: 0x1a1a2e })
+    );
+    hole.rotation.x = -Math.PI / 2;
+    hole.position.set(-0.1 + (i % 2) * 0.2, 0.176, -0.08 + Math.floor(i / 2) * 0.16);
+    g.add(hole);
+  }
+  addBusToModule(g, -0.18);
+  return g;
+}
+
+function buildVision() {
+  const g = new THREE.Group();
+  const body = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.45, 0.45, 0.3, 48),
+    new THREE.MeshStandardMaterial({ color: 0x333333, roughness: 0.4, metalness: 0.2 })
+  );
+  body.castShadow = true;
+  g.add(body);
+  // Camera lens ring
+  const lensOuter = new THREE.Mesh(
+    new THREE.RingGeometry(0.12, 0.18, 32),
+    new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.2, metalness: 0.8 })
+  );
+  lensOuter.position.set(0, 0.151, 0);
+  lensOuter.rotation.x = -Math.PI / 2;
+  g.add(lensOuter);
+  // Lens glass
+  const lens = new THREE.Mesh(
+    new THREE.CircleGeometry(0.12, 32),
+    new THREE.MeshStandardMaterial({ color: 0x1a1a3e, roughness: 0.1, metalness: 0.5 })
+  );
+  lens.position.set(0, 0.152, 0);
+  lens.rotation.x = -Math.PI / 2;
+  g.add(lens);
+  addBusToModule(g, -0.15);
+  return g;
+}
+
+function addBusToModule(group, yPos) {
+  const bus = new THREE.Group();
+  const plate = new THREE.Mesh(
+    new THREE.BoxGeometry(0.4, 0.04, 0.15),
+    new THREE.MeshStandardMaterial({ color: 0x333333, roughness: 0.5, metalness: 0.3 })
+  );
+  bus.add(plate);
+  for (let i = 0; i < 8; i++) {
+    const pin = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.015, 0.015, 0.03, 8),
+      new THREE.MeshStandardMaterial({ color: 0xd4a843, roughness: 0.3, metalness: 0.8 })
+    );
+    pin.position.set(-0.14 + i * 0.04, 0.025, 0);
+    bus.add(pin);
+  }
+  bus.position.y = yPos;
+  group.add(bus);
+}
+
+// Create module meshes
+modules.green = buildGreen();
+modules.sense = buildSense();
+modules.vision = buildVision();
+
+Object.keys(modules).forEach(key => {
+  const m = modules[key];
+  m.position.copy(moduleData[key].homePos);
+  m.userData = { key };
+  scene.add(m);
+});
+
+// --- Animation State ---
+const animations = [];
+
+function animateTo(obj, targetPos, targetRot, duration, easing, onComplete) {
+  const startPos = obj.position.clone();
+  const startRot = obj.rotation.clone();
+  const startTime = performance.now();
+  animations.push({ obj, startPos, targetPos: targetPos.clone(), startRot, targetRot, duration, easing, startTime, onComplete });
+}
+
+function easeOutBack(t) {
+  const c1 = 1.70158;
+  const c3 = c1 + 1;
+  return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2);
+}
+
+function easeInOutCubic(t) {
+  return t < 0.5 ? 4*t*t*t : 1-Math.pow(-2*t+2,3)/2;
+}
+
+// Connect position: below Pulse
+const connectPos = new THREE.Vector3(0, 0.15, 0.1);
+
+window.toggleModule = function(key) {
+  if (animations.length > 0) return; // busy
+
+  const mod = modules[key];
+  const btn = document.querySelector(`[data-mod="${key}"]`);
+
+  if (connected[key]) {
+    // Disconnect
+    delete connected[key];
+    btn.classList.remove('active');
+    animateTo(mod, moduleData[key].homePos, { x: 0, y: 0, z: 0 }, 600, easeInOutCubic, () => {
+      updateScreen();
+      updatePanel();
+    });
+  } else {
+    // Connect
+    connected[key] = true;
+    btn.classList.add('active');
+    animateTo(mod, connectPos.clone(), { x: 0, y: 0, z: 0 }, 700, easeOutBack, () => {
+      updateScreen();
+      updatePanel();
+    });
+  }
+};
+
+function updateScreen() {
+  const keys = Object.keys(connected);
+  if (keys.length === 0) {
+    screenState.face = 'smile';
+    screenState.text = '';
+  } else {
+    screenState.face = 'surprise';
+    const last = keys[keys.length - 1];
+    screenState.text = `New capability unlocked: ${moduleData[last].name}!`;
+  }
+  drawScreen();
+}
+
+function updatePanel() {
+  const list = document.getElementById('cap-list');
+  const keys = Object.keys(connected);
+  if (keys.length === 0) {
+    list.innerHTML = '<div class="no-cap">No modules connected</div>';
+    return;
+  }
+  list.innerHTML = keys.map(k => `
+    <div class="capability">
+      <div class="cap-name">${moduleData[k].emoji} ${moduleData[k].name}</div>
+      <div class="cap-desc">${moduleData[k].desc}</div>
+    </div>
+  `).join('');
+}
+
+// Click detection
+function onClick(e) {
+  const rect = canvas.getBoundingClientRect();
+  mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+  mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+  raycaster.setFromCamera(mouse, camera);
+
+  for (const key of Object.keys(modules)) {
+    const hits = raycaster.intersectObject(modules[key], true);
+    if (hits.length > 0) {
+      toggleModule(key);
+      return;
+    }
+  }
+}
+canvas.addEventListener('click', onClick);
+
+// --- Render Loop ---
+const clock = new THREE.Clock();
+
+function animate() {
+  requestAnimationFrame(animate);
+  const t = performance.now();
+
+  // Process animations
+  for (let i = animations.length - 1; i >= 0; i--) {
+    const a = animations[i];
+    let progress = (t - a.startTime) / a.duration;
+    if (progress >= 1) {
+      progress = 1;
+      a.obj.position.copy(a.targetPos);
+      if (a.targetRot) {
+        a.obj.rotation.set(a.targetRot.x || 0, a.targetRot.y || 0, a.targetRot.z || 0);
+      }
+      if (a.onComplete) a.onComplete();
+      animations.splice(i, 1);
+    } else {
+      const eased = a.easing(progress);
+      a.obj.position.lerpVectors(a.startPos, a.targetPos, eased);
+    }
+  }
+
+  // Subtle Pulse float
+  pulseGroup.position.y = 1.5 + Math.sin(t * 0.001) * 0.04;
+  pulseGroup.rotation.y = Math.sin(t * 0.0005) * 0.08;
+
+  // Glow ring pulse
+  glowRing.material.opacity = 0.25 + Math.sin(t * 0.003) * 0.1;
+
+  controls.update();
+  renderer.render(scene, camera);
+}
+animate();
+
+// Resize
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+</script>
+</body>
+</html>
