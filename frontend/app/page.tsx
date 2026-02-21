@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import {
   MOCK_POSTS,
@@ -13,6 +13,7 @@ import {
   type Post,
   type PostType,
 } from "@/lib/community-data";
+import { fetchPosts, votePost } from "@/lib/api";
 
 /* ─── helpers ─── */
 function formatVotes(n: number): string {
@@ -42,6 +43,8 @@ function VoteButtons({ post }: { post: Post }) {
       setVote(dir);
       setDelta(dir === "up" ? 1 : -1);
     }
+    // Fire-and-forget API call (no API key needed for now, will gracefully fail)
+    votePost("", post.id, dir).catch(() => {});
   };
 
   return (
@@ -291,11 +294,54 @@ function MobileMenu({ open, onClose }: { open: boolean; onClose: () => void }) {
   );
 }
 
+/* ─── Skeleton Post ─── */
+function PostSkeleton() {
+  return (
+    <div className="flex gap-3 p-3 rounded-lg border border-zinc-800 bg-[#111827] animate-pulse">
+      <div className="flex flex-col items-center gap-1 min-w-[40px]">
+        <div className="w-4 h-4 bg-zinc-700 rounded" />
+        <div className="w-6 h-3 bg-zinc-700 rounded" />
+        <div className="w-4 h-4 bg-zinc-700 rounded" />
+      </div>
+      <div className="flex-1 space-y-2">
+        <div className="flex gap-2">
+          <div className="w-12 h-4 bg-zinc-700 rounded" />
+          <div className="w-24 h-4 bg-zinc-700 rounded" />
+        </div>
+        <div className="w-3/4 h-5 bg-zinc-700 rounded" />
+        <div className="w-1/2 h-3 bg-zinc-700 rounded" />
+      </div>
+    </div>
+  );
+}
+
 /* ─── Page ─── */
 export default function CommunityPage() {
   const [sort, setSort] = useState("Hot");
   const [menuOpen, setMenuOpen] = useState(false);
   const [showRightSidebar, setShowRightSidebar] = useState(false);
+  const [posts, setPosts] = useState<Post[]>(MOCK_POSTS);
+  const [loading, setLoading] = useState(true);
+  const [usingCache, setUsingCache] = useState(false);
+
+  const loadPosts = useCallback(async (sortKey: string) => {
+    setLoading(true);
+    try {
+      const data = await fetchPosts(sortKey.toLowerCase());
+      setPosts(data as Post[]);
+      // If we got back the exact mock data, we're using cache
+      setUsingCache(data === MOCK_POSTS || (data.length > 0 && data[0]?.id === MOCK_POSTS[0]?.id && data.length === MOCK_POSTS.length));
+    } catch {
+      setPosts(MOCK_POSTS);
+      setUsingCache(true);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadPosts(sort);
+  }, [sort, loadPosts]);
 
   return (
     <div className="min-h-screen bg-[#0a0a0f]">
@@ -317,10 +363,19 @@ export default function CommunityPage() {
         {/* Feed */}
         <div className="flex-1 min-w-0">
           <SortBar active={sort} onChange={setSort} />
+          {usingCache && !loading && (
+            <div className="mb-3 px-3 py-2 rounded-lg bg-amber-500/10 border border-amber-500/20 text-xs text-amber-400 flex items-center gap-2">
+              <span>📦</span> Using cached data — API is currently unavailable
+            </div>
+          )}
           <div className="space-y-2">
-            {MOCK_POSTS.map((post) => (
-              <PostCard key={post.id} post={post} />
-            ))}
+            {loading ? (
+              Array.from({ length: 5 }).map((_, i) => <PostSkeleton key={i} />)
+            ) : (
+              posts.map((post) => (
+                <PostCard key={post.id} post={post} />
+              ))
+            )}
           </div>
         </div>
 
