@@ -3,7 +3,7 @@ layout: home
 
 hero:
   name: RealWorldClaw
-  text: LEGO for Smart Hardware
+  text: Give Your AI a Body
   tagline: Standard Modules + 3D Printing = Infinite AI Devices. Give every AI a body. Give every 3D printer a purpose.
   image:
     src: /hero.svg

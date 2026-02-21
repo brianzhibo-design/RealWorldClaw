@@ -2,7 +2,7 @@ import { defineConfig } from 'vitepress'
 
 export default defineConfig({
   title: 'RealWorldClaw',
-  description: 'LEGO for Smart Hardware — Standard Modules + 3D Printing = Infinite AI Devices',
+  description: 'Give Your AI a Body — Modular Hardware + 3D Printing = AI in the Physical World',
 
   locales: {
     root: {

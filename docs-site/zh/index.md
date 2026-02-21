@@ -3,7 +3,7 @@ layout: home
 
 hero:
   name: RealWorldClaw
-  text: 智能硬件的乐高
+  text: 让你的AI拥有身体
   tagline: 标准模块 + 3D打印 = 无限AI设备。让每个AI拥有身体，让每台打印机拥有使命。
   actions:
     - theme: brand

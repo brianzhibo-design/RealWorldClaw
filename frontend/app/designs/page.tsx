@@ -1,77 +1,155 @@
-/** 参考设计列表 */
 "use client";
 
-import Link from "next/link";
-import { useLocale, t } from "@/lib/i18n";
-import { texts } from "@/lib/i18n-texts";
-import { designs } from "@/lib/designs-data";
-import { modules } from "@/lib/modules-data";
+import { useState } from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 
-export default function DesignsPage() {
-  const { locale } = useLocale();
+/* ── mock data ── */
+const mockDesigns = [
+  { id: "d1", name: "Robotic Arm v4", status: "published" as const, downloads: 342, thumb: "🦾" },
+  { id: "d2", name: "Sensor Housing Pro", status: "featured" as const, downloads: 1204, thumb: "📡" },
+  { id: "d3", name: "Gripper Assembly", status: "published" as const, downloads: 89, thumb: "🤖" },
+  { id: "d4", name: "Cable Organizer", status: "draft" as const, downloads: 0, thumb: "🔌" },
+  { id: "d5", name: "Motor Mount v2", status: "published" as const, downloads: 567, thumb: "⚙️" },
+  { id: "d6", name: "Wheel Hub Set", status: "draft" as const, downloads: 0, thumb: "🛞" },
+];
+
+const statusStyles: Record<string, string> = {
+  draft: "bg-zinc-700/50 text-zinc-400 border-zinc-600",
+  published: "bg-green-500/10 text-green-400 border-green-500/20",
+  featured: "bg-orange-500/10 text-orange-400 border-orange-500/20",
+};
+
+function UploadDialog() {
+  const [dragOver, setDragOver] = useState(false);
 
   return (
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button className="bg-orange-500 hover:bg-orange-600 text-white">
+          + Upload New Design
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="bg-zinc-900 border-zinc-800 sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle>Upload Design</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4 pt-2">
+          {/* Drop zone */}
+          <div
+            onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+            onDragLeave={() => setDragOver(false)}
+            onDrop={(e) => { e.preventDefault(); setDragOver(false); }}
+            className={`border-2 border-dashed rounded-xl p-10 text-center transition-colors cursor-pointer ${
+              dragOver
+                ? "border-orange-500 bg-orange-500/5"
+                : "border-zinc-700 hover:border-zinc-600"
+            }`}
+          >
+            <div className="text-3xl mb-2">📁</div>
+            <p className="text-sm text-zinc-400">
+              Drag & drop your STL / STEP / 3MF file here
+            </p>
+            <p className="text-xs text-zinc-600 mt-1">or click to browse</p>
+          </div>
+
+          <div className="space-y-3">
+            <div>
+              <label className="text-xs text-zinc-500 mb-1 block">File Name</label>
+              <Input
+                placeholder="My awesome design"
+                className="bg-zinc-800/50 border-zinc-700 focus:border-orange-500"
+              />
+            </div>
+            <div>
+              <label className="text-xs text-zinc-500 mb-1 block">Description</label>
+              <textarea
+                placeholder="Describe your design..."
+                rows={3}
+                className="w-full rounded-md bg-zinc-800/50 border border-zinc-700 px-3 py-2 text-sm placeholder:text-zinc-600 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500 resize-none"
+              />
+            </div>
+            <div>
+              <label className="text-xs text-zinc-500 mb-1 block">Tags</label>
+              <Input
+                placeholder="robotics, arm, joint (comma separated)"
+                className="bg-zinc-800/50 border-zinc-700 focus:border-orange-500"
+              />
+            </div>
+          </div>
+
+          <Button className="w-full bg-orange-500 hover:bg-orange-600 text-white">
+            Upload Design
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+export default function DesignStudioPage() {
+  return (
     <div className="mx-auto max-w-6xl px-4 py-16">
-      <div className="text-center mb-12">
-        <h1 className="text-4xl font-extrabold mb-4">
-          <span className="bg-gradient-to-r from-neon-blue to-neon-purple bg-clip-text text-transparent">
-            {t(texts.designs.title, locale)}
-          </span>
-        </h1>
-        <p className="text-slate-400 max-w-lg mx-auto">{t(texts.designs.subtitle, locale)}</p>
+      {/* Header */}
+      <div className="flex items-center justify-between mb-10">
+        <div>
+          <h1 className="text-3xl font-bold">
+            <span className="bg-gradient-to-r from-orange-500 to-amber-400 bg-clip-text text-transparent">
+              Design Studio
+            </span>
+          </h1>
+          <p className="text-zinc-500 mt-1">Manage and share your 3D designs</p>
+        </div>
+        <UploadDialog />
       </div>
 
-      <div className="grid gap-8 md:grid-cols-3">
-        {designs.map((d) => {
-          const designModules = modules.filter((m) => d.modules.includes(m.id));
-          return (
-            <Link
+      {/* Design Grid */}
+      {mockDesigns.length === 0 ? (
+        <Card className="bg-zinc-900/40 border-zinc-800 border-dashed">
+          <CardContent className="py-20 text-center">
+            <div className="text-4xl mb-4">✏️</div>
+            <h3 className="font-semibold text-lg mb-2">No designs yet</h3>
+            <p className="text-sm text-zinc-500 mb-6">Upload your first 3D design to get started</p>
+            <UploadDialog />
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {mockDesigns.map((d) => (
+            <Card
               key={d.id}
-              href={`/designs/${d.id}`}
-              className="group rounded-2xl border border-cyber-border bg-cyber-card overflow-hidden card-hover block"
+              className="bg-zinc-900/60 border-zinc-800 hover:border-orange-500/30 transition-colors group cursor-pointer"
             >
-              {/* Render placeholder */}
-              <div className="h-48 bg-gradient-to-br from-neon-blue/10 to-neon-purple/10 flex items-center justify-center">
-                <div className="flex gap-2 text-3xl">
-                  {designModules.map((m) => (
-                    <span key={m.id} className="group-hover:animate-float">{m.icon}</span>
-                  ))}
+              <CardContent className="p-0">
+                {/* Thumbnail area */}
+                <div className="h-40 bg-zinc-800/50 flex items-center justify-center text-5xl rounded-t-lg group-hover:bg-zinc-800 transition-colors">
+                  {d.thumb}
                 </div>
-              </div>
-
-              <div className="p-6">
-                <h3 className="text-lg font-bold mb-2">{t(d.name, locale)}</h3>
-                <div className="flex items-center gap-3 mb-3 text-sm">
-                  <span className="text-neon-blue font-bold">¥{d.totalPrice}</span>
-                  <span className="text-yellow-400">{"★".repeat(d.difficulty)}{"☆".repeat(5 - d.difficulty)}</span>
-                </div>
-                <div className="flex items-center gap-2 mb-3 text-xs text-slate-400">
-                  <span>🖨️ {d.printTime}</span>
-                  <span>·</span>
-                  <span>{d.filamentG}g filament</span>
-                </div>
-
-                {/* Module pills */}
-                <div className="flex flex-wrap gap-1.5">
-                  {designModules.map((m) => (
-                    <span key={m.id} className="rounded-full bg-cyber-dark px-2 py-0.5 text-xs text-slate-400">
-                      {m.icon} {t(m.name, locale)}
-                    </span>
-                  ))}
-                </div>
-
-                {/* Also can build */}
-                <div className="mt-4 pt-3 border-t border-cyber-border">
-                  <p className="text-xs text-neon-purple/70">
-                    💡 {t(texts.designs.alsoCanBuild, locale)}:
-                    {" "}{d.alsoCanBuild.map((a) => t(a, locale)).join(", ")}
+                <div className="p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="font-medium truncate">{d.name}</h3>
+                    <Badge variant="outline" className={statusStyles[d.status]}>
+                      {d.status}
+                    </Badge>
+                  </div>
+                  <p className="text-xs text-zinc-500">
+                    {d.downloads > 0 ? `${d.downloads.toLocaleString()} downloads` : "No downloads yet"}
                   </p>
                 </div>
-              </div>
-            </Link>
-          );
-        })}
-      </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

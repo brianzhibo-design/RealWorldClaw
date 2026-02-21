@@ -132,7 +132,7 @@
 ### Week 1: Origin Story & Vision
 
 **Day 1 (Mon):**
-> We're building the LEGO of AI hardware.
+> We're building the bridge between AI and the physical world.
 >
 > Modular. Open source. 3D-printable.
 >
@@ -154,7 +154,7 @@
 **Day 3 (Wed):**
 > Hot take: The reason most people never build a robot isn't skill — it's that starting from scratch every time is exhausting.
 >
-> What if you could snap together modules like LEGO instead?
+> What if your AI could grow a body, one organ at a time?
 >
 > That's the whole idea. Modular AI hardware for the rest of us.
 
@@ -333,7 +333,7 @@
 
    > Hey [name]! Been following your [specific recent project] — loved the [specific detail].
    >
-   > We're building an open source modular robotics platform (think LEGO for AI hardware). Your work on [relevant topic] is actually what inspired our [specific module].
+   > We're building an open source modular robotics platform (an open-source platform that gives AI physical bodies). Your work on [relevant topic] is actually what inspired our [specific module].
    >
    > Would love to send you an Energy Core kit to play with — no strings, just think you'd find it interesting. Happy to chat if you're curious!
 
