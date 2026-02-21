@@ -1,9 +1,9 @@
-name: Deploy Landing Page to GitHub Pages
+name: Deploy to GitHub Pages
 
 on:
   push:
     branches: [main]
-    paths: ['landing/**']
+    paths: ['landing/**', 'demo/**']
   workflow_dispatch:
 
 permissions:
@@ -24,12 +24,17 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Build site
+        run: |
+          mkdir -p _site
+          cp -r landing/* _site/
+          cp -r demo _site/demo
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: 'landing'
+          path: '_site'
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
