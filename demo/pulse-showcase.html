@@ -26,20 +26,16 @@ code,.mono{font-family:'JetBrains Mono',monospace}
 .core-section{display:flex;flex-direction:column;align-items:center;padding:40px 24px 60px;position:relative}
 .core-label{font-size:.85rem;color:var(--accent);letter-spacing:.15em;text-transform:uppercase;margin-bottom:24px;font-weight:600}
 
-/* SVG Board */
-.board-wrap{position:relative;width:340px;height:340px;margin:0 auto}
-@media(min-width:600px){.board-wrap{width:420px;height:420px}}
-
-.board-wrap svg{width:100%;height:100%;filter:drop-shadow(0 0 40px var(--accent-glow))}
-.board-glow{animation:breathe 4s ease-in-out infinite}
-@keyframes breathe{0%,100%{opacity:.55}50%{opacity:1}}
+/* 3D Canvas Container */
+.board-wrap{position:relative;width:420px;height:420px;margin:0 auto;cursor:grab}
+.board-wrap:active{cursor:grabbing}
+.board-wrap canvas{width:100%!important;height:100%!important;border-radius:16px}
+@media(max-width:640px){.board-wrap{width:300px;height:300px}}
 
 .core-caption{margin-top:28px;text-align:center}
 .core-caption h2{font-size:1.35rem;font-weight:600;margin-bottom:6px}
 .core-caption p{color:var(--dim);font-size:.95rem;max-width:420px;margin:0 auto}
-
-/* ── Connection Lines Canvas ── */
-#lines-canvas{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0}
+.core-hint{font-size:.75rem;color:var(--dim);margin-top:8px;opacity:.6}
 
 /* ── Forms Grid ── */
 .forms-section{position:relative;padding:20px 24px 80px;max-width:1200px;margin:0 auto}
@@ -60,6 +56,7 @@ code,.mono{font-family:'JetBrains Mono',monospace}
 .card-subtitle{font-size:.82rem;color:var(--dim);margin-top:2px}
 
 .card-illustration{width:100%;height:140px;border-radius:10px;background:rgba(255,255,255,.02);margin-bottom:16px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+.card-illustration canvas{width:100%!important;height:100%!important}
 
 .card-tagline{font-size:.9rem;color:var(--dim);font-style:italic;margin-bottom:16px;padding-left:12px;border-left:2px solid var(--card-accent)}
 
@@ -86,50 +83,8 @@ code,.mono{font-family:'JetBrains Mono',monospace}
 .footer .cta{display:inline-block;margin-top:32px;padding:14px 36px;border-radius:10px;background:var(--accent);color:#fff;font-weight:600;text-decoration:none;font-size:1rem;transition:all .3s}
 .footer .cta:hover{box-shadow:0 0 30px var(--accent-glow);transform:translateY(-2px)}
 
-/* ── Illustrations (CSS art inside cards) ── */
-.illust{position:relative;width:100%;height:100%}
-
-/* Desktop Companion */
-.illust-desktop{display:flex;align-items:center;justify-content:center}
-.illust-desktop .body{width:64px;height:64px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#2a2a3a,#16161e);border:2px solid #333;position:relative;box-shadow:0 4px 20px rgba(0,0,0,.5)}
-.illust-desktop .screen{width:24px;height:24px;border-radius:50%;background:radial-gradient(circle,var(--accent),#4338ca);position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);box-shadow:0 0 12px var(--accent-glow)}
-.illust-desktop .core-chip{position:absolute;bottom:-18px;font-size:.6rem;color:var(--accent);white-space:nowrap;left:50%;transform:translateX(-50%);opacity:.7}
-
-/* Plant Guardian */
-.illust-plant{display:flex;align-items:flex-end;justify-content:center;gap:4px;padding-bottom:10px}
-.illust-plant .pot{width:50px;height:36px;background:linear-gradient(180deg,#8b5e3c,#6b4226);border-radius:0 0 8px 8px;position:relative}
-.illust-plant .pot::before{content:'';position:absolute;top:-6px;left:-4px;right:-4px;height:8px;background:#8b5e3c;border-radius:3px}
-.illust-plant .stem{width:3px;height:40px;background:#22c55e;position:absolute;bottom:100%;left:50%;transform:translateX(-50%);border-radius:2px}
-.illust-plant .leaf{width:18px;height:10px;background:#22c55e;border-radius:50%;position:absolute;bottom:calc(100% + 20px);left:calc(50% + 4px);transform:rotate(-30deg)}
-.illust-plant .clip{width:22px;height:46px;border:2px solid var(--emerald);border-radius:6px;background:rgba(16,185,129,.1);position:relative;margin-bottom:0;align-self:flex-end}
-.illust-plant .clip .dot{width:8px;height:8px;border-radius:50%;background:var(--emerald);position:absolute;top:10px;left:50%;transform:translateX(-50%);box-shadow:0 0 8px rgba(16,185,129,.5)}
-
-/* Kitchen Brain */
-.illust-kitchen{display:flex;align-items:center;justify-content:center}
-.illust-kitchen .base{width:80px;height:14px;background:linear-gradient(180deg,#333,#222);border-radius:4px;position:relative}
-.illust-kitchen .stand{width:8px;height:28px;background:#2a2a2a;position:absolute;bottom:100%;left:50%;transform:translateX(-50%);border-radius:2px}
-.illust-kitchen .head{width:48px;height:40px;border-radius:10px;background:linear-gradient(135deg,#1e1e28,#16161e);border:1.5px solid #333;position:absolute;bottom:calc(100% + 28px);left:50%;transform:translateX(-50%)}
-.illust-kitchen .head .scr{width:20px;height:20px;border-radius:50%;background:radial-gradient(circle,var(--orange),#b45309);position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);box-shadow:0 0 10px rgba(245,158,11,.3)}
-
-/* Home Sentinel */
-.illust-sentinel{display:flex;align-items:center;justify-content:center}
-.illust-sentinel .panel{width:56px;height:72px;border-radius:12px;background:linear-gradient(180deg,#1a1a24,#12121a);border:1.5px solid #2a2a3a;position:relative;box-shadow:0 4px 20px rgba(0,0,0,.4)}
-.illust-sentinel .panel .scr{width:22px;height:22px;border-radius:50%;background:radial-gradient(circle,var(--cyan),#0891b2);position:absolute;top:14px;left:50%;transform:translateX(-50%);box-shadow:0 0 10px rgba(6,182,212,.3)}
-.illust-sentinel .panel .dots{display:flex;gap:6px;position:absolute;bottom:14px;left:50%;transform:translateX(-50%)}
-.illust-sentinel .panel .dot{width:6px;height:6px;border-radius:50%;background:rgba(6,182,212,.4)}
-.illust-sentinel .mount{width:18px;height:4px;background:#222;border-radius:2px;position:absolute;top:-6px;left:50%;transform:translateX(-50%)}
-
-/* Explorer */
-.illust-explorer{display:flex;align-items:center;justify-content:center}
-.illust-explorer .chassis{width:72px;height:36px;border-radius:8px;background:linear-gradient(180deg,#1e1e28,#14141c);border:1.5px solid #2a2a3a;position:relative}
-.illust-explorer .chassis .eye{width:14px;height:14px;border-radius:50%;background:radial-gradient(circle,var(--rose),#be123c);position:absolute;top:6px;left:50%;transform:translateX(-50%);box-shadow:0 0 10px rgba(244,63,94,.3)}
-.illust-explorer .wheel{width:16px;height:16px;border-radius:50%;background:#222;border:2px solid #444;position:absolute;bottom:-10px}
-.illust-explorer .wheel.l{left:4px}
-.illust-explorer .wheel.r{right:4px}
-
 @media(max-width:640px){
   .forms-grid{grid-template-columns:1fr}
-  .board-wrap{width:280px;height:280px}
 }
 </style>
 </head>
@@ -144,66 +99,11 @@ code,.mono{font-family:'JetBrains Mono',monospace}
 <!-- Core Board -->
 <section class="core-section" id="core-section">
   <div class="core-label mono">The Brain</div>
-  <div class="board-wrap" id="board-wrap">
-    <svg viewBox="0 0 420 420" xmlns="http://www.w3.org/2000/svg">
-      <!-- PCB Board -->
-      <rect x="60" y="60" width="300" height="300" rx="18" fill="#111118" stroke="#2a2a3a" stroke-width="1.5"/>
-      <!-- Board grid lines -->
-      <g stroke="#1a1a25" stroke-width=".5" opacity=".6">
-        <line x1="60" y1="120" x2="360" y2="120"/><line x1="60" y1="180" x2="360" y2="180"/>
-        <line x1="60" y1="240" x2="360" y2="240"/><line x1="60" y1="300" x2="360" y2="300"/>
-        <line x1="120" y1="60" x2="120" y2="360"/><line x1="180" y1="60" x2="180" y2="360"/>
-        <line x1="240" y1="60" x2="240" y2="360"/><line x1="300" y1="60" x2="300" y2="360"/>
-      </g>
-      <!-- Traces -->
-      <g stroke="#6366f1" stroke-width="1" opacity=".25" fill="none">
-        <path d="M210 170 L210 120 L140 120 L140 100"/>
-        <path d="M210 170 L280 170 L280 120 L320 120"/>
-        <path d="M210 250 L210 300 L150 300 L150 330"/>
-        <path d="M210 250 L280 250 L320 250"/>
-        <path d="M170 210 L120 210 L100 180"/>
-        <path d="M250 210 L310 210 L330 240"/>
-      </g>
-      <!-- Mounting holes -->
-      <circle cx="80" cy="80" r="6" fill="none" stroke="#2a2a3a" stroke-width="1"/>
-      <circle cx="340" cy="80" r="6" fill="none" stroke="#2a2a3a" stroke-width="1"/>
-      <circle cx="80" cy="340" r="6" fill="none" stroke="#2a2a3a" stroke-width="1"/>
-      <circle cx="340" cy="340" r="6" fill="none" stroke="#2a2a3a" stroke-width="1"/>
-      <!-- Chips -->
-      <rect x="120" y="100" width="36" height="28" rx="3" fill="#1a1a24" stroke="#333" stroke-width="1"/>
-      <text x="138" y="118" text-anchor="middle" fill="#6366f1" font-size="7" font-family="JetBrains Mono,monospace" opacity=".8">ESP32</text>
-      <rect x="290" y="106" width="40" height="22" rx="3" fill="#1a1a24" stroke="#333" stroke-width="1"/>
-      <text x="310" y="120" text-anchor="middle" fill="#6366f1" font-size="6" font-family="JetBrains Mono,monospace" opacity=".8">PSRAM</text>
-      <rect x="100" y="280" width="34" height="20" rx="3" fill="#1a1a24" stroke="#333" stroke-width="1"/>
-      <text x="117" y="294" text-anchor="middle" fill="#6366f1" font-size="6" font-family="JetBrains Mono,monospace" opacity=".8">CODEC</text>
-      <rect x="280" y="270" width="44" height="20" rx="3" fill="#1a1a24" stroke="#333" stroke-width="1"/>
-      <text x="302" y="284" text-anchor="middle" fill="#6366f1" font-size="6" font-family="JetBrains Mono,monospace" opacity=".8">USB-C</text>
-      <!-- Connectors on edges -->
-      <rect x="56" y="190" width="8" height="40" rx="2" fill="#222" stroke="#444" stroke-width=".5"/>
-      <text x="44" y="214" text-anchor="end" fill="#555" font-size="6" font-family="JetBrains Mono,monospace">I²C</text>
-      <rect x="356" y="190" width="8" height="40" rx="2" fill="#222" stroke="#444" stroke-width=".5"/>
-      <text x="376" y="214" text-anchor="start" fill="#555" font-size="6" font-family="JetBrains Mono,monospace">GPIO</text>
-      <rect x="160" y="354" width="40" height="8" rx="2" fill="#222" stroke="#444" stroke-width=".5"/>
-      <text x="180" y="375" text-anchor="middle" fill="#555" font-size="6" font-family="JetBrains Mono,monospace">SPI</text>
-      <rect x="230" y="354" width="40" height="8" rx="2" fill="#222" stroke="#444" stroke-width=".5"/>
-      <text x="250" y="375" text-anchor="middle" fill="#555" font-size="6" font-family="JetBrains Mono,monospace">UART</text>
-      <!-- Central round display -->
-      <circle cx="210" cy="210" r="44" fill="#0a0a12" stroke="#333" stroke-width="1.5"/>
-      <circle cx="210" cy="210" r="38" fill="url(#screenGrad)" class="board-glow"/>
-      <!-- Screen content -->
-      <text x="210" y="206" text-anchor="middle" fill="#fff" font-size="11" font-family="Inter,sans-serif" font-weight="600" opacity=".9">⚡</text>
-      <text x="210" y="222" text-anchor="middle" fill="rgba(255,255,255,.6)" font-size="6.5" font-family="JetBrains Mono,monospace">ENERGY CORE</text>
-      <defs>
-        <radialGradient id="screenGrad" cx="45%" cy="40%">
-          <stop offset="0%" stop-color="#6366f1"/>
-          <stop offset="100%" stop-color="#312e81"/>
-        </radialGradient>
-      </defs>
-    </svg>
-  </div>
+  <div class="board-wrap" id="board-wrap"></div>
   <div class="core-caption">
     <h2>This is the brain. Everything starts here.</h2>
-    <p>A 40mm × 40mm core board with ESP32-S3, round OLED display, audio codec, WiFi/BLE, and expansion ports. The universal AI heart for any physical form.</p>
+    <p>A ø42mm circular core board with ESP32-S3, round OLED display, audio codec, WiFi/BLE, and RWC Bus expansion. The universal AI heart for any physical form.</p>
+    <div class="core-hint mono">drag to rotate · scroll to zoom</div>
   </div>
 </section>
 
@@ -218,11 +118,7 @@ code,.mono{font-family:'JetBrains Mono',monospace}
         <div class="card-icon">🏠</div>
         <div><div class="card-title">Desktop Companion</div><div class="card-subtitle">桌面伴侣</div></div>
       </div>
-      <div class="card-illustration">
-        <div class="illust illust-desktop">
-          <div class="body"><div class="screen"></div><div class="core-chip mono">Energy Core</div></div>
-        </div>
-      </div>
+      <div class="card-illustration" data-form="desktop"></div>
       <div class="card-tagline">The simplest form — Energy Core's first home.</div>
       <div class="expand-hint mono">tap to expand ↓</div>
       <div class="card-detail"><div class="detail-inner">
@@ -247,12 +143,7 @@ code,.mono{font-family:'JetBrains Mono',monospace}
         <div class="card-icon">🌿</div>
         <div><div class="card-title">Plant Guardian</div><div class="card-subtitle">植物守护者</div></div>
       </div>
-      <div class="card-illustration">
-        <div class="illust illust-plant">
-          <div class="clip"><div class="dot"></div></div>
-          <div class="pot"><div class="stem"></div><div class="leaf"></div></div>
-        </div>
-      </div>
+      <div class="card-illustration" data-form="plant"></div>
       <div class="card-tagline">Your AI gardener, living in the flowerpot.</div>
       <div class="expand-hint mono">tap to expand ↓</div>
       <div class="card-detail"><div class="detail-inner">
@@ -277,11 +168,7 @@ code,.mono{font-family:'JetBrains Mono',monospace}
         <div class="card-icon">⚖️</div>
         <div><div class="card-title">Kitchen Brain</div><div class="card-subtitle">厨房大脑</div></div>
       </div>
-      <div class="card-illustration">
-        <div class="illust illust-kitchen">
-          <div class="base"><div class="stand"></div><div class="head"><div class="scr"></div></div></div>
-        </div>
-      </div>
+      <div class="card-illustration" data-form="kitchen"></div>
       <div class="card-tagline">Your AI nutritionist, guarding the kitchen.</div>
       <div class="expand-hint mono">tap to expand ↓</div>
       <div class="card-detail"><div class="detail-inner">
@@ -305,11 +192,7 @@ code,.mono{font-family:'JetBrains Mono',monospace}
         <div class="card-icon">🌡️</div>
         <div><div class="card-title">Home Sentinel</div><div class="card-subtitle">家庭哨兵</div></div>
       </div>
-      <div class="card-illustration">
-        <div class="illust illust-sentinel">
-          <div class="panel"><div class="mount"></div><div class="scr"></div><div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div>
-        </div>
-      </div>
+      <div class="card-illustration" data-form="sentinel"></div>
       <div class="card-tagline">Your AI environment butler, guarding every breath.</div>
       <div class="expand-hint mono">tap to expand ↓</div>
       <div class="card-detail"><div class="detail-inner">
@@ -334,11 +217,7 @@ code,.mono{font-family:'JetBrains Mono',monospace}
         <div class="card-icon">🤖</div>
         <div><div class="card-title">Explorer</div><div class="card-subtitle">探索者</div></div>
       </div>
-      <div class="card-illustration">
-        <div class="illust illust-explorer">
-          <div class="chassis"><div class="eye"></div><div class="wheel l"></div><div class="wheel r"></div></div>
-        </div>
-      </div>
+      <div class="card-illustration" data-form="explorer"></div>
       <div class="card-tagline">Your AI adventurer, walking the physical world.</div>
       <div class="expand-hint mono">tap to expand ↓</div>
       <div class="card-detail"><div class="detail-inner">
@@ -373,11 +252,627 @@ code,.mono{font-family:'JetBrains Mono',monospace}
   <a href="#" class="cta">Get Energy Core</a>
 </section>
 
-<script>
-// Connection line animation from core to cards
+<!-- Three.js -->
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.162.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.162.0/examples/jsm/"
+  }
+}
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+
+// ═══════════════════════════════════════════
+// ENERGY CORE 3D MODEL
+// ═══════════════════════════════════════════
+
+(function initEnergyCore() {
+  const container = document.getElementById('board-wrap');
+  const w = container.clientWidth, h = container.clientHeight;
+
+  // Renderer
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  renderer.setSize(w, h);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.2;
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
+  container.appendChild(renderer.domElement);
+
+  const scene = new THREE.Scene();
+
+  // Camera
+  const camera = new THREE.PerspectiveCamera(35, w / h, 0.1, 100);
+  camera.position.set(0, 1.8, 3.2);
+
+  // Controls
+  const controls = new OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true;
+  controls.dampingFactor = 0.06;
+  controls.enablePan = false;
+  controls.minDistance = 2;
+  controls.maxDistance = 6;
+  controls.autoRotate = true;
+  controls.autoRotateSpeed = 1.5;
+  controls.target.set(0, 0, 0);
+
+  let idleTimer;
+  controls.addEventListener('start', () => { controls.autoRotate = false; clearTimeout(idleTimer); });
+  controls.addEventListener('end', () => { idleTimer = setTimeout(() => controls.autoRotate = true, 3000); });
+
+  // ── Environment (procedural studio) ──
+  const pmrem = new THREE.PMREMGenerator(renderer);
+  pmrem.compileEquirectangularShader();
+  const envScene = new THREE.Scene();
+  envScene.background = new THREE.Color(0x222233);
+  // Soft area lights baked into env
+  const envLight1 = new THREE.Mesh(new THREE.PlaneGeometry(6, 3), new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide }));
+  envLight1.position.set(0, 3, -2);
+  envLight1.lookAt(0, 0, 0);
+  envScene.add(envLight1);
+  const envLight2 = new THREE.Mesh(new THREE.PlaneGeometry(4, 2), new THREE.MeshBasicMaterial({ color: 0x8888ff, side: THREE.DoubleSide }));
+  envLight2.position.set(-3, 1, 2);
+  envLight2.lookAt(0, 0, 0);
+  envScene.add(envLight2);
+  const envLight3 = new THREE.Mesh(new THREE.PlaneGeometry(3, 2), new THREE.MeshBasicMaterial({ color: 0xffddcc, side: THREE.DoubleSide }));
+  envLight3.position.set(3, 2, 1);
+  envLight3.lookAt(0, 0, 0);
+  envScene.add(envLight3);
+  scene.environment = pmrem.fromScene(envScene, 0.04).texture;
+  envScene.traverse(c => { if (c.geometry) c.geometry.dispose(); if (c.material) c.material.dispose(); });
+  pmrem.dispose();
+
+  // ── Three-point lighting ──
+  const keyLight = new THREE.DirectionalLight(0xffffff, 2.0);
+  keyLight.position.set(3, 5, 4);
+  scene.add(keyLight);
+  const fillLight = new THREE.DirectionalLight(0x8888ff, 0.6);
+  fillLight.position.set(-4, 2, 2);
+  scene.add(fillLight);
+  const rimLight = new THREE.DirectionalLight(0xffeedd, 1.0);
+  rimLight.position.set(0, 3, -4);
+  scene.add(rimLight);
+  scene.add(new THREE.AmbientLight(0x404060, 0.4));
+
+  // ── Materials ──
+  // PCB texture
+  const pcbCanvas = document.createElement('canvas');
+  pcbCanvas.width = 512; pcbCanvas.height = 512;
+  const pctx = pcbCanvas.getContext('2d');
+  // FR4 green base
+  pctx.fillStyle = '#1a4a2e';
+  pctx.fillRect(0, 0, 512, 512);
+  // Subtle grid/trace pattern
+  pctx.strokeStyle = '#2a6a3e';
+  pctx.lineWidth = 0.5;
+  for (let i = 0; i < 512; i += 16) {
+    pctx.beginPath(); pctx.moveTo(i, 0); pctx.lineTo(i, 512); pctx.stroke();
+    pctx.beginPath(); pctx.moveTo(0, i); pctx.lineTo(512, i); pctx.stroke();
+  }
+  // Copper traces
+  pctx.strokeStyle = '#c8a84e';
+  pctx.lineWidth = 1.5;
+  const traces = [
+    [[256,256],[256,140],[180,140],[180,80]],
+    [[256,256],[340,256],[340,140],[400,140]],
+    [[256,256],[256,380],[180,380],[180,440]],
+    [[256,256],[340,256],[400,300]],
+    [[256,256],[140,256],[80,200]],
+    [[256,256],[140,256],[80,320]],
+    [[256,256],[380,256],[440,220]],
+    [[256,256],[380,256],[440,340]],
+  ];
+  traces.forEach(pts => {
+    pctx.beginPath();
+    pctx.moveTo(pts[0][0], pts[0][1]);
+    for (let i = 1; i < pts.length; i++) pctx.lineTo(pts[i][0], pts[i][1]);
+    pctx.stroke();
+  });
+  // Via holes (small dots along traces)
+  pctx.fillStyle = '#c8a84e';
+  [[180,140],[340,140],[180,380],[400,300],[80,200],[80,320],[440,220],[440,340]].forEach(([x,y]) => {
+    pctx.beginPath(); pctx.arc(x, y, 4, 0, Math.PI*2); pctx.fill();
+    pctx.fillStyle = '#1a4a2e';
+    pctx.beginPath(); pctx.arc(x, y, 2, 0, Math.PI*2); pctx.fill();
+    pctx.fillStyle = '#c8a84e';
+  });
+
+  const pcbTexture = new THREE.CanvasTexture(pcbCanvas);
+
+  const pcbMat = new THREE.MeshPhysicalMaterial({
+    map: pcbTexture,
+    roughness: 0.6,
+    metalness: 0.1,
+    color: 0x1a5a30,
+  });
+
+  const chipMat = new THREE.MeshPhysicalMaterial({
+    color: 0x1a1a1e,
+    roughness: 0.3,
+    metalness: 0.4,
+  });
+
+  const goldMat = new THREE.MeshPhysicalMaterial({
+    color: 0xd4a847,
+    roughness: 0.2,
+    metalness: 0.9,
+  });
+
+  const whitePlasticMat = new THREE.MeshPhysicalMaterial({
+    color: 0xe8e8e0,
+    roughness: 0.5,
+    metalness: 0.0,
+  });
+
+  // ── Screen face texture (animated) ──
+  const screenCanvas = document.createElement('canvas');
+  screenCanvas.width = 256; screenCanvas.height = 256;
+  const sctx = screenCanvas.getContext('2d');
+  const screenTexture = new THREE.CanvasTexture(screenCanvas);
+
+  const screenMat = new THREE.MeshPhysicalMaterial({
+    map: screenTexture,
+    emissiveMap: screenTexture,
+    emissive: new THREE.Color(0x6366f1),
+    emissiveIntensity: 0.8,
+    roughness: 0.05,
+    metalness: 0.0,
+    clearcoat: 1.0,
+    clearcoatRoughness: 0.05,
+  });
+
+  // ── Build the PCB ──
+  const boardGroup = new THREE.Group();
+
+  // Main circular PCB (scale: 1 unit ≈ 21mm, so radius=1)
+  const pcbGeo = new THREE.CylinderGeometry(1, 1, 0.08, 64);
+  const pcbMesh = new THREE.Mesh(pcbGeo, pcbMat);
+  boardGroup.add(pcbMesh);
+
+  // Solder mask ring (edge highlight)
+  const edgeGeo = new THREE.TorusGeometry(1, 0.015, 8, 64);
+  edgeGeo.rotateX(Math.PI / 2);
+  const edgeTop = new THREE.Mesh(edgeGeo, goldMat);
+  edgeTop.position.y = 0.04;
+  boardGroup.add(edgeTop);
+  const edgeBot = edgeTop.clone();
+  edgeBot.position.y = -0.04;
+  boardGroup.add(edgeBot);
+
+  // ── Central round screen ──
+  const screenGeo = new THREE.CylinderGeometry(0.44, 0.44, 0.02, 48);
+  const screenBezelGeo = new THREE.CylinderGeometry(0.48, 0.48, 0.03, 48);
+  const bezelMesh = new THREE.Mesh(screenBezelGeo, chipMat);
+  bezelMesh.position.y = 0.05;
+  boardGroup.add(bezelMesh);
+  const screenMesh = new THREE.Mesh(screenGeo, screenMat);
+  screenMesh.position.y = 0.065;
+  boardGroup.add(screenMesh);
+
+  // ── ESP32-S3 chip (QFN package) ──
+  const esp32Geo = new THREE.BoxGeometry(0.28, 0.04, 0.28);
+  const esp32 = new THREE.Mesh(esp32Geo, chipMat);
+  esp32.position.set(0, 0.06, 0.55);
+  boardGroup.add(esp32);
+  // QFN pads on each side
+  for (let side = 0; side < 4; side++) {
+    for (let i = 0; i < 5; i++) {
+      const pad = new THREE.Mesh(new THREE.BoxGeometry(0.02, 0.005, 0.035), goldMat);
+      const offset = (i - 2) * 0.05;
+      if (side === 0) pad.position.set(offset, 0.045, 0.55 - 0.15);
+      else if (side === 1) pad.position.set(offset, 0.045, 0.55 + 0.15);
+      else if (side === 2) { pad.rotation.y = Math.PI/2; pad.position.set(-0.15, 0.045, 0.55 + offset); }
+      else { pad.rotation.y = Math.PI/2; pad.position.set(0.15, 0.045, 0.55 + offset); }
+      boardGroup.add(pad);
+    }
+  }
+  // Label
+  // (skip text mesh for perf — the chip is recognizable by shape)
+
+  // ── PSRAM chip ──
+  const psramGeo = new THREE.BoxGeometry(0.18, 0.03, 0.14);
+  const psram = new THREE.Mesh(psramGeo, chipMat);
+  psram.position.set(-0.55, 0.055, 0.35);
+  boardGroup.add(psram);
+
+  // ── Audio codec chip ──
+  const codecGeo = new THREE.BoxGeometry(0.2, 0.03, 0.2);
+  const codec = new THREE.Mesh(codecGeo, chipMat);
+  codec.position.set(0.5, 0.055, -0.4);
+  boardGroup.add(codec);
+
+  // ── Power regulator ──
+  const regGeo = new THREE.BoxGeometry(0.12, 0.025, 0.1);
+  const reg = new THREE.Mesh(regGeo, chipMat);
+  reg.position.set(-0.5, 0.053, -0.5);
+  boardGroup.add(reg);
+
+  // ── MEMS microphone ──
+  const micGeo = new THREE.CylinderGeometry(0.06, 0.06, 0.03, 16);
+  const mic = new THREE.Mesh(micGeo, chipMat);
+  mic.position.set(0.7, 0.055, 0);
+  boardGroup.add(mic);
+  // Mic port hole
+  const micHole = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.04, 12), new THREE.MeshBasicMaterial({ color: 0x050505 }));
+  micHole.position.set(0.7, 0.065, 0);
+  boardGroup.add(micHole);
+
+  // ── RWC Bus: 8 Pogo Pin pads (golden circles around edge) ──
+  for (let i = 0; i < 8; i++) {
+    const angle = (i / 8) * Math.PI * 2 - Math.PI / 2;
+    const px = Math.cos(angle) * 0.85;
+    const pz = Math.sin(angle) * 0.85;
+    const padGeo = new THREE.CylinderGeometry(0.04, 0.04, 0.01, 16);
+    const pad = new THREE.Mesh(padGeo, goldMat);
+    pad.position.set(px, 0.045, pz);
+    boardGroup.add(pad);
+    // Center contact dot
+    const dot = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.015, 0.015, 12), goldMat);
+    dot.position.set(px, 0.055, pz);
+    boardGroup.add(dot);
+  }
+
+  // ── JST battery connector ──
+  const jstGeo = new THREE.BoxGeometry(0.12, 0.06, 0.08);
+  const jst = new THREE.Mesh(jstGeo, whitePlasticMat);
+  jst.position.set(-0.7, 0.07, -0.15);
+  boardGroup.add(jst);
+  // Connector opening
+  const jstHole = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.03, 0.05), new THREE.MeshBasicMaterial({ color: 0x333333 }));
+  jstHole.position.set(-0.7, 0.075, -0.12);
+  boardGroup.add(jstHole);
+
+  // ── 4 mounting holes ──
+  const mountPositions = [[0.75, 0.75], [-0.75, 0.75], [0.75, -0.75], [-0.75, -0.75]];
+  mountPositions.forEach(([x, z]) => {
+    // Limit to circle
+    const dist = Math.sqrt(x*x + z*z);
+    if (dist > 0.95) return;
+    const mountOuter = new THREE.Mesh(new THREE.TorusGeometry(0.06, 0.015, 8, 16), goldMat);
+    mountOuter.rotation.x = Math.PI / 2;
+    mountOuter.position.set(x, 0.045, z);
+    boardGroup.add(mountOuter);
+  });
+  // Place them at 45° angles within the circle
+  const mountAngles = [Math.PI*0.25, Math.PI*0.75, Math.PI*1.25, Math.PI*1.75];
+  mountAngles.forEach(a => {
+    const mx = Math.cos(a) * 0.82, mz = Math.sin(a) * 0.82;
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(0.05, 0.012, 8, 16), goldMat);
+    ring.rotation.x = Math.PI / 2;
+    ring.position.set(mx, 0.045, mz);
+    boardGroup.add(ring);
+    const hole = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.1, 12), new THREE.MeshBasicMaterial({ color: 0x080808 }));
+    hole.position.set(mx, 0, mz);
+    boardGroup.add(hole);
+  });
+
+  // ── Back side components ──
+  // Speaker holes (ring of small holes on back)
+  for (let i = 0; i < 12; i++) {
+    const a = (i / 12) * Math.PI * 2;
+    const sx = Math.cos(a) * 0.3, sz = Math.sin(a) * 0.3;
+    const sHole = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.1, 8), new THREE.MeshBasicMaterial({ color: 0x060606 }));
+    sHole.position.set(sx, -0.02, sz);
+    boardGroup.add(sHole);
+  }
+
+  // Battery pad area (back)
+  const battPad = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.005, 0.35), goldMat);
+  battPad.position.set(0, -0.043, 0.4);
+  boardGroup.add(battPad);
+
+  // Antenna keep-out zone marking (back)
+  const antGeo = new THREE.TorusGeometry(0.2, 0.008, 8, 32, Math.PI);
+  const antMark = new THREE.Mesh(antGeo, new THREE.MeshBasicMaterial({ color: 0xdddddd }));
+  antMark.rotation.x = Math.PI / 2;
+  antMark.position.set(0, -0.043, -0.55);
+  boardGroup.add(antMark);
+
+  // Passive components (tiny rectangles - capacitors/resistors)
+  const passiveGeo = new THREE.BoxGeometry(0.04, 0.02, 0.02);
+  const passiveMat = new THREE.MeshPhysicalMaterial({ color: 0x2a2a2e, roughness: 0.4, metalness: 0.3 });
+  [[0.3, 0.35], [-0.3, 0.5], [0.4, -0.2], [-0.35, -0.35], [0.15, 0.7], [-0.15, -0.65], [0.6, 0.2], [-0.55, 0.15]].forEach(([x,z]) => {
+    const p = new THREE.Mesh(passiveGeo, passiveMat);
+    p.position.set(x, 0.05, z);
+    boardGroup.add(p);
+    // Gold end caps
+    const cap1 = new THREE.Mesh(new THREE.BoxGeometry(0.008, 0.02, 0.022), goldMat);
+    cap1.position.set(x - 0.018, 0.05, z);
+    boardGroup.add(cap1);
+    const cap2 = cap1.clone();
+    cap2.position.set(x + 0.018, 0.05, z);
+    boardGroup.add(cap2);
+  });
+
+  scene.add(boardGroup);
+
+  // ── Post-processing ──
+  const composer = new EffectComposer(renderer);
+  composer.addPass(new RenderPass(scene, camera));
+  const bloom = new UnrealBloomPass(new THREE.Vector2(w, h), 0.3, 0.5, 0.8);
+  composer.addPass(bloom);
+
+  // ── Screen animation ──
+  let blinkTimer = 0;
+  let isBlinking = false;
+  let breathPhase = 0;
+
+  function drawFace(time) {
+    sctx.clearRect(0, 0, 256, 256);
+    // Background gradient
+    const grad = sctx.createRadialGradient(128, 128, 20, 128, 128, 128);
+    grad.addColorStop(0, '#6366f1');
+    grad.addColorStop(1, '#312e81');
+    sctx.fillStyle = grad;
+    sctx.beginPath();
+    sctx.arc(128, 128, 128, 0, Math.PI * 2);
+    sctx.fill();
+
+    // Breathing glow
+    breathPhase += 0.02;
+    const breathAlpha = 0.15 + Math.sin(breathPhase) * 0.1;
+    sctx.fillStyle = `rgba(255,255,255,${breathAlpha})`;
+    sctx.beginPath();
+    sctx.arc(128, 128, 80, 0, Math.PI * 2);
+    sctx.fill();
+
+    // Eyes
+    sctx.fillStyle = '#ffffff';
+    const eyeY = 110;
+    const eyeOpenness = isBlinking ? 2 : 18;
+    // Left eye
+    sctx.beginPath();
+    sctx.ellipse(98, eyeY, 14, eyeOpenness, 0, 0, Math.PI * 2);
+    sctx.fill();
+    // Right eye
+    sctx.beginPath();
+    sctx.ellipse(158, eyeY, 14, eyeOpenness, 0, 0, Math.PI * 2);
+    sctx.fill();
+
+    // Smile
+    sctx.strokeStyle = '#ffffff';
+    sctx.lineWidth = 3.5;
+    sctx.lineCap = 'round';
+    sctx.beginPath();
+    sctx.arc(128, 130, 35, 0.15 * Math.PI, 0.85 * Math.PI);
+    sctx.stroke();
+
+    // Blink logic
+    blinkTimer += 1;
+    if (!isBlinking && blinkTimer > 120 + Math.random() * 180) {
+      isBlinking = true;
+      blinkTimer = 0;
+    }
+    if (isBlinking && blinkTimer > 6) {
+      isBlinking = false;
+      blinkTimer = 0;
+    }
+
+    screenTexture.needsUpdate = true;
+  }
+
+  // ── Animate ──
+  const clock = new THREE.Clock();
+  function animate() {
+    requestAnimationFrame(animate);
+    controls.update();
+    drawFace(clock.getElapsedTime());
+    composer.render();
+  }
+  animate();
+
+  // ── Resize ──
+  window.addEventListener('resize', () => {
+    const nw = container.clientWidth, nh = container.clientHeight;
+    camera.aspect = nw / nh;
+    camera.updateProjectionMatrix();
+    renderer.setSize(nw, nh);
+    composer.setSize(nw, nh);
+  });
+})();
+
+
+// ═══════════════════════════════════════════
+// WIREFRAME FORM PREVIEWS
+// ═══════════════════════════════════════════
+
+(function initFormPreviews() {
+  const forms = {
+    desktop: buildDesktop,
+    plant: buildPlant,
+    kitchen: buildKitchen,
+    sentinel: buildSentinel,
+    explorer: buildExplorer,
+  };
+
+  const colors = {
+    desktop: 0x6366f1,
+    plant: 0x22c55e,
+    kitchen: 0xf59e0b,
+    sentinel: 0x06b6d4,
+    explorer: 0xf43f5e,
+  };
+
+  document.querySelectorAll('.card-illustration[data-form]').forEach(el => {
+    const formType = el.dataset.form;
+    if (!forms[formType]) return;
+
+    const w = el.clientWidth || 300, h = el.clientHeight || 140;
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setSize(w, h);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    el.appendChild(renderer.domElement);
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(30, w / h, 0.1, 50);
+    camera.position.set(0, 1.5, 4);
+    camera.lookAt(0, 0.3, 0);
+
+    scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+    const dl = new THREE.DirectionalLight(0xffffff, 1);
+    dl.position.set(2, 3, 3);
+    scene.add(dl);
+
+    const wireColor = colors[formType];
+    const wireMat = new THREE.MeshBasicMaterial({ color: wireColor, wireframe: true, transparent: true, opacity: 0.6 });
+    const solidMat = new THREE.MeshBasicMaterial({ color: wireColor, transparent: true, opacity: 0.08 });
+
+    const group = forms[formType](wireMat, solidMat);
+    scene.add(group);
+
+    let frame = 0;
+    function anim() {
+      requestAnimationFrame(anim);
+      frame++;
+      group.rotation.y = Math.sin(frame * 0.008) * 0.4;
+      renderer.render(scene, camera);
+    }
+    anim();
+
+    // Resize observer
+    const ro = new ResizeObserver(entries => {
+      const { width: rw, height: rh } = entries[0].contentRect;
+      if (rw > 0 && rh > 0) {
+        camera.aspect = rw / rh;
+        camera.updateProjectionMatrix();
+        renderer.setSize(rw, rh);
+      }
+    });
+    ro.observe(el);
+  });
+
+  // ── Form builders ──
+  function buildDesktop(wireMat, solidMat) {
+    const g = new THREE.Group();
+    // Egg/sphere body
+    const bodyGeo = new THREE.SphereGeometry(0.7, 16, 12);
+    bodyGeo.scale(1, 1.2, 1);
+    g.add(new THREE.Mesh(bodyGeo, wireMat));
+    g.add(new THREE.Mesh(bodyGeo, solidMat));
+    // Screen circle
+    const screenGeo = new THREE.CircleGeometry(0.3, 24);
+    const screenMesh = new THREE.Mesh(screenGeo, new THREE.MeshBasicMaterial({ color: wireMat.color, transparent: true, opacity: 0.3 }));
+    screenMesh.position.set(0, 0.15, 0.68);
+    g.add(screenMesh);
+    // Base
+    const baseGeo = new THREE.CylinderGeometry(0.5, 0.55, 0.1, 24);
+    const base = new THREE.Mesh(baseGeo, wireMat);
+    base.position.y = -0.85;
+    g.add(base);
+    return g;
+  }
+
+  function buildPlant(wireMat, solidMat) {
+    const g = new THREE.Group();
+    // Clip body
+    const clipGeo = new THREE.BoxGeometry(0.3, 1.2, 0.25);
+    g.add(new THREE.Mesh(clipGeo, wireMat));
+    g.add(new THREE.Mesh(clipGeo, solidMat));
+    // Clip jaw (two halves)
+    const jawGeo = new THREE.BoxGeometry(0.35, 0.15, 0.3);
+    const jaw1 = new THREE.Mesh(jawGeo, wireMat);
+    jaw1.position.set(0, -0.65, 0);
+    g.add(jaw1);
+    const jaw2 = new THREE.Mesh(jawGeo, wireMat);
+    jaw2.position.set(0, -0.85, 0);
+    g.add(jaw2);
+    // Screen dot
+    const dotGeo = new THREE.SphereGeometry(0.08, 12, 12);
+    const dot = new THREE.Mesh(dotGeo, new THREE.MeshBasicMaterial({ color: wireMat.color, transparent: true, opacity: 0.5 }));
+    dot.position.set(0, 0.2, 0.13);
+    g.add(dot);
+    g.position.y = 0.3;
+    return g;
+  }
+
+  function buildKitchen(wireMat, solidMat) {
+    const g = new THREE.Group();
+    // Base platform
+    const baseGeo = new THREE.CylinderGeometry(0.7, 0.75, 0.12, 24);
+    const base = new THREE.Mesh(baseGeo, wireMat);
+    g.add(base);
+    g.add(new THREE.Mesh(baseGeo, solidMat));
+    // Stand
+    const standGeo = new THREE.CylinderGeometry(0.08, 0.1, 0.6, 12);
+    const stand = new THREE.Mesh(standGeo, wireMat);
+    stand.position.y = 0.36;
+    g.add(stand);
+    // Screen head (tilted disc)
+    const headGeo = new THREE.CylinderGeometry(0.35, 0.35, 0.06, 24);
+    const head = new THREE.Mesh(headGeo, wireMat);
+    head.position.set(0, 0.75, -0.05);
+    head.rotation.x = -0.3;
+    g.add(head);
+    const headSolid = new THREE.Mesh(headGeo, solidMat);
+    headSolid.position.copy(head.position);
+    headSolid.rotation.copy(head.rotation);
+    g.add(headSolid);
+    g.position.y = -0.2;
+    return g;
+  }
+
+  function buildSentinel(wireMat, solidMat) {
+    const g = new THREE.Group();
+    // Wall-mount box
+    const boxGeo = new THREE.BoxGeometry(0.8, 1.1, 0.25);
+    g.add(new THREE.Mesh(boxGeo, wireMat));
+    g.add(new THREE.Mesh(boxGeo, solidMat));
+    // Screen circle
+    const screenGeo = new THREE.CircleGeometry(0.2, 20);
+    const screen = new THREE.Mesh(screenGeo, new THREE.MeshBasicMaterial({ color: wireMat.color, transparent: true, opacity: 0.3 }));
+    screen.position.set(0, 0.15, 0.13);
+    g.add(screen);
+    // Sensor dots at bottom
+    for (let i = -1; i <= 1; i++) {
+      const d = new THREE.Mesh(new THREE.SphereGeometry(0.04, 8, 8), wireMat);
+      d.position.set(i * 0.15, -0.35, 0.13);
+      g.add(d);
+    }
+    // Mount bracket
+    const bracket = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.06, 0.06), wireMat);
+    bracket.position.set(0, 0.6, -0.1);
+    g.add(bracket);
+    return g;
+  }
+
+  function buildExplorer(wireMat, solidMat) {
+    const g = new THREE.Group();
+    // Chassis
+    const chassisGeo = new THREE.BoxGeometry(1.2, 0.3, 0.8);
+    g.add(new THREE.Mesh(chassisGeo, wireMat));
+    g.add(new THREE.Mesh(chassisGeo, solidMat));
+    // Wheels
+    const wheelGeo = new THREE.CylinderGeometry(0.2, 0.2, 0.1, 16);
+    const positions = [[-0.55, -0.2, 0.45], [0.55, -0.2, 0.45], [-0.55, -0.2, -0.45], [0.55, -0.2, -0.45]];
+    positions.forEach(([x, y, z]) => {
+      const wheel = new THREE.Mesh(wheelGeo, wireMat);
+      wheel.rotation.x = Math.PI / 2;
+      wheel.position.set(x, y, z);
+      g.add(wheel);
+    });
+    // Eye/camera dome
+    const domeGeo = new THREE.SphereGeometry(0.15, 12, 8, 0, Math.PI * 2, 0, Math.PI / 2);
+    const dome = new THREE.Mesh(domeGeo, wireMat);
+    dome.position.set(0, 0.15, 0);
+    g.add(dome);
+    g.position.y = -0.1;
+    return g;
+  }
+})();
+
+
+// ═══════════════════════════════════════════
+// CONNECTION LINES (preserved from original)
+// ═══════════════════════════════════════════
+
 (function(){
   const canvas=document.createElement('canvas');
-  canvas.id='lines-canvas';
   canvas.style.cssText='position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:1';
   document.body.appendChild(canvas);
   const ctx=canvas.getContext('2d');
@@ -404,19 +899,14 @@ code,.mono{font-family:'JetBrains Mono',monospace}
     frame++;
     ctx.clearRect(0,0,w,h);
     if(!coreRect||!cardRects.length)return;
-    
-    const scrollY=window.scrollY;
     const coreY=coreRect.y;
-    
     cardRects.forEach((card,i)=>{
       const dx=card.x-coreRect.x;
       const dy=card.y-coreY;
       const dist=Math.sqrt(dx*dx+dy*dy);
       if(dist>800||card.y<0||coreY>h)return;
-      
       const progress=(Math.sin(frame*.015+i*1.2)+1)/2;
       const alpha=Math.max(0,.12-dist/8000);
-      
       ctx.beginPath();
       ctx.moveTo(coreRect.x,coreY);
       const cpx=coreRect.x+dx*.5;
@@ -425,8 +915,6 @@ code,.mono{font-family:'JetBrains Mono',monospace}
       ctx.strokeStyle=`rgba(99,102,241,${alpha})`;
       ctx.lineWidth=1;
       ctx.stroke();
-      
-      // Animated dot
       const t=progress;
       const px=(1-t)*(1-t)*coreRect.x+2*(1-t)*t*cpx+t*t*card.x;
       const py=(1-t)*(1-t)*coreY+2*(1-t)*t*cpy+t*t*card.y;
