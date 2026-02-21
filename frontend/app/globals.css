@@ -2,46 +2,58 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  background-color: #0a0e1a;
-  color: #e2e8f0;
+@layer base {
+  :root {
+    --background: 240 6% 3%;
+    --foreground: 0 0% 98%;
+    --card: 240 5% 7%;
+    --card-foreground: 0 0% 98%;
+    --popover: 240 5% 10%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 25 95% 53%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 240 4% 14%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 240 4% 14%;
+    --muted-foreground: 240 5% 65%;
+    --accent: 240 4% 14%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 4% 16%;
+    --input: 240 4% 16%;
+    --ring: 25 95% 53%;
+    --radius: 0.5rem;
+    --success: 142 71% 45%;
+    --warning: 48 96% 53%;
+    --info: 217 91% 60%;
+    --chart-1: 25 95% 53%;
+    --chart-2: 142 71% 45%;
+    --chart-3: 217 91% 60%;
+    --chart-4: 48 96% 53%;
+    --chart-5: 330 81% 60%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+  }
 }
 
 /* Scrollbar */
 ::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: #0a0e1a; }
-::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: #60a5fa; }
-
-/* Neon glow text */
-.text-glow-blue {
-  text-shadow: 0 0 20px rgba(96, 165, 250, 0.5), 0 0 40px rgba(96, 165, 250, 0.2);
-}
-.text-glow-purple {
-  text-shadow: 0 0 20px rgba(167, 139, 250, 0.5), 0 0 40px rgba(167, 139, 250, 0.2);
-}
+::-webkit-scrollbar-track { background: hsl(240 6% 3%); }
+::-webkit-scrollbar-thumb { background: hsl(240 4% 16%); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: hsl(25 95% 53%); }
 
 /* Card hover lift */
 .card-hover {
   @apply transition-all duration-300;
 }
 .card-hover:hover {
-  @apply -translate-y-1;
-  box-shadow: 0 0 30px rgba(96, 165, 250, 0.15);
-}
-
-/* Gradient border */
-.gradient-border {
-  position: relative;
-}
-.gradient-border::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  padding: 1px;
-  background: linear-gradient(135deg, #60a5fa, #a78bfa, #f472b6);
-  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
+  @apply -translate-y-1 shadow-lg;
 }

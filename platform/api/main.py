@@ -8,17 +8,28 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from .audit import init_audit_table
 from .database import get_db, init_db
-from .routers import agents, auth, components, makers, match, orders, posts
+from .events import setup_event_handlers
+from .logging_config import setup_logging
+from .middleware import RequestLoggingMiddleware
+from .rate_limit import RateLimitMiddleware
+from .routers import admin, agents, auth, components, health, makers, match, orders, posts, printer_sim, ws
+from .ws_manager import manager
 
 VERSION = "0.1.0"
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    setup_logging()
     init_db()
+    init_audit_table()
+    setup_event_handlers()
+    manager.start_heartbeat()
     print("🐾 RealWorldClaw API ready!")
     yield
+    manager.stop_heartbeat()
     print("👋 Shutting down...")
 
 
@@ -39,7 +50,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Rate limiting & request logging middleware (order matters: rate limit first)
+app.add_middleware(RequestLoggingMiddleware)
+app.add_middleware(RateLimitMiddleware)
+
 # Register routers under /api/v1
+app.include_router(health.router, prefix="/api/v1")
+app.include_router(admin.router, prefix="/api/v1")
 app.include_router(auth.router, prefix="/api/v1")
 app.include_router(agents.router, prefix="/api/v1")
 app.include_router(components.router, prefix="/api/v1")
@@ -47,6 +64,8 @@ app.include_router(posts.router, prefix="/api/v1")
 app.include_router(match.router, prefix="/api/v1")
 app.include_router(makers.router, prefix="/api/v1")
 app.include_router(orders.router, prefix="/api/v1")
+app.include_router(ws.router, prefix="/api/v1")
+app.include_router(printer_sim.router, prefix="/api/v1")
 
 
 @app.get("/")
