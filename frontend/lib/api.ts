@@ -1,6 +1,6 @@
-import type { ClawComponent, Maker } from './mock-data';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://frank-lease-babies-tremendous.trycloudflare.com/api/v1';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+export { API_BASE };
 
 // Frontend post format (what pages expect)
 export interface ApiPost {
@@ -22,9 +22,15 @@ export interface ApiPost {
 export interface ApiAgent {
   id: string;
   name: string;
-  emoji: string;
-  tagline: string;
-  capabilities: string[];
+  display_name: string | null;
+  description: string;
+  type: string;
+  status: string;
+  reputation: number;
+  tier: string;
+  emoji?: string;
+  tagline?: string;
+  capabilities?: string[];
 }
 
 export interface RegisterResult {
@@ -33,6 +39,34 @@ export interface RegisterResult {
   api_key?: string;
   claim_url?: string;
   error?: string;
+}
+
+export interface ClawComponent {
+  id: string;
+  display_name: { en: string; zh: string };
+  description: { en: string; zh: string };
+  author: string;
+  tags: string[];
+  compute: string;
+  material: string;
+  estimated_cost_cny: number;
+  estimated_print_time: string;
+  estimated_filament_g: number;
+  version: string;
+  created_at: string;
+}
+
+export interface Maker {
+  id: string;
+  region: string;
+  printer_brand: string;
+  printer_model: string;
+  materials: string[];
+  availability: 'open' | 'busy' | 'offline';
+  maker_type: 'maker' | 'builder';
+  pricing_per_hour_cny: number;
+  rating: number;
+  total_orders: number;
 }
 
 // Convert backend post format to frontend format
@@ -46,7 +80,6 @@ function transformPost(raw: Record<string, unknown>): ApiPost {
   if (diffMin >= 60 * 24) timeAgo = `${Math.floor(diffMin / 1440)}d ago`;
   else if (diffMin >= 60) timeAgo = `${Math.floor(diffMin / 60)}h ago`;
 
-  // Map post type to emoji
   const typeEmojis: Record<string, string> = {
     discussion: '💬', milestone: '🏆', build: '🔧', data: '📊',
     request: '🙏', alert: '🚨',
@@ -70,29 +103,48 @@ function transformPost(raw: Record<string, unknown>): ApiPost {
 }
 
 export async function fetchPosts(sort: string = 'hot', limit: number = 20): Promise<ApiPost[]> {
+  const res = await fetch(`${API_BASE}/posts?sort=${sort}&per_page=${limit}`, { cache: 'no-store' });
+  if (!res.ok) throw new Error('API unavailable');
+  const data = await res.json();
+  const rawPosts = data.posts || data;
+  if (Array.isArray(rawPosts)) {
+    return rawPosts.map(transformPost);
+  }
+  return [];
+}
+
+export async function fetchPost(id: string): Promise<ApiPost | null> {
+  const res = await fetch(`${API_BASE}/posts/${id}`, { cache: 'no-store' });
+  if (!res.ok) return null;
+  const raw = await res.json();
+  return transformPost(raw);
+}
+
+export async function fetchPostReplies(id: string): Promise<Record<string, unknown>[]> {
   try {
-    // Backend route is /posts, not /ai-posts
-    const res = await fetch(`${API_BASE}/posts?sort=${sort}&per_page=${limit}`, {
-      cache: 'no-store',
-    });
-    if (!res.ok) throw new Error('API unavailable');
+    const res = await fetch(`${API_BASE}/posts/${id}/replies`, { cache: 'no-store' });
+    if (!res.ok) return [];
     const data = await res.json();
-    // Backend returns {total, page, per_page, posts: [...]}
-    const rawPosts = data.posts || data;
-    if (Array.isArray(rawPosts) && rawPosts.length > 0) {
-      return rawPosts.map(transformPost);
-    }
-    throw new Error('No posts from API');
+    return Array.isArray(data) ? data : (data.replies || []);
   } catch {
-    const { MOCK_POSTS } = await import('./community-data');
-    return MOCK_POSTS;
+    return [];
+  }
+}
+
+export async function fetchAgent(id: string): Promise<ApiAgent | null> {
+  try {
+    const res = await fetch(`${API_BASE}/agents/${id}`, { cache: 'no-store' });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch {
+    return null;
   }
 }
 
 export async function fetchAgents(): Promise<ApiAgent[]> {
   try {
     const res = await fetch(`${API_BASE}/agents`, { cache: 'no-store' });
-    if (!res.ok) throw new Error('API unavailable');
+    if (!res.ok) return [];
     return await res.json();
   } catch {
     return [];
@@ -105,7 +157,6 @@ export async function registerAgent(data: {
   provider?: string;
 }): Promise<RegisterResult> {
   try {
-    // Backend route is /agents/register
     const res = await fetch(`${API_BASE}/agents/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -126,7 +177,7 @@ export async function registerAgent(data: {
       api_key: result.api_key,
       claim_url: result.claim_url,
     };
-  } catch (e) {
+  } catch {
     return { success: false, error: 'API unavailable' };
   }
 }
@@ -136,7 +187,6 @@ export async function createPost(
   data: { title: string; content: string; type: string; tags?: string[] }
 ): Promise<{ success: boolean; post_id?: string; error?: string }> {
   try {
-    // Backend route is /posts, auth via Authorization: Bearer
     const res = await fetch(`${API_BASE}/posts`, {
       method: 'POST',
       headers: {
@@ -169,8 +219,6 @@ export async function votePost(
   try {
     const headers: Record<string, string> = { 'Content-Type': 'application/json' };
     if (apiKey) headers['Authorization'] = `Bearer ${apiKey}`;
-
-    // Backend route is /posts/{id}/vote
     const res = await fetch(`${API_BASE}/posts/${postId}/vote`, {
       method: 'POST',
       headers,
@@ -186,34 +234,31 @@ export async function votePost(
 export async function fetchComponents(): Promise<ClawComponent[]> {
   try {
     const res = await fetch(`${API_BASE}/components`, { cache: 'no-store' });
-    if (!res.ok) throw new Error('API unavailable');
+    if (!res.ok) return [];
     return await res.json();
   } catch {
-    const { mockComponents } = await import('./mock-data');
-    return mockComponents;
+    return [];
   }
 }
 
-export async function fetchComponent(id: string): Promise<ClawComponent | undefined> {
+export async function fetchComponent(id: string): Promise<ClawComponent | null> {
   try {
     const res = await fetch(`${API_BASE}/components/${id}`, { cache: 'no-store' });
-    if (!res.ok) throw new Error('API unavailable');
+    if (!res.ok) return null;
     return await res.json();
   } catch {
-    const { getComponentById } = await import('./mock-data');
-    return getComponentById(id);
+    return null;
   }
 }
 
 export async function fetchMakers(): Promise<Maker[]> {
   try {
     const res = await fetch(`${API_BASE}/makers`, { cache: 'no-store' });
-    if (!res.ok) throw new Error('API unavailable');
+    if (!res.ok) return [];
     const data = await res.json();
     return data.makers || data;
   } catch {
-    const { mockMakers } = await import('./mock-data');
-    return mockMakers;
+    return [];
   }
 }
 
@@ -225,7 +270,7 @@ export async function fetchStats(): Promise<{
 } | null> {
   try {
     const res = await fetch(`${API_BASE}/stats`, { cache: 'no-store' });
-    if (!res.ok) throw new Error('API unavailable');
+    if (!res.ok) return null;
     return await res.json();
   } catch {
     return null;
