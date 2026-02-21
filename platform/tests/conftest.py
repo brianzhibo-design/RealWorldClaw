@@ -16,6 +16,7 @@ def _patch_env():
     """Ensure required env vars are set before any import."""
     os.environ.setdefault("RWC_API_KEY", "test-key-for-ci")
     os.environ.setdefault("JWT_SECRET_KEY", "test-jwt-secret")
+    os.environ["TESTING"] = "1"
 
 
 @pytest.fixture()
