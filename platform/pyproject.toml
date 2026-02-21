@@ -13,6 +13,9 @@ dependencies = [
 [project.scripts]
 rwc = "cli.rwc:main"
 
+[tool.setuptools.packages.find]
+include = ["api*", "cli*", "skills*", "printer*"]
+
 [build-system]
 requires = ["setuptools>=68.0"]
 build-backend = "setuptools.build_meta"
