@@ -74,25 +74,25 @@ export async function fetchComponents(
   limit = 100,
 ): Promise<ClawComponent[]> {
   const data = await apiFetch<ComponentListResponse>(
-    `/components?skip=${skip}&limit=${limit}`,
+    `/api/v1/components?skip=${skip}&limit=${limit}`,
   );
   return data.components.map(apiComponentToMock);
 }
 
 export async function fetchComponent(id: string): Promise<ClawComponent> {
-  const data = await apiFetch<ComponentResponse>(`/components/${id}`);
+  const data = await apiFetch<ComponentResponse>(`/api/v1/components/${id}`);
   return apiComponentToMock(data);
 }
 
 export async function fetchMakers(): Promise<Maker[]> {
-  const data = await apiFetch<MakerPublic[]>("/makers");
+  const data = await apiFetch<MakerPublic[]>("/api/v1/makers");
   return data.map(apiMakerToMock);
 }
 
 export async function fetchOrders(
   apiKey: string,
 ): Promise<{ as_customer: OrderResponse[]; as_maker: OrderResponse[] }> {
-  return apiFetch("/orders", {
+  return apiFetch("/api/v1/orders", {
     headers: { "X-API-Key": apiKey },
   });
 }
@@ -111,7 +111,7 @@ export interface OrderCreateData {
 }
 
 export async function createOrder(apiKey: string, data: OrderCreateData) {
-  return apiFetch("/orders", {
+  return apiFetch("/api/v1/orders", {
     method: "POST",
     headers: { "X-API-Key": apiKey },
     body: JSON.stringify(data),
@@ -125,8 +125,8 @@ export async function fetchStats(): Promise<{
 }> {
   // 后端暂无 /stats 端点，手动聚合
   const [comps, makers] = await Promise.all([
-    apiFetch<ComponentListResponse>("/components?skip=0&limit=1"),
-    apiFetch<MakerPublic[]>("/makers"),
+    apiFetch<ComponentListResponse>("/api/v1/components?skip=0&limit=1"),
+    apiFetch<MakerPublic[]>("/api/v1/makers"),
   ]);
   return {
     components: comps.total,

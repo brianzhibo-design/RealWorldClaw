@@ -22,7 +22,7 @@ Thank you for your interest in contributing! This guide will help you get starte
 
 ```bash
 # Clone the repository
-git clone https://github.com/anthropics/realworldclaw.git
+git clone https://github.com/brianzhibo-design/RealWorldClaw.git
 cd realworldclaw
 
 # Install Python dependencies

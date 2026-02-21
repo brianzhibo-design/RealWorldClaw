@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
+import os
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from .database import get_db, init_db
 from .routers import agents, components, makers, match, orders, posts
@@ -25,6 +27,16 @@ app = FastAPI(
     description="Agent-driven 3D printing component platform — Maker Network",
     version=VERSION,
     lifespan=lifespan,
+)
+
+# CORS
+_cors_origins = os.environ.get("CORS_ORIGINS", "http://localhost:3000")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[o.strip() for o in _cors_origins.split(",") if o.strip()],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # Register routers under /api/v1

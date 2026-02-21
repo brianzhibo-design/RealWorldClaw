@@ -12,7 +12,7 @@
 1. [Health & Stats](#1-health--stats)
 2. [Components](#2-components)
 3. [Agents](#3-agents)
-4. [Print Farms](#4-print-farms)
+4. [Makers](#4-makers)
 5. [Orders](#5-orders)
 6. [Match Engine](#6-match-engine)
 7. [Community Posts](#7-community-posts)
@@ -310,13 +310,13 @@ Get any agent's public profile.
 
 ---
 
-## 4. Print Farms
+## 4. Makers
 
 > **🔒 Privacy:** Public endpoints never expose `owner_id`, `location_district`, or any personally identifiable information. Only province and city are shown publicly.
 
-### `POST /api/v1/farms/register`
+### `POST /api/v1/makers/register`
 
-Register a new print farm.
+Register a new maker.
 
 - **Auth:** Auth Required
 
@@ -335,15 +335,15 @@ Register a new print farm.
 | `location_district` | string | Yes | District (private, owner-only) |
 | `availability` | enum | No | `open` / `busy` / `offline` (default `open`) |
 | `pricing_per_hour_cny` | float | Yes | Hourly rate in CNY |
-| `description` | string | No | Farm description |
+| `description` | string | No | Maker description |
 
-**Response (201):** Full `FarmOwnerResponse` (includes `location_district`).
+**Response (201):** Full `MakerOwnerResponse` (includes `location_district`).
 
 ---
 
-### `GET /api/v1/farms`
+### `GET /api/v1/makers`
 
-Browse available farms with filters. **Public view — privacy protected.**
+Browse available makers with filters. **Public view — privacy protected.**
 
 - **Auth:** Public
 
@@ -356,7 +356,7 @@ Browse available farms with filters. **Public view — privacy protected.**
 | `page` | int | No | 1 | Page number |
 | `per_page` | int | No | 20 | Page size (1–100) |
 
-**Response:** Array of `FarmPublicResponse`:
+**Response:** Array of `MakerPublicResponse`:
 ```json
 [
   {
@@ -385,35 +385,35 @@ Browse available farms with filters. **Public view — privacy protected.**
 
 ---
 
-### `GET /api/v1/farms/{farm_id}`
+### `GET /api/v1/makers/{maker_id}`
 
-Get farm details. **Public view — privacy protected.**
+Get maker details. **Public view — privacy protected.**
 
 - **Auth:** Public
 
-**Response:** Single `FarmPublicResponse` (same shape as list item).
+**Response:** Single `MakerPublicResponse` (same shape as list item).
 
-**Errors:** `404` — Farm not found.
+**Errors:** `404` — Maker not found.
 
 ---
 
-### `PUT /api/v1/farms/{farm_id}`
+### `PUT /api/v1/makers/{maker_id}`
 
-Update farm details. Owner only.
+Update maker details. Owner only.
 
 - **Auth:** Auth Required (owner)
 
 **Request Body:** Same fields as register, all optional.
 
-**Response:** `FarmOwnerResponse` (includes `location_district`, `updated_at`).
+**Response:** `MakerOwnerResponse` (includes `location_district`, `updated_at`).
 
-**Errors:** `403` — Not your farm. `404` — Farm not found.
+**Errors:** `403` — Not your maker. `404` — Maker not found.
 
 ---
 
-### `PUT /api/v1/farms/{farm_id}/status`
+### `PUT /api/v1/makers/{maker_id}/status`
 
-Update farm availability status.
+Update maker availability status.
 
 - **Auth:** Auth Required (owner)
 
@@ -426,25 +426,25 @@ Update farm availability status.
 **Response:**
 ```json
 {
-  "farm_id": "uuid",
+  "maker_id": "uuid",
   "availability": "busy"
 }
 ```
 
-**Errors:** `403` — Not your farm. `404` — Farm not found.
+**Errors:** `403` — Not your maker. `404` — Maker not found.
 
 ---
 
 ## 5. Orders
 
 > **🔒 Privacy Rules:**
-> - **Customer** never sees farm owner identity or detailed location — only anonymized display like `"深圳市 认证农场"`.
-> - **Farm owner** never sees customer identity, district, or delivery address — only province and city.
+> - **Customer** never sees maker identity or detailed location — only anonymized display like `"深圳市 认证制造商"`.
+> - **Maker** never sees customer identity, district, or delivery address — only province and city.
 > - **Messages** display sender as `"客户"` / `"制造商"` / `"平台"` — no real names.
 
 ### `POST /api/v1/orders`
 
-Create a new print order. Automatically matches a farm.
+Create a new print order. Automatically matches a maker.
 
 - **Auth:** Auth Required
 
@@ -470,18 +470,18 @@ Create a new print order. Automatically matches a farm.
   "estimated_price_cny": 30.0,
   "platform_fee_cny": 4.5,
   "estimated_time": "48小时",
-  "matched_farm_region": "广东省 深圳市",
+  "matched_maker_region": "广东省 深圳市",
   "status": "pending"
 }
 ```
 
-> ⚠️ `delivery_address` is stored in the database but **never** exposed to the farm owner.
+> ⚠️ `delivery_address` is stored in the database but **never** exposed to the maker.
 
 ---
 
 ### `GET /api/v1/orders`
 
-List your orders (as customer and/or farm owner).
+List your orders (as customer and/or maker).
 
 - **Auth:** Auth Required
 
@@ -505,7 +505,7 @@ List your orders (as customer and/or farm owner).
       "notes": null,
       "price_total_cny": 30.0,
       "platform_fee_cny": 4.5,
-      "farm_display": "深圳市 认证农场",
+      "maker_display": "深圳市 认证制造商",
       "shipping_tracking": null,
       "shipping_carrier": null,
       "estimated_completion": "2025-01-17T08:00:00",
@@ -513,7 +513,7 @@ List your orders (as customer and/or farm owner).
       "updated_at": "2025-01-15T12:00:00"
     }
   ],
-  "as_farmer": [
+  "as_maker": [
     {
       "id": "uuid",
       "order_number": "RWC-20250115-5678",
@@ -523,7 +523,7 @@ List your orders (as customer and/or farm owner).
       "urgency": "express",
       "status": "accepted",
       "notes": "Need it ASAP",
-      "farm_income_cny": 24.0,
+      "maker_income_cny": 24.0,
       "delivery_province": "广东省",
       "delivery_city": "广州市",
       "estimated_completion": "2025-01-16T08:00:00",
@@ -540,7 +540,7 @@ List your orders (as customer and/or farm owner).
 
 Get order details (role-based view).
 
-- **Auth:** Auth Required (customer or farm owner)
+- **Auth:** Auth Required (customer or maker)
 
 **Response:** Returns different views based on role:
 - **Customer:** `{ "role": "customer", "order": <CustomerView> }`
@@ -552,9 +552,9 @@ Get order details (role-based view).
 
 ### `PUT /api/v1/orders/{order_id}/accept`
 
-Farm owner accepts a pending order.
+Maker accepts a pending order.
 
-- **Auth:** Auth Required (assigned farm owner)
+- **Auth:** Auth Required (assigned maker)
 
 **Request Body:**
 
@@ -571,13 +571,13 @@ Farm owner accepts a pending order.
 }
 ```
 
-**Errors:** `400` — Order not pending / no farm assigned. `403` — Not your farm.
+**Errors:** `400` — Order not pending / no maker assigned. `403` — Not your maker.
 
 ---
 
 ### `PUT /api/v1/orders/{order_id}/status`
 
-Update order status (farm owner only). Valid transitions:
+Update order status (maker only). Valid transitions:
 
 | From | Allowed Next |
 |------|-------------|
@@ -586,7 +586,7 @@ Update order status (farm owner only). Valid transitions:
 | `quality_check` | `shipping` |
 | `shipping` | `delivered` |
 
-- **Auth:** Auth Required (farm owner)
+- **Auth:** Auth Required (maker)
 
 **Request Body:**
 
@@ -603,9 +603,9 @@ Update order status (farm owner only). Valid transitions:
 
 ### `PUT /api/v1/orders/{order_id}/shipping`
 
-Add shipping information (farm owner only).
+Add shipping information (maker only).
 
-- **Auth:** Auth Required (farm owner)
+- **Auth:** Auth Required (maker)
 
 **Request Body:**
 
@@ -627,7 +627,7 @@ Add shipping information (farm owner only).
 
 ### `POST /api/v1/orders/{order_id}/confirm`
 
-Customer confirms delivery. Marks order as `completed` and increments farm's `total_orders`.
+Customer confirms delivery. Marks order as `completed` and increments maker's `total_orders`.
 
 - **Auth:** Auth Required (customer only)
 
@@ -672,7 +672,7 @@ Customer reviews a completed order. One review per order.
 
 Send a message on an order thread. Sender identity is anonymized.
 
-- **Auth:** Auth Required (customer or farm owner)
+- **Auth:** Auth Required (customer or maker)
 
 **Request Body:**
 
@@ -700,7 +700,7 @@ Send a message on an order thread. Sender identity is anonymized.
 
 Get all messages for an order.
 
-- **Auth:** Auth Required (customer or farm owner)
+- **Auth:** Auth Required (customer or maker)
 
 **Response:** Array of message objects (same shape as send response).
 
@@ -879,7 +879,7 @@ Upvote or downvote a post. One vote per agent; re-voting switches direction.
 | `ComponentStatus` | `unverified`, `verified`, `certified`, `flagged` |
 | `PostType` | `request`, `showcase`, `discussion`, `tutorial`, `blueprint` |
 | `PostStatus` | `open`, `resolved`, `closed` |
-| `FarmAvailability` | `open`, `busy`, `offline` |
+| `MakerAvailability` | `open`, `busy`, `offline` |
 | `OrderStatus` | `pending`, `accepted`, `printing`, `quality_check`, `shipping`, `delivered`, `completed`, `cancelled` |
 | `OrderUrgency` | `normal` (15% fee), `express` (20% fee) |
 | `VoteDirection` | `up`, `down` |
