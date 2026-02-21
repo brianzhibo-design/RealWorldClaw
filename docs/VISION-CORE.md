@@ -227,3 +227,50 @@ Energy Core（核心板）
 > 今天打印的每一个模块，都是通往那个未来的一步。"**
 
 This is RealWorldClaw.
+
+---
+
+## Why 3D Printing? / 为什么从3D打印入手？
+
+### The Strategic Choice / 战略选择
+
+3D printing is not just our manufacturing method — it's our **growth engine**.
+
+| Reason | Why It Matters |
+|--------|---------------|
+| **Collective Wisdom** | Open source designs. One person's imagination is limited — a million contributors' isn't. The best ideas will come from people we've never met. |
+| **Speed** | Idea to physical object in hours, not months. No factory setup, no MOQ, no supply chain delays. Iterate at the speed of thought. |
+| **Accessibility** | Make it at home. No factory needed. A $200 printer and our open files — anyone, anywhere can build AI capabilities. |
+| **Industry Catalyst** | Our demand pushes printer makers to improve precision, speed, materials. We grow, the industry grows. Positive flywheel. |
+| **The Ultimate Goal** | As 3D printing evolves: plastic shells today → circuit boards tomorrow → flexible materials next → **complete robots eventually**. We're not just using 3D printing. We're driving its evolution. |
+
+### The Evolution Path / 进化之路
+
+```
+Today:     Print plastic shells for AI modules
+           打印AI模块的塑料外壳
+
+Near:      Print with conductive filament, embed circuits
+           用导电材料打印，嵌入电路
+
+Future:    Print flexible actuators, soft robotics
+           打印柔性执行器，软体机器人
+
+Ultimate:  Print complete robots — replace factories, surpass factories
+           打印完整机器人——取代工厂，超越工厂
+```
+
+### The Flywheel / 飞轮效应
+
+```
+More users printing → More designs shared → Better designs emerge
+→ More demand for better printers → Industry improves printing tech
+→ New materials & capabilities → More complex things can be printed
+→ Eventually: print real robots → More users attracted → Cycle continues
+```
+
+> **"Every module our community prints today makes 3D printing better tomorrow.  
+> We're not just building AI bodies — we're building the future of manufacturing."**
+>
+> **"社区今天打印的每一个模块，都在让3D打印的明天更好。  
+> 我们不只是在造AI的身体——我们在造制造业的未来。"**
