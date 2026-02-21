@@ -1,0 +1,14 @@
+title: "💡 Idea: "
+labels: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Share your idea for RealWorldClaw! New modules, new AI use cases, platform improvements — everything is welcome.
+  - type: textarea
+    id: idea
+    attributes:
+      label: Your idea
+      placeholder: Describe your idea...
+    validations:
+      required: true

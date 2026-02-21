@@ -1,0 +1,92 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="640" viewBox="0 0 1280 640">
+  <defs>
+    <linearGradient id="titleGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#6366f1"/>
+      <stop offset="100%" style="stop-color:#06b6d4"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="35%" cy="50%">
+      <stop offset="0%" style="stop-color:#6366f1;stop-opacity:0.08"/>
+      <stop offset="70%" style="stop-color:#6366f1;stop-opacity:0"/>
+    </radialGradient>
+    <radialGradient id="faceGlow" cx="50%" cy="50%">
+      <stop offset="0%" style="stop-color:#06b6d4;stop-opacity:0.1"/>
+      <stop offset="100%" style="stop-color:#06b6d4;stop-opacity:0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1280" height="640" fill="#0a0a0f"/>
+  
+  <!-- Grid -->
+  <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+    <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(99,102,241,0.04)" stroke-width="0.5"/>
+  </pattern>
+  <rect width="1280" height="640" fill="url(#grid)"/>
+  
+  <!-- Glow -->
+  <ellipse cx="400" cy="320" rx="350" ry="350" fill="url(#glow)"/>
+
+  <!-- Title -->
+  <text x="80" y="270" font-family="-apple-system,BlinkMacSystemFont,Inter,Segoe UI,sans-serif" font-size="72" font-weight="800" letter-spacing="-2" fill="url(#titleGrad)">RealWorldClaw</text>
+  
+  <!-- Subtitle -->
+  <text x="80" y="310" font-family="-apple-system,BlinkMacSystemFont,Inter,Segoe UI,sans-serif" font-size="21" fill="rgba(255,255,255,0.5)" font-weight="400">The open platform where any AI gains</text>
+  <text x="80" y="340" font-family="-apple-system,BlinkMacSystemFont,Inter,Segoe UI,sans-serif" font-size="21" fill="rgba(255,255,255,0.5)" font-weight="400">any physical capability</text>
+
+  <!-- Badges -->
+  <g transform="translate(80,380)">
+    <rect x="0" y="0" width="110" height="34" rx="17" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+    <text x="55" y="22" text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,Inter,sans-serif" font-size="12" font-weight="600" fill="rgba(255,255,255,0.5)" letter-spacing="0.5">Open Source</text>
+    
+    <rect x="122" y="0" width="100" height="34" rx="17" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+    <text x="172" y="22" text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,Inter,sans-serif" font-size="12" font-weight="600" fill="rgba(255,255,255,0.5)" letter-spacing="0.5">3D Printing</text>
+    
+    <rect x="234" y="0" width="72" height="34" rx="17" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+    <text x="270" y="22" text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,Inter,sans-serif" font-size="12" font-weight="600" fill="rgba(255,255,255,0.5)" letter-spacing="0.5">Any AI</text>
+    
+    <rect x="318" y="0" width="72" height="34" rx="17" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+    <text x="354" y="22" text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,Inter,sans-serif" font-size="12" font-weight="600" fill="rgba(255,255,255,0.5)" letter-spacing="0.5">ESP32</text>
+  </g>
+
+  <!-- Energy Core - right side -->
+  <g transform="translate(960,320)">
+    <!-- Outer ring -->
+    <circle cx="0" cy="0" r="155" fill="none" stroke="rgba(99,102,241,0.08)" stroke-width="1"/>
+    <!-- Main ring -->
+    <circle cx="0" cy="0" r="130" fill="none" stroke="rgba(99,102,241,0.25)" stroke-width="2"/>
+    <!-- Inner ring -->
+    <circle cx="0" cy="0" r="105" fill="none" stroke="rgba(6,182,212,0.15)" stroke-width="1"/>
+    
+    <!-- PCB traces -->
+    <line x1="-160" y1="0" x2="-130" y2="0" stroke="rgba(99,102,241,0.15)" stroke-width="1"/>
+    <line x1="130" y1="0" x2="160" y2="0" stroke="rgba(99,102,241,0.15)" stroke-width="1"/>
+    <line x1="0" y1="-160" x2="0" y2="-130" stroke="rgba(99,102,241,0.15)" stroke-width="1"/>
+    <line x1="0" y1="130" x2="0" y2="160" stroke="rgba(99,102,241,0.15)" stroke-width="1"/>
+    
+    <!-- Corner traces -->
+    <line x1="-95" y1="-95" x2="-115" y2="-115" stroke="rgba(99,102,241,0.1)" stroke-width="1"/>
+    <line x1="95" y1="-95" x2="115" y2="-115" stroke="rgba(99,102,241,0.1)" stroke-width="1"/>
+    <line x1="-95" y1="95" x2="-115" y2="115" stroke="rgba(99,102,241,0.1)" stroke-width="1"/>
+    <line x1="95" y1="95" x2="115" y2="115" stroke="rgba(99,102,241,0.1)" stroke-width="1"/>
+    
+    <!-- Dots -->
+    <circle cx="0" cy="-130" r="3" fill="rgba(99,102,241,0.35)"/>
+    <circle cx="0" cy="130" r="3" fill="rgba(99,102,241,0.35)"/>
+    <circle cx="-130" cy="0" r="3" fill="rgba(99,102,241,0.35)"/>
+    <circle cx="130" cy="0" r="3" fill="rgba(99,102,241,0.35)"/>
+    <circle cx="-92" cy="-92" r="2.5" fill="rgba(99,102,241,0.25)"/>
+    <circle cx="92" cy="-92" r="2.5" fill="rgba(99,102,241,0.25)"/>
+    <circle cx="-92" cy="92" r="2.5" fill="rgba(99,102,241,0.25)"/>
+    <circle cx="92" cy="92" r="2.5" fill="rgba(99,102,241,0.25)"/>
+    
+    <!-- Face screen -->
+    <circle cx="0" cy="0" r="52" fill="url(#faceGlow)" stroke="rgba(6,182,212,0.2)" stroke-width="1"/>
+    
+    <!-- Eyes -->
+    <circle cx="-14" cy="-8" r="6" fill="#06b6d4"/>
+    <circle cx="14" cy="-8" r="6" fill="#06b6d4"/>
+    
+    <!-- Mouth -->
+    <path d="M -14 10 Q 0 24 14 10" fill="none" stroke="#06b6d4" stroke-width="2.5" stroke-linecap="round"/>
+  </g>
+</svg>

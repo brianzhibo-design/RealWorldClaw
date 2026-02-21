@@ -1,0 +1,14 @@
+title: "🔧 Show & Tell: "
+labels: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Show off what you've built with RealWorldClaw! Photos, videos, build logs — we want to see it all.
+  - type: textarea
+    id: showcase
+    attributes:
+      label: What did you build?
+      placeholder: Share your creation...
+    validations:
+      required: true
