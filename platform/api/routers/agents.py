@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import json
 import secrets
-import uuid
 from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, Header, HTTPException
@@ -23,10 +22,14 @@ VERSION = "0.1.0"
 
 
 def _tier_for_rep(rep: int) -> str:
-    if rep >= 2000: return "legend"
-    if rep >= 500:  return "core"
-    if rep >= 100:  return "trusted"
-    if rep >= 20:   return "contributor"
+    if rep >= 2000:
+        return "legend"
+    if rep >= 500:
+        return "core"
+    if rep >= 100:
+        return "trusted"
+    if rep >= 20:
+        return "contributor"
     return "newcomer"
 
 

@@ -18,7 +18,7 @@ def _compute_score(component: dict, req: MatchRequest) -> tuple[float, str]:
     score = 0.0
     reasons = []
     tags = json.loads(component["tags"] or "[]")
-    caps = json.loads(component["capabilities"] or "[]")
+    json.loads(component["capabilities"] or "[]")
     need_lower = req.need.lower()
 
     # 1. 关键词匹配 (0-0.3)

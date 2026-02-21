@@ -17,8 +17,6 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from ..database import get_db
 from ..models.schemas import (
     MakerAvailability,
-    MakerOwnerResponse,
-    MakerPublicResponse,
     MakerRegisterRequest,
     MakerStatusUpdate,
     MakerUpdateRequest,

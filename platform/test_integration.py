@@ -6,8 +6,6 @@ RealWorldClaw 平台 MVP 集成测试
 直接运行: python3 test_integration.py
 """
 
-import json
-import os
 import sqlite3
 import sys
 import traceback

@@ -11,7 +11,6 @@ from fastapi import APIRouter, Depends, Query
 
 from ..database import get_db
 from ..deps import require_role
-from ..logging_config import get_logger
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 

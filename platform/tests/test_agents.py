@@ -3,12 +3,11 @@
 from __future__ import annotations
 
 import secrets
-from datetime import datetime, timezone
 
 import pytest
 from fastapi.testclient import TestClient
 
-from api.database import get_db, init_db
+from api.database import init_db
 from api.main import app
 
 client = TestClient(app)

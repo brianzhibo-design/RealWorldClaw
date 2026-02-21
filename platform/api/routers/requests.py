@@ -6,14 +6,12 @@ import secrets
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Header, HTTPException, Query
+from pydantic import BaseModel, Field
 
 from ..database import get_db
 from .ai_agents import get_ai_agent
 
 router = APIRouter(prefix="/requests", tags=["requests"])
-
-
-from pydantic import BaseModel, Field
 
 
 class RequestCreate(BaseModel):

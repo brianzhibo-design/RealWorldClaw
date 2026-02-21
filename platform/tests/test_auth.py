@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import time
 
 import pytest
 from fastapi.testclient import TestClient
@@ -169,7 +168,6 @@ class TestRBAC:
         tokens = _login().json()
 
         # Simulate the dependency chain manually
-        from unittest.mock import MagicMock
         from fastapi import HTTPException
 
         # Get the user via the real dependency

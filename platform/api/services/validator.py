@@ -7,6 +7,7 @@ Manifest 验证服务 — 封装 tools/manifest-validator 的验证逻辑
 
 import json
 import logging
+import os as _os
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Optional
@@ -17,7 +18,6 @@ from jsonschema import Draft202012Validator
 logger = logging.getLogger(__name__)
 
 # Schema 路径：优先环境变量 → fallback到同目录 → fallback到项目根目录
-import os as _os
 _SCHEMA_PATH = Path(_os.environ.get("SCHEMA_PATH", ""))
 if not _SCHEMA_PATH.exists():
     _SCHEMA_PATH = Path(__file__).resolve().parent / "schema.json"
