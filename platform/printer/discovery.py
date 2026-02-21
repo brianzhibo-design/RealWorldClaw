@@ -6,7 +6,6 @@
 import asyncio
 import logging
 from dataclasses import dataclass
-from typing import Optional
 
 logger = logging.getLogger(__name__)
 
@@ -90,7 +89,7 @@ class PrinterScanner:
                 pass
 
         listener = Listener(self)
-        browsers = [
+        [
             ServiceBrowser(zc, stype, listener)
             for stype in MDNS_SERVICE_MAP.keys()
         ]

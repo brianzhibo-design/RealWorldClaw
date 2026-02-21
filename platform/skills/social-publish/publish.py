@@ -16,7 +16,6 @@ import platform
 from abc import ABC, abstractmethod
 from pathlib import Path
 from dataclasses import dataclass, field
-from typing import Optional
 
 import yaml
 

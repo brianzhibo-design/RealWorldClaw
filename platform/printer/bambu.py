@@ -70,7 +70,6 @@ import logging
 import ssl
 import time
 import ftplib
-from io import BytesIO
 from pathlib import Path
 from typing import Any, Callable, Optional
 
@@ -176,7 +175,7 @@ class BambuLabAdapter(PrinterAdapter):
         if rc == 0:
             logger.info("✅ MQTT 已连接到 %s", self.host)
             # 订阅报告topic (通配符，兼容未知serial)
-            client.subscribe(f"device/+/report", qos=0)
+            client.subscribe("device/+/report", qos=0)
             self._connected = True
             # 请求全量状态
             self._send_command("pushing", "pushall", version=1, push_target=1)

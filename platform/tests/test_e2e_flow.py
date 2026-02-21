@@ -17,12 +17,12 @@ _tmp = tempfile.NamedTemporaryFile(suffix=".db", delete=False)
 _tmp.close()
 
 # Patch DB_PATH before importing anything
-import api.database as _db_mod
-from pathlib import Path
+import api.database as _db_mod  # noqa: E402
+from pathlib import Path  # noqa: E402
 _db_mod.DB_PATH = Path(_tmp.name)
 
-from api.database import init_db
-from api.main import app
+from api.database import init_db  # noqa: E402
+from api.main import app  # noqa: E402
 
 init_db()
 client = TestClient(app)

@@ -7,7 +7,7 @@ from fastapi.testclient import TestClient
 
 from api.main import app
 from api.security import create_access_token
-from api.events import Event, event_bus, EventBus
+from api.events import Event, EventBus
 from api.ws_manager import ConnectionManager
 
 
@@ -35,16 +35,16 @@ class TestWebSocketConnection:
                 pass
 
     def test_printer_ws_connects_with_valid_token(self, client, valid_token):
-        with client.websocket_connect(f"/api/v1/ws/printer/printer-1?token={valid_token}") as ws:
+        with client.websocket_connect(f"/api/v1/ws/printer/printer-1?token={valid_token}"):
             # Connection should be established; we can close cleanly
             pass
 
     def test_orders_ws_connects(self, client, valid_token):
-        with client.websocket_connect(f"/api/v1/ws/orders/test-user-1?token={valid_token}") as ws:
+        with client.websocket_connect(f"/api/v1/ws/orders/test-user-1?token={valid_token}"):
             pass
 
     def test_notifications_ws_connects(self, client, valid_token):
-        with client.websocket_connect(f"/api/v1/ws/notifications/test-user-1?token={valid_token}") as ws:
+        with client.websocket_connect(f"/api/v1/ws/notifications/test-user-1?token={valid_token}"):
             pass
 
 

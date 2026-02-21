@@ -6,7 +6,7 @@ import json
 import secrets
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends, Header, HTTPException, Query
+from fastapi import APIRouter, Header, HTTPException, Query
 
 from ..database import get_db
 from ..models.post import AIPostCreate, AIPostResponse
