@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <!-- Icon only: modular claw blocks -->
+  <g transform="translate(8, 4)">
+    <rect x="8" y="32" width="24" height="24" rx="4" fill="#f97316"/>
+    <rect x="16" y="12" width="20" height="20" rx="3" fill="#06b6d4"/>
+    <rect x="0" y="0" width="14" height="14" rx="2.5" fill="#f97316" opacity="0.85"/>
+    <rect x="22" y="0" width="14" height="14" rx="2.5" fill="#06b6d4" opacity="0.85"/>
+    <rect x="38" y="8" width="12" height="12" rx="2" fill="#f97316" opacity="0.6"/>
+    <circle cx="26" cy="22" r="3" fill="white"/>
+  </g>
+</svg>

@@ -1,0 +1,86 @@
+name: 🧩 Module Request
+description: Propose a new hardware module for the RWC ecosystem
+title: "[Module]: "
+labels: ["module-request", "hardware"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Proposing a new module? Great! Help us understand what you need.
+
+  - type: input
+    id: module-name
+    attributes:
+      label: Module Name
+      placeholder: "e.g., GPS Module, Camera Module, NFC Reader"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: module-type
+    attributes:
+      label: Module Category
+      options:
+        - core
+        - display
+        - audio
+        - power
+        - servo / actuator
+        - sensor
+        - communication
+        - storage
+        - other
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: What does this module do? What use cases does it enable?
+    validations:
+      required: true
+
+  - type: textarea
+    id: hardware
+    attributes:
+      label: Suggested Hardware
+      description: Key ICs, sensors, or components this module would use.
+      placeholder: |
+        - Main IC: u-blox NEO-6M (GPS)
+        - Interface: UART via RWC Bus
+        - Power: 3.3V, ~50mA active
+    validations:
+      required: false
+
+  - type: dropdown
+    id: bus-interface
+    attributes:
+      label: RWC Bus Interface
+      description: Primary communication protocol on the 8-pin bus.
+      options:
+        - I²C
+        - SPI
+        - UART
+        - GPIO only
+        - Multiple / Custom
+    validations:
+      required: true
+
+  - type: textarea
+    id: form-factor
+    attributes:
+      label: Form Factor Notes
+      description: Size constraints, mounting style, or enclosure ideas.
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checklist
+      options:
+        - label: I have checked that no similar module exists in the registry.
+          required: true
+        - label: I am willing to help design or test this module.
+          required: false
