@@ -1,7 +1,7 @@
 /** 订单页 — Orders */
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -14,7 +14,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Plus, Package } from "lucide-react";
+import { Plus, Package, Loader2 } from "lucide-react";
+import { API_BASE } from "@/lib/api";
+import { useAuthStore } from "@/stores/authStore";
 
 type OrderStatus = "pending" | "matched" | "printing" | "shipped" | "completed";
 
@@ -23,17 +25,8 @@ interface Order {
   componentName: string;
   status: OrderStatus;
   createdAt: string;
-  progress: number; // 0-100
+  progress: number;
 }
-
-const mockOrders: Order[] = [
-  { id: "ORD-20250221-001", componentName: "Clawbie V4 Cyber Egg", status: "printing", createdAt: "2025-02-21T09:00:00Z", progress: 62 },
-  { id: "ORD-20250220-003", componentName: "Spine Controller Mount", status: "completed", createdAt: "2025-02-20T14:20:00Z", progress: 100 },
-  { id: "ORD-20250220-002", componentName: "Eyes Module Bracket", status: "shipped", createdAt: "2025-02-20T11:00:00Z", progress: 90 },
-  { id: "ORD-20250219-001", componentName: "Battery Cradle", status: "matched", createdAt: "2025-02-19T16:45:00Z", progress: 15 },
-  { id: "ORD-20250218-002", componentName: "Speaker Housing", status: "pending", createdAt: "2025-02-18T20:30:00Z", progress: 0 },
-  { id: "ORD-20250217-001", componentName: "Servo Arm L/R", status: "completed", createdAt: "2025-02-17T08:00:00Z", progress: 100 },
-];
 
 const statusConfig: Record<OrderStatus, { label: string; className: string }> = {
   pending:   { label: "Pending",   className: "bg-yellow-500/15 text-yellow-400 border-yellow-500/20" },
@@ -47,12 +40,67 @@ const activeStatuses = new Set<OrderStatus>(["pending", "matched", "printing", "
 
 export default function OrdersPage() {
   const [tab, setTab] = useState("all");
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const token = useAuthStore((s) => s.token);
+
+  useEffect(() => {
+    if (!token) {
+      setLoading(false);
+      return;
+    }
+
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(`${API_BASE}/orders`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!res.ok) throw new Error(`Failed to fetch orders (${res.status})`);
+        const data = await res.json();
+        if (!cancelled) setOrders(Array.isArray(data) ? data : data.orders ?? []);
+      } catch (e: unknown) {
+        if (!cancelled) setError(e instanceof Error ? e.message : "Failed to load orders");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [token]);
 
   const filtered = useMemo(() => {
-    if (tab === "active") return mockOrders.filter((o) => activeStatuses.has(o.status));
-    if (tab === "completed") return mockOrders.filter((o) => o.status === "completed");
-    return mockOrders;
-  }, [tab]);
+    if (tab === "active") return orders.filter((o) => activeStatuses.has(o.status));
+    if (tab === "completed") return orders.filter((o) => o.status === "completed");
+    return orders;
+  }, [tab, orders]);
+
+  if (!token) {
+    return (
+      <div className="mx-auto max-w-5xl px-4 sm:px-6 py-10 sm:py-16 text-center">
+        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-muted">
+          <Package className="h-7 w-7 text-muted-foreground" />
+        </div>
+        <p className="text-lg font-medium text-muted-foreground">Please log in to view your orders</p>
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className="mx-auto max-w-5xl px-4 sm:px-6 py-10 sm:py-16 flex justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="mx-auto max-w-5xl px-4 sm:px-6 py-10 sm:py-16 text-center">
+        <p className="text-destructive">{error}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto max-w-5xl px-4 sm:px-6 py-10 sm:py-16">
@@ -94,7 +142,7 @@ export default function OrdersPage() {
             </TableHeader>
             <TableBody>
               {filtered.map((order) => {
-                const sc = statusConfig[order.status];
+                const sc = statusConfig[order.status] ?? { label: order.status, className: "" };
                 return (
                   <TableRow key={order.id} className="hover:bg-muted/50">
                     <TableCell className="font-mono text-sm">{order.id}</TableCell>
