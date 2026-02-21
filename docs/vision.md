@@ -105,4 +105,4 @@ The modular system is universal. The same Core + Display module can be:
 
 ---
 
-*"LEGO turned plastic bricks into tools of imagination. RealWorldClaw turns 3D printers into factories of intelligence."*
+*"Every AI deserves a body. RealWorldClaw turns 3D printers into the bridge between digital intelligence and physical reality."*

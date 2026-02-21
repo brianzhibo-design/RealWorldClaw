@@ -5,7 +5,7 @@
 <h1 align="center">RealWorldClaw</h1>
 
 <p align="center">
-  <strong>LEGO for Smart Hardware — Standard Modules + 3D Printing = Infinite AI Devices</strong>
+  <strong>The Bridge Between AI and the Physical World — Modular Hardware + 3D Printing = AI Bodies</strong>
 </p>
 
 <p align="center">

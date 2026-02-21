@@ -31,7 +31,7 @@
 
 This document defines the **RWC Module Standard** — a complete mechanical, electrical, and protocol specification for designing interoperable hardware modules in the RealWorldClaw ecosystem.
 
-RealWorldClaw is a LEGO-like modular AI hardware system. Its mission: **bring 3D printing into every household.** Modules snap together magnetically, communicate over a shared 8-pin bus, and self-identify to the host controller.
+RealWorldClaw is a modular AI hardware platform — the operating system for AI bodies. Its mission: **bring 3D printing into every household.** Modules snap together magnetically, communicate over a shared 8-pin bus, and self-identify to the host controller.
 
 Any module designed to this standard SHALL be interoperable with any RWC-compliant host.
 

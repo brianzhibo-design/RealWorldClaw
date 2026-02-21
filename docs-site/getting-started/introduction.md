@@ -2,9 +2,9 @@
 
 ## What is RealWorldClaw?
 
-**RealWorldClaw** is a modular hardware platform that turns 3D printers into smart hardware factories. Think of it as **LEGO for smart hardware** — standard electronic modules snap together magnetically with 3D-printed structures to create infinite AI-powered devices.
+**RealWorldClaw** is a modular hardware platform that turns 3D printers into smart hardware factories. Think of it as **an operating system for AI bodies** — standard electronic modules snap together magnetically with 3D-printed structures to create infinite AI-powered devices.
 
-> *"LEGO turned plastic bricks into tools of imagination. RealWorldClaw turns 3D printers into factories of intelligence."*
+> *"Every AI deserves a body. RealWorldClaw turns 3D printers into the bridge between digital intelligence and physical reality."*
 
 ## The Problem We Solve
 
