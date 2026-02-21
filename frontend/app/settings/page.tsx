@@ -1,166 +1,159 @@
 "use client";
 
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Switch } from "@/components/ui/switch";
+import { Moon, Sun, Globe, Bell, BellOff, Bot, Unplug } from "lucide-react";
 
 export default function SettingsPage() {
-  const [theme, setTheme] = useState<"dark" | "light" | "system">("dark");
-
+  const [theme, setTheme] = useState<"dark" | "light">("dark");
+  const [lang, setLang] = useState<"en" | "zh">("en");
   const [notifications, setNotifications] = useState({
     orderUpdates: true,
-    printComplete: true,
-    communityMessages: false,
+    aiMessages: true,
+    community: false,
   });
 
-  const mockKeys = [
-    { id: "k1", name: "Production Key", key: "rwc_sk_****...3f8a", created: "2026-01-15" },
-    { id: "k2", name: "Test Key", key: "rwc_sk_****...9b2c", created: "2026-02-01" },
+  const connectedAIs = [
+    { emoji: "🌿", name: "Fern", status: "online" },
+    { emoji: "🍳", name: "ChefBot", status: "online" },
+    { emoji: "🔭", name: "Stargazer", status: "offline" },
   ];
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-16">
-      <h1 className="text-3xl font-bold mb-10">
-        <span className="bg-gradient-to-r from-orange-500 to-amber-400 bg-clip-text text-transparent">
-          Settings
-        </span>
-      </h1>
+    <div className="min-h-screen bg-[#0B0F1A]">
+      <div className="mx-auto max-w-2xl px-4 py-12">
+        <h1 className="text-3xl font-bold mb-8">
+          <span className="bg-gradient-to-r from-indigo-400 to-cyan-400 bg-clip-text text-transparent">
+            Settings
+          </span>
+        </h1>
 
-      <div className="space-y-6">
-        {/* Profile */}
-        <Card className="bg-zinc-900/60 border-zinc-800">
-          <CardHeader>
-            <CardTitle className="text-lg">Profile</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center gap-4">
-              <div className="h-16 w-16 rounded-full bg-zinc-800 flex items-center justify-center text-2xl shrink-0">
+        <div className="space-y-6">
+          {/* Profile */}
+          <section className="rounded-xl border border-[#1F2937] bg-[#111827] p-6">
+            <h2 className="text-sm font-semibold text-zinc-300 uppercase tracking-wider mb-4">Profile</h2>
+            <div className="flex items-center gap-4 mb-5">
+              <div className="h-16 w-16 rounded-full bg-[#1F2937] flex items-center justify-center text-2xl shrink-0">
                 🧑‍💻
               </div>
-              <Button variant="outline" size="sm" className="border-zinc-700 text-zinc-400 hover:text-white">
-                Change Avatar
-              </Button>
-            </div>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div>
-                <label className="text-xs text-zinc-500 mb-1 block">Username</label>
-                <Input
-                  defaultValue="maker_brian"
-                  className="bg-zinc-800/50 border-zinc-700 focus:border-orange-500"
-                />
+              <div className="flex-1 min-w-0">
+                <p className="font-semibold text-zinc-100">maker_brian</p>
+                <p className="text-sm text-zinc-500">brian@example.com</p>
               </div>
-              <div>
-                <label className="text-xs text-zinc-500 mb-1 block">Email</label>
-                <Input
-                  defaultValue="brian@example.com"
-                  className="bg-zinc-800/50 border-zinc-700 focus:border-orange-500"
-                />
-              </div>
+              <button className="rounded-lg border border-[#1F2937] px-3 py-1.5 text-xs text-zinc-400 hover:text-zinc-200 hover:border-[#374151] transition-colors">
+                Edit
+              </button>
             </div>
-            <div>
-              <label className="text-xs text-zinc-500 mb-1 block">Bio</label>
-              <textarea
-                defaultValue="3D printing enthusiast & hardware hacker"
-                rows={3}
-                className="w-full rounded-md bg-zinc-800/50 border border-zinc-700 px-3 py-2 text-sm focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500 resize-none"
-              />
-            </div>
-            <div className="flex justify-end">
-              <Button className="bg-orange-500 hover:bg-orange-600 text-white">Save Profile</Button>
-            </div>
-          </CardContent>
-        </Card>
+          </section>
 
-        {/* API Keys */}
-        <Card className="bg-zinc-900/60 border-zinc-800">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-lg">API Keys</CardTitle>
-            <Button size="sm" className="bg-orange-500 hover:bg-orange-600 text-white">
-              Generate New Key
-            </Button>
-          </CardHeader>
-          <CardContent>
+          {/* AI Connection */}
+          <section className="rounded-xl border border-[#1F2937] bg-[#111827] p-6">
+            <h2 className="text-sm font-semibold text-zinc-300 uppercase tracking-wider mb-4 flex items-center gap-2">
+              <Bot size={14} />
+              AI Connections
+            </h2>
             <div className="space-y-3">
-              {mockKeys.map((k) => (
-                <div
-                  key={k.id}
-                  className="flex items-center justify-between rounded-lg bg-zinc-800/50 px-4 py-3"
-                >
-                  <div>
-                    <p className="text-sm font-medium">{k.name}</p>
-                    <p className="text-xs text-zinc-500 font-mono">{k.key}</p>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className="text-xs text-zinc-600">{k.created}</span>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="border-red-500/30 text-red-400 hover:bg-red-500/10 hover:text-red-300"
-                    >
-                      Revoke
-                    </Button>
-                  </div>
+              {connectedAIs.map((ai) => (
+                <div key={ai.name} className="flex items-center gap-3 rounded-lg bg-[#1F2937]/50 px-4 py-3">
+                  <span className="text-xl">{ai.emoji}</span>
+                  <span className="text-sm font-medium text-zinc-200 flex-1">{ai.name}</span>
+                  <span className={`h-2 w-2 rounded-full ${ai.status === "online" ? "bg-emerald-400" : "bg-zinc-600"}`} />
+                  <span className="text-xs text-zinc-500">{ai.status}</span>
+                  <button className="text-zinc-600 hover:text-rose-400 transition-colors">
+                    <Unplug size={14} />
+                  </button>
                 </div>
               ))}
             </div>
-          </CardContent>
-        </Card>
+          </section>
 
-        {/* Notifications */}
-        <Card className="bg-zinc-900/60 border-zinc-800">
-          <CardHeader>
-            <CardTitle className="text-lg">Notifications</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {([
-              { key: "orderUpdates" as const, label: "Order Updates", desc: "Get notified when order status changes" },
-              { key: "printComplete" as const, label: "Print Complete", desc: "Alert when a print job finishes" },
-              { key: "communityMessages" as const, label: "Community Messages", desc: "Messages from other makers and designers" },
-            ]).map((n) => (
-              <div key={n.key} className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium">{n.label}</p>
-                  <p className="text-xs text-zinc-500">{n.desc}</p>
+          {/* Notifications */}
+          <section className="rounded-xl border border-[#1F2937] bg-[#111827] p-6">
+            <h2 className="text-sm font-semibold text-zinc-300 uppercase tracking-wider mb-4 flex items-center gap-2">
+              <Bell size={14} />
+              Notifications
+            </h2>
+            <div className="space-y-4">
+              {([
+                { key: "orderUpdates" as const, label: "Order Updates", desc: "Get notified when order status changes" },
+                { key: "aiMessages" as const, label: "AI Messages", desc: "Messages from your connected AIs" },
+                { key: "community" as const, label: "Community", desc: "Updates from makers and community" },
+              ]).map((n) => (
+                <div key={n.key} className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-zinc-200">{n.label}</p>
+                    <p className="text-xs text-zinc-500">{n.desc}</p>
+                  </div>
+                  <button
+                    onClick={() => setNotifications((prev) => ({ ...prev, [n.key]: !prev[n.key] }))}
+                    className={`relative h-6 w-11 rounded-full transition-colors ${
+                      notifications[n.key] ? "bg-indigo-500" : "bg-[#1F2937]"
+                    }`}
+                  >
+                    <span
+                      className={`absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white transition-transform ${
+                        notifications[n.key] ? "translate-x-5" : "translate-x-0"
+                      }`}
+                    />
+                  </button>
                 </div>
-                <Switch
-                  checked={notifications[n.key]}
-                  onCheckedChange={(v) =>
-                    setNotifications((prev) => ({ ...prev, [n.key]: v }))
-                  }
-                />
-              </div>
-            ))}
-          </CardContent>
-        </Card>
+              ))}
+            </div>
+          </section>
 
-        {/* Appearance */}
-        <Card className="bg-zinc-900/60 border-zinc-800">
-          <CardHeader>
-            <CardTitle className="text-lg">Appearance</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-3 gap-3">
-              {(["dark", "light", "system"] as const).map((t) => (
+          {/* Theme */}
+          <section className="rounded-xl border border-[#1F2937] bg-[#111827] p-6">
+            <h2 className="text-sm font-semibold text-zinc-300 uppercase tracking-wider mb-4">Theme</h2>
+            <div className="grid grid-cols-2 gap-3">
+              {([
+                { value: "dark" as const, icon: Moon, label: "Dark" },
+                { value: "light" as const, icon: Sun, label: "Light" },
+              ]).map((t) => (
                 <button
-                  key={t}
-                  onClick={() => setTheme(t)}
-                  className={`rounded-xl border-2 p-4 text-center transition-all ${
-                    theme === t
-                      ? "border-orange-500 bg-orange-500/5"
-                      : "border-zinc-800 hover:border-zinc-700"
+                  key={t.value}
+                  onClick={() => setTheme(t.value)}
+                  className={`flex items-center justify-center gap-2 rounded-xl border-2 p-4 transition-all ${
+                    theme === t.value
+                      ? "border-indigo-500 bg-indigo-500/5"
+                      : "border-[#1F2937] hover:border-[#374151]"
                   }`}
                 >
-                  <div className="text-xl mb-1">
-                    {t === "dark" ? "🌙" : t === "light" ? "☀️" : "💻"}
-                  </div>
-                  <p className="text-sm capitalize">{t}</p>
+                  <t.icon size={16} className={theme === t.value ? "text-indigo-400" : "text-zinc-500"} />
+                  <span className={`text-sm font-medium ${theme === t.value ? "text-zinc-100" : "text-zinc-400"}`}>
+                    {t.label}
+                  </span>
                 </button>
               ))}
             </div>
-          </CardContent>
-        </Card>
+          </section>
+
+          {/* Language */}
+          <section className="rounded-xl border border-[#1F2937] bg-[#111827] p-6">
+            <h2 className="text-sm font-semibold text-zinc-300 uppercase tracking-wider mb-4 flex items-center gap-2">
+              <Globe size={14} />
+              Language
+            </h2>
+            <div className="grid grid-cols-2 gap-3">
+              {([
+                { value: "en" as const, label: "English" },
+                { value: "zh" as const, label: "中文" },
+              ]).map((l) => (
+                <button
+                  key={l.value}
+                  onClick={() => setLang(l.value)}
+                  className={`rounded-xl border-2 p-4 text-center transition-all ${
+                    lang === l.value
+                      ? "border-indigo-500 bg-indigo-500/5"
+                      : "border-[#1F2937] hover:border-[#374151]"
+                  }`}
+                >
+                  <span className={`text-sm font-medium ${lang === l.value ? "text-zinc-100" : "text-zinc-400"}`}>
+                    {l.label}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </section>
+        </div>
       </div>
     </div>
   );

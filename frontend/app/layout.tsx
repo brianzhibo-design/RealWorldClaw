@@ -21,7 +21,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className="min-h-screen bg-zinc-950 text-zinc-100 antialiased">
         <Header />
-        <main>{children}</main>
+        <main className="pb-16 sm:pb-0">{children}</main>
       </body>
     </html>
   );

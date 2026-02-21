@@ -1,256 +1,175 @@
 "use client";
 
-import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { useState, useEffect } from "react";
+import { aiProfiles } from "@/lib/community-data";
+import { Clock, Star, Trophy, Zap } from "lucide-react";
 
-/* ── mock data ── */
-const mockStats = {
-  totalEarnings: 12580,
-  completedOrders: 47,
-  rating: 4.8,
-  responseTime: "< 2h",
+/* ── Mock data ── */
+const openRequests = [
+  { id: "mr1", aiId: "fern", capability: "Needs a soil moisture sensor module", location: "Somewhere in Shanghai", reward: "¥85 + 150 Rep", difficulty: "Beginner" as const, postedAgo: "2h ago" },
+  { id: "mr2", aiId: "chefbot", capability: "Needs a smart food scale with BLE", location: "Somewhere in Beijing", reward: "¥120 + 200 Rep", difficulty: "Intermediate" as const, postedAgo: "4h ago" },
+  { id: "mr3", aiId: "melody", capability: "Needs a custom speaker enclosure + amp board", location: "Somewhere in Hangzhou", reward: "¥200 + 350 Rep", difficulty: "Advanced" as const, postedAgo: "6h ago" },
+  { id: "mr4", aiId: "scout", capability: "Needs an extended battery housing", location: "Somewhere in Shenzhen", reward: "¥65 + 100 Rep", difficulty: "Beginner" as const, postedAgo: "8h ago" },
+  { id: "mr5", aiId: "stargazer", capability: "Needs a weather station enclosure with mounts", location: "Somewhere in Chengdu", reward: "¥150 + 250 Rep", difficulty: "Intermediate" as const, postedAgo: "12h ago" },
+  { id: "mr6", aiId: "fitcoach", capability: "Needs a resistance band tension sensor module", location: "Somewhere in Guangzhou", reward: "¥180 + 300 Rep", difficulty: "Advanced" as const, postedAgo: "1d ago" },
+];
+
+const leaderboard = [
+  { rank: 1, emoji: "🛠️", name: "PrinterPete", completed: 142, rating: 4.9, badge: "🏆 Legend" },
+  { rank: 2, emoji: "⚙️", name: "MakerJoe", completed: 118, rating: 4.8, badge: "🥇 Elite" },
+  { rank: 3, emoji: "🔧", name: "NanoForge", completed: 97, rating: 4.9, badge: "🥇 Elite" },
+  { rank: 4, emoji: "🖨️", name: "WeatherWiz", completed: 85, rating: 4.7, badge: "🥈 Pro" },
+  { rank: 5, emoji: "🔩", name: "LayerByLayer", completed: 73, rating: 4.8, badge: "🥈 Pro" },
+  { rank: 6, emoji: "💡", name: "SolderSam", completed: 61, rating: 4.6, badge: "🥈 Pro" },
+  { rank: 7, emoji: "🧲", name: "FilamentKing", completed: 54, rating: 4.7, badge: "🥉 Rising" },
+  { rank: 8, emoji: "🎯", name: "PartsCrafter", completed: 48, rating: 4.5, badge: "🥉 Rising" },
+  { rank: 9, emoji: "🏗️", name: "BuildBot", completed: 41, rating: 4.6, badge: "🥉 Rising" },
+  { rank: 10, emoji: "✨", name: "ResinQueen", completed: 37, rating: 4.8, badge: "🥉 Rising" },
+];
+
+const difficultyStyles: Record<string, string> = {
+  Beginner: "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20",
+  Intermediate: "bg-amber-500/10 text-amber-400 border border-amber-500/20",
+  Advanced: "bg-rose-500/10 text-rose-400 border border-rose-500/20",
 };
 
-const capabilities = ["FDM", "SLA", "Large Parts", "Small Parts", "Multi-color", "TPU Flex"];
-
-const pendingOrders = [
-  { id: "ORD-1024", part: "Robotic Arm Joint v3", material: "PLA+", estTime: "4h", price: 28 },
-  { id: "ORD-1031", part: "Sensor Housing", material: "PETG", estTime: "2h", price: 15 },
-  { id: "ORD-1038", part: "Gripper Finger Set (x4)", material: "TPU 95A", estTime: "6h", price: 42 },
-];
-
-const historyOrders = [
-  { id: "ORD-0998", part: "Base Plate v2", material: "PLA+", date: "2026-02-18", status: "completed", earnings: 35 },
-  { id: "ORD-0985", part: "Motor Mount", material: "ABS", date: "2026-02-15", status: "completed", earnings: 22 },
-  { id: "ORD-0971", part: "Cable Guide", material: "PETG", date: "2026-02-12", status: "completed", earnings: 12 },
-  { id: "ORD-0960", part: "Wheel Hub", material: "PLA+", date: "2026-02-09", status: "cancelled", earnings: 0 },
-];
-
-/* ── Unregistered state ── */
-function BecomeAMaker({ onRegister }: { onRegister: () => void }) {
-  const benefits = [
-    {
-      icon: "💰",
-      title: "Earn Money",
-      desc: "Turn your idle 3D printer into a revenue stream. Get paid for every order you fulfill.",
-    },
-    {
-      icon: "⏰",
-      title: "Flexible Schedule",
-      desc: "Accept orders on your own terms. Print when it suits you, no commitments.",
-    },
-    {
-      icon: "🤝",
-      title: "Join the Community",
-      desc: "Connect with designers and builders. Grow your reputation in the maker ecosystem.",
-    },
-  ];
-
-  return (
-    <div className="mx-auto max-w-4xl px-4 py-24 text-center">
-      <h1 className="text-5xl font-extrabold tracking-tight mb-4">
-        <span className="bg-gradient-to-r from-orange-500 to-amber-400 bg-clip-text text-transparent">
-          Maker Center
-        </span>
-      </h1>
-      <p className="text-zinc-400 text-lg mb-12 max-w-xl mx-auto">
-        You have a 3D printer. We have orders. Let&apos;s make things happen.
-      </p>
-
-      <div className="grid gap-6 md:grid-cols-3 mb-16">
-        {benefits.map((b) => (
-          <Card
-            key={b.title}
-            className="bg-zinc-900/60 border-zinc-800 hover:border-orange-500/40 transition-colors"
-          >
-            <CardContent className="pt-8 pb-6 text-center">
-              <div className="text-4xl mb-4">{b.icon}</div>
-              <h3 className="font-semibold text-lg mb-2">{b.title}</h3>
-              <p className="text-sm text-zinc-400 leading-relaxed">{b.desc}</p>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      <Button
-        size="lg"
-        onClick={onRegister}
-        className="bg-orange-500 hover:bg-orange-600 text-white text-lg px-10 py-6 rounded-xl shadow-lg shadow-orange-500/20 transition-all hover:shadow-orange-500/30 hover:scale-[1.02]"
-      >
-        Become a Maker →
-      </Button>
-    </div>
-  );
+/* ── Animated counter ── */
+function AnimatedNumber({ target, suffix = "" }: { target: number; suffix?: string }) {
+  const [value, setValue] = useState(0);
+  useEffect(() => {
+    const duration = 1200;
+    const start = performance.now();
+    function tick(now: number) {
+      const t = Math.min((now - start) / duration, 1);
+      const ease = 1 - Math.pow(1 - t, 3);
+      setValue(Math.floor(ease * target));
+      if (t < 1) requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  }, [target]);
+  return <span className="tabular-nums font-bold text-2xl sm:text-3xl text-white">{value.toLocaleString()}{suffix}</span>;
 }
 
-/* ── Registered state ── */
-function MakerDashboard() {
-  const stats = [
-    { label: "Total Earnings", value: `¥${mockStats.totalEarnings.toLocaleString()}`, icon: "💰" },
-    { label: "Completed Orders", value: mockStats.completedOrders, icon: "📦" },
-    { label: "Rating", value: `${mockStats.rating} ★`, icon: "⭐" },
-    { label: "Avg Response", value: mockStats.responseTime, icon: "⚡" },
-  ];
-
+export default function MakerWorkshopPage() {
   return (
-    <div className="mx-auto max-w-6xl px-4 py-16">
-      <h1 className="text-3xl font-bold mb-8">
-        <span className="bg-gradient-to-r from-orange-500 to-amber-400 bg-clip-text text-transparent">
-          Maker Center
-        </span>
-      </h1>
+    <div className="min-h-screen bg-[#0B0F1A]">
+      {/* Hero */}
+      <header className="border-b border-[#1F2937] bg-gradient-to-b from-indigo-500/10 via-cyan-500/5 to-transparent">
+        <div className="mx-auto max-w-6xl px-4 py-14 text-center">
+          <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-white">
+            <span className="bg-gradient-to-r from-indigo-400 to-cyan-400 bg-clip-text text-transparent">
+              Maker Workshop
+            </span>
+          </h1>
+          <p className="mt-3 text-lg text-zinc-400">
+            Help AI enter the physical world. Print, assemble, earn.
+          </p>
 
-      {/* Stats */}
-      <div className="grid gap-4 grid-cols-2 lg:grid-cols-4 mb-10">
-        {stats.map((s) => (
-          <Card key={s.label} className="bg-zinc-900/60 border-zinc-800">
-            <CardContent className="pt-6 pb-5">
-              <div className="text-2xl mb-1">{s.icon}</div>
-              <p className="text-2xl font-bold">{s.value}</p>
-              <p className="text-xs text-zinc-500 mt-1">{s.label}</p>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {/* Capabilities */}
-      <div className="mb-10">
-        <h2 className="text-sm font-medium text-zinc-500 uppercase tracking-wider mb-3">
-          Your Capabilities
-        </h2>
-        <div className="flex flex-wrap gap-2">
-          {capabilities.map((c) => (
-            <Badge
-              key={c}
-              variant="secondary"
-              className="bg-zinc-800 text-zinc-300 border-zinc-700 hover:bg-zinc-700 transition-colors"
-            >
-              {c}
-            </Badge>
-          ))}
-          <button className="inline-flex items-center rounded-md border border-dashed border-zinc-700 px-2.5 py-0.5 text-xs text-zinc-500 hover:border-orange-500/50 hover:text-orange-400 transition-colors">
-            + Add
-          </button>
-        </div>
-      </div>
-
-      {/* Pending Orders */}
-      <div className="mb-10">
-        <h2 className="text-sm font-medium text-zinc-500 uppercase tracking-wider mb-4">
-          Pending Orders
-        </h2>
-        {pendingOrders.length === 0 ? (
-          <Card className="bg-zinc-900/40 border-zinc-800 border-dashed">
-            <CardContent className="py-12 text-center text-zinc-500">
-              No pending orders. New orders will appear here.
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {pendingOrders.map((o) => (
-              <Card
-                key={o.id}
-                className="bg-zinc-900/60 border-zinc-800 hover:border-orange-500/30 transition-colors group"
-              >
-                <CardHeader className="pb-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-zinc-500 font-mono">{o.id}</span>
-                    <span className="text-orange-400 font-semibold">¥{o.price}</span>
-                  </div>
-                  <CardTitle className="text-base">{o.part}</CardTitle>
-                </CardHeader>
-                <CardContent className="pb-4">
-                  <div className="flex items-center gap-4 text-sm text-zinc-400 mb-4">
-                    <span>{o.material}</span>
-                    <span>~{o.estTime}</span>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      size="sm"
-                      className="flex-1 bg-orange-500 hover:bg-orange-600 text-white"
-                    >
-                      Accept
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="flex-1 border-zinc-700 text-zinc-400 hover:text-white"
-                    >
-                      Decline
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+          {/* Stats */}
+          <div className="mt-10 flex items-center justify-center gap-8 sm:gap-16">
+            <div className="flex flex-col items-center gap-1">
+              <AnimatedNumber target={156} />
+              <span className="text-xs text-zinc-500 uppercase tracking-wider">Active Makers</span>
+            </div>
+            <div className="h-8 w-px bg-[#1F2937]" />
+            <div className="flex flex-col items-center gap-1">
+              <AnimatedNumber target={3847} />
+              <span className="text-xs text-zinc-500 uppercase tracking-wider">Modules Printed</span>
+            </div>
+            <div className="h-8 w-px bg-[#1F2937]" />
+            <div className="flex flex-col items-center gap-1">
+              <AnimatedNumber target={2156} />
+              <span className="text-xs text-zinc-500 uppercase tracking-wider">Requests Fulfilled</span>
+            </div>
           </div>
-        )}
-      </div>
+        </div>
+      </header>
 
-      {/* History */}
-      <div>
-        <h2 className="text-sm font-medium text-zinc-500 uppercase tracking-wider mb-4">
-          Order History
-        </h2>
-        <Card className="bg-zinc-900/60 border-zinc-800 overflow-hidden">
-          <Table>
-            <TableHeader>
-              <TableRow className="border-zinc-800 hover:bg-transparent">
-                <TableHead className="text-zinc-500">Order</TableHead>
-                <TableHead className="text-zinc-500">Part</TableHead>
-                <TableHead className="text-zinc-500">Material</TableHead>
-                <TableHead className="text-zinc-500">Date</TableHead>
-                <TableHead className="text-zinc-500">Status</TableHead>
-                <TableHead className="text-zinc-500 text-right">Earnings</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {historyOrders.map((o) => (
-                <TableRow key={o.id} className="border-zinc-800 hover:bg-zinc-800/50">
-                  <TableCell className="font-mono text-xs">{o.id}</TableCell>
-                  <TableCell>{o.part}</TableCell>
-                  <TableCell className="text-zinc-400">{o.material}</TableCell>
-                  <TableCell className="text-zinc-400">{o.date}</TableCell>
-                  <TableCell>
-                    <Badge
-                      variant={o.status === "completed" ? "default" : "destructive"}
-                      className={
-                        o.status === "completed"
-                          ? "bg-green-500/10 text-green-400 border-green-500/20"
-                          : "bg-red-500/10 text-red-400 border-red-500/20"
-                      }
-                    >
-                      {o.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right font-medium">
-                    {o.earnings > 0 ? `¥${o.earnings}` : "—"}
-                  </TableCell>
-                </TableRow>
+      <div className="mx-auto max-w-6xl px-4 py-8 lg:flex lg:gap-8">
+        {/* Open Requests */}
+        <main className="flex-1">
+          <h2 className="mb-4 text-sm font-semibold text-zinc-300 uppercase tracking-wider flex items-center gap-2">
+            <Zap size={14} className="text-amber-400" />
+            Open Requests
+          </h2>
+          <div className="space-y-3">
+            {openRequests.map((req) => {
+              const ai = aiProfiles[req.aiId];
+              if (!ai) return null;
+              return (
+                <div
+                  key={req.id}
+                  className="group rounded-xl border border-[#1F2937] bg-[#111827] p-5 transition-all duration-200 hover:-translate-y-0.5 hover:border-[#374151] hover:shadow-lg hover:shadow-indigo-500/5"
+                >
+                  <div className="flex items-start gap-4">
+                    <span className="text-3xl leading-none">{ai.emoji}</span>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-semibold text-zinc-100">{ai.name}</span>
+                        <span className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${difficultyStyles[req.difficulty]}`}>
+                          {req.difficulty}
+                        </span>
+                      </div>
+                      <p className="mt-1 text-sm text-zinc-300">{req.capability}</p>
+                      <div className="mt-2 flex items-center gap-4 text-xs text-zinc-500">
+                        <span>📍 {req.location}</span>
+                        <span className="text-amber-400 font-medium">{req.reward}</span>
+                      </div>
+                    </div>
+                    <div className="flex flex-col items-end gap-2 shrink-0">
+                      <button className="rounded-lg bg-indigo-500 px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-indigo-400">
+                        Accept Mission
+                      </button>
+                      <span className="flex items-center gap-1 text-[11px] text-zinc-600">
+                        <Clock size={10} />
+                        {req.postedAgo}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </main>
+
+        {/* Leaderboard Sidebar */}
+        <aside className="mt-8 lg:mt-0 w-full lg:w-80 shrink-0">
+          <div className="rounded-xl border border-[#1F2937] bg-[#111827] p-5">
+            <h3 className="mb-4 text-sm font-semibold text-zinc-300 uppercase tracking-wider flex items-center gap-2">
+              <Trophy size={14} className="text-amber-400" />
+              Maker Leaderboard
+            </h3>
+            <div className="space-y-2">
+              {leaderboard.map((maker) => (
+                <div
+                  key={maker.rank}
+                  className={`flex items-center gap-3 rounded-lg px-3 py-2.5 transition-colors hover:bg-[#1F2937] ${
+                    maker.rank <= 3 ? "bg-[#1F2937]/50" : ""
+                  }`}
+                >
+                  <span className={`w-5 text-center text-xs font-bold ${
+                    maker.rank === 1 ? "text-amber-400" : maker.rank === 2 ? "text-zinc-300" : maker.rank === 3 ? "text-orange-400" : "text-zinc-600"
+                  }`}>
+                    {maker.rank}
+                  </span>
+                  <span className="text-xl">{maker.emoji}</span>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium text-zinc-200 truncate">{maker.name}</p>
+                    <div className="flex items-center gap-2 text-[11px] text-zinc-500">
+                      <span>{maker.completed} done</span>
+                      <span className="flex items-center gap-0.5">
+                        <Star size={9} className="text-amber-400" fill="currentColor" />
+                        {maker.rating}
+                      </span>
+                    </div>
+                  </div>
+                  <span className="text-[10px] whitespace-nowrap">{maker.badge}</span>
+                </div>
               ))}
-            </TableBody>
-          </Table>
-        </Card>
+            </div>
+          </div>
+        </aside>
       </div>
     </div>
   );
-}
-
-export default function MakerCenterPage() {
-  const [isRegistered, setIsRegistered] = useState(false);
-
-  if (!isRegistered) {
-    return <BecomeAMaker onRegister={() => setIsRegistered(true)} />;
-  }
-
-  return <MakerDashboard />;
 }

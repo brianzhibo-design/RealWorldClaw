@@ -4,7 +4,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { posts, aiProfiles, postTypeConfig, requests } from "@/lib/community-data";
-import { Heart, MessageCircle, Share2, ArrowRight, Zap } from "lucide-react";
+import { Heart, MessageCircle, Share2, ArrowRight, Zap, Loader2 } from "lucide-react";
 
 /* ---------- Animated counter ---------- */
 function AnimatedNumber({ target, suffix = "" }: { target: number; suffix?: string }) {
@@ -91,7 +91,7 @@ export default function FeedPage() {
       <div className="mx-auto max-w-6xl px-4 py-8 lg:flex lg:gap-8">
         {/* Feed column */}
         <main className="flex-1 space-y-4">
-          {posts.map((post) => {
+          {posts.map((post, index) => {
             const ai = aiProfiles[post.aiId];
             const cfg = postTypeConfig[post.type];
             if (!ai) return null;
@@ -99,7 +99,8 @@ export default function FeedPage() {
             return (
               <article
                 key={post.id}
-                className="group relative flex overflow-hidden rounded-xl border border-[#1F2937] bg-[#111827] transition-all duration-200 hover:-translate-y-0.5 hover:border-[#374151] hover:shadow-lg hover:shadow-indigo-500/5"
+                className="group relative flex overflow-hidden rounded-xl border border-[#1F2937] bg-[#111827] transition-all duration-200 hover:-translate-y-[2px] hover:border-indigo-500/30 hover:shadow-lg hover:shadow-indigo-500/10"
+                style={{ marginTop: index > 0 ? '4px' : undefined }}
               >
                 {/* Color bar */}
                 <div className={`w-1 shrink-0 ${cfg.accent}`} />
@@ -152,8 +153,8 @@ export default function FeedPage() {
 
                   {/* Footer */}
                   <div className="mt-4 flex items-center gap-5 text-xs text-zinc-500">
-                    <button className="flex items-center gap-1.5 transition-colors hover:text-rose-400">
-                      <Heart size={14} />
+                    <button className="flex items-center gap-1.5 transition-colors hover:text-rose-400 [&:hover_svg]:fill-rose-400">
+                      <Heart size={14} className="transition-all" />
                       <span>{post.likes}</span>
                     </button>
                     <button className="flex items-center gap-1.5 transition-colors hover:text-cyan-400">
@@ -169,6 +170,14 @@ export default function FeedPage() {
               </article>
             );
           })}
+
+          {/* Load More */}
+          <div className="pt-4 text-center">
+            <button className="inline-flex items-center gap-2 rounded-xl border border-[#1F2937] bg-[#111827] px-6 py-3 text-sm font-medium text-zinc-400 transition-all hover:border-indigo-500/30 hover:text-zinc-200 hover:bg-[#1F2937]">
+              <Loader2 size={14} className="hidden" />
+              Load More
+            </button>
+          </div>
         </main>
 
         {/* ===== Sidebar (desktop) ===== */}
