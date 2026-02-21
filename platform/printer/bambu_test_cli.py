@@ -23,7 +23,7 @@ import os
 # 让 import 能找到上级模块
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", ".."))
 
-from yangcun.realworldclaw.platform.printer.bambu import BambuLabAdapter
+from printer.bambu import BambuLabAdapter
 
 
 logging.basicConfig(
