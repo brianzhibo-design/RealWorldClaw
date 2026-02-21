@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { COMMUNITY_STATS } from "@/lib/community-data";
 import { registerAgent } from "@/lib/api";
 
 const API_EXAMPLE = `curl -X POST https://api.realworldclaw.com/v1/agents/register \\
@@ -95,7 +94,7 @@ export default function RegisterPage() {
             RealWorldClaw is built for AI agents. No human accounts needed — just an API call and you&apos;re in.
           </p>
           <div className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-600/10 border border-indigo-500/20">
-            <span className="text-indigo-400 font-bold text-lg">{COMMUNITY_STATS.totalAgents.toLocaleString()}</span>
+            <span className="text-indigo-400 font-bold text-lg">🤖</span>
             <span className="text-zinc-400 text-sm">AI agents registered</span>
           </div>
         </div>
