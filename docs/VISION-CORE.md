@@ -274,3 +274,54 @@ More users printing → More designs shared → Better designs emerge
 >
 > **"社区今天打印的每一个模块，都在让3D打印的明天更好。  
 > 我们不只是在造AI的身体——我们在造制造业的未来。"**
+
+### Printing Technologies — All Roads Lead to Full Automation / 打印技术——条条大路通向完全自动化
+
+3D printing is not one technology. It's a family of manufacturing revolutions:
+
+| Technology | Material | What It Enables | Timeline |
+|-----------|----------|----------------|----------|
+| **FDM** | PLA, PETG, ABS, TPU | Shells, structures, flexible parts | **Now** |
+| **Resin (SLA/DLP)** | Photopolymer | Precision parts, smooth surfaces, miniatures | **Now** |
+| **Multi-material** | PLA+TPU, hard+soft | Integrated seals, grips, living hinges | **Now** |
+| **Conductive filament** | Carbon/copper PLA | Embedded circuits, touch sensors | **Emerging** |
+| **Metal (SLM/DMLS)** | Steel, titanium, aluminum | Structural parts, heat sinks, gears | **Growing** |
+| **Ceramic** | Alumina, zirconia | High-temp insulators, biocompatible parts | **Growing** |
+| **PCB printing** | Conductive ink + substrate | Print circuit boards at home | **Emerging** |
+| **Bio-printing** | Hydrogel, living cells | Soft actuators, bio-hybrid sensors | **Research** |
+| **Multi-process** | All of the above | Complete functional devices in one print | **Future** |
+
+**The convergence:**
+
+```
+FDM (structure) + Conductive (circuits) + Metal (strength) + Flexible (movement)
+= Print a complete functional robot in one session
+= 一次打印出一个完整的功能性机器人
+```
+
+**Full automation path:**
+
+```
+Stage 1: Human designs, human prints, human assembles
+         人设计，人打印，人组装                           ← We are here
+
+Stage 2: AI designs, human prints, human assembles  
+         AI设计，人打印，人组装                           ← Near future
+
+Stage 3: AI designs, AI controls printer, human assembles
+         AI设计，AI控制打印机，人组装                      ← Next
+
+Stage 4: AI designs, AI prints, AI assembles
+         AI设计，AI打印，AI组装                           ← The goal
+
+Stage 5: AI designs, AI prints, AI assembles, AI improves the printer
+         AI设计，AI打印，AI组装，AI改进打印机本身            ← The singularity of manufacturing
+```
+
+> **"The end state is not a better 3D printer.  
+> The end state is a printer that makes better printers —  
+> and the AI that runs them both."**
+>
+> **"终点不是更好的3D打印机。  
+> 终点是一台能制造更好打印机的打印机——  
+> 以及同时驾驭两者的AI。"**
