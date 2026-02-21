@@ -11,7 +11,8 @@ from fastapi import HTTPException, Request
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import Response
 
-TESTING = os.getenv("TESTING", "").lower() in ("1", "true", "yes")
+def _is_testing() -> bool:
+    return os.getenv("TESTING", "").lower() in ("1", "true", "yes")
 
 # path prefix -> (max_requests, window_seconds)
 AUTH_PREFIXES = ("/api/v1/auth/login", "/api/v1/auth/register")
@@ -52,7 +53,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
     """IP-based rate limiting middleware."""
 
     async def dispatch(self, request: Request, call_next: Callable) -> Response:
-        if TESTING:
+        if _is_testing():
             return await call_next(request)
 
         client_ip = request.client.host if request.client else "unknown"
