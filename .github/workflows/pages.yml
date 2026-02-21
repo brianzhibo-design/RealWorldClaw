@@ -3,7 +3,7 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches: [main]
-    paths: ['landing/**', 'demo/**']
+    paths: ['landing/**', 'demo/**', 'docs-site/**', 'docs/**']
   workflow_dispatch:
 
 permissions:
@@ -24,11 +24,25 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
       - name: Build site
         run: |
+          # Landing + demo
           mkdir -p _site
           cp -r landing/* _site/
           cp -r demo _site/demo
+
+          # Docs (VitePress)
+          cd docs-site
+          npm ci || npm install
+          npm run build
+          cd ..
+          cp -r docs-site/.vitepress/dist _site/docs
+
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload artifact
