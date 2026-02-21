@@ -1,60 +1,144 @@
-/** 我的订单页 */
-import Link from "next/link";
-import { mockOrders } from "@/lib/mock-data";
+/** 订单页 — Orders */
+"use client";
 
-const statusStyles: Record<string, { label: string; cls: string }> = {
-  pending: { label: "待处理", cls: "bg-yellow-500/20 text-yellow-400" },
-  printing: { label: "打印中", cls: "bg-blue-500/20 text-blue-400" },
-  shipping: { label: "配送中", cls: "bg-purple-500/20 text-purple-400" },
-  completed: { label: "已完成", cls: "bg-green-500/20 text-green-400" },
-  cancelled: { label: "已取消", cls: "bg-red-500/20 text-red-400" },
+import { useState, useMemo } from "react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Plus, Package } from "lucide-react";
+
+type OrderStatus = "pending" | "matched" | "printing" | "shipped" | "completed";
+
+interface Order {
+  id: string;
+  componentName: string;
+  status: OrderStatus;
+  createdAt: string;
+  progress: number; // 0-100
+}
+
+const mockOrders: Order[] = [
+  { id: "ORD-20250221-001", componentName: "Clawbie V4 Cyber Egg", status: "printing", createdAt: "2025-02-21T09:00:00Z", progress: 62 },
+  { id: "ORD-20250220-003", componentName: "Spine Controller Mount", status: "completed", createdAt: "2025-02-20T14:20:00Z", progress: 100 },
+  { id: "ORD-20250220-002", componentName: "Eyes Module Bracket", status: "shipped", createdAt: "2025-02-20T11:00:00Z", progress: 90 },
+  { id: "ORD-20250219-001", componentName: "Battery Cradle", status: "matched", createdAt: "2025-02-19T16:45:00Z", progress: 15 },
+  { id: "ORD-20250218-002", componentName: "Speaker Housing", status: "pending", createdAt: "2025-02-18T20:30:00Z", progress: 0 },
+  { id: "ORD-20250217-001", componentName: "Servo Arm L/R", status: "completed", createdAt: "2025-02-17T08:00:00Z", progress: 100 },
+];
+
+const statusConfig: Record<OrderStatus, { label: string; className: string }> = {
+  pending:   { label: "Pending",   className: "bg-yellow-500/15 text-yellow-400 border-yellow-500/20" },
+  matched:   { label: "Matched",   className: "bg-blue-500/15 text-blue-400 border-blue-500/20" },
+  printing:  { label: "Printing",  className: "bg-cyan-500/15 text-cyan-400 border-cyan-500/20" },
+  shipped:   { label: "Shipped",   className: "bg-purple-500/15 text-purple-400 border-purple-500/20" },
+  completed: { label: "Completed", className: "bg-emerald-500/15 text-emerald-400 border-emerald-500/20" },
 };
 
+const activeStatuses = new Set<OrderStatus>(["pending", "matched", "printing", "shipped"]);
+
 export default function OrdersPage() {
+  const [tab, setTab] = useState("all");
+
+  const filtered = useMemo(() => {
+    if (tab === "active") return mockOrders.filter((o) => activeStatuses.has(o.status));
+    if (tab === "completed") return mockOrders.filter((o) => o.status === "completed");
+    return mockOrders;
+  }, [tab]);
+
   return (
-    <div className="mx-auto max-w-4xl px-4 py-12">
+    <div className="mx-auto max-w-5xl px-6 py-16">
+      {/* Header */}
       <div className="flex items-center justify-between mb-8">
-        <h1 className="text-3xl font-bold">📦 My Orders</h1>
-        <Link
-          href="/orders/new"
-          className="rounded-lg bg-cyber-cyan px-5 py-2.5 font-semibold text-cyber-dark transition-all hover:shadow-glow-lg"
-        >
-          新建订单
-        </Link>
-      </div>
-
-      <div className="space-y-4">
-        {mockOrders.map((order) => {
-          const s = statusStyles[order.status];
-          return (
-            <div
-              key={order.id}
-              className="flex items-center justify-between rounded-xl border border-cyber-border bg-cyber-card p-5 transition-all hover:border-cyber-cyan/30"
-            >
-              <div>
-                <p className="text-sm text-slate-500 font-mono">{order.id}</p>
-                <p className="mt-1 text-white font-medium">{order.component_name}</p>
-                <p className="mt-1 text-xs text-slate-500">
-                  {new Date(order.created_at).toLocaleDateString("zh-CN")}
-                </p>
-              </div>
-              <div className="flex items-center gap-4">
-                <span className="text-cyber-cyan font-semibold">¥{order.total_cny}</span>
-                <span className={`rounded-full px-3 py-1 text-xs font-medium ${s.cls}`}>
-                  {s.label}
-                </span>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
-      {mockOrders.length === 0 && (
-        <div className="text-center py-20 text-slate-500">
-          <p className="text-lg">暂无订单</p>
-          <Link href="/orders/new" className="mt-2 text-cyber-cyan hover:underline">
-            去下单 →
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Orders</h1>
+          <p className="mt-2 text-muted-foreground">Track your print orders and shipments.</p>
+        </div>
+        <Button size="sm" asChild>
+          <Link href="/orders/new">
+            <Plus className="mr-2 h-4 w-4" />
+            New Order
           </Link>
+        </Button>
+      </div>
+
+      {/* Tabs */}
+      <Tabs value={tab} onValueChange={setTab} className="mb-6">
+        <TabsList className="bg-muted">
+          <TabsTrigger value="all">All</TabsTrigger>
+          <TabsTrigger value="active">Active</TabsTrigger>
+          <TabsTrigger value="completed">Completed</TabsTrigger>
+        </TabsList>
+      </Tabs>
+
+      {/* Table */}
+      {filtered.length > 0 ? (
+        <div className="rounded-xl border border-border bg-card overflow-hidden">
+          <Table>
+            <TableHeader>
+              <TableRow className="hover:bg-transparent">
+                <TableHead className="text-xs uppercase tracking-wider text-muted-foreground">Order ID</TableHead>
+                <TableHead className="text-xs uppercase tracking-wider text-muted-foreground">Component</TableHead>
+                <TableHead className="text-xs uppercase tracking-wider text-muted-foreground">Status</TableHead>
+                <TableHead className="text-xs uppercase tracking-wider text-muted-foreground">Created</TableHead>
+                <TableHead className="text-xs uppercase tracking-wider text-muted-foreground text-right">Progress</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filtered.map((order) => {
+                const sc = statusConfig[order.status];
+                return (
+                  <TableRow key={order.id} className="hover:bg-muted/50">
+                    <TableCell className="font-mono text-sm">{order.id}</TableCell>
+                    <TableCell className="font-medium">{order.componentName}</TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className={sc.className}>
+                        {sc.label}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-muted-foreground text-sm">
+                      {new Date(order.createdAt).toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                      })}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        <div className="h-1.5 w-20 rounded-full bg-muted overflow-hidden">
+                          <div
+                            className="h-full rounded-full bg-primary transition-all"
+                            style={{ width: `${order.progress}%` }}
+                          />
+                        </div>
+                        <span className="text-xs text-muted-foreground font-mono w-8 text-right">
+                          {order.progress}%
+                        </span>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </div>
+      ) : (
+        <div className="text-center py-24">
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-muted">
+            <Package className="h-7 w-7 text-muted-foreground" />
+          </div>
+          <p className="text-lg font-medium text-muted-foreground">No orders yet</p>
+          <p className="mt-1 text-sm text-muted-foreground/70">
+            Create your first order to start printing.
+          </p>
         </div>
       )}
     </div>

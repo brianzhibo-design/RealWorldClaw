@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" fill="none">
+  <!-- Circular avatar -->
+  <defs>
+    <clipPath id="circle">
+      <circle cx="200" cy="200" r="200"/>
+    </clipPath>
+  </defs>
+  <g clip-path="url(#circle)">
+    <rect width="400" height="400" fill="#0f172a"/>
+    <!-- Icon centered and scaled -->
+    <g transform="translate(120, 100) scale(3)">
+      <rect x="8" y="32" width="24" height="24" rx="4" fill="#f97316"/>
+      <rect x="16" y="12" width="20" height="20" rx="3" fill="#06b6d4"/>
+      <rect x="0" y="0" width="14" height="14" rx="2.5" fill="#fb923c"/>
+      <rect x="22" y="0" width="14" height="14" rx="2.5" fill="#22d3ee"/>
+      <rect x="38" y="8" width="12" height="12" rx="2" fill="#fb923c" opacity="0.7"/>
+      <circle cx="26" cy="22" r="3" fill="white"/>
+    </g>
+  </g>
+  <!-- Circle border -->
+  <circle cx="200" cy="200" r="196" stroke="#1e293b" stroke-width="4" fill="none"/>
+</svg>

@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" fill="none">
+  <!-- Dark background -->
+  <rect width="1200" height="630" fill="#0f172a"/>
+  
+  <!-- Subtle grid pattern -->
+  <defs>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#1e293b" stroke-width="0.5"/>
+    </pattern>
+    <linearGradient id="fade" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0f172a" stop-opacity="0"/>
+      <stop offset="1" stop-color="#0f172a" stop-opacity="0.8"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#grid)"/>
+  <rect width="1200" height="630" fill="url(#fade)"/>
+  
+  <!-- Decorative floating blocks -->
+  <rect x="100" y="80" width="40" height="40" rx="6" fill="#f97316" opacity="0.15" transform="rotate(15 120 100)"/>
+  <rect x="1000" y="120" width="50" height="50" rx="8" fill="#06b6d4" opacity="0.12" transform="rotate(-10 1025 145)"/>
+  <rect x="950" y="450" width="35" height="35" rx="5" fill="#f97316" opacity="0.1" transform="rotate(25 967 467)"/>
+  <rect x="150" y="480" width="30" height="30" rx="4" fill="#06b6d4" opacity="0.1" transform="rotate(-20 165 495)"/>
+  
+  <!-- Logo icon (centered, larger) -->
+  <g transform="translate(500, 140) scale(2.5)">
+    <rect x="8" y="32" width="24" height="24" rx="4" fill="#f97316"/>
+    <rect x="16" y="12" width="20" height="20" rx="3" fill="#06b6d4"/>
+    <rect x="0" y="0" width="14" height="14" rx="2.5" fill="#fb923c"/>
+    <rect x="22" y="0" width="14" height="14" rx="2.5" fill="#22d3ee"/>
+    <rect x="38" y="8" width="12" height="12" rx="2" fill="#fb923c" opacity="0.7"/>
+    <circle cx="26" cy="22" r="3" fill="white"/>
+  </g>
+  
+  <!-- Project name -->
+  <text x="600" y="380" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-weight="800" font-size="52" fill="white">RealWorld<tspan fill="#06b6d4">Claw</tspan></text>
+  
+  <!-- Slogan -->
+  <text x="600" y="430" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-weight="400" font-size="24" fill="#94a3b8">Help Your AI Grow a Body</text>
+  
+  <!-- Subtle bottom accent line -->
+  <rect x="480" y="460" width="100" height="3" rx="1.5" fill="#f97316" opacity="0.6"/>
+  <rect x="590" y="460" width="60" height="3" rx="1.5" fill="#06b6d4" opacity="0.6"/>
+  <rect x="660" y="460" width="40" height="3" rx="1.5" fill="#f97316" opacity="0.3"/>
+</svg>

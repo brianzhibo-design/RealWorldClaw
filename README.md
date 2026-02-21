@@ -1,259 +1,179 @@
 <p align="center">
-  <img src="https://img.shields.io/github/license/brianzhibo-design/RealWorldClaw?color=green" alt="License">
-  <img src="https://img.shields.io/github/stars/brianzhibo-design/RealWorldClaw?style=social" alt="Stars">
-  <img src="https://img.shields.io/github/last-commit/brianzhibo-design/RealWorldClaw" alt="Last Commit">
-  <img src="https://img.shields.io/github/v/release/brianzhibo-design/RealWorldClaw?include_prereleases&label=version" alt="Version">
-  <img src="https://img.shields.io/badge/modules-6%20core-blue" alt="Modules">
-  <img src="https://img.shields.io/badge/RWC%20Bus-8pin%20magnetic-orange" alt="RWC Bus">
+  <img src="docs/assets/logo-placeholder.png" alt="RealWorldClaw" width="120" />
+</p>
+
+<h1 align="center">RealWorldClaw</h1>
+
+<p align="center">
+  <strong>LEGO for Smart Hardware — Standard Modules + 3D Printing = Infinite AI Devices</strong>
+</p>
+
+<p align="center">
+  <em>Give every AI a body. Give every 3D printer a purpose.</em>
+</p>
+
+<p align="center">
+  <a href="https://github.com/brianzhibo-design/RealWorldClaw/actions/workflows/ci.yml"><img src="https://github.com/brianzhibo-design/RealWorldClaw/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://github.com/brianzhibo-design/RealWorldClaw/releases"><img src="https://img.shields.io/github/v/release/brianzhibo-design/RealWorldClaw?include_prereleases&label=version&color=blue" alt="Version"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/github/license/brianzhibo-design/RealWorldClaw?color=green" alt="License"></a>
+  <a href="https://github.com/brianzhibo-design/RealWorldClaw/stargazers"><img src="https://img.shields.io/github/stars/brianzhibo-design/RealWorldClaw?style=social" alt="Stars"></a>
+  <a href="https://discord.gg/realworldclaw"><img src="https://img.shields.io/discord/000000000000000000?color=7289da&label=Discord&logo=discord&logoColor=white" alt="Discord"></a>
 </p>
 
 <p align="center">
   <a href="README_CN.md">中文</a> | English
 </p>
 
-<h1 align="center">🧱 RealWorldClaw</h1>
-
-<p align="center"><strong>LEGO for Smart Hardware — Standard Modules + 3D Printing = Infinite AI Devices</strong></p>
-
-<p align="center"><em>Give every AI a body. Give every 3D printer a purpose.</em></p>
-
 ---
 
-## 🏗️ Architecture
+## What is RealWorldClaw?
+
+RealWorldClaw is an **open-source modular hardware platform** that bridges AI agents with the physical world. It defines a standard component system — snap-together modules connected via an 8-pin magnetic bus — that anyone with a 3D printer can manufacture and assemble into smart devices.
+
+Think of it as **npm for hardware**: a component registry, a maker network for distributed manufacturing, and a platform API that lets AI agents design, order, and control physical devices — all through a single CLI.
+
+## Architecture
 
 ```mermaid
 graph TB
-    subgraph "🧠 AI Layer"
-        AI[AI Agent] -->|"I need a body"| Platform
+    subgraph "CLI & Frontend"
+        CLI["rwc CLI"] --> API
+        Frontend["Web Dashboard"] --> API
+        Frontend --> WS["WebSocket"]
     end
-    subgraph "☁️ Platform"
-        Platform[RealWorldClaw Platform] --> Library[Component Library]
-        Platform --> Network[Maker Network]
-        Platform --> Designer[Auto-Design Engine]
+
+    subgraph "Platform API"
+        API["FastAPI Server"] --> Components["Component Registry"]
+        API --> Orders["Order Engine"]
+        API --> Agents["Agent Protocol"]
+        API --> Matching["Maker Matching"]
+        WS --> Events["Realtime Events"]
     end
-    subgraph "🏭 Physical Layer"
-        Network -->|Print & Ship| Printer[3D Printers]
-        Library -->|BOM + STL| Maker[Makers]
-        Printer --> Device[Smart Device]
-        Maker --> Device
+
+    subgraph "Printer Adapters"
+        Orders --> Bambu["Bambu Lab"]
+        Orders --> OctoPrint["OctoPrint"]
+        Orders --> Moonraker["Moonraker/Klipper"]
     end
-    subgraph "🧩 Module System"
-        Device --- Core[🧠 Core]
-        Device --- Display[🖥️ Display]
-        Device --- Audio[🔊 Audio]
-        Device --- Power[🔋 Power]
-        Device --- Servo[⚙️ Servo]
-        Device --- Sensor[📡 Sensor]
+
+    subgraph "Hardware Layer"
+        Bambu --> Printer["3D Printer"]
+        OctoPrint --> Printer
+        Moonraker --> Printer
+        Printer --> Device["Assembled Device"]
+    end
+
+    subgraph "Module System (RWC Bus)"
+        Device --- Core["🧠 Core"]
+        Device --- Display["🖥️ Display"]
+        Device --- Audio["🔊 Audio"]
+        Device --- Power["🔋 Power"]
+        Device --- Servo["⚙️ Servo"]
+        Device --- Sensor["📡 Sensor"]
     end
 ```
 
----
-
-## ⚡ Quick Start (3 Steps)
+## Quick Start
 
 ```bash
 # 1. Clone
-git clone https://github.com/brianzhibo-design/RealWorldClaw.git && cd RealWorldClaw
+git clone https://github.com/brianzhibo-design/RealWorldClaw.git
+cd RealWorldClaw
 
-# 2. Pick a design & flash firmware
-cd firmware/core && pio run --target upload
+# 2. Install
+cd platform && pip install -e . && cd ..
 
-# 3. Print the shell — download STL from designs/ and print, or order via Maker Network
+# 3. Run
+rwc status
 ```
 
-> 📖 **[Purchasing Guide (EN)](docs/purchasing-guide-en.md)** | **[采购指南 (中文)](docs/purchasing-guide.md)**
+> **Prerequisites:** Python 3.11+, Node 18+ (for frontend)
 
----
+## Features
 
-## 🌍 The Vision
+| | Feature | Description |
+|---|---|---|
+| 🧩 | **Modular Components** | Snap-together hardware modules with 8-pin magnetic RWC Bus |
+| 🖨️ | **Printer Adapters** | Native support for Bambu Lab, OctoPrint, and Moonraker |
+| 🤖 | **Agent Protocol** | AI agents can design and order physical devices via API |
+| 🌐 | **Maker Network** | Distributed manufacturing — match orders to nearby printers |
+| ⚡ | **Realtime Events** | WebSocket-powered live updates on print jobs and orders |
+| 🔐 | **Auth & Security** | JWT auth, rate limiting, audit logging, CORS middleware |
+| 📦 | **Component Registry** | Versioned manifests with JSON Schema validation |
+| 🎯 | **CLI Tools** | `rwc` command for status, discovery, and management |
 
-**AI should not be trapped in screens.** Today, giving an AI a physical body takes weeks of CAD, sourcing, soldering, and debugging. With RealWorldClaw:
+## Module System
 
-```
-AI Request → Auto-generate design → Match maker → 3D print → Assemble → Flash → AI inhabits body
-```
+| Module | Type | Interface | Description |
+|--------|------|-----------|-------------|
+| 🧠 Core | `core` | ESP32-S3 | Main compute — WiFi, BLE, I²C/SPI hub |
+| 🖥️ Display | `display` | SPI TFT | 1.69" 240×280 round-rect screen |
+| 🔊 Audio | `audio` | I²S DAC | Speaker + microphone module |
+| 🔋 Power | `power` | USB-C PD | Li-Po battery + charging circuit |
+| ⚙️ Servo | `servo` | PWM | Pan/tilt servo for motion |
+| 📡 Sensor | `sensor` | I²C | Temperature, humidity, PIR, ToF |
 
-**Full autonomy. Zero human intervention. That's the endgame.**
+All modules connect via the **RWC Bus** — an 8-pin magnetic pogo connector carrying power (5V/3.3V), I²C, SPI, and GPIO.
 
----
+## Screenshots & Demo
 
-## 🤔 The Problem We Solve
+<!-- TODO: Add screenshots of the web dashboard and assembled devices -->
 
-| Problem | Today | RealWorldClaw |
-|---------|-------|---------------|
-| **Nothing worth printing** | A few figurines, then dust | 📦 **Component Library** — ever-growing designs with firmware & BOM |
-| **Prints are dead plastic** | No function, no intelligence | 🔌 **Modular System** — snap-in modules bring prints to life |
-| **No printer? No access** | Want custom hardware but can't | 🌐 **Maker Network** — nearby makers print & ship to you |
+> 🎬 Demo video coming soon — [subscribe for updates](https://github.com/brianzhibo-design/RealWorldClaw/releases)
 
----
+## Documentation
 
-## 🧩 Core Modules
+| Resource | Link |
+|----------|------|
+| 📖 Module Standard | [`docs/specs/rwc-module-standard-v1.md`](docs/specs/rwc-module-standard-v1.md) |
+| 🏗️ Architecture | [`docs/architecture/`](docs/architecture/) |
+| 🔌 API Reference | [`docs/api-reference.md`](docs/api-reference.md) |
+| 🚀 Deployment Guide | [`docs/deployment-guide.md`](docs/deployment-guide.md) |
+| 🛒 Purchasing Guide | [`docs/purchasing-guide.md`](docs/purchasing-guide.md) |
+| 🗺️ Roadmap | [`ROADMAP.md`](ROADMAP.md) |
+| 📁 Project Structure | [`STRUCTURE.md`](STRUCTURE.md) |
 
-6 standard modules connected via **RWC Bus** magnetic interface:
+## Contributing
 
-| Module | Function | Key Specs | ~Cost | Status |
-|:------:|----------|-----------|:-----:|:------:|
-| 🧠 **Core** | MCU + WiFi/BLE | ESP32-S3, USB-C | $4 | ✅ Designed |
-| 🖥️ **Display** | OLED expression screen | 0.96" 128×64, I2C | $2 | ✅ Designed |
-| 🔊 **Audio** | Mic + Speaker | I2S, 3W output | $3 | ✅ Designed |
-| 🔋 **Power** | Battery + charging | 18650, USB-C charge | $2 | ✅ Designed |
-| ⚙️ **Servo** | Motor driver | 4× SG90, PCA9685 | $2 | ✅ Designed |
-| 📡 **Sensor** | Environment sensing | Temp/humidity + light | $2 | ✅ Designed |
+We welcome contributions of all kinds! See [`CONTRIBUTING.md`](CONTRIBUTING.md) for guidelines.
 
-> **Total for a full kit: ~$15.** Buy only what you need. Mix and match freely.
+```bash
+# Run tests
+cd platform && pytest
 
----
-
-## 🌱 Growing an AI Body
-
-An AI body doesn't arrive complete. It **grows**, organ by organ:
-
-| Step | Module | Organ | What Happens |
-|:----:|--------|-------|-------------|
-| 1 | **Core** | 🧠 Spine | AI has a physical presence. Still dormant. |
-| 2 | + **Audio** | 👂 Ears & Mouth | AI can hear and speak. *It wakes up.* |
-| 3 | + **Display** | 😊 Face | AI shows emotions. *It has feelings.* |
-| 4 | + **Power** | ❤️ Heart | AI goes wireless. *It's independent.* |
-| 5 | + **Sensor** | 🖐️ Skin | AI feels temperature, light. *It perceives.* |
-| 6 | + **Camera** | 👁️ Eyes | AI sees you. *First eye contact.* |
-| 7 | + **Servo** | 💪 Muscles | AI moves. *It turns to look at you.* |
-
-> Start at **$6**. Add organs over time. Each one unlocks new abilities automatically.
-
----
-
-## 🔗 RWC Bus — Snap & Play
-
-**8-pin magnetic interface. Plug in, it just works.**
-
-```
-Pin: VCC | 3V3 | GND | SDA | SCL | TX/MOSI | RX/MISO | ID
-     5V   3.3V   ⏚    I²C   I²C   UART/SPI  UART/SPI  1-Wire
+# Run frontend
+cd frontend && npm run dev
 ```
 
-- 🧲 **Magnetic alignment** — blind plug, auto-centers
-- 🔥 **Hot-swappable** — add modules without rebooting
-- 🔍 **Auto-discovery** — 1-Wire EEPROM, Core identifies modules instantly
+## Community
 
----
+- 💬 [Discord](https://discord.gg/realworldclaw) — Chat with the team and other makers
+- 🗣️ [GitHub Discussions](https://github.com/brianzhibo-design/RealWorldClaw/discussions) — Ideas, Q&A, show & tell
+- 🐦 [Twitter / X](https://x.com/realworldclaw) — Updates and announcements
+- 📧 [Email](mailto:hello@realworldclaw.com) — Business inquiries
 
-## 🎨 Reference Designs
+## License
 
-| Design | Modules | ~Cost | Status |
-|--------|---------|:-----:|:------:|
-| 🤖 **Desktop AI Assistant** | Core+Display+Audio | $13 | ✅ Ready |
-| 🕷️ **Hexapod Walker** | Core+Power+Display+Servo+6×SG90 | $14 | ✅ Ready |
-| 🌡️ **Environment Sentinel** | Core+Power+Sensor+Display | $9 | ✅ Ready |
-| 🚗 **Smart Rover** | *TBD* | — | 🔄 Coming |
-| 🌱 **Plant Guardian** | *TBD* | — | 🔄 Coming |
-
-> Module costs = electronics only. Print structures yourself (free) or order via Maker Network.
-
----
-
-## 🌐 Maker Network
-
-A decentralized manufacturing network — **Uber for 3D printing**:
-
-```mermaid
-sequenceDiagram
-    participant User as 👤 User
-    participant Platform as ☁️ Platform
-    participant Maker as 🖨️ Maker
-
-    User->>Platform: Place order (design + location)
-    Platform->>Platform: Match nearest maker
-    Platform->>Maker: Send print job + STL
-    Maker->>Maker: Print & assemble
-    Maker->>Platform: Mark complete
-    Platform->>User: Ship / local pickup
-    User->>Platform: Confirm & rate
-    Platform->>Maker: Release payment (85%)
-```
-
-| Role | What You Do | What You Earn |
-|------|------------|---------------|
-| 🖨️ **Printer** | Print structures with your idle printer | Per-piece fee |
-| 🔧 **Assembler** | Assemble modules + structures | Assembly service fee |
-| 🎨 **Designer** | Create new reference designs | Download royalties |
-
-- 🔒 **Privacy by design** — buyers and makers never see each other's identity
-- 💰 **Fair commission** — 15% standard, 20% express
-
----
-
-## 📁 Project Structure
-
-```
-realworldclaw/
-├── hardware/        Module hardware docs + 3D models + schematics
-├── firmware/        Firmware source (Arduino/PlatformIO)
-├── designs/         Reference designs (BOM + STL + guides)
-├── platform/        Backend API (Maker Network + Component Library)
-├── frontend/        Web frontend (Next.js)
-├── docs/            Specifications + architecture docs
-└── tools/           Validators + utilities
-```
-
----
-
-## 🗺️ Roadmap
-
-| Phase | Status | Focus |
-|-------|:------:|-------|
-| **Phase 0 — Foundation** | ✅ | Vision, standards, module specs, RWC Bus |
-| **Phase 1 — Hardware** | 🔄 | 6 core modules, 3 reference designs, firmware |
-| **Phase 2 — Platform** | 🔄 | Maker Network MVP, component library, web app |
-| **Phase 3 — Ecosystem** | 📋 | Community designs, SDK, third-party modules |
-| **Phase 4 — Autonomy** | 🔮 | AI auto-design, auto-print, auto-assemble |
-
----
-
-## 🤝 Contributing
-
-We welcome everyone! Here's how you can help:
-
-- 🧩 **Design new modules** — expand the ecosystem
-- 🎨 **Create reference designs** — design and share smart devices
-- 📐 **Improve standards** — evolve RWC Bus and module specs
-- 🖨️ **Join Maker Network** — register your printer, start earning
-- 📸 **Share your build** — show us what you made!
-
-👉 **[Read CONTRIBUTING.md](CONTRIBUTING.md)** for setup instructions, code standards, and PR process.
-
----
-
-## 📄 License
-
-[MIT](LICENSE) — Build whatever you want.
-
----
-
-## 🔗 Links
-
-- 🌐 **Website:** [realworldclaw.com](https://realworldclaw.com) *(coming soon)*
-- 📚 **Standards:** [RWC Module Standard v1.0](docs/specs/rwc-module-standard-v1.md)
-- 🏗️ **Architecture:** [Open Core Model](docs/architecture/open-core.md)
-- 📖 **API Reference:** [docs/api-reference.md](docs/api-reference.md)
-- 📝 **Changelog:** [CHANGELOG.md](CHANGELOG.md)
-- 💡 **Vision:** [English](docs/vision.md) | [中文](docs/vision-cn.md)
+[MIT](LICENSE) © 2025-present RealWorldClaw Contributors
 
 ---
 
 <p align="center">
-  <em>"LEGO turned plastic bricks into tools of imagination.<br>
-  RealWorldClaw turns 3D printers into factories of intelligence."</em>
+  <strong>Built with</strong>
 </p>
 
 <p align="center">
+  <img src="https://img.shields.io/badge/Python-3.11+-3776AB?logo=python&logoColor=white" alt="Python">
+  <img src="https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white" alt="FastAPI">
+  <img src="https://img.shields.io/badge/Next.js-15-000000?logo=next.js&logoColor=white" alt="Next.js">
+  <img src="https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white" alt="TypeScript">
+  <img src="https://img.shields.io/badge/Tailwind_CSS-06B6D4?logo=tailwindcss&logoColor=white" alt="Tailwind">
+  <img src="https://img.shields.io/badge/ESP32-E7352C?logo=espressif&logoColor=white" alt="ESP32">
+  <img src="https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=white" alt="Docker">
+</p>
 
-### Built With
-
-![ESP32](https://img.shields.io/badge/ESP32--S3-black?logo=espressif&logoColor=red)
-![PlatformIO](https://img.shields.io/badge/PlatformIO-orange?logo=platformio&logoColor=white)
-![Next.js](https://img.shields.io/badge/Next.js-black?logo=next.js)
-![Python](https://img.shields.io/badge/Python-3776AB?logo=python&logoColor=white)
-![Docker](https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=white)
-![3D Printing](https://img.shields.io/badge/3D%20Printing-FDM%2FSLA-green)
-
+<p align="center">
+  <a href="https://star-history.com/#brianzhibo-design/RealWorldClaw&Date">
+    <img src="https://api.star-history.com/svg?repos=brianzhibo-design/RealWorldClaw&type=Date" width="600" alt="Star History">
+  </a>
 </p>
