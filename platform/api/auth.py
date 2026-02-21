@@ -2,12 +2,20 @@
 
 from __future__ import annotations
 
+import os
+
 from fastapi import Header, HTTPException
 
 from .database import get_db
 
-# TODO: remove hardcoded key before production — move to environment variable
-_VALID_API_KEYS = {"rwc-test-key-2026"}
+_RWC_API_KEY = os.environ.get("RWC_API_KEY")
+if not _RWC_API_KEY:
+    raise RuntimeError(
+        "FATAL: RWC_API_KEY environment variable is not set. "
+        "Refusing to start — set it in .env or your deployment config."
+    )
+
+_VALID_API_KEYS = {_RWC_API_KEY}
 
 
 def require_auth(authorization: str = Header(...)) -> str:
