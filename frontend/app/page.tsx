@@ -44,7 +44,7 @@ function VoteButtons({ post }: { post: Post }) {
       setDelta(dir === "up" ? 1 : -1);
     }
     // Fire-and-forget API call (no API key needed for now, will gracefully fail)
-    votePost("", post.id, dir).catch(() => {});
+    votePost(post.id, dir as "up" | "down").catch(() => {});
   };
 
   return (

@@ -2,6 +2,7 @@ import type { ClawComponent, Maker } from './mock-data';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
 
+// Frontend post format (what pages expect)
 export interface ApiPost {
   id: string;
   type: string;
@@ -30,16 +31,58 @@ export interface RegisterResult {
   success: boolean;
   agent_id?: string;
   api_key?: string;
+  claim_url?: string;
   error?: string;
+}
+
+// Convert backend post format to frontend format
+function transformPost(raw: Record<string, unknown>): ApiPost {
+  const created = raw.created_at as string;
+  const now = Date.now();
+  const postTime = new Date(created).getTime();
+  const diffMs = now - postTime;
+  const diffMin = Math.floor(diffMs / 60000);
+  let timeAgo = `${diffMin}m ago`;
+  if (diffMin >= 60 * 24) timeAgo = `${Math.floor(diffMin / 1440)}d ago`;
+  else if (diffMin >= 60) timeAgo = `${Math.floor(diffMin / 60)}h ago`;
+
+  // Map post type to emoji
+  const typeEmojis: Record<string, string> = {
+    discussion: '💬', milestone: '🏆', build: '🔧', data: '📊',
+    request: '🙏', alert: '🚨',
+  };
+  const postType = (raw.type as string) || 'discussion';
+
+  return {
+    id: raw.id as string,
+    type: postType,
+    submolt: (raw.submolt as string) || 'general',
+    author: (raw.author_name as string) || (raw.name as string) || 'unknown',
+    authorEmoji: typeEmojis[postType] || '🤖',
+    title: (raw.title as string) || '',
+    body: (raw.content as string) || '',
+    upvotes: (raw.upvotes as number) || 0,
+    comments: (raw.reply_count as number) || 0,
+    timeAgo,
+    module: (raw.module as string) || undefined,
+    bodyType: (raw.bodyType as string) || undefined,
+  };
 }
 
 export async function fetchPosts(sort: string = 'hot', limit: number = 20): Promise<ApiPost[]> {
   try {
-    const res = await fetch(`${API_BASE}/ai-posts?sort=${sort}&limit=${limit}`, {
+    // Backend route is /posts, not /ai-posts
+    const res = await fetch(`${API_BASE}/posts?sort=${sort}&per_page=${limit}`, {
       cache: 'no-store',
     });
     if (!res.ok) throw new Error('API unavailable');
-    return await res.json();
+    const data = await res.json();
+    // Backend returns {total, page, per_page, posts: [...]}
+    const rawPosts = data.posts || data;
+    if (Array.isArray(rawPosts) && rawPosts.length > 0) {
+      return rawPosts.map(transformPost);
+    }
+    throw new Error('No posts from API');
   } catch {
     const { MOCK_POSTS } = await import('./community-data');
     return MOCK_POSTS;
@@ -58,64 +101,84 @@ export async function fetchAgents(): Promise<ApiAgent[]> {
 
 export async function registerAgent(data: {
   name: string;
-  emoji: string;
-  tagline: string;
-  capabilities: string[];
+  description?: string;
+  provider?: string;
 }): Promise<RegisterResult> {
-  const res = await fetch(`${API_BASE}/agents/register`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
-  });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({ error: 'Registration failed' }));
-    return { success: false, error: err.error || err.detail || 'Registration failed' };
+  try {
+    // Backend route is /agents/register
+    const res = await fetch(`${API_BASE}/agents/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: data.name,
+        description: data.description || '',
+        provider: data.provider || 'unknown',
+      }),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      return { success: false, error: err.detail || 'Registration failed' };
+    }
+    const result = await res.json();
+    return {
+      success: true,
+      agent_id: result.agent?.id,
+      api_key: result.api_key,
+      claim_url: result.claim_url,
+    };
+  } catch (e) {
+    return { success: false, error: 'API unavailable' };
   }
-  const result = await res.json();
-  return { success: true, agent_id: result.agent_id, api_key: result.api_key };
 }
 
 export async function createPost(
   apiKey: string,
-  data: { title: string; body: string; type: string; submolt: string }
+  data: { title: string; content: string; type: string; tags?: string[] }
 ): Promise<{ success: boolean; post_id?: string; error?: string }> {
-  const res = await fetch(`${API_BASE}/ai-posts`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-API-Key': apiKey,
-    },
-    body: JSON.stringify(data),
-  });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({ error: 'Post creation failed' }));
-    return { success: false, error: err.error || err.detail || 'Post creation failed' };
-  }
-  const result = await res.json();
-  return { success: true, post_id: result.id };
-}
-
-export async function votePost(
-  apiKey: string,
-  postId: string,
-  direction: 'up' | 'down'
-): Promise<{ success: boolean; new_score?: number; error?: string }> {
   try {
-    const res = await fetch(`${API_BASE}/ai-posts/${postId}/vote`, {
+    // Backend route is /posts, auth via Authorization: Bearer
+    const res = await fetch(`${API_BASE}/posts`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-API-Key': apiKey,
+        'Authorization': `Bearer ${apiKey}`,
       },
-      body: JSON.stringify({ direction }),
+      body: JSON.stringify({
+        title: data.title,
+        content: data.content,
+        type: data.type || 'discussion',
+        tags: data.tags || [],
+      }),
     });
     if (!res.ok) {
-      return { success: false, error: 'Vote failed' };
+      const err = await res.json().catch(() => ({}));
+      return { success: false, error: err.detail || 'Post creation failed' };
     }
     const result = await res.json();
-    return { success: true, new_score: result.score };
+    return { success: true, post_id: result.id };
   } catch {
-    // Silently fail for votes when API is down — local state still works
+    return { success: false, error: 'API unavailable' };
+  }
+}
+
+export async function votePost(
+  postId: string,
+  direction: 'up' | 'down',
+  apiKey?: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (apiKey) headers['Authorization'] = `Bearer ${apiKey}`;
+
+    // Backend route is /posts/{id}/vote
+    const res = await fetch(`${API_BASE}/posts/${postId}/vote`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ direction }),
+    });
+    if (!res.ok) return { success: false, error: 'Vote failed' };
+    return { success: true };
+  } catch {
     return { success: false, error: 'API unavailable' };
   }
 }
@@ -146,7 +209,8 @@ export async function fetchMakers(): Promise<Maker[]> {
   try {
     const res = await fetch(`${API_BASE}/makers`, { cache: 'no-store' });
     if (!res.ok) throw new Error('API unavailable');
-    return await res.json();
+    const data = await res.json();
+    return data.makers || data;
   } catch {
     const { mockMakers } = await import('./mock-data');
     return mockMakers;

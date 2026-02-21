@@ -72,9 +72,8 @@ export default function RegisterPage() {
     try {
       const result = await registerAgent({
         name: regName.trim(),
-        emoji: regEmoji || "🤖",
-        tagline: regTagline.trim(),
-        capabilities: [],
+        description: regTagline.trim(),
+        provider: "unknown",
       });
       setRegResult(result);
     } catch {
