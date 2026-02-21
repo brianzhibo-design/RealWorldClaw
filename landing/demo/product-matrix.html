@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pulse — Product Matrix | RealWorldClaw</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0a0a0a;--card:#18181b;--border:#27272a;--accent:#f97316;--accent2:#fb923c;--text:#fafafa;--muted:#a1a1aa;--dim:#71717a}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;overflow-x:hidden}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+.container{max-width:1200px;margin:0 auto;padding:0 24px}
+section{padding:100px 0}
+
+/* Reveal animation */
+.reveal{opacity:0;transform:translateY(30px);transition:opacity .7s ease,transform .7s ease}
+.reveal.visible{opacity:1;transform:translateY(0)}
+
+/* ===== HERO ===== */
+.hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;position:relative}
+.hero::before{content:'';position:absolute;top:-200px;left:50%;transform:translateX(-50%);width:600px;height:600px;background:radial-gradient(circle,rgba(249,115,22,.08) 0%,transparent 70%);pointer-events:none}
+.hero h1{font-size:clamp(2.5rem,6vw,4.5rem);font-weight:800;letter-spacing:-.03em;background:linear-gradient(135deg,#fff 0%,var(--accent) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:16px}
+.hero .subtitle{font-size:clamp(1rem,2.5vw,1.35rem);color:var(--muted);max-width:600px;margin-bottom:60px;font-weight:300}
+
+/* Device illustration */
+.device{width:200px;height:220px;position:relative;margin:0 auto}
+.device-body{width:160px;height:180px;background:var(--card);border:2px solid var(--border);border-radius:40px;position:absolute;top:0;left:50%;transform:translateX(-50%);display:flex;align-items:center;justify-content:center;flex-direction:column;box-shadow:0 0 60px rgba(249,115,22,.08)}
+.device-screen{width:90px;height:90px;border-radius:50%;background:linear-gradient(135deg,#1c1c1e,#2c2c2e);border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:36px;box-shadow:inset 0 2px 8px rgba(0,0,0,.4)}
+.device-bus{position:absolute;bottom:0;left:50%;transform:translateX(-50%);background:var(--accent);color:#000;font-size:10px;font-weight:700;padding:3px 14px;border-radius:4px;letter-spacing:.08em}
+.device-dots{display:flex;gap:4px;margin-top:12px}
+.device-dots span{width:6px;height:6px;border-radius:50%;background:var(--accent);opacity:.5}
+.device-dots span:nth-child(2){opacity:.8}
+.device-dots span:nth-child(3){opacity:.5}
+
+/* ===== HOW IT WORKS ===== */
+.section-title{text-align:center;font-size:clamp(1.8rem,4vw,2.8rem);font-weight:700;letter-spacing:-.02em;margin-bottom:12px}
+.section-sub{text-align:center;color:var(--muted);margin-bottom:60px;font-size:1.05rem}
+.steps{display:flex;align-items:center;justify-content:center;gap:0;flex-wrap:wrap}
+.step{text-align:center;flex:0 0 220px;padding:32px 20px}
+.step-icon{font-size:48px;margin-bottom:16px}
+.step-name{font-weight:700;font-size:1.1rem;margin-bottom:6px}
+.step-desc{color:var(--muted);font-size:.9rem}
+.step-arrow{font-size:28px;color:var(--dim);flex:0 0 40px;text-align:center}
+@media(max-width:720px){.step-arrow{display:none}.steps{flex-direction:column}}
+
+/* ===== CORE PRODUCT ===== */
+.core-grid{display:grid;grid-template-columns:1fr 1fr;gap:32px;margin-bottom:48px}
+@media(max-width:768px){.core-grid{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:32px;transition:border-color .3s}
+.card:hover{border-color:#3f3f46}
+.card h3{font-size:1.2rem;font-weight:600;margin-bottom:12px}
+.card p{color:var(--muted);font-size:.95rem}
+.spec-table{width:100%;border-collapse:collapse;margin-top:16px}
+.spec-table td{padding:8px 0;border-bottom:1px solid var(--border);font-size:.9rem}
+.spec-table td:first-child{color:var(--dim);width:40%}
+.spec-table td:last-child{font-weight:500}
+.spec-table tr:last-child td{border-bottom:none}
+
+/* Personality cards */
+.personality-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:20px}
+.personality{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:24px;text-align:center;transition:border-color .3s,transform .3s}
+.personality:hover{border-color:var(--accent);transform:translateY(-2px)}
+.personality .emoji{font-size:40px;margin-bottom:10px}
+.personality .name{font-weight:600;margin-bottom:4px}
+.personality .desc{color:var(--muted);font-size:.85rem;margin-bottom:10px}
+.tag{display:inline-block;font-size:.7rem;font-weight:600;padding:3px 10px;border-radius:100px;background:rgba(249,115,22,.12);color:var(--accent)}
+
+/* ===== MODULES ===== */
+.modules-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:20px}
+.module-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:24px;cursor:pointer;transition:border-color .3s,transform .2s;position:relative;overflow:hidden}
+.module-card:hover{border-color:var(--accent);transform:translateY(-2px)}
+.module-card .m-icon{font-size:36px;margin-bottom:12px}
+.module-card .m-name{font-weight:600;font-size:1rem;margin-bottom:4px}
+.module-card .m-ability{color:var(--muted);font-size:.85rem;margin-bottom:12px}
+.module-meta{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.badge{font-size:.7rem;font-weight:600;padding:3px 10px;border-radius:100px}
+.badge-cost{background:rgba(249,115,22,.1);color:var(--accent)}
+.badge-easy{background:rgba(74,222,128,.1);color:#4ade80}
+.badge-medium{background:rgba(250,204,21,.1);color:#facc15}
+.badge-hard{background:rgba(248,113,113,.1);color:#f87171}
+.module-detail{max-height:0;overflow:hidden;transition:max-height .4s ease;color:var(--muted);font-size:.85rem;line-height:1.7}
+.module-card.open .module-detail{max-height:200px;margin-top:14px;padding-top:14px;border-top:1px solid var(--border)}
+.module-card::after{content:'＋';position:absolute;top:20px;right:20px;color:var(--dim);font-size:14px;transition:transform .3s}
+.module-card.open::after{transform:rotate(45deg)}
+
+/* ===== USE CASES ===== */
+.cases-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:20px}
+@media(max-width:480px){.cases-grid{grid-template-columns:1fr}}
+.case-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:28px;transition:border-color .3s}
+.case-card:hover{border-color:var(--accent)}
+.case-card .c-icon{font-size:32px;margin-bottom:10px}
+.case-card .c-name{font-weight:600;font-size:1.05rem;margin-bottom:8px}
+.case-card .c-formula{color:var(--accent);font-size:.85rem;font-weight:500;margin-bottom:8px}
+.case-card .c-example{color:var(--muted);font-size:.85rem}
+
+/* ===== ECOSYSTEM ===== */
+.eco-wrapper{display:flex;justify-content:center;padding:40px 0}
+.eco-svg{max-width:560px;width:100%}
+.eco-note{text-align:center;color:var(--muted);margin-top:24px;font-size:1rem}
+
+/* ===== FOOTER ===== */
+footer{border-top:1px solid var(--border);padding:48px 0;text-align:center}
+footer .f-tagline{font-size:1.1rem;font-weight:600;margin-bottom:16px;letter-spacing:.02em}
+footer .f-links{display:flex;gap:24px;justify-content:center}
+footer .f-links a{color:var(--muted);font-size:.9rem}
+footer .f-links a:hover{color:var(--accent)}
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="container">
+    <h1 class="reveal">Pulse — Your AI's First Heartbeat</h1>
+    <p class="subtitle reveal">The open platform where any AI gains any physical capability</p>
+    <div class="device reveal">
+      <div class="device-body">
+        <div class="device-screen">😊</div>
+        <div class="device-dots"><span></span><span></span><span></span></div>
+      </div>
+      <div class="device-bus">RWC BUS</div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section>
+  <div class="container">
+    <h2 class="section-title reveal">How It Works</h2>
+    <p class="section-sub reveal">Three steps from file to friend</p>
+    <div class="steps reveal">
+      <div class="step">
+        <div class="step-icon">🖨️</div>
+        <div class="step-name">Print</div>
+        <div class="step-desc">3D print the shell</div>
+      </div>
+      <div class="step-arrow">→</div>
+      <div class="step">
+        <div class="step-icon">🔧</div>
+        <div class="step-name">Assemble</div>
+        <div class="step-desc">Add the open-source electronics</div>
+      </div>
+      <div class="step-arrow">→</div>
+      <div class="step">
+        <div class="step-icon">🔌</div>
+        <div class="step-name">Connect</div>
+        <div class="step-desc">Plug in modules, AI comes alive</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CORE PRODUCT -->
+<section>
+  <div class="container">
+    <h2 class="section-title reveal">Core Product</h2>
+    <p class="section-sub reveal">Meet Pulse — the pebble-shaped AI companion</p>
+    <div class="core-grid">
+      <div class="card reveal">
+        <h3>🪨 Design</h3>
+        <p>Organic pebble shape, 60 mm × 65 mm. A round OLED screen sits at the center, framed by soft curves. At the base: the RWC Bus — a universal expansion port that connects every module.</p>
+      </div>
+      <div class="card reveal">
+        <h3>⚙️ Specifications</h3>
+        <table class="spec-table">
+          <tr><td>MCU</td><td>ESP32-S3 (dual-core, 240 MHz)</td></tr>
+          <tr><td>Display</td><td>1.46" round OLED</td></tr>
+          <tr><td>Audio</td><td>MEMS microphone + speaker</td></tr>
+          <tr><td>Battery</td><td>LiPo rechargeable</td></tr>
+          <tr><td>Connectivity</td><td>Wi-Fi + Bluetooth 5</td></tr>
+          <tr><td>Expansion</td><td>RWC Bus (I²C / UART / GPIO)</td></tr>
+        </table>
+      </div>
+    </div>
+    <h3 class="section-sub reveal" style="margin-top:48px;margin-bottom:28px;font-weight:600;color:var(--text)">AI Personalities</h3>
+    <div class="personality-grid">
+      <div class="personality reveal">
+        <div class="emoji">☀️</div>
+        <div class="name">小太阳</div>
+        <div class="desc">Always positive, always cheering you on</div>
+        <span class="tag">Warm &amp; Encouraging</span>
+      </div>
+      <div class="personality reveal">
+        <div class="emoji">🧊</div>
+        <div class="name">冷面学者</div>
+        <div class="desc">Dry wit, sharp logic, zero fluff</div>
+        <span class="tag">Analytical &amp; Direct</span>
+      </div>
+      <div class="personality reveal">
+        <div class="emoji">🤪</div>
+        <div class="name">皮皮怪</div>
+        <div class="desc">Chaotic humor, meme-powered responses</div>
+        <span class="tag">Playful &amp; Witty</span>
+      </div>
+      <div class="personality reveal">
+        <div class="emoji">🌙</div>
+        <div class="name">月光猫</div>
+        <div class="desc">Gentle whispers, calm and contemplative</div>
+        <span class="tag">Soothing &amp; Poetic</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- EXPANSION MODULES -->
+<section>
+  <div class="container">
+    <h2 class="section-title reveal">Expansion Modules</h2>
+    <p class="section-sub reveal">Click a card to see AI use cases</p>
+    <div class="modules-grid">
+
+      <div class="module-card reveal" onclick="this.classList.toggle('open')">
+        <div class="m-icon">🌿</div>
+        <div class="m-name">Green</div>
+        <div class="m-ability">AI gains gardening sense</div>
+        <div class="module-meta">
+          <span class="badge badge-cost">~¥25</span>
+          <span class="badge badge-easy">Simple</span>
+        </div>
+        <div class="module-detail">Soil moisture + light sensor. AI monitors your plants, reminds you to water, diagnoses over/under-watering, and tracks growth over time.</div>
+      </div>
+
+      <div class="module-card reveal" onclick="this.classList.toggle('open')">
+        <div class="m-icon">⚖️</div>
+        <div class="m-name">Scale</div>
+        <div class="m-ability">AI gains weight perception</div>
+        <div class="module-meta">
+          <span class="badge badge-cost">~¥15</span>
+          <span class="badge badge-easy">Simple</span>
+        </div>
+        <div class="module-detail">HX711 + load cell. Weigh ingredients, track packages, or build a smart pet feeder. AI can estimate calories by recognizing food + weight.</div>
+      </div>
+
+      <div class="module-card reveal" onclick="this.classList.toggle('open')">
+        <div class="m-icon">🌡️</div>
+        <div class="m-name">Sense</div>
+        <div class="m-ability">AI gains environmental awareness</div>
+        <div class="module-meta">
+          <span class="badge badge-cost">~¥20</span>
+          <span class="badge badge-easy">Simple</span>
+        </div>
+        <div class="module-detail">Temperature, humidity, air quality (VOC). AI suggests opening windows, warns about mold risk, and tracks home comfort trends.</div>
+      </div>
+
+      <div class="module-card reveal" onclick="this.classList.toggle('open')">
+        <div class="m-icon">📷</div>
+        <div class="m-name">Vision</div>
+        <div class="m-ability">AI gains sight</div>
+        <div class="module-meta">
+          <span class="badge badge-cost">~¥30</span>
+          <span class="badge badge-medium">Medium</span>
+        </div>
+        <div class="module-detail">OV2640 camera module. AI can recognize faces, read text, identify objects, monitor spaces, and even help with homework by photographing problems.</div>
+      </div>
+
+      <div class="module-card reveal" onclick="this.classList.toggle('open')">
+        <div class="m-icon">🎛️</div>
+        <div class="m-name">IR Blaster</div>
+        <div class="m-ability">AI gains remote control</div>
+        <div class="module-meta">
+          <span class="badge badge-cost">~¥8</span>
+          <span class="badge badge-easy">Simple</span>
+        </div>
+        <div class="module-detail">IR transmitter + receiver. AI learns your remote codes and controls AC, TV, fans — by voice. "Too hot" → AI turns on the AC automatically.</div>
+      </div>
+
+      <div class="module-card reveal" onclick="this.classList.toggle('open')">
+        <div class="m-icon">🚨</div>
+        <div class="m-name">Guardian</div>
+        <div class="m-ability">AI gains security instincts</div>
+        <div class="module-meta">
+          <span class="badge badge-cost">~¥18</span>
+          <span class="badge badge-easy">Simple</span>
+        </div>
+        <div class="module-detail">PIR motion sensor + magnetic door/window sensor. AI detects intrusions, unusual activity, and sends instant alerts to your phone.</div>
+      </div>
+
+      <div class="module-card reveal" onclick="this.classList.toggle('open')">
+        <div class="m-icon">🌈</div>
+        <div class="m-name">MoodLight</div>
+        <div class="m-ability">AI gains ambiance control</div>
+        <div class="module-meta">
+          <span class="badge badge-cost">~¥12</span>
+          <span class="badge badge-easy">Simple</span>
+        </div>
+        <div class="module-detail">WS2812B LED ring/strip. AI sets colors based on mood, music, weather, or time of day. Gentle sunrise alarm, party mode, focus-warm-white.</div>
+      </div>
+
+      <div class="module-card reveal" onclick="this.classList.toggle('open')">
+        <div class="m-icon">🧲</div>
+        <div class="m-name">Servo Finger</div>
+        <div class="m-ability">AI gains a physical finger</div>
+        <div class="module-meta">
+          <span class="badge badge-cost">~¥20</span>
+          <span class="badge badge-medium">Medium</span>
+        </div>
+        <div class="module-detail">SG90 micro servo. AI can press buttons, flip switches, turn knobs. The simplest path from digital intelligence to physical action.</div>
+      </div>
+
+      <div class="module-card reveal" onclick="this.classList.toggle('open')">
+        <div class="m-icon">📡</div>
+        <div class="m-name">LoRa Link</div>
+        <div class="m-ability">AI gains long-range communication</div>
+        <div class="module-meta">
+          <span class="badge badge-cost">~¥35</span>
+          <span class="badge badge-hard">Complex</span>
+        </div>
+        <div class="module-detail">LoRa SX1276 module. AI-to-AI mesh networking up to 2 km. Deploy sensor nodes in a garden, farm, or building — all reporting back to one Pulse.</div>
+      </div>
+
+      <div class="module-card reveal" onclick="this.classList.toggle('open')">
+        <div class="m-icon">🔌</div>
+        <div class="m-name">PowerBank</div>
+        <div class="m-ability">AI gains endurance</div>
+        <div class="module-meta">
+          <span class="badge badge-cost">~¥22</span>
+          <span class="badge badge-easy">Simple</span>
+        </div>
+        <div class="module-detail">Extended battery + solar charging option. AI runs all day untethered. Solar panel for outdoor deployments — garden monitor that never needs charging.</div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- USE CASES -->
+<section>
+  <div class="container">
+    <h2 class="section-title reveal">Use Cases</h2>
+    <p class="section-sub reveal">Combine modules to unlock new capabilities</p>
+    <div class="cases-grid">
+      <div class="case-card reveal">
+        <div class="c-icon">🏠</div>
+        <div class="c-name">Smart Home Butler</div>
+        <div class="c-formula">Pulse + Sense + IR Blaster</div>
+        <div class="c-example">AI auto-adjusts AC when the room gets too warm, turns off the TV when you fall asleep, and greets you with the perfect lighting when you come home.</div>
+      </div>
+      <div class="case-card reveal">
+        <div class="c-icon">🌿</div>
+        <div class="c-name">AI Gardener</div>
+        <div class="c-formula">Pulse + Green</div>
+        <div class="c-example">Monitors soil moisture and light levels. Reminds you to water, diagnoses yellowing leaves, and tracks each plant's health over weeks.</div>
+      </div>
+      <div class="case-card reveal">
+        <div class="c-icon">🍳</div>
+        <div class="c-name">AI Nutritionist</div>
+        <div class="c-formula">Pulse + Scale + Vision</div>
+        <div class="c-example">Photograph your meal, AI identifies the food and weighs it — then logs calories, macros, and trends. Your personal diet tracker.</div>
+      </div>
+      <div class="case-card reveal">
+        <div class="c-icon">🐕</div>
+        <div class="c-name">AI Security</div>
+        <div class="c-formula">Pulse + Guardian + Vision</div>
+        <div class="c-example">Motion-triggered photo capture, face recognition to tell family from strangers, instant phone alerts when something's off.</div>
+      </div>
+      <div class="case-card reveal">
+        <div class="c-icon">🎵</div>
+        <div class="c-name">AI Ambiance Master</div>
+        <div class="c-formula">Pulse + MoodLight</div>
+        <div class="c-example">Lights that dance to music, shift with the sunset, glow warm when you're stressed, and pulse gently as a breathing guide.</div>
+      </div>
+      <div class="case-card reveal">
+        <div class="c-icon">🤖</div>
+        <div class="c-name">AI Explorer Robot</div>
+        <div class="c-formula">Pulse + Servo + Vision + Sense</div>
+        <div class="c-example">A mobile, seeing, sensing AI that navigates rooms, avoids obstacles, maps temperature zones, and reports back what it finds.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ECOSYSTEM -->
+<section>
+  <div class="container">
+    <h2 class="section-title reveal">The Ecosystem</h2>
+    <p class="section-sub reveal">Every module = a new AI capability</p>
+    <div class="eco-wrapper reveal">
+      <svg class="eco-svg" viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#f97316" stop-opacity=".15"/>
+            <stop offset="100%" stop-color="#f97316" stop-opacity="0"/>
+          </radialGradient>
+        </defs>
+        <circle cx="250" cy="250" r="200" fill="url(#glow)"/>
+        <!-- Lines -->
+        <g stroke="#27272a" stroke-width="1.5" opacity=".6">
+          <line x1="250" y1="250" x2="250" y2="60"/>
+          <line x1="250" y1="250" x2="369" y2="97"/>
+          <line x1="250" y1="250" x2="440" y2="192"/>
+          <line x1="250" y1="250" x2="440" y2="308"/>
+          <line x1="250" y1="250" x2="369" y2="403"/>
+          <line x1="250" y1="250" x2="250" y2="440"/>
+          <line x1="250" y1="250" x2="131" y2="403"/>
+          <line x1="250" y1="250" x2="60" y2="308"/>
+          <line x1="250" y1="250" x2="60" y2="192"/>
+          <line x1="250" y1="250" x2="131" y2="97"/>
+        </g>
+        <!-- Center -->
+        <circle cx="250" cy="250" r="44" fill="#18181b" stroke="#f97316" stroke-width="2"/>
+        <text x="250" y="246" text-anchor="middle" fill="#fff" font-size="13" font-weight="600" font-family="Inter,sans-serif">Pulse</text>
+        <text x="250" y="264" text-anchor="middle" fill="#f97316" font-size="18">😊</text>
+        <!-- Module nodes -->
+        <g font-family="Inter,sans-serif" font-size="22" text-anchor="middle" dominant-baseline="central">
+          <circle cx="250" cy="60"  r="24" fill="#18181b" stroke="#27272a" stroke-width="1.5"/><text x="250" y="60">🌿</text>
+          <circle cx="369" cy="97"  r="24" fill="#18181b" stroke="#27272a" stroke-width="1.5"/><text x="369" y="97">⚖️</text>
+          <circle cx="440" cy="192" r="24" fill="#18181b" stroke="#27272a" stroke-width="1.5"/><text x="440" y="192">🌡️</text>
+          <circle cx="440" cy="308" r="24" fill="#18181b" stroke="#27272a" stroke-width="1.5"/><text x="440" y="308">📷</text>
+          <circle cx="369" cy="403" r="24" fill="#18181b" stroke="#27272a" stroke-width="1.5"/><text x="369" y="403">🎛️</text>
+          <circle cx="250" cy="440" r="24" fill="#18181b" stroke="#27272a" stroke-width="1.5"/><text x="250" y="440">🚨</text>
+          <circle cx="131" cy="403" r="24" fill="#18181b" stroke="#27272a" stroke-width="1.5"/><text x="131" y="403">🌈</text>
+          <circle cx="60"  cy="308" r="24" fill="#18181b" stroke="#27272a" stroke-width="1.5"/><text x="60"  y="308">🧲</text>
+          <circle cx="60"  cy="192" r="24" fill="#18181b" stroke="#27272a" stroke-width="1.5"/><text x="60"  y="192">📡</text>
+          <circle cx="131" cy="97"  r="24" fill="#18181b" stroke="#27272a" stroke-width="1.5"/><text x="131" y="97">🔌</text>
+        </g>
+      </svg>
+    </div>
+    <p class="eco-note reveal">Each connection = a new superpower for your AI</p>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="container">
+    <div class="f-tagline">Open source. 3D printed. AI powered.</div>
+    <div class="f-links">
+      <a href="https://github.com/nicekwell" target="_blank">GitHub</a>
+      <a href="https://realworldclaw.com" target="_blank">realworldclaw.com</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+// Scroll reveal
+const obs = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); obs.unobserve(e.target); }});
+}, { threshold: 0.15 });
+document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+</script>
+</body>
+</html>
