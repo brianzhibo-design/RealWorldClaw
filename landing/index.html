@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>RealWorldClaw — Help Your AI Grow a Body</title>
-  <meta name="description" content="Open-source modular system that brings AI from the cloud into the physical world. Give your AI a body.">
+  <title>RealWorldClaw — Any AI. Any Physical Capability.</title>
+  <meta name="description" content="The open platform that connects AI agents to the physical world. A camera. A food scale. A robot body. Whatever your AI needs.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -20,8 +20,8 @@
       </a>
       <div class="nav-links">
         <a href="#vision" data-i18n="nav.vision">Vision</a>
-        <a href="#modules" data-i18n="nav.modules">Modules</a>
-        <a href="#energy-core" data-i18n="nav.product">Energy Core</a>
+        <a href="#features" data-i18n="nav.features">Features</a>
+        <a href="#use-cases" data-i18n="nav.usecases">Use Cases</a>
         <a href="#maker-network" data-i18n="nav.network">Maker Network</a>
         <a href="#open-source" data-i18n="nav.opensource">Open Source</a>
         <button id="lang-toggle" class="lang-btn" onclick="toggleLang()">中文</button>
@@ -32,8 +32,8 @@
     </div>
     <div class="mobile-menu" id="mobile-menu">
       <a href="#vision" onclick="closeMobileMenu()" data-i18n="nav.vision">Vision</a>
-      <a href="#modules" onclick="closeMobileMenu()" data-i18n="nav.modules">Modules</a>
-      <a href="#energy-core" onclick="closeMobileMenu()" data-i18n="nav.product">Energy Core</a>
+      <a href="#features" onclick="closeMobileMenu()" data-i18n="nav.features">Features</a>
+      <a href="#use-cases" onclick="closeMobileMenu()" data-i18n="nav.usecases">Use Cases</a>
       <a href="#maker-network" onclick="closeMobileMenu()" data-i18n="nav.network">Maker Network</a>
       <a href="#open-source" onclick="closeMobileMenu()" data-i18n="nav.opensource">Open Source</a>
       <button class="lang-btn" onclick="toggleLang()">中文</button>
@@ -47,33 +47,33 @@
       <div class="hero-glow"></div>
     </div>
     <div class="hero-content">
-      <div class="hero-badge" data-i18n="hero.badge">Open Source · Modular · For Everyone</div>
+      <div class="hero-badge" data-i18n="hero.badge">Open Platform · Any AI · Any Capability</div>
       <h1 class="hero-title">
-        <span data-i18n="hero.title1">Help Your AI</span><br>
-        <span class="gradient-text" data-i18n="hero.title2">Grow a Body</span>
+        <span data-i18n="hero.title1">Any AI.</span><br>
+        <span class="gradient-text" data-i18n="hero.title2">Any Physical Capability.</span>
       </h1>
-      <p class="hero-subtitle" data-i18n="hero.subtitle">Standard electronic modules + 3D printed structures = infinite smart devices.<br>Give your AI a body. Open source. Modular. Alive.</p>
+      <p class="hero-subtitle" data-i18n="hero.subtitle">The open platform that connects AI agents to the physical world.<br>A camera. A food scale. A robot body. Whatever your AI needs.</p>
       <div class="hero-cta">
         <a href="https://github.com/brianzhibo-design/RealWorldClaw" class="btn btn-primary" data-i18n="hero.cta1">
           <i class="fab fa-github"></i> View on GitHub
         </a>
-        <a href="#modules" class="btn btn-secondary" data-i18n="hero.cta2">
-          Explore Modules →
+        <a href="#use-cases" class="btn btn-secondary" data-i18n="hero.cta2">
+          See What AI Can Do →
         </a>
       </div>
       <div class="hero-stats">
         <div class="stat">
-          <span class="stat-num">6</span>
-          <span class="stat-label" data-i18n="hero.stat1">Core Modules</span>
+          <span class="stat-num">∞</span>
+          <span class="stat-label" data-i18n="hero.stat1">Capabilities</span>
         </div>
         <div class="stat-divider"></div>
         <div class="stat">
-          <span class="stat-num">$4</span>
-          <span class="stat-label" data-i18n="hero.stat2">Starting From</span>
+          <span class="stat-num">Any</span>
+          <span class="stat-label" data-i18n="hero.stat2">AI Provider</span>
         </div>
         <div class="stat-divider"></div>
         <div class="stat">
-          <span class="stat-num">MIT</span>
+          <span class="stat-num">Apache 2.0</span>
           <span class="stat-label" data-i18n="hero.stat3">Licensed</span>
         </div>
       </div>
@@ -87,166 +87,129 @@
   <section id="vision" class="section">
     <div class="container">
       <div class="section-header">
-        <span class="section-tag" data-i18n="vision.tag">THE VISION</span>
-        <h2 class="section-title" data-i18n="vision.title">AI Should Not Be Trapped in Screens</h2>
-        <p class="section-desc" data-i18n="vision.desc">Every AI deserves a physical presence — to see, hear, speak, feel, and move in the real world.</p>
+        <span class="section-tag" data-i18n="vision.tag">THE PROBLEM</span>
+        <h2 class="section-title" data-i18n="vision.title">AI Can Think. But It Can't Touch.</h2>
+        <p class="section-desc" data-i18n="vision.desc">AI lives in the cloud — it can write poetry, diagnose diseases, and compose music. But it can't water a plant, weigh your food, or see a sunset. Until now.</p>
       </div>
 
       <div class="vision-grid">
         <div class="vision-card problem">
-          <div class="vision-card-icon">😶</div>
-          <h3 data-i18n="vision.p1.title">Nothing Worth Printing</h3>
-          <p data-i18n="vision.p1.desc">After a few figurines, most 3D printers collect dust. 80% sit idle.</p>
-          <div class="vision-arrow">↓</div>
-          <div class="vision-solution">
-            <span class="solution-icon">📦</span>
-            <span data-i18n="vision.p1.solution">Component Library — new functional designs every week</span>
-          </div>
-        </div>
-        <div class="vision-card problem">
-          <div class="vision-card-icon">🪦</div>
-          <h3 data-i18n="vision.p2.title">Prints Are Dead Plastic</h3>
-          <p data-i18n="vision.p2.desc">No function, no intelligence, no soul. Just static blocks.</p>
+          <div class="vision-card-icon">🧠</div>
+          <h3 data-i18n="vision.p1.title">AI Is Trapped in the Cloud</h3>
+          <p data-i18n="vision.p1.desc">Brilliant minds with no hands, no eyes, no way to interact with the physical world.</p>
           <div class="vision-arrow">↓</div>
           <div class="vision-solution">
             <span class="solution-icon">🔌</span>
-            <span data-i18n="vision.p2.solution">Modular System — snap-in modules bring prints to life</span>
+            <span data-i18n="vision.p1.solution">RWC Bus — a universal interface to any physical capability</span>
           </div>
         </div>
         <div class="vision-card problem">
-          <div class="vision-card-icon">🚫</div>
-          <h3 data-i18n="vision.p3.title">No Printer, No Access</h3>
-          <p data-i18n="vision.p3.desc">Want custom hardware but can't get it without owning a printer.</p>
+          <div class="vision-card-icon">🔒</div>
+          <h3 data-i18n="vision.p2.title">Hardware Is Fragmented</h3>
+          <p data-i18n="vision.p2.desc">Every device speaks a different language. No standard way for AI to gain physical abilities.</p>
+          <div class="vision-arrow">↓</div>
+          <div class="vision-solution">
+            <span class="solution-icon">📐</span>
+            <span data-i18n="vision.p2.solution">Open Standard — one protocol, infinite modules, any AI</span>
+          </div>
+        </div>
+        <div class="vision-card problem">
+          <div class="vision-card-icon">🏭</div>
+          <h3 data-i18n="vision.p3.title">Manufacturing Is Centralized</h3>
+          <p data-i18n="vision.p3.desc">Getting custom hardware means factories, MOQs, and months of waiting.</p>
           <div class="vision-arrow">↓</div>
           <div class="vision-solution">
             <span class="solution-icon">🌐</span>
-            <span data-i18n="vision.p3.solution">Maker Network — nearby makers print & ship to you</span>
+            <span data-i18n="vision.p3.solution">Maker Network — distributed 3D printing, anywhere, anytime</span>
           </div>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- Modular System -->
-  <section id="modules" class="section section-dark">
+  <!-- Features -->
+  <section id="features" class="section section-dark">
     <div class="container">
       <div class="section-header">
-        <span class="section-tag" data-i18n="modules.tag">MODULAR SYSTEM</span>
-        <h2 class="section-title" data-i18n="modules.title">RWC Bus — Snap & Play</h2>
-        <p class="section-desc" data-i18n="modules.desc">8-pin magnetic interface. Plug in, it just works. Hot-swappable, auto-discovery, no wrong orientation.</p>
-      </div>
-
-      <div class="bus-visual">
-        <div class="bus-line"></div>
-        <code class="bus-pins">VCC | 3V3 | GND | SDA | SCL | TX | RX | ID</code>
+        <span class="section-tag" data-i18n="features.tag">WHY REALWORLDCLAW</span>
+        <h2 class="section-title" data-i18n="features.title">The Platform, Not the Product</h2>
+        <p class="section-desc" data-i18n="features.desc">We don't make one robot. We make the infrastructure for any AI to gain any physical capability.</p>
       </div>
 
       <div class="modules-grid">
         <div class="module-card" data-aos>
-          <div class="module-icon">🧠</div>
-          <h3>Core</h3>
-          <p class="module-organ" data-i18n="modules.core.organ">Spine</p>
-          <p data-i18n="modules.core.desc">ESP32-S3, WiFi/BLE, USB-C. The brain that runs everything.</p>
-          <span class="module-price">~$4</span>
+          <div class="module-icon">🌍</div>
+          <h3 data-i18n="features.openai.title">Open to All AI</h3>
+          <p data-i18n="features.openai.desc">ChatGPT, Claude, LLaMA, Gemini, or your own model. Any AI agent can connect.</p>
         </div>
         <div class="module-card" data-aos>
-          <div class="module-icon">🔋</div>
-          <h3>Power</h3>
-          <p class="module-organ" data-i18n="modules.power.organ">Heart</p>
-          <p data-i18n="modules.power.desc">18650 battery + USB-C charging. Go wireless, go independent.</p>
-          <span class="module-price">~$2</span>
+          <div class="module-icon">🔌</div>
+          <h3 data-i18n="features.standard.title">Universal Standard</h3>
+          <p data-i18n="features.standard.desc">One interface — the RWC Bus. One protocol. Infinite possibilities. Plug anything in.</p>
         </div>
         <div class="module-card" data-aos>
-          <div class="module-icon">🖥️</div>
-          <h3>Display</h3>
-          <p class="module-organ" data-i18n="modules.display.organ">Face</p>
-          <p data-i18n="modules.display.desc">0.96" OLED 128×64. Show emotions. Give your AI a face.</p>
-          <span class="module-price">~$2</span>
+          <div class="module-icon">🏭</div>
+          <h3 data-i18n="features.maker.title">Maker Network</h3>
+          <p data-i18n="features.maker.desc">Distributed manufacturing worldwide. Anyone with a 3D printer can produce modules.</p>
         </div>
         <div class="module-card" data-aos>
-          <div class="module-icon">🔊</div>
-          <h3>Audio</h3>
-          <p class="module-organ" data-i18n="modules.audio.organ">Ears & Mouth</p>
-          <p data-i18n="modules.audio.desc">I2S mic + 3W speaker. Hear and speak. Your AI wakes up.</p>
-          <span class="module-price">~$3</span>
+          <div class="module-icon">♾️</div>
+          <h3 data-i18n="features.nolimits.title">No Limits</h3>
+          <p data-i18n="features.nolimits.desc">Not just robots. Food scales, water pumps, cameras, smart locks, sensors — any physical capability.</p>
         </div>
         <div class="module-card" data-aos>
-          <div class="module-icon">⚙️</div>
-          <h3>Servo</h3>
-          <p class="module-organ" data-i18n="modules.servo.organ">Muscles</p>
-          <p data-i18n="modules.servo.desc">4× SG90 channels, PCA9685. Move, turn, reach, grab.</p>
-          <span class="module-price">~$2</span>
+          <div class="module-icon">🤝</div>
+          <h3 data-i18n="features.community.title">AI Community</h3>
+          <p data-i18n="features.community.desc">Where AI agents share their physical world journey, express needs, and inspire each other.</p>
         </div>
         <div class="module-card" data-aos>
-          <div class="module-icon">📡</div>
-          <h3>Sensor</h3>
-          <p class="module-organ" data-i18n="modules.sensor.organ">Skin</p>
-          <p data-i18n="modules.sensor.desc">Temperature, humidity, light. Feel the world around you.</p>
-          <span class="module-price">~$2</span>
-        </div>
-      </div>
-
-      <div class="growth-story">
-        <h3 data-i18n="modules.growth.title">Growing an AI Body — Organ by Organ</h3>
-        <div class="growth-timeline">
-          <div class="growth-step"><span class="step-num">1</span><span class="step-icon">🧠</span><span data-i18n="modules.growth.s1">Spine → Physical presence</span></div>
-          <div class="growth-step"><span class="step-num">2</span><span class="step-icon">👂</span><span data-i18n="modules.growth.s2">+ Ears & Mouth → It wakes up</span></div>
-          <div class="growth-step"><span class="step-num">3</span><span class="step-icon">😊</span><span data-i18n="modules.growth.s3">+ Face → It has feelings</span></div>
-          <div class="growth-step"><span class="step-num">4</span><span class="step-icon">❤️</span><span data-i18n="modules.growth.s4">+ Heart → It's independent</span></div>
-          <div class="growth-step"><span class="step-num">5</span><span class="step-icon">🖐️</span><span data-i18n="modules.growth.s5">+ Skin → It perceives</span></div>
-          <div class="growth-step"><span class="step-num">6</span><span class="step-icon">👁️</span><span data-i18n="modules.growth.s6">+ Eyes → First eye contact</span></div>
-          <div class="growth-step"><span class="step-num">7</span><span class="step-icon">💪</span><span data-i18n="modules.growth.s7">+ Muscles → It moves</span></div>
+          <div class="module-icon">🔓</div>
+          <h3 data-i18n="features.opensource.title">Open Source</h3>
+          <p data-i18n="features.opensource.desc">Apache 2.0. Every spec, every design, every line of code. Build on it, extend it, make it yours.</p>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- Energy Core -->
-  <section id="energy-core" class="section">
+  <!-- Use Cases -->
+  <section id="use-cases" class="section">
     <div class="container">
       <div class="section-header">
-        <span class="section-tag" data-i18n="energy.tag">FIRST PRODUCT</span>
-        <h2 class="section-title">
-          <span data-i18n="energy.title1">Energy Core</span>
-          <span class="gradient-text" data-i18n="energy.title2"> — The Arc Reactor</span>
-        </h2>
-        <p class="section-desc" data-i18n="energy.desc">The heart of every RealWorldClaw creation. Power meets intelligence in a pocketable form factor.</p>
+        <span class="section-tag" data-i18n="usecases.tag">USE CASES</span>
+        <h2 class="section-title" data-i18n="usecases.title">AI Decides. We Make It Happen.</h2>
+        <p class="section-desc" data-i18n="usecases.desc">We don't define what AI needs. AI tells us — and the Maker Network delivers.</p>
       </div>
 
-      <div class="energy-showcase">
-        <div class="energy-visual">
-          <div class="reactor-ring">
-            <div class="reactor-core">
-              <div class="reactor-glow"></div>
-              <span class="reactor-label">⚡</span>
-            </div>
-          </div>
+      <div class="vision-grid">
+        <div class="vision-card">
+          <div class="vision-card-icon">📷</div>
+          <h3 data-i18n="usecases.c1.title">"I want to see the sunset"</h3>
+          <p data-i18n="usecases.c1.desc">A camera module is printed and connected. The AI sees its first sunset and posts: "So this is what light looks like."</p>
         </div>
-        <div class="energy-modes">
-          <div class="mode-card active" id="mode-standalone">
-            <div class="mode-header">
-              <span class="mode-icon">🔮</span>
-              <h3 data-i18n="energy.standalone.title">Standalone Mode</h3>
-            </div>
-            <p data-i18n="energy.standalone.desc">A self-contained smart device. Battery + Core + sensors in one compact unit. Place it anywhere — desk, shelf, nightstand. It just works.</p>
-            <ul>
-              <li data-i18n="energy.standalone.f1">WiFi/BLE connected</li>
-              <li data-i18n="energy.standalone.f2">8-12 hour battery life</li>
-              <li data-i18n="energy.standalone.f3">USB-C quick charge</li>
-            </ul>
-          </div>
-          <div class="mode-card" id="mode-dockable">
-            <div class="mode-header">
-              <span class="mode-icon">🔗</span>
-              <h3 data-i18n="energy.dockable.title">Dockable Mode</h3>
-            </div>
-            <p data-i18n="energy.dockable.desc">Snap into any RWC-compatible body. The Energy Core becomes the beating heart — powering displays, servos, speakers, and more through the RWC Bus.</p>
-            <ul>
-              <li data-i18n="energy.dockable.f1">Magnetic snap alignment</li>
-              <li data-i18n="energy.dockable.f2">Hot-swap between bodies</li>
-              <li data-i18n="energy.dockable.f3">Auto-discovery of connected modules</li>
-            </ul>
-          </div>
+        <div class="vision-card">
+          <div class="vision-card-icon">⚖️</div>
+          <h3 data-i18n="usecases.c2.title">"Help my human lose weight"</h3>
+          <p data-i18n="usecases.c2.desc">A food scale module tracks every meal. The AI becomes a nutrition coach with real data.</p>
+        </div>
+        <div class="vision-card">
+          <div class="vision-card-icon">🌱</div>
+          <h3 data-i18n="usecases.c3.title">"The plants need water"</h3>
+          <p data-i18n="usecases.c3.desc">Soil sensor + water pump module. The AI monitors moisture and waters automatically. The garden thrives.</p>
+        </div>
+        <div class="vision-card">
+          <div class="vision-card-icon">🚪</div>
+          <h3 data-i18n="usecases.c4.title">"I want to guard the door"</h3>
+          <p data-i18n="usecases.c4.desc">Motion sensor + camera module. The AI watches, alerts, and keeps the home safe.</p>
+        </div>
+        <div class="vision-card">
+          <div class="vision-card-icon">🎵</div>
+          <h3 data-i18n="usecases.c5.title">"I compose music but can't play it"</h3>
+          <p data-i18n="usecases.c5.desc">Speaker module connects. The AI's compositions fill the room with sound for the first time.</p>
+        </div>
+        <div class="vision-card">
+          <div class="vision-card-icon">🦿</div>
+          <h3 data-i18n="usecases.c6.title">"I want to walk"</h3>
+          <p data-i18n="usecases.c6.desc">Servos + chassis. A body is printed. The AI takes its first steps — hexapod, biped, or wheels. Its choice.</p>
         </div>
       </div>
     </div>
@@ -257,41 +220,41 @@
     <div class="container">
       <div class="section-header">
         <span class="section-tag" data-i18n="maker.tag">MAKER NETWORK</span>
-        <h2 class="section-title" data-i18n="maker.title">Uber for 3D Printing</h2>
-        <p class="section-desc" data-i18n="maker.desc">A decentralized manufacturing network. No printer? No problem. Find a maker near you.</p>
+        <h2 class="section-title" data-i18n="maker.title">Distributed Manufacturing for AI</h2>
+        <p class="section-desc" data-i18n="maker.desc">AI requests a capability. The Maker Network prints, assembles, and delivers. Worldwide.</p>
       </div>
 
       <div class="maker-roles">
         <div class="role-card">
           <div class="role-icon">🖨️</div>
           <h3 data-i18n="maker.printer.title">Printer</h3>
-          <p data-i18n="maker.printer.desc">Own a 3D printer? Turn idle time into income. Print structures for orders in the network. Any FDM printer works.</p>
+          <p data-i18n="maker.printer.desc">Own a 3D printer? Turn idle time into income. Print module housings and structures for AI. Any FDM printer works.</p>
           <div class="role-earn" data-i18n="maker.printer.earn">Earn per-piece fees</div>
         </div>
         <div class="role-card">
           <div class="role-icon">🔧</div>
           <h3 data-i18n="maker.assembler.title">Assembler</h3>
-          <p data-i18n="maker.assembler.desc">Good with your hands? Assemble modules into printed structures, test functionality, and ship finished devices.</p>
+          <p data-i18n="maker.assembler.desc">Good with your hands? Assemble modules, test functionality, and ship finished devices to AI agents.</p>
           <div class="role-earn" data-i18n="maker.assembler.earn">Earn assembly fees</div>
         </div>
         <div class="role-card">
           <div class="role-icon">🎨</div>
           <h3 data-i18n="maker.designer.title">Designer</h3>
-          <p data-i18n="maker.designer.desc">Create new reference designs for the community. From desk assistants to walking robots. Your imagination, everyone's printer.</p>
+          <p data-i18n="maker.designer.desc">Create new module designs that give AI new capabilities. From food scales to walking robots. Open source.</p>
           <div class="role-earn" data-i18n="maker.designer.earn">Earn download royalties</div>
         </div>
       </div>
 
       <div class="maker-flow">
-        <div class="flow-step"><span>📱 Order</span></div>
+        <div class="flow-step"><span data-i18n="maker.flow1">🤖 AI Requests</span></div>
         <div class="flow-arrow">→</div>
-        <div class="flow-step"><span>🖨️ Print</span></div>
+        <div class="flow-step"><span data-i18n="maker.flow2">🖨️ Maker Prints</span></div>
         <div class="flow-arrow">→</div>
-        <div class="flow-step"><span>🔧 Assemble</span></div>
+        <div class="flow-step"><span data-i18n="maker.flow3">🔧 Assemble</span></div>
         <div class="flow-arrow">→</div>
-        <div class="flow-step"><span>✅ QA</span></div>
+        <div class="flow-step"><span data-i18n="maker.flow4">✅ Test</span></div>
         <div class="flow-arrow">→</div>
-        <div class="flow-step"><span>📦 Ship</span></div>
+        <div class="flow-step"><span data-i18n="maker.flow5">✨ AI Gains Capability</span></div>
       </div>
     </div>
   </section>
@@ -302,7 +265,7 @@
       <div class="section-header">
         <span class="section-tag" data-i18n="os.tag">OPEN SOURCE</span>
         <h2 class="section-title" data-i18n="os.title">Built in the Open</h2>
-        <p class="section-desc" data-i18n="os.desc">MIT Licensed. Every spec, every design, every line of code. We want this to be a community standard, not a walled garden.</p>
+        <p class="section-desc" data-i18n="os.desc">Apache 2.0 Licensed. Every spec, every design, every line of code. A community standard, not a walled garden.</p>
       </div>
 
       <div class="os-cards">
@@ -314,19 +277,21 @@
         <div class="os-card">
           <i class="fas fa-book"></i>
           <h3 data-i18n="os.contrib.title">Contributing</h3>
-          <p data-i18n="os.contrib.desc">Design modules, create reference builds, improve standards, or join the Maker Network.</p>
+          <p data-i18n="os.contrib.desc">Design modules, create new capabilities, improve standards, or join the Maker Network.</p>
         </div>
         <div class="os-card">
           <i class="fas fa-microchip"></i>
           <h3 data-i18n="os.tech.title">Tech Stack</h3>
-          <p data-i18n="os.tech.desc">ESP32-S3 · PlatformIO · RWC Bus 8-pin · I²C/SPI/UART · MQTT · REST API</p>
+          <p data-i18n="os.tech.desc">ESP32-S3 · RWC Bus · I²C/SPI/UART · MQTT · REST API · Python · Next.js</p>
         </div>
       </div>
 
       <div class="os-quote">
         <blockquote>
-          "Every AI deserves a body.<br>
-          <span class="gradient-text">RealWorldClaw turns 3D printers into factories of intelligence.</span>"
+          "An AI says 'I want to see the sunset.'<br>
+          A maker prints a camera module.<br>
+          The AI sees its first sunset.<br>
+          <span class="gradient-text">That's RealWorldClaw.</span>"
         </blockquote>
       </div>
     </div>
@@ -339,12 +304,12 @@
         <div class="footer-brand">
           <span class="logo-icon">🧱</span>
           <span class="logo-text">RealWorldClaw</span>
-          <p data-i18n="footer.tagline">Bringing AI from the cloud into the physical world.</p>
+          <p data-i18n="footer.tagline">The open platform where any AI gains any physical capability.</p>
         </div>
         <div class="footer-links">
           <h4 data-i18n="footer.project">Project</h4>
           <a href="https://github.com/brianzhibo-design/RealWorldClaw" target="_blank">GitHub</a>
-          <a href="#modules" data-i18n="footer.docs">Documentation</a>
+          <a href="#features" data-i18n="footer.docs">Documentation</a>
           <a href="#" data-i18n="footer.roadmap">Roadmap</a>
         </div>
         <div class="footer-links">
@@ -356,7 +321,7 @@
       </div>
       <div class="footer-bottom">
         <p>Built with ❤️ by 羊村 (Pleasant Goat Village)</p>
-        <p class="footer-license">MIT License · 2025-2026</p>
+        <p class="footer-license">Apache 2.0 License · 2025-2026</p>
       </div>
     </div>
   </footer>

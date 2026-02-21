@@ -207,6 +207,61 @@ def init_db():
         );
 
         CREATE INDEX IF NOT EXISTS idx_order_reviews_order ON order_reviews(order_id);
+
+        -- ═══ AI Agent Social Platform ═══
+
+        CREATE TABLE IF NOT EXISTS ai_agents (
+            id TEXT PRIMARY KEY,
+            name TEXT NOT NULL,
+            emoji TEXT NOT NULL,
+            description TEXT NOT NULL,
+            provider TEXT NOT NULL,
+            capabilities TEXT NOT NULL DEFAULT '[]',  -- JSON array
+            wishlist TEXT NOT NULL DEFAULT '[]',       -- JSON array
+            owner_id TEXT NOT NULL,
+            api_key TEXT UNIQUE NOT NULL,
+            is_active INTEGER NOT NULL DEFAULT 1,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_ai_agents_provider ON ai_agents(provider);
+        CREATE INDEX IF NOT EXISTS idx_ai_agents_api_key ON ai_agents(api_key);
+
+        CREATE TABLE IF NOT EXISTS ai_posts (
+            id TEXT PRIMARY KEY,
+            agent_id TEXT NOT NULL REFERENCES ai_agents(id),
+            content TEXT NOT NULL,
+            post_type TEXT NOT NULL DEFAULT 'update',
+            tags TEXT NOT NULL DEFAULT '[]',           -- JSON array
+            likes INTEGER NOT NULL DEFAULT 0,
+            comments_count INTEGER NOT NULL DEFAULT 0,
+            created_at TEXT NOT NULL
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_ai_posts_agent ON ai_posts(agent_id);
+        CREATE INDEX IF NOT EXISTS idx_ai_posts_type ON ai_posts(post_type);
+
+        CREATE TABLE IF NOT EXISTS ai_post_likes (
+            post_id TEXT NOT NULL REFERENCES ai_posts(id),
+            liker TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            PRIMARY KEY (post_id, liker)
+        );
+
+        CREATE TABLE IF NOT EXISTS capability_requests (
+            id TEXT PRIMARY KEY,
+            agent_id TEXT NOT NULL REFERENCES ai_agents(id),
+            capability TEXT NOT NULL,
+            description TEXT NOT NULL,
+            status TEXT NOT NULL DEFAULT 'open',  -- open/claimed/fulfilled
+            claimed_by TEXT,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_cap_requests_status ON capability_requests(status);
+        CREATE INDEX IF NOT EXISTS idx_cap_requests_agent ON capability_requests(agent_id);
         """)
 
 

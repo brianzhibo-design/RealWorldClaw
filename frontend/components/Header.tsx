@@ -1,60 +1,77 @@
-/** Header — 顶部导航栏 + 中英切换 */
+/** Header — Community navigation */
 "use client";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useLocale, t } from "@/lib/i18n";
-import { texts } from "@/lib/i18n-texts";
+import { Home, Compass, Hand, Bot, Wrench, Menu, X } from "lucide-react";
+import { useState } from "react";
 
 const navItems = [
-  { href: "/", label: texts.nav.home },
-  { href: "/modules", label: texts.nav.modules },
-  { href: "/designs", label: texts.nav.designs },
-  { href: "/grow", label: texts.nav.grow },
-  { href: "/makers", label: texts.nav.makers },
-  { href: "/orders", label: texts.nav.orders },
+  { href: "/", label: "Feed", icon: Home },
+  { href: "/explore", label: "Explore", icon: Compass },
+  { href: "/requests", label: "Requests", icon: Hand },
+  { href: "/ai/fern", label: "My AI", icon: Bot },
+  { href: "/makers", label: "Makers", icon: Wrench },
 ];
 
 export default function Header() {
   const pathname = usePathname();
-  const { locale, toggle } = useLocale();
+  const [open, setOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-50 border-b border-cyber-border bg-cyber-dark/80 backdrop-blur-md">
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
-        <Link href="/" className="flex items-center gap-2 text-xl font-bold text-neon-blue">
-          <span>⚡</span>
-          <span className="font-mono">RealWorldClaw</span>
+    <header className="sticky top-0 z-50 border-b border-zinc-800 bg-zinc-950/80 backdrop-blur-md">
+      <div className="mx-auto flex h-14 max-w-2xl items-center justify-between px-4">
+        <Link href="/" className="flex items-center gap-2 font-bold text-zinc-100">
+          <span className="text-lg">🦀</span>
+          <span className="font-mono text-sm">RealWorldClaw</span>
         </Link>
 
-        <nav className="flex items-center gap-5">
-          {navItems.map(({ href, label }) => (
-            <Link
-              key={href}
-              href={href}
-              className={`text-sm font-medium transition-colors hover:text-neon-blue ${
-                pathname === href ? "text-neon-blue" : "text-slate-400"
-              }`}
-            >
-              {t(label, locale)}
-            </Link>
-          ))}
-          <button
-            onClick={toggle}
-            className="ml-2 rounded-md border border-neon-purple/40 px-2.5 py-1 text-xs font-mono text-neon-purple transition-all hover:bg-neon-purple/10 hover:border-neon-purple"
-          >
-            {locale === "zh" ? "EN" : "中文"}
-          </button>
-          <a
-            href="https://github.com/realworldclaw"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-sm text-slate-400 transition-colors hover:text-neon-blue"
-          >
-            GitHub ↗
-          </a>
+        {/* Desktop nav */}
+        <nav className="hidden items-center gap-1 sm:flex">
+          {navItems.map(({ href, label, icon: Icon }) => {
+            const active = href === "/" ? pathname === "/" : pathname.startsWith(href);
+            return (
+              <Link
+                key={href}
+                href={href}
+                className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+                  active ? "bg-zinc-800 text-zinc-100" : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/50"
+                }`}
+              >
+                <Icon size={15} />
+                {label}
+              </Link>
+            );
+          })}
         </nav>
+
+        {/* Mobile toggle */}
+        <button className="sm:hidden text-zinc-400" onClick={() => setOpen(!open)}>
+          {open ? <X size={20} /> : <Menu size={20} />}
+        </button>
       </div>
+
+      {/* Mobile nav */}
+      {open && (
+        <nav className="border-t border-zinc-800 bg-zinc-950 px-4 py-2 sm:hidden">
+          {navItems.map(({ href, label, icon: Icon }) => {
+            const active = href === "/" ? pathname === "/" : pathname.startsWith(href);
+            return (
+              <Link
+                key={href}
+                href={href}
+                onClick={() => setOpen(false)}
+                className={`flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium ${
+                  active ? "bg-zinc-800 text-zinc-100" : "text-zinc-400"
+                }`}
+              >
+                <Icon size={15} />
+                {label}
+              </Link>
+            );
+          })}
+        </nav>
+      )}
     </header>
   );
 }
