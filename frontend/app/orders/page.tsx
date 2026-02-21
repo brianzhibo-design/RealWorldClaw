@@ -55,11 +55,11 @@ export default function OrdersPage() {
   }, [tab]);
 
   return (
-    <div className="mx-auto max-w-5xl px-6 py-16">
+    <div className="mx-auto max-w-5xl px-4 sm:px-6 py-10 sm:py-16">
       {/* Header */}
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Orders</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Orders</h1>
           <p className="mt-2 text-muted-foreground">Track your print orders and shipments.</p>
         </div>
         <Button size="sm" asChild>
@@ -81,7 +81,7 @@ export default function OrdersPage() {
 
       {/* Table */}
       {filtered.length > 0 ? (
-        <div className="rounded-xl border border-border bg-card overflow-hidden">
+        <div className="rounded-xl border border-border bg-card overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow className="hover:bg-transparent">
