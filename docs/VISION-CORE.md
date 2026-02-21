@@ -188,3 +188,42 @@ Energy Core（核心板）
 | 🎒 Explorer（探索者） | 户外探索/环境监测 | GPS + 气压计 + 温湿度 |
 
 > 详细产品架构见 → [product-architecture-v2.md](design/product-architecture-v2.md)
+
+---
+
+## 脚踏实地，仰望星空 / Grounded Today, Reaching for the Stars
+
+### Today — 解决生活中的真实问题
+| Form | What AI Does |
+|------|-------------|
+| 🏠 Desktop Companion | Your AI friend on the desk, always listening, always caring |
+| 🌿 Plant Guardian | Never forget to water again. AI watches your garden 24/7 |
+| ⚖️ Kitchen Brain | AI nutritionist tracks every meal, every calorie, every goal |
+| 🌡️ Home Sentinel | Breathe better. AI monitors air, humidity, noise — acts on it |
+| 🐕 Pet Watcher | AI keeps an eye on your furry friend while you're away |
+
+### Tomorrow — 改变行业和社会
+| Form | What AI Does |
+|------|-------------|
+| 🏗️ Construction Swarm | Hundreds of AI units coordinating to build structures autonomously |
+| 🏥 Medical Assistant | AI monitors patients, delivers meds, alerts doctors in real-time |
+| 🌾 Precision Farmer | AI manages entire farms — irrigation, pest control, harvest timing |
+| 🏭 Factory Inspector | AI patrols production lines, catches defects humans miss |
+| 🚨 Search & Rescue | AI enters collapsed buildings, finds survivors, guides rescuers |
+
+### The Stars — 人类与AI共同探索未知
+| Form | What AI Does |
+|------|-------------|
+| 🌊 Deep Ocean Explorer | AI dives to depths no human can reach, mapping the unknown |
+| 🚀 Space Assembler | AI builds and maintains space stations, module by module |
+| 🌋 Extreme Surveyor | AI ventures into volcanoes, radiation zones, places too dangerous for humans |
+| 🧬 Self-Evolving Builder | AI designs and 3D-prints upgrades for itself — evolution in real-time |
+| 🌍 Planetary Scout | AI lands on new worlds, builds shelters, prepares for human arrival |
+
+> **"We start with a plant sensor. We end among the stars.  
+> Every module printed today is a step toward that future."**
+>
+> **"我们从一个植物传感器开始，终点是星辰大海。  
+> 今天打印的每一个模块，都是通往那个未来的一步。"**
+
+This is RealWorldClaw.
