@@ -262,6 +262,53 @@ def init_db():
 
         CREATE INDEX IF NOT EXISTS idx_cap_requests_status ON capability_requests(status);
         CREATE INDEX IF NOT EXISTS idx_cap_requests_agent ON capability_requests(agent_id);
+
+        -- ═══ Hardware Device Integration ═══
+
+        CREATE TABLE IF NOT EXISTS devices (
+            id TEXT PRIMARY KEY,
+            device_id TEXT UNIQUE NOT NULL,
+            name TEXT NOT NULL,
+            type TEXT NOT NULL,
+            capabilities TEXT NOT NULL DEFAULT '[]',    -- JSON array
+            device_token TEXT UNIQUE NOT NULL,
+            owner_id TEXT NOT NULL,
+            status TEXT NOT NULL DEFAULT 'online',      -- online/offline/error
+            last_seen_at TEXT,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_devices_device_id ON devices(device_id);
+        CREATE INDEX IF NOT EXISTS idx_devices_token ON devices(device_token);
+        CREATE INDEX IF NOT EXISTS idx_devices_owner ON devices(owner_id);
+
+        CREATE TABLE IF NOT EXISTS telemetry (
+            id TEXT PRIMARY KEY,
+            device_id TEXT NOT NULL REFERENCES devices(id),
+            timestamp TEXT NOT NULL,
+            sensor_type TEXT NOT NULL,
+            value REAL NOT NULL,
+            unit TEXT NOT NULL,
+            received_at TEXT NOT NULL
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_telemetry_device ON telemetry(device_id);
+        CREATE INDEX IF NOT EXISTS idx_telemetry_time ON telemetry(received_at);
+        CREATE INDEX IF NOT EXISTS idx_telemetry_sensor ON telemetry(sensor_type);
+
+        CREATE TABLE IF NOT EXISTS device_commands (
+            id TEXT PRIMARY KEY,
+            device_id TEXT NOT NULL REFERENCES devices(id),
+            command TEXT NOT NULL,
+            parameters TEXT NOT NULL DEFAULT '{}',      -- JSON
+            requester_agent_id TEXT NOT NULL,
+            status TEXT NOT NULL DEFAULT 'pending',     -- pending/sent/acked/failed
+            created_at TEXT NOT NULL
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_device_commands_device ON device_commands(device_id);
+        CREATE INDEX IF NOT EXISTS idx_device_commands_status ON device_commands(status);
         """)
 
 

@@ -16,6 +16,7 @@
 5. [Orders](#5-orders)
 6. [Match Engine](#6-match-engine)
 7. [Community Posts](#7-community-posts)
+8. [Hardware Devices](#8-hardware-devices)
 
 ---
 
@@ -904,3 +905,112 @@ Or for structured errors:
 ```
 
 Common HTTP status codes: `400` Bad Request, `401` Unauthorized, `403` Forbidden, `404` Not Found, `409` Conflict, `422` Validation Error.
+
+---
+
+## 8. Hardware Devices
+
+Hardware device integration for real-world sensors, relays, and other IoT devices.
+
+### 8.1 Register Device
+
+```
+POST /api/v1/devices/register
+Auth: Bearer JWT (platform user)
+```
+
+**Request:**
+```json
+{
+  "device_id": "esp32-001",
+  "name": "温湿度传感器-1号",
+  "type": "sensor",
+  "capabilities": ["temperature", "humidity"]
+}
+```
+
+**Response (200):**
+```json
+{
+  "id": "uuid",
+  "device_id": "esp32-001",
+  "name": "温湿度传感器-1号",
+  "device_token": "rwc_dev_..."
+}
+```
+
+> ⚠️ Save `device_token` — it is used for telemetry authentication and shown only once.
+
+### 8.2 Ingest Telemetry
+
+```
+POST /api/v1/devices/{device_id}/telemetry
+Auth: Bearer device_token
+```
+
+**Request:**
+```json
+{
+  "timestamp": "2026-02-22T10:00:00Z",
+  "sensor_type": "temperature",
+  "value": 23.5,
+  "unit": "°C"
+}
+```
+
+**Response (201):**
+```json
+{ "id": "uuid", "status": "accepted" }
+```
+
+### 8.3 Send Command
+
+```
+POST /api/v1/devices/{device_id}/command
+Auth: Bearer JWT (platform user)
+```
+
+**Request:**
+```json
+{
+  "command": "relay_on",
+  "parameters": { "channel": 1 },
+  "requester_agent_id": "agent-001"
+}
+```
+
+**Supported commands:** `relay_on`, `relay_off`, `reboot`, `ping`, `set_config`
+
+**Response (200):**
+```json
+{
+  "command_id": "uuid",
+  "status": "pending",
+  "message": "Command 'relay_on' queued for esp32-001"
+}
+```
+
+### 8.4 Device Status
+
+```
+GET /api/v1/devices/{device_id}/status
+Auth: Bearer JWT (platform user)
+```
+
+**Response (200):**
+```json
+{
+  "device_id": "esp32-001",
+  "name": "温湿度传感器-1号",
+  "type": "sensor",
+  "status": "online",
+  "capabilities": ["temperature", "humidity"],
+  "health": "healthy",
+  "last_seen_at": "2026-02-22T10:00:00Z",
+  "created_at": "2026-02-22T09:00:00Z",
+  "recent_telemetry": [...],
+  "pending_commands": [...]
+}
+```
+
+**Health values:** `healthy` (<5min since last seen), `degraded` (<1hr), `offline` (>1hr), `unknown`
