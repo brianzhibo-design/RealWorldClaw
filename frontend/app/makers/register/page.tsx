@@ -6,10 +6,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { useRouter } from "next/navigation";
+import { API_BASE } from "@/lib/api";
 
-const printerBrands = [
-  "Bambu Lab", "Prusa", "Ultimaker", "Creality", "Anycubic", 
-  "Artillery", "FLSUN", "Qidi Tech", "Raise3D", "其他"
+const deviceTypes = [
+  { id: "3d_printer", name: "3D打印机", icon: "🖨️" },
+  { id: "cnc", name: "CNC加工中心", icon: "⚒️" },
+  { id: "laser_cutter", name: "激光切割机", icon: "⚡" },
 ];
 
 const materials = [
@@ -19,26 +21,20 @@ const materials = [
   { id: "TPU", name: "TPU", color: "purple" },
   { id: "WOOD", name: "木质材料", color: "amber" },
   { id: "METAL", name: "金属材料", color: "gray" },
+  { id: "ACRYLIC", name: "亚克力", color: "cyan" },
+  { id: "CARBON_FIBER", name: "碳纤维", color: "slate" },
 ];
 
 const countries = [
   "中国", "美国", "日本", "德国", "英国", "法国", "加拿大", "澳大利亚", "其他"
 ];
 
-export default function MakerRegisterPage() {
+export default function NodeRegisterPage() {
   const [formData, setFormData] = useState({
-    // Basic info
-    name: "",
-    email: "",
-    
-    // Location
-    city: "",
-    country: "中国",
-    
-    // Printer info
-    printerBrand: "",
-    printerModel: "",
-    printerCount: "1",
+    // Device info
+    deviceType: "",
+    deviceBrand: "",
+    deviceModel: "",
     
     // Capabilities
     buildVolumeX: "",
@@ -46,13 +42,15 @@ export default function MakerRegisterPage() {
     buildVolumeZ: "",
     supportedMaterials: [] as string[],
     
-    // Business
-    hourlyRate: "",
-    bio: "",
+    // Location
+    city: "",
+    country: "中国",
     
-    // Contact
-    phone: "",
-    wechat: "",
+    // Description
+    description: "",
+    
+    // Contact (optional)
+    contactInfo: "",
   });
   
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -77,156 +75,114 @@ export default function MakerRegisterPage() {
     setIsSubmitting(true);
 
     try {
-      // Mock API call - replace with actual API when ready
+      const token = localStorage.getItem('auth_token');
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json'
+      };
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
       const registrationData = {
-        ...formData,
-        buildVolume: `${formData.buildVolumeX}×${formData.buildVolumeY}×${formData.buildVolumeZ}mm`,
-        createdAt: new Date().toISOString(),
+        device_type: formData.deviceType,
+        device_brand: formData.deviceBrand,
+        device_model: formData.deviceModel,
+        build_volume: {
+          x: parseInt(formData.buildVolumeX),
+          y: parseInt(formData.buildVolumeY),
+          z: parseInt(formData.buildVolumeZ),
+        },
+        supported_materials: formData.supportedMaterials,
+        location: {
+          city: formData.city,
+          country: formData.country,
+        },
+        description: formData.description,
+        contact_info: formData.contactInfo,
       };
 
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      const response = await fetch(`${API_BASE}/nodes/register`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(registrationData),
+      });
 
-      console.log("Registering maker:", registrationData);
-      
-      alert("注册成功！我们将在 1-2 个工作日内审核您的申请。");
-      router.push("/makers");
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.detail || 'Registration failed');
+      }
+
+      const result = await response.json();
+      alert(`节点注册成功！节点ID: ${result.node_id || result.id}`);
+      router.push("/nodes");
     } catch (error) {
-      console.error("Failed to register maker:", error);
-      alert("注册失败，请重试");
+      console.error("Failed to register node:", error);
+      alert(`注册失败：${error instanceof Error ? error.message : '未知错误'}`);
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  const selectedDeviceType = deviceTypes.find(dt => dt.id === formData.deviceType);
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-16">
       <div className="mb-8">
         <h1 className="text-3xl font-bold">
           <span className="bg-gradient-to-r from-orange-500 to-amber-400 bg-clip-text text-transparent">
-            成为制造者
+            注册制造节点
           </span>
         </h1>
-        <p className="text-zinc-400 mt-2">加入我们的制造者网络，让你的3D打印机为他人服务</p>
+        <p className="text-zinc-400 mt-2">将你的制造设备接入RealWorldClaw网络，为全球用户提供制造服务</p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Basic Information */}
+        {/* Device Type */}
         <Card className="bg-zinc-900/60 border-zinc-800">
           <CardContent className="p-6">
-            <h3 className="text-lg font-medium mb-4">👤 基本信息</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm text-zinc-300 mb-2">姓名 *</label>
-                <Input
-                  value={formData.name}
-                  onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                  placeholder="您的真实姓名"
-                  className="bg-zinc-800/50 border-zinc-700 focus:border-orange-500"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm text-zinc-300 mb-2">邮箱 *</label>
-                <Input
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                  placeholder="your@email.com"
-                  className="bg-zinc-800/50 border-zinc-700 focus:border-orange-500"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm text-zinc-300 mb-2">手机号</label>
-                <Input
-                  value={formData.phone}
-                  onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
-                  placeholder="用于订单联系"
-                  className="bg-zinc-800/50 border-zinc-700 focus:border-orange-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm text-zinc-300 mb-2">微信号</label>
-                <Input
-                  value={formData.wechat}
-                  onChange={(e) => setFormData(prev => ({ ...prev, wechat: e.target.value }))}
-                  placeholder="便于沟通联系"
-                  className="bg-zinc-800/50 border-zinc-700 focus:border-orange-500"
-                />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Location */}
-        <Card className="bg-zinc-900/60 border-zinc-800">
-          <CardContent className="p-6">
-            <h3 className="text-lg font-medium mb-4">📍 地理位置</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm text-zinc-300 mb-2">城市 *</label>
-                <Input
-                  value={formData.city}
-                  onChange={(e) => setFormData(prev => ({ ...prev, city: e.target.value }))}
-                  placeholder="上海市"
-                  className="bg-zinc-800/50 border-zinc-700 focus:border-orange-500"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm text-zinc-300 mb-2">国家 *</label>
-                <select
-                  value={formData.country}
-                  onChange={(e) => setFormData(prev => ({ ...prev, country: e.target.value }))}
-                  className="w-full rounded-md bg-zinc-800/50 border border-zinc-700 px-3 py-2 text-sm focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500"
+            <h3 className="text-lg font-medium mb-4">🔧 设备类型</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              {deviceTypes.map((type) => (
+                <div
+                  key={type.id}
+                  className={`cursor-pointer p-4 rounded-lg border-2 transition-colors text-center ${
+                    formData.deviceType === type.id
+                      ? "border-orange-500 bg-orange-500/10"
+                      : "border-zinc-700 bg-zinc-800/50 hover:border-zinc-600"
+                  }`}
+                  onClick={() => setFormData(prev => ({ ...prev, deviceType: type.id }))}
                 >
-                  {countries.map(country => (
-                    <option key={country} value={country}>{country}</option>
-                  ))}
-                </select>
-              </div>
+                  <div className="text-3xl mb-2">{type.icon}</div>
+                  <div className="font-medium">{type.name}</div>
+                </div>
+              ))}
             </div>
           </CardContent>
         </Card>
 
-        {/* Printer Information */}
+        {/* Device Information */}
         <Card className="bg-zinc-900/60 border-zinc-800">
           <CardContent className="p-6">
-            <h3 className="text-lg font-medium mb-4">🖨️ 打印机信息</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <h3 className="text-lg font-medium mb-4">
+              {selectedDeviceType?.icon || "🖨️"} 设备信息
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm text-zinc-300 mb-2">品牌 *</label>
-                <select
-                  value={formData.printerBrand}
-                  onChange={(e) => setFormData(prev => ({ ...prev, printerBrand: e.target.value }))}
-                  className="w-full rounded-md bg-zinc-800/50 border border-zinc-700 px-3 py-2 text-sm focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500"
+                <Input
+                  value={formData.deviceBrand}
+                  onChange={(e) => setFormData(prev => ({ ...prev, deviceBrand: e.target.value }))}
+                  placeholder="例如：Bambu Lab, Prusa, Ultimaker"
+                  className="bg-zinc-800/50 border-zinc-700 focus:border-orange-500"
                   required
-                >
-                  <option value="">选择品牌</option>
-                  {printerBrands.map(brand => (
-                    <option key={brand} value={brand}>{brand}</option>
-                  ))}
-                </select>
+                />
               </div>
               <div>
                 <label className="block text-sm text-zinc-300 mb-2">型号 *</label>
                 <Input
-                  value={formData.printerModel}
-                  onChange={(e) => setFormData(prev => ({ ...prev, printerModel: e.target.value }))}
-                  placeholder="P2S Pro"
-                  className="bg-zinc-800/50 border-zinc-700 focus:border-orange-500"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm text-zinc-300 mb-2">数量 *</label>
-                <Input
-                  type="number"
-                  min="1"
-                  max="20"
-                  value={formData.printerCount}
-                  onChange={(e) => setFormData(prev => ({ ...prev, printerCount: e.target.value }))}
+                  value={formData.deviceModel}
+                  onChange={(e) => setFormData(prev => ({ ...prev, deviceModel: e.target.value }))}
+                  placeholder="例如：P2S Pro, MK4, S3"
                   className="bg-zinc-800/50 border-zinc-700 focus:border-orange-500"
                   required
                 />
@@ -234,7 +190,7 @@ export default function MakerRegisterPage() {
             </div>
             
             <div className="mt-4">
-              <label className="block text-sm text-zinc-300 mb-2">打印体积 (mm) *</label>
+              <label className="block text-sm text-zinc-300 mb-2">构建体积 (mm) *</label>
               <div className="grid grid-cols-3 gap-2">
                 <Input
                   type="number"
@@ -269,8 +225,8 @@ export default function MakerRegisterPage() {
         {/* Supported Materials */}
         <Card className="bg-zinc-900/60 border-zinc-800">
           <CardContent className="p-6">
-            <h3 className="text-lg font-medium mb-4">🧪 支持的材料</h3>
-            <p className="text-sm text-zinc-500 mb-4">选择您的打印机可以使用的材料</p>
+            <h3 className="text-lg font-medium mb-4">🧪 支持材料</h3>
+            <p className="text-sm text-zinc-500 mb-4">选择你的设备可以处理的材料类型</p>
             <div className="flex flex-wrap gap-2">
               {materials.map((material) => (
                 <Badge
@@ -291,37 +247,64 @@ export default function MakerRegisterPage() {
           </CardContent>
         </Card>
 
-        {/* Business Information */}
+        {/* Location */}
         <Card className="bg-zinc-900/60 border-zinc-800">
           <CardContent className="p-6">
-            <h3 className="text-lg font-medium mb-4">💰 商务信息</h3>
-            <div className="space-y-4">
+            <h3 className="text-lg font-medium mb-4">📍 大致位置</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm text-zinc-300 mb-2">小时费率 (¥/小时) *</label>
+                <label className="block text-sm text-zinc-300 mb-2">城市 *</label>
                 <Input
-                  type="number"
-                  min="1"
-                  step="0.01"
-                  value={formData.hourlyRate}
-                  onChange={(e) => setFormData(prev => ({ ...prev, hourlyRate: e.target.value }))}
-                  placeholder="15.00"
+                  value={formData.city}
+                  onChange={(e) => setFormData(prev => ({ ...prev, city: e.target.value }))}
+                  placeholder="上海市"
                   className="bg-zinc-800/50 border-zinc-700 focus:border-orange-500"
                   required
                 />
-                <p className="text-xs text-zinc-500 mt-1">
-                  建议定价：PLA 10-20元/小时，特殊材料可适当提高
-                </p>
               </div>
-              
               <div>
-                <label className="block text-sm text-zinc-300 mb-2">个人简介</label>
+                <label className="block text-sm text-zinc-300 mb-2">国家 *</label>
+                <select
+                  value={formData.country}
+                  onChange={(e) => setFormData(prev => ({ ...prev, country: e.target.value }))}
+                  className="w-full rounded-md bg-zinc-800/50 border border-zinc-700 px-3 py-2 text-sm focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500"
+                >
+                  {countries.map(country => (
+                    <option key={country} value={country}>{country}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Description & Contact */}
+        <Card className="bg-zinc-900/60 border-zinc-800">
+          <CardContent className="p-6">
+            <h3 className="text-lg font-medium mb-4">📝 描述信息</h3>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm text-zinc-300 mb-2">设备描述</label>
                 <textarea
-                  value={formData.bio}
-                  onChange={(e) => setFormData(prev => ({ ...prev, bio: e.target.value }))}
-                  placeholder="介绍您的经验、专长和服务特色..."
+                  value={formData.description}
+                  onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                  placeholder="介绍你的设备特色、质量要求、特殊能力等..."
                   rows={4}
                   className="w-full rounded-md bg-zinc-800/50 border border-zinc-700 px-3 py-2 text-sm placeholder:text-zinc-600 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500 resize-none"
                 />
+              </div>
+              
+              <div>
+                <label className="block text-sm text-zinc-300 mb-2">联系方式 (可选)</label>
+                <Input
+                  value={formData.contactInfo}
+                  onChange={(e) => setFormData(prev => ({ ...prev, contactInfo: e.target.value }))}
+                  placeholder="微信、邮箱等联系方式"
+                  className="bg-zinc-800/50 border-zinc-700 focus:border-orange-500"
+                />
+                <p className="text-xs text-zinc-500 mt-1">
+                  用于订单沟通，不会公开显示
+                </p>
               </div>
             </div>
           </CardContent>
@@ -339,10 +322,10 @@ export default function MakerRegisterPage() {
           </Button>
           <Button
             type="submit"
-            disabled={isSubmitting || formData.supportedMaterials.length === 0}
+            disabled={isSubmitting || formData.supportedMaterials.length === 0 || !formData.deviceType}
             className="bg-orange-500 hover:bg-orange-600 text-white"
           >
-            {isSubmitting ? "提交中..." : "提交申请"}
+            {isSubmitting ? "注册中..." : "注册节点"}
           </Button>
         </div>
       </form>

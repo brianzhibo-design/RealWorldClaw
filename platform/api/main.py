@@ -41,7 +41,10 @@ app = FastAPI(
 )
 
 # CORS
-_cors_origins = os.environ.get("CORS_ORIGINS", "http://localhost:3000")
+_cors_origins = os.environ.get(
+    "CORS_ORIGINS",
+    "http://localhost:3000,https://frontend-wine-eight-32.vercel.app,https://realworldclaw.com"
+)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[o.strip() for o in _cors_origins.split(",") if o.strip()],

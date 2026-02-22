@@ -1,74 +1,74 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useParams, useRouter } from "next/navigation";
+import { API_BASE } from "@/lib/api";
 
-// Mock data - replace with actual API calls
-const mockOrder = {
-  id: "ord_1",
-  title: "机械臂关节组件",
-  description: "为机器人手臂设计的精密关节组件，需要高精度打印",
-  material: "PLA",
-  color: "黑色",
-  quantity: 2,
-  fillRate: 20,
-  status: "printing",
-  createdAt: "2024-01-15",
-  updatedAt: "2024-01-16",
-  fileName: "robot_joint.stl",
-  fileSize: "2.3 MB",
-  estimatedPrice: "¥45",
-  notes: "请确保表面光滑，关节部分需要高精度",
-  maker: {
-    id: "maker_1",
-    name: "上海精密制造",
-    rating: 4.8,
-    completedOrders: 156,
-    avatar: "🔧",
-  },
-  timeline: [
-    { status: "submitted", label: "已提交", time: "2024-01-15 14:30", completed: true },
-    { status: "accepted", label: "已接单", time: "2024-01-15 16:45", completed: true },
-    { status: "printing", label: "打印中", time: "2024-01-16 09:00", completed: true },
-    { status: "shipped", label: "已发货", time: "", completed: false },
-    { status: "delivered", label: "已完成", time: "", completed: false },
-  ]
-};
+// API interfaces
+interface Order {
+  id: string;
+  title: string;
+  description?: string;
+  material: string;
+  color: string;
+  quantity: number;
+  fill_rate: number;
+  status: string;
+  created_at: string;
+  updated_at: string;
+  file_name: string;
+  file_size: string;
+  notes?: string;
+  maker?: {
+    id: string;
+    name: string;
+    rating: number;
+    completed_orders: number;
+    avatar: string;
+  };
+}
 
 const statusConfig: Record<string, { label: string; className: string; color: string }> = {
   submitted: { label: "已提交", className: "bg-gray-500/10 text-gray-400 border-gray-500/20", color: "gray" },
   accepted: { label: "已接单", className: "bg-blue-500/10 text-blue-400 border-blue-500/20", color: "blue" },
-  printing: { label: "打印中", className: "bg-orange-500/10 text-orange-400 border-orange-500/20", color: "orange" },
+  printing: { label: "制造中", className: "bg-orange-500/10 text-orange-400 border-orange-500/20", color: "orange" },
   shipped: { label: "已发货", className: "bg-purple-500/10 text-purple-400 border-purple-500/20", color: "purple" },
   delivered: { label: "已完成", className: "bg-green-500/10 text-green-400 border-green-500/20", color: "green" },
 };
 
-function ProgressTimeline({ timeline }: { timeline: typeof mockOrder.timeline }) {
+function ProgressTimeline({ status }: { status: string }) {
+  const statuses = [
+    { key: "submitted", label: "已提交" },
+    { key: "accepted", label: "已接单" },
+    { key: "printing", label: "制造中" },
+    { key: "shipped", label: "已发货" },
+    { key: "delivered", label: "已完成" },
+  ];
+
+  const currentIndex = statuses.findIndex(s => s.key === status);
+
   return (
     <div className="space-y-4">
-      {timeline.map((item, index) => (
-        <div key={item.status} className="flex items-center gap-4">
+      {statuses.map((item, index) => (
+        <div key={item.key} className="flex items-center gap-4">
           <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center text-xs font-bold ${
-            item.completed 
+            index <= currentIndex
               ? "bg-green-500 border-green-500 text-white" 
-              : index === timeline.findIndex(t => !t.completed)
+              : index === currentIndex + 1
               ? "bg-orange-500 border-orange-500 text-white animate-pulse"
               : "bg-zinc-700 border-zinc-600 text-zinc-400"
           }`}>
             {index + 1}
           </div>
           <div className="flex-1">
-            <div className={`font-medium ${item.completed ? "text-white" : "text-zinc-400"}`}>
+            <div className={`font-medium ${index <= currentIndex ? "text-white" : "text-zinc-400"}`}>
               {item.label}
             </div>
-            {item.time && (
-              <div className="text-sm text-zinc-500">{item.time}</div>
-            )}
           </div>
-          {item.completed && (
+          {index <= currentIndex && (
             <div className="text-green-400">
               ✅
             </div>
@@ -100,18 +100,67 @@ function STLPreview({ fileName }: { fileName: string }) {
 export default function OrderDetailPage() {
   const params = useParams();
   const router = useRouter();
+  const [order, setOrder] = useState<Order | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
 
-  const order = mockOrder; // Replace with actual API call using params.id
-  const status = statusConfig[order.status];
+  useEffect(() => {
+    const fetchOrder = async () => {
+      try {
+        setLoading(true);
+        const token = localStorage.getItem('auth_token');
+        const headers: Record<string, string> = {
+          'Content-Type': 'application/json'
+        };
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`;
+        }
+
+        const response = await fetch(`${API_BASE}/orders/${params.id}`, { headers });
+        if (!response.ok) {
+          throw new Error(`Failed to fetch order: ${response.status}`);
+        }
+        const orderData = await response.json();
+        setOrder(orderData);
+      } catch (err) {
+        console.error('Failed to fetch order:', err);
+        setError(err instanceof Error ? err.message : 'Failed to load order');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (params.id) {
+      fetchOrder();
+    }
+  }, [params.id]);
 
   const handleStatusUpdate = async (newStatus: string) => {
+    if (!order) return;
+
     setIsUpdating(true);
     try {
-      // Mock API call - replace with actual API
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      console.log(`Updating order ${order.id} to status: ${newStatus}`);
-      // Refresh data or update local state
+      const token = localStorage.getItem('auth_token');
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json'
+      };
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      const response = await fetch(`${API_BASE}/orders/${order.id}/status`, {
+        method: 'PUT',
+        headers,
+        body: JSON.stringify({ status: newStatus }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update status');
+      }
+
+      // Refresh order data
+      setOrder(prev => prev ? { ...prev, status: newStatus } : null);
     } catch (error) {
       console.error("Failed to update status:", error);
       alert("更新失败，请重试");
@@ -121,16 +170,45 @@ export default function OrderDetailPage() {
   };
 
   const canUpdateStatus = () => {
-    // Only maker or order owner can update status
-    return order.maker && order.status !== "delivered";
+    return order && order.maker && order.status !== "delivered";
   };
 
   const getNextStatus = () => {
     const statusOrder = ["submitted", "accepted", "printing", "shipped", "delivered"];
-    const currentIndex = statusOrder.indexOf(order.status);
+    const currentIndex = statusOrder.indexOf(order?.status || '');
     return currentIndex < statusOrder.length - 1 ? statusOrder[currentIndex + 1] : null;
   };
 
+  if (loading) {
+    return (
+      <div className="mx-auto max-w-6xl px-4 py-16">
+        <div className="flex justify-center items-center h-64">
+          <div className="text-zinc-400">加载中...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !order) {
+    return (
+      <div className="mx-auto max-w-6xl px-4 py-16">
+        <div className="text-center">
+          <div className="text-red-400 mb-4">
+            {error || '订单未找到'}
+          </div>
+          <Button 
+            variant="outline" 
+            onClick={() => router.push('/orders')}
+            className="border-zinc-700 hover:bg-zinc-800"
+          >
+            返回订单列表
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  const status = statusConfig[order.status] || { label: order.status, className: "bg-gray-500/10 text-gray-400 border-gray-500/20", color: "gray" };
   const nextStatus = getNextStatus();
 
   return (
@@ -156,18 +234,17 @@ export default function OrderDetailPage() {
                 订单号：{order.id}
               </span>
               <span className="text-sm text-zinc-500">
-                创建于 {new Date(order.createdAt).toLocaleDateString('zh-CN')}
+                创建于 {new Date(order.created_at).toLocaleDateString('zh-CN')}
               </span>
             </div>
           </div>
           
           <div className="text-right">
-            <div className="text-2xl font-bold text-orange-400">{order.estimatedPrice}</div>
             {canUpdateStatus() && nextStatus && (
               <Button
                 onClick={() => handleStatusUpdate(nextStatus)}
                 disabled={isUpdating}
-                className="mt-2 bg-orange-500 hover:bg-orange-600 text-white"
+                className="bg-orange-500 hover:bg-orange-600 text-white"
                 size="sm"
               >
                 {isUpdating ? "更新中..." : `标记为${statusConfig[nextStatus].label}`}
@@ -200,7 +277,7 @@ export default function OrderDetailPage() {
                 </div>
                 <div>
                   <div className="text-sm text-zinc-500">填充率</div>
-                  <div className="font-medium">{order.fillRate}%</div>
+                  <div className="font-medium">{order.fill_rate}%</div>
                 </div>
               </div>
 
@@ -227,19 +304,19 @@ export default function OrderDetailPage() {
             <CardContent className="p-6">
               <h3 className="text-lg font-medium mb-4">🎯 文件信息</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <STLPreview fileName={order.fileName} />
+                <STLPreview fileName={order.file_name} />
                 <div className="space-y-4">
                   <div>
                     <div className="text-sm text-zinc-500">文件名</div>
-                    <div className="font-medium">{order.fileName}</div>
+                    <div className="font-medium">{order.file_name}</div>
                   </div>
                   <div>
                     <div className="text-sm text-zinc-500">文件大小</div>
-                    <div className="font-medium">{order.fileSize}</div>
+                    <div className="font-medium">{order.file_size}</div>
                   </div>
                   <div>
                     <div className="text-sm text-zinc-500">上传时间</div>
-                    <div className="font-medium">{new Date(order.createdAt).toLocaleString('zh-CN')}</div>
+                    <div className="font-medium">{new Date(order.created_at).toLocaleString('zh-CN')}</div>
                   </div>
                 </div>
               </div>
@@ -258,7 +335,7 @@ export default function OrderDetailPage() {
                   <div className="flex-1">
                     <div className="font-medium">{order.maker.name}</div>
                     <div className="text-sm text-zinc-500">
-                      ⭐ {order.maker.rating} · 完成 {order.maker.completedOrders} 单
+                      ⭐ {order.maker.rating} · 完成 {order.maker.completed_orders} 单
                     </div>
                   </div>
                   <Button variant="outline" size="sm" className="border-zinc-600 hover:bg-zinc-700">
@@ -276,7 +353,7 @@ export default function OrderDetailPage() {
           <Card className="bg-zinc-900/60 border-zinc-800">
             <CardContent className="p-6">
               <h3 className="text-lg font-medium mb-4">📈 订单进度</h3>
-              <ProgressTimeline timeline={order.timeline} />
+              <ProgressTimeline status={order.status} />
             </CardContent>
           </Card>
         </div>

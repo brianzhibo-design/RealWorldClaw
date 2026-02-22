@@ -4,7 +4,7 @@ import { useState, useMemo } from 'react';
 import { ComposableMap, Geographies, Geography, Marker, ZoomableGroup } from 'react-simple-maps';
 import { ManufacturingNode, NODE_TYPE_INFO, STATUS_COLORS } from '@/lib/nodes';
 
-const geoUrl = "https://raw.githubusercontent.com/deldersveld/topojson/master/world-110m.json";
+const geoUrl = "/world-110m.json";
 
 interface WorldMapProps {
   nodes: ManufacturingNode[];

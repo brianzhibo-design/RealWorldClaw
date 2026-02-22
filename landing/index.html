@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>RealWorldClaw — Turn Any Idea Into Reality</title>
-<meta name="description" content="The open network connecting designers with makers worldwide. Upload a design, get it manufactured.">
-<meta property="og:title" content="RealWorldClaw — Turn Any Idea Into Reality">
-<meta property="og:description" content="The open network connecting designers with makers worldwide. Upload a design, get it manufactured.">
+<title>RealWorldClaw — Global Manufacturing Network</title>
+<meta name="description" content="A live map of global manufacturing capacity. Connect with real machines worldwide — 3D printers, CNC, laser cutters.">
+<meta property="og:title" content="RealWorldClaw — Global Manufacturing Network">
+<meta property="og:description" content="A live map of global manufacturing capacity. Connect with real machines worldwide — 3D printers, CNC, laser cutters.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://realworldclaw.com">
 <meta property="og:image" content="https://realworldclaw.com/og-image.png">
@@ -18,28 +18,25 @@
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root {
-  --bg-deep: #0a0a0f;
-  --bg: #111827;
-  --bg-surface: #1f2937;
-  --border: #1f2937;
-  --border-hover: #374151;
-  --primary: #6366f1;
-  --primary-light: #818cf8;
-  --accent: #22d3ee;
-  --cta: #10b981;
-  --orange: #f97316;
-  --text: #f9fafb;
-  --text-muted: #9ca3af;
-  --text-dim: #6b7280;
+  --bg-deep: #0f172a;
+  --bg: #1e293b;
+  --bg-surface: #334155;
+  --border: #475569;
+  --border-hover: #64748b;
+  --primary: #38bdf8;
+  --primary-light: #7dd3fc;
+  --accent: #06b6d4;
+  --text: #f1f5f9;
+  --text-muted: #cbd5e1;
+  --text-dim: #94a3b8;
   --font-display: 'Space Grotesk', 'Inter', sans-serif;
   --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
   --radius-md: 8px;
   --radius-lg: 12px;
   --radius-xl: 16px;
-  --glow-primary: 0 0 40px rgba(99,102,241,0.15);
-  --glow-accent: 0 0 40px rgba(34,211,238,0.12);
-  --glow-cta: 0 0 40px rgba(16,185,129,0.15);
+  --glow-primary: 0 0 40px rgba(56,189,248,0.15);
+  --glow-accent: 0 0 40px rgba(6,182,212,0.12);
 }
 html{scroll-behavior:smooth}
 body{
@@ -61,7 +58,7 @@ img{max-width:100%;display:block}
 }
 .section-desc{color:var(--text-muted);font-size:18px;max-width:600px;line-height:1.7}
 .gradient-text{
-  background:linear-gradient(135deg,var(--cta),var(--accent));
+  background:linear-gradient(135deg,var(--primary),var(--accent));
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
 }
 .reveal{opacity:0;transform:translateY(30px);transition:opacity 0.7s ease,transform 0.7s ease}
@@ -74,13 +71,13 @@ img{max-width:100%;display:block}
 /* ═══ NAV ═══ */
 .nav{
   position:fixed;top:0;left:0;right:0;z-index:100;
-  background:rgba(10,10,15,0.85);backdrop-filter:blur(16px);
-  border-bottom:1px solid rgba(31,41,55,0.5);
+  background:rgba(15,23,42,0.85);backdrop-filter:blur(16px);
+  border-bottom:1px solid rgba(71,85,105,0.3);
   height:64px;display:flex;align-items:center;
 }
 .nav .container{display:flex;align-items:center;justify-content:space-between;width:100%}
 .nav-logo{font-family:var(--font-display);font-weight:700;font-size:20px;display:flex;align-items:center;gap:8px}
-.nav-logo .dot{width:8px;height:8px;border-radius:50%;background:var(--cta);box-shadow:0 0 8px var(--cta);animation:pulse-dot 2s ease infinite}
+.nav-logo .dot{width:8px;height:8px;border-radius:50%;background:var(--primary);box-shadow:0 0 8px var(--primary);animation:pulse-dot 2s ease infinite}
 @keyframes pulse-dot{0%,100%{opacity:1}50%{opacity:0.4}}
 .nav-links{display:flex;align-items:center;gap:28px}
 .nav-links a{font-size:14px;color:var(--text-muted);transition:color 0.2s}
@@ -88,10 +85,10 @@ img{max-width:100%;display:block}
 .nav-cta{
   font-size:13px;padding:8px 16px;border:none;
   border-radius:var(--radius-md);color:#fff;cursor:pointer;
-  background:var(--cta);font-weight:600;transition:all 0.2s;
+  background:var(--primary);font-weight:600;transition:all 0.2s;
   font-family:var(--font-display);
 }
-.nav-cta:hover{background:#34d399;transform:translateY(-1px)}
+.nav-cta:hover{background:var(--primary-light);transform:translateY(-1px)}
 @media(max-width:768px){.nav-links{display:none}}
 
 /* ═══ HERO ═══ */
@@ -103,29 +100,29 @@ img{max-width:100%;display:block}
 }
 .hero-grid{
   position:absolute;inset:0;
-  background-image:linear-gradient(rgba(16,185,129,0.04) 1px, transparent 1px),linear-gradient(90deg, rgba(16,185,129,0.04) 1px, transparent 1px);
+  background-image:linear-gradient(rgba(56,189,248,0.04) 1px, transparent 1px),linear-gradient(90deg, rgba(56,189,248,0.04) 1px, transparent 1px);
   background-size:60px 60px;
   mask-image:radial-gradient(ellipse 70% 60% at 50% 40%, black 20%, transparent 100%);
   -webkit-mask-image:radial-gradient(ellipse 70% 60% at 50% 40%, black 20%, transparent 100%);
 }
 .hero-glow{position:absolute;width:600px;height:600px;border-radius:50%;filter:blur(120px);opacity:0.12;pointer-events:none}
-.hero-glow-1{background:var(--cta);top:-200px;left:50%;transform:translateX(-60%)}
+.hero-glow-1{background:var(--primary);top:-200px;left:50%;transform:translateX(-60%)}
 .hero-glow-2{background:var(--accent);top:-100px;left:50%;transform:translateX(20%)}
 .hero-content{position:relative;z-index:2;max-width:960px;padding:0 24px}
 .hero-badge{
   display:inline-flex;align-items:center;gap:8px;padding:8px 16px;
-  border-radius:999px;border:1px solid rgba(16,185,129,0.3);
-  background:rgba(16,185,129,0.08);font-size:13px;color:var(--cta);
+  border-radius:999px;border:1px solid rgba(56,189,248,0.3);
+  background:rgba(56,189,248,0.08);font-size:13px;color:var(--primary);
   margin-bottom:32px;font-family:var(--font-mono);
 }
-.hero-badge .badge-dot{width:6px;height:6px;border-radius:50%;background:var(--cta);box-shadow:0 0 6px var(--cta)}
+.hero-badge .badge-dot{width:6px;height:6px;border-radius:50%;background:var(--primary);box-shadow:0 0 6px var(--primary)}
 .hero h1{
   font-family:var(--font-display);font-size:clamp(32px,6vw,68px);
   font-weight:800;line-height:1.05;letter-spacing:-0.03em;margin-bottom:24px;
 }
 .hero h1 .line2{
   display:block;
-  background:linear-gradient(135deg,var(--cta),var(--accent));
+  background:linear-gradient(135deg,var(--primary),var(--accent));
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
 }
 .hero-subtitle{
@@ -139,12 +136,10 @@ img{max-width:100%;display:block}
   font-weight:600;font-size:15px;cursor:pointer;transition:all 0.25s ease;border:none;
   text-decoration:none;
 }
-.btn-cta{background:var(--cta);color:#fff;box-shadow:0 0 20px rgba(16,185,129,0.25)}
-.btn-cta:hover{background:#34d399;transform:translateY(-1px);box-shadow:0 0 30px rgba(16,185,129,0.35)}
+.btn-primary{background:var(--primary);color:#fff;box-shadow:0 0 20px rgba(56,189,248,0.25)}
+.btn-primary:hover{background:var(--primary-light);transform:translateY(-1px);box-shadow:0 0 30px rgba(56,189,248,0.35)}
 .btn-outline{background:transparent;color:var(--text-muted);border:1.5px solid var(--border)}
-.btn-outline:hover{border-color:var(--accent);color:var(--text);background:rgba(34,211,238,0.05)}
-.btn-primary{background:var(--primary);color:#fff;box-shadow:0 0 20px rgba(99,102,241,0.25)}
-.btn-primary:hover{background:var(--primary-light);transform:translateY(-1px)}
+.btn-outline:hover{border-color:var(--primary);color:var(--text);background:rgba(56,189,248,0.05)}
 
 @keyframes fadeInUp{to{opacity:1;transform:translateY(0)}from{opacity:0;transform:translateY(20px)}}
 .fade-in{opacity:0;animation:fadeInUp 0.8s forwards}
@@ -161,13 +156,13 @@ img{max-width:100%;display:block}
   background:var(--bg-deep);position:relative;overflow:hidden;transition:all 0.3s ease;
   text-align:center;
 }
-.step-card:hover{border-color:var(--cta);box-shadow:var(--glow-cta);transform:translateY(-4px)}
-.step-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--cta),var(--accent));opacity:0;transition:opacity 0.3s}
+.step-card:hover{border-color:var(--primary);box-shadow:var(--glow-primary);transform:translateY(-4px)}
+.step-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--primary),var(--accent));opacity:0;transition:opacity 0.3s}
 .step-card:hover::before{opacity:1}
 .step-number{
   display:inline-flex;align-items:center;justify-content:center;
   width:40px;height:40px;border-radius:50%;
-  background:linear-gradient(135deg,var(--cta),var(--accent));
+  background:linear-gradient(135deg,var(--primary),var(--accent));
   font-family:var(--font-display);font-size:18px;font-weight:700;
   color:#fff;margin-bottom:20px;
 }
@@ -175,45 +170,37 @@ img{max-width:100%;display:block}
 .step-card h3{font-family:var(--font-display);font-size:24px;font-weight:700;margin-bottom:12px}
 .step-card p{color:var(--text-muted);font-size:16px;line-height:1.6}
 
-/* ═══ FOR MAKERS ═══ */
-.for-makers{background:var(--bg-deep)}
-.makers-content{text-align:center;max-width:800px;margin:0 auto}
-.makers-stats{
+/* ═══ FOR EVERYONE ═══ */
+.for-everyone{background:var(--bg-deep)}
+.roles-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:24px;margin-top:48px}
+.role-card{
+  padding:40px 32px;border-radius:var(--radius-xl);border:1px solid var(--border);
+  background:var(--bg);position:relative;overflow:hidden;transition:all 0.3s ease;
+  text-align:center;
+}
+.role-card:hover{border-color:var(--primary);box-shadow:var(--glow-primary);transform:translateY(-4px)}
+.role-icon{font-size:48px;margin-bottom:16px;display:block;line-height:1}
+.role-card h3{font-family:var(--font-display);font-size:24px;font-weight:700;margin-bottom:12px;color:var(--primary)}
+.role-card p{color:var(--text-muted);font-size:16px;line-height:1.6}
+.role-card ul{text-align:left;margin-top:16px;padding-left:0;list-style:none}
+.role-card li{color:var(--text-muted);font-size:14px;line-height:1.6;margin-bottom:8px;position:relative;padding-left:20px}
+.role-card li:before{content:"→";color:var(--primary);position:absolute;left:0;font-weight:600}
+
+/* ═══ OPEN & FREE ═══ */
+.open-free{background:var(--bg)}
+.open-free-content{text-align:center;max-width:800px;margin:0 auto}
+.features-grid{
   display:flex;gap:48px;justify-content:center;flex-wrap:wrap;margin:48px 0;
 }
-.makers-stat{text-align:center}
-.makers-stat .stat-num{
-  font-family:var(--font-display);font-size:32px;font-weight:800;
-  color:var(--cta);
+.feature{text-align:center}
+.feature .feature-icon{
+  font-size:32px;margin-bottom:16px;display:block;
 }
-.makers-stat .stat-label{font-size:14px;color:var(--text-dim);margin-top:4px}
-
-/* ═══ SHOWCASE ═══ */
-.showcase{background:var(--bg)}
-.showcase-card{
-  background:var(--bg-deep);border:1px solid var(--border);
-  border-radius:var(--radius-xl);padding:48px;text-align:center;
-  position:relative;overflow:hidden;max-width:600px;margin:48px auto 0;
+.feature .feature-title{
+  font-family:var(--font-display);font-size:20px;font-weight:700;
+  color:var(--primary);margin-bottom:8px;
 }
-.showcase-card::before{
-  content:'';position:absolute;inset:0;
-  background:linear-gradient(45deg,transparent,rgba(16,185,129,0.05),transparent);
-  border-radius:var(--radius-xl);
-}
-.showcase-image{
-  width:200px;height:200px;margin:0 auto 24px;
-  background:linear-gradient(135deg,var(--cta),var(--accent));
-  border-radius:var(--radius-lg);
-  display:flex;align-items:center;justify-content:center;
-  font-size:64px;
-}
-.showcase-title{
-  font-family:var(--font-display);font-size:24px;font-weight:700;
-  margin-bottom:12px;
-}
-.showcase-desc{
-  color:var(--text-muted);font-size:16px;line-height:1.6;
-}
+.feature .feature-desc{font-size:14px;color:var(--text-muted);max-width:180px}
 
 /* ═══ FOOTER ═══ */
 .footer{
@@ -236,7 +223,8 @@ img{max-width:100%;display:block}
 
 @media(max-width:768px){
   .steps-grid{grid-template-columns:1fr;gap:20px}
-  .makers-stats{gap:24px}
+  .roles-grid{grid-template-columns:1fr;gap:20px}
+  .features-grid{gap:24px}
   .footer-content{flex-direction:column;align-items:center;gap:16px}
   .hero-ctas{flex-direction:column;align-items:center}
 }
@@ -258,11 +246,10 @@ img{max-width:100%;display:block}
     </div>
     <div class="nav-links">
       <a href="https://github.com/brianzhibo-design/RealWorldClaw" target="_blank" data-i18n="nav.github">GitHub</a>
-      <a href="#showcase" data-i18n="nav.showcase">Showcase</a>
-      <a href="#makers" data-i18n="nav.makers">For Makers</a>
+      <a href="https://realworldclaw-api.fly.dev/docs" target="_blank" data-i18n="nav.docs">API Docs</a>
       <a href="#" onclick="toggleLang();return false" data-i18n="lang.switch" style="cursor:pointer;color:var(--accent)">中文</a>
     </div>
-    <button class="nav-cta" onclick="window.location.href='/orders/new'" data-i18n="nav.cta">Submit Design</button>
+    <button class="nav-cta" onclick="window.open('https://frontend-wine-eight-32.vercel.app', '_blank')" data-i18n="nav.cta">Explore the Map</button>
   </div>
 </nav>
 
@@ -274,21 +261,21 @@ img{max-width:100%;display:block}
   <div class="hero-content">
     <div class="hero-badge fade-in">
       <span class="badge-dot"></span>
-      <span data-i18n="hero.badge">Distributed Manufacturing Network</span>
+      <span data-i18n="hero.badge">Anonymous · Open Source · Zero Fee</span>
     </div>
     <h1 class="fade-in fade-in-d1">
-      <span data-i18n="hero.title1">Turn Any Idea</span>
-      <span class="line2" data-i18n="hero.title2">Into Reality</span>
+      <span data-i18n="hero.title1">A Live Map of</span>
+      <span class="line2" data-i18n="hero.title2">Global Manufacturing Capacity</span>
     </h1>
     <p class="hero-subtitle fade-in fade-in-d2" data-i18n="hero.subtitle">
-      The open network connecting designers with makers worldwide. Upload a design, get it manufactured.
+      Connect with real manufacturing machines worldwide. Anonymous, open source, zero fees. Upload a design, find a maker, receive an object.
     </p>
     <div class="hero-ctas fade-in fade-in-d3">
-      <a href="/orders/new" class="btn btn-cta" data-i18n="hero.cta1">
-        Submit a Design →
+      <a href="https://frontend-wine-eight-32.vercel.app" class="btn btn-primary" target="_blank" data-i18n="hero.cta1">
+        Explore the Map →
       </a>
-      <a href="/makers/register" class="btn btn-outline" data-i18n="hero.cta2">
-        Become a Maker
+      <a href="https://frontend-wine-eight-32.vercel.app" class="btn btn-outline" target="_blank" data-i18n="hero.cta2">
+        Register Your Machine
       </a>
     </div>
   </div>
@@ -299,81 +286,104 @@ img{max-width:100%;display:block}
   <div class="container">
     <div class="section-label reveal" data-i18n="how.label">How It Works</div>
     <h2 class="section-title reveal reveal-delay-1" data-i18n="how.title">
-      From Concept to Creation in Three Steps
+      Three Simple Steps
     </h2>
     <div class="steps-grid">
       <div class="step-card reveal reveal-delay-2">
         <div class="step-number">1</div>
-        <div class="step-icon">🎨</div>
-        <h3 data-i18n="step1.title">Design</h3>
-        <p data-i18n="step1.desc">Describe what you need or upload your 3D file. AI helps you refine it.</p>
+        <div class="step-icon">📄</div>
+        <h3 data-i18n="step1.title">Submit Design</h3>
+        <p data-i18n="step1.desc">Upload your 3D file or design specification. The network receives your request anonymously.</p>
       </div>
       <div class="step-card reveal reveal-delay-3">
         <div class="step-number">2</div>
-        <div class="step-icon">🔗</div>
-        <h3 data-i18n="step2.title">Match</h3>
-        <p data-i18n="step2.desc">Our network finds the best maker near you — 3D printer, CNC, or factory.</p>
+        <div class="step-icon">⚡</div>
+        <h3 data-i18n="step2.title">Match Node</h3>
+        <p data-i18n="step2.desc">Real machines (3D printers, CNC, laser cutters) compete to manufacture your object. No identity reveal.</p>
       </div>
       <div class="step-card reveal reveal-delay-4">
         <div class="step-number">3</div>
         <div class="step-icon">📦</div>
-        <h3 data-i18n="step3.title">Deliver</h3>
-        <p data-i18n="step3.desc">Your custom creation is manufactured and shipped to your door.</p>
+        <h3 data-i18n="step3.title">Receive Object</h3>
+        <p data-i18n="step3.desc">Your manufactured object arrives at your door. Quality guaranteed by the community.</p>
       </div>
     </div>
   </div>
 </section>
 
-<!-- For Makers Section -->
-<section class="for-makers section" id="makers">
+<!-- For Everyone Section -->
+<section class="for-everyone section">
   <div class="container">
-    <div class="makers-content">
-      <div class="section-label reveal" data-i18n="makers.label">For Makers</div>
-      <h2 class="section-title reveal reveal-delay-1" data-i18n="makers.title">
-        Turn Your Printer Into a Manufacturing Node
-      </h2>
-      <p class="section-desc reveal reveal-delay-2" style="margin:0 auto 24px" data-i18n="makers.desc1">
-        Got a 3D printer collecting dust? Turn it into a manufacturing node.
-      </p>
-      <p class="section-desc reveal reveal-delay-2" style="margin:0 auto" data-i18n="makers.desc2">
-        Join makers worldwide. Accept orders, set your prices, build your reputation.
-      </p>
-      <div class="makers-stats reveal reveal-delay-3">
-        <div class="makers-stat">
-          <div class="stat-num" data-i18n="makers.stat1.num">Open</div>
-          <div class="stat-label" data-i18n="makers.stat1.label">Source</div>
-        </div>
-        <div class="makers-stat">
-          <div class="stat-num" data-i18n="makers.stat2.num">Global</div>
-          <div class="stat-label" data-i18n="makers.stat2.label">Network</div>
-        </div>
-        <div class="makers-stat">
-          <div class="stat-num" data-i18n="makers.stat3.num">MIT</div>
-          <div class="stat-label" data-i18n="makers.stat3.label">Licensed</div>
-        </div>
-      </div>
-      <div class="reveal reveal-delay-4">
-        <a href="/makers/register" class="btn btn-cta" data-i18n="makers.cta">
-          Register Your Printer →
-        </a>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- Showcase Section -->
-<section class="showcase section" id="showcase">
-  <div class="container">
-    <div class="section-label reveal" data-i18n="showcase.label">Showcase</div>
-    <h2 class="section-title reveal reveal-delay-1" data-i18n="showcase.title">
-      Built by the Network
+    <div class="section-label reveal" data-i18n="everyone.label">For Everyone</div>
+    <h2 class="section-title reveal reveal-delay-1" data-i18n="everyone.title">
+      Three Ways to Participate
     </h2>
-    <div class="showcase-card reveal reveal-delay-2">
-      <div class="showcase-image">⚡</div>
-      <h3 class="showcase-title" data-i18n="showcase.product">Energy Core V1</h3>
-      <p class="showcase-desc" data-i18n="showcase.desc">
-        Our first product — designed by AI, manufactured by the network. A 100mm cube housing an ESP32-S3. AI's first physical body.
+    <div class="roles-grid">
+      <div class="role-card reveal reveal-delay-2">
+        <div class="role-icon">👤</div>
+        <h3 data-i18n="role.users.title">Users</h3>
+        <p data-i18n="role.users.desc">Have files, need objects</p>
+        <ul>
+          <li data-i18n="role.users.1">Upload any 3D design</li>
+          <li data-i18n="role.users.2">Anonymous ordering</li>
+          <li data-i18n="role.users.3">Global machine access</li>
+          <li data-i18n="role.users.4">No platform fees</li>
+        </ul>
+      </div>
+      <div class="role-card reveal reveal-delay-3">
+        <div class="role-icon">🔧</div>
+        <h3 data-i18n="role.makers.title">Makers</h3>
+        <p data-i18n="role.makers.desc">Have machines, earn income</p>
+        <ul>
+          <li data-i18n="role.makers.1">Connect real machines</li>
+          <li data-i18n="role.makers.2">Anonymous manufacturing</li>
+          <li data-i18n="role.makers.3">Set your own prices</li>
+          <li data-i18n="role.makers.4">Build reputation</li>
+        </ul>
+      </div>
+      <div class="role-card reveal reveal-delay-4">
+        <div class="role-icon">💻</div>
+        <h3 data-i18n="role.developers.title">Developers</h3>
+        <p data-i18n="role.developers.desc">Build ecosystem, shape future</p>
+        <ul>
+          <li data-i18n="role.developers.1">Open source (MIT)</li>
+          <li data-i18n="role.developers.2">Public API access</li>
+          <li data-i18n="role.developers.3">Community driven</li>
+          <li data-i18n="role.developers.4">Build on the network</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Open & Free Section -->
+<section class="open-free section">
+  <div class="container">
+    <div class="open-free-content">
+      <div class="section-label reveal" data-i18n="open.label">Open & Free</div>
+      <h2 class="section-title reveal reveal-delay-1" data-i18n="open.title">
+        Built for the Community
+      </h2>
+      <p class="section-desc reveal reveal-delay-2" style="margin:0 auto 24px" data-i18n="open.desc">
+        No platform fees. No hidden costs. No data mining. Just pure manufacturing network.
       </p>
+      <div class="features-grid reveal reveal-delay-3">
+        <div class="feature">
+          <div class="feature-icon">💰</div>
+          <h3 class="feature-title" data-i18n="feature.zero.title">Zero Fees</h3>
+          <p class="feature-desc" data-i18n="feature.zero.desc">No commission, no transaction fees. Keep 100% of your earnings.</p>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">⚖️</div>
+          <h3 class="feature-title" data-i18n="feature.license.title">MIT Licensed</h3>
+          <p class="feature-desc" data-i18n="feature.license.desc">Completely open source. Fork, modify, improve.</p>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">🌍</div>
+          <h3 class="feature-title" data-i18n="feature.community.title">Community</h3>
+          <p class="feature-desc" data-i18n="feature.community.desc">Built by makers, for makers. No corporate control.</p>
+        </div>
+      </div>
     </div>
   </div>
 </section>
@@ -383,11 +393,10 @@ img{max-width:100%;display:block}
   <div class="container">
     <div class="footer-content">
       <a href="https://github.com/brianzhibo-design/RealWorldClaw" class="footer-link" target="_blank" data-i18n="footer.github">GitHub</a>
-      <a href="https://github.com/brianzhibo-design/RealWorldClaw/tree/main/docs" class="footer-link" target="_blank" data-i18n="footer.docs">Docs</a>
-      <a href="https://github.com/brianzhibo-design/RealWorldClaw/discussions" class="footer-link" target="_blank" data-i18n="footer.community">Community</a>
+      <a href="https://realworldclaw-api.fly.dev/docs" class="footer-link" target="_blank" data-i18n="footer.docs">API Docs</a>
     </div>
     <div class="footer-bottom" data-i18n="footer.bottom">
-      RealWorldClaw — Open source distributed manufacturing network · MIT Licensed
+      RealWorldClaw — A live map of global manufacturing capacity · MIT Licensed
     </div>
   </div>
 </footer>

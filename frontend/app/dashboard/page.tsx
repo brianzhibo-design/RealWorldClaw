@@ -3,10 +3,9 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { Printer, Package, ShoppingBag, Users, Plus, ArrowRight, Loader2 } from "lucide-react";
+import { Printer, Package, Plus, ArrowRight, Loader2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { StatCard } from "@/components/shared/StatCard";
 import { useAuthStore } from "@/stores/authStore";
 import { API_BASE } from "@/lib/api";
@@ -21,28 +20,18 @@ const item = {
 };
 
 interface Stats {
-  devices?: number;
-  devicesOnline?: number;
+  myNodes?: number;
+  myOrders?: number;
   activeOrders?: number;
-  pendingAmount?: string;
-  ordersTrend?: string;
-  ordersTrendPositive?: boolean;
-  modules?: number;
-  communityMembers?: string;
+  pendingOrders?: number;
 }
 
-interface Activity {
+interface RecentActivity {
   id: string;
   text: string;
   time: string;
-  type: "success" | "info" | "default";
+  type: "order" | "node" | "default";
 }
-
-const badgeVariant: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
-  success: "default",
-  info: "secondary",
-  default: "outline",
-};
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -51,38 +40,85 @@ export default function DashboardPage() {
   const greeting = getGreeting();
 
   const [stats, setStats] = useState<Stats | null>(null);
-  const [activities, setActivities] = useState<Activity[]>([]);
+  const [activities, setActivities] = useState<RecentActivity[]>([]);
   const [loadingStats, setLoadingStats] = useState(true);
   const [loadingActivity, setLoadingActivity] = useState(true);
 
   useEffect(() => {
-    const headers: Record<string, string> = {};
-    if (token) headers.Authorization = `Bearer ${token}`;
+    const fetchStats = async () => {
+      try {
+        const headers: Record<string, string> = {};
+        if (token) headers.Authorization = `Bearer ${token}`;
 
-    fetch(`${API_BASE}/stats`, { headers })
-      .then((r) => (r.ok ? r.json() : null))
-      .then((data) => { if (data) setStats(data); })
-      .catch(() => {})
-      .finally(() => setLoadingStats(false));
+        // 获取我的节点数量
+        const nodesResponse = await fetch(`${API_BASE}/nodes`, { headers });
+        const nodesData = nodesResponse.ok ? await nodesResponse.json() : null;
+        const myNodes = nodesData?.nodes?.length || 0;
 
-    fetch(`${API_BASE}/posts?per_page=5`, { headers })
-      .then((r) => (r.ok ? r.json() : null))
-      .then((data) => {
-        if (data) {
-          const posts = Array.isArray(data) ? data : data.posts ?? [];
-          setActivities(
-            posts.map((p: Record<string, unknown>) => ({
-              id: String(p.id ?? ""),
-              text: String(p.title ?? p.text ?? ""),
-              time: typeof p.timeAgo === "string" ? p.timeAgo : typeof p.created_at === "string" ? p.created_at : "",
-              type: "default" as const,
-            }))
-          );
+        // 获取我的订单数量
+        const ordersResponse = await fetch(`${API_BASE}/orders?type=my`, { headers });
+        const ordersData = ordersResponse.ok ? await ordersResponse.json() : null;
+        const orders = ordersData?.orders || [];
+        const myOrders = orders.length;
+        const activeOrders = orders.filter((o: any) => !['delivered', 'cancelled'].includes(o.status)).length;
+
+        setStats({
+          myNodes,
+          myOrders,
+          activeOrders,
+          pendingOrders: orders.filter((o: any) => o.status === 'submitted').length,
+        });
+      } catch (error) {
+        console.error('Failed to fetch stats:', error);
+        // 设置默认值
+        setStats({ myNodes: 0, myOrders: 0, activeOrders: 0, pendingOrders: 0 });
+      } finally {
+        setLoadingStats(false);
+      }
+    };
+
+    const fetchActivities = async () => {
+      try {
+        const headers: Record<string, string> = {};
+        if (token) headers.Authorization = `Bearer ${token}`;
+
+        // 获取最近活动 - 可以是最近的订单或节点状态变化
+        const response = await fetch(`${API_BASE}/orders?type=my&limit=5`, { headers });
+        if (response.ok) {
+          const data = await response.json();
+          const orders = data.orders || [];
+          
+          const recentActivities: RecentActivity[] = orders.map((order: any) => ({
+            id: order.id,
+            text: `订单"${order.title}"状态更新为${getStatusLabel(order.status)}`,
+            time: new Date(order.updated_at).toLocaleDateString('zh-CN'),
+            type: 'order' as const,
+          }));
+
+          setActivities(recentActivities);
         }
-      })
-      .catch(() => {})
-      .finally(() => setLoadingActivity(false));
+      } catch (error) {
+        console.error('Failed to fetch activities:', error);
+      } finally {
+        setLoadingActivity(false);
+      }
+    };
+
+    fetchStats();
+    fetchActivities();
   }, [token]);
+
+  const getStatusLabel = (status: string) => {
+    const labels: Record<string, string> = {
+      submitted: '已提交',
+      accepted: '已接单',
+      printing: '制造中',
+      shipped: '已发货',
+      delivered: '已完成',
+      cancelled: '已取消',
+    };
+    return labels[status] || status;
+  };
 
   return (
     <motion.div
@@ -94,52 +130,36 @@ export default function DashboardPage() {
       {/* Greeting */}
       <motion.div variants={item}>
         <h1 className="text-2xl font-semibold tracking-tight">
-          {greeting}，{user?.username || "Maker"} 👋
+          {greeting}，{user?.username || "用户"} 👋
         </h1>
-        <p className="text-muted-foreground mt-1">这是你的工作台概览。</p>
+        <p className="text-muted-foreground mt-1">欢迎来到RealWorldClaw制造网络</p>
       </motion.div>
 
       {/* Stats */}
       <motion.div variants={item} className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
-          title="设备"
-          value={stats?.devices ?? "—"}
-          subtitle={stats?.devicesOnline != null ? `${stats.devicesOnline} 在线` : undefined}
+          title="我的节点"
+          value={loadingStats ? "—" : stats?.myNodes ?? 0}
+          subtitle={stats?.myNodes ? `${stats.myNodes} 个制造节点` : "还未注册节点"}
           icon={Printer}
-          onClick={() => router.push("/devices")}
+          onClick={() => router.push("/nodes")}
         />
         <StatCard
-          title="活动订单"
-          value={stats?.activeOrders ?? "—"}
-          subtitle={stats?.pendingAmount ? `${stats.pendingAmount} 待结算` : undefined}
+          title="我的订单"
+          value={loadingStats ? "—" : stats?.myOrders ?? 0}
+          subtitle={stats?.activeOrders ? `${stats.activeOrders} 个进行中` : undefined}
           icon={Package}
-          trend={stats?.ordersTrend ? { value: stats.ordersTrend, positive: stats.ordersTrendPositive ?? true } : undefined}
           onClick={() => router.push("/orders")}
-        />
-        <StatCard
-          title="模块"
-          value={stats?.modules ?? "—"}
-          icon={ShoppingBag}
-          onClick={() => router.push("/marketplace")}
-        />
-        <StatCard
-          title="社区"
-          value={stats?.communityMembers ?? "—"}
-          subtitle={stats?.communityMembers ? "成员" : undefined}
-          icon={Users}
         />
       </motion.div>
 
       {/* Quick actions */}
       <motion.div variants={item} className="flex flex-wrap gap-3">
         <Button size="sm" onClick={() => router.push("/orders/new")}>
-          <Plus className="h-4 w-4 mr-1" /> 创建订单
+          <Plus className="h-4 w-4 mr-1" /> 提交订单
         </Button>
-        <Button size="sm" variant="outline" onClick={() => router.push("/studio/upload")}>
-          <Plus className="h-4 w-4 mr-1" /> 上传设计
-        </Button>
-        <Button size="sm" variant="outline" onClick={() => router.push("/devices")}>
-          管理设备
+        <Button size="sm" variant="outline" onClick={() => router.push("/nodes/register")}>
+          <Plus className="h-4 w-4 mr-1" /> 注册节点
         </Button>
       </motion.div>
 
@@ -147,7 +167,7 @@ export default function DashboardPage() {
       <motion.div variants={item}>
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-medium">最近活动</h2>
-          <Button variant="ghost" size="sm" className="text-muted-foreground">
+          <Button variant="ghost" size="sm" className="text-muted-foreground" onClick={() => router.push("/orders")}>
             查看全部 <ArrowRight className="h-3 w-3 ml-1" />
           </Button>
         </div>
@@ -157,21 +177,31 @@ export default function DashboardPage() {
           </div>
         ) : activities.length > 0 ? (
           <Card className="divide-y divide-border border-border/50">
-            {activities.map((a) => (
-              <div key={a.id} className="flex items-center justify-between p-4 hover:bg-accent/50 transition-colors">
+            {activities.map((activity) => (
+              <div key={activity.id} className="flex items-center justify-between p-4 hover:bg-accent/50 transition-colors">
                 <div className="flex items-center gap-3">
-                  <Badge variant={badgeVariant[a.type] || "outline"} className="text-xs">
-                    {a.type === "success" ? "✅" : a.type === "info" ? "📦" : "🖨️"}
-                  </Badge>
-                  <span className="text-sm">{a.text}</span>
+                  <div className="text-lg">
+                    {activity.type === 'order' ? '📦' : '🖨️'}
+                  </div>
+                  <span className="text-sm">{activity.text}</span>
                 </div>
-                <span className="text-xs text-muted-foreground whitespace-nowrap">{a.time}</span>
+                <span className="text-xs text-muted-foreground whitespace-nowrap">{activity.time}</span>
               </div>
             ))}
           </Card>
         ) : (
           <Card className="p-8 text-center text-muted-foreground">
-            暂无活动记录
+            <div className="text-6xl mb-4">🚀</div>
+            <h3 className="font-medium mb-2">开始你的制造之旅</h3>
+            <p className="text-sm mb-4">提交你的第一个订单，或注册成为制造节点</p>
+            <div className="flex gap-2 justify-center">
+              <Button size="sm" onClick={() => router.push("/orders/new")}>
+                提交订单
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => router.push("/nodes/register")}>
+                注册节点
+              </Button>
+            </div>
           </Card>
         )}
       </motion.div>
