@@ -118,22 +118,45 @@ def create_order(body: OrderCreateRequest, identity: dict = Depends(get_authenti
     order_number = _generate_order_number()
 
     with get_db() as db:
-        matches = match_maker_for_order(
-            db,
-            body.delivery_province, body.delivery_city, body.delivery_district,
-            body.material_preference,
-            order_type=body.order_type.value if body.order_type else "print_only",
-        )
+        # Validate file_id if provided
+        if body.file_id:
+            file_row = db.execute("SELECT id FROM files WHERE id = ?", (body.file_id,)).fetchone()
+            if not file_row:
+                raise HTTPException(status_code=400, detail="File not found")
 
+        # Use auto_match or traditional matching
         maker_id = None
         maker_region = "待匹配"
         estimated_price = 0.0
+        
+        if body.auto_match:
+            # Auto-matching logic: find nearby online nodes
+            matches = match_maker_for_order(
+                db,
+                body.delivery_province, body.delivery_city, body.delivery_district,
+                body.material or body.material_preference,
+                order_type=body.order_type.value if body.order_type else "print_only",
+            )
+            
+            if matches:
+                best = matches[0]
+                maker_id = best["id"]
+                maker_region = f"{best['location_province']} {best['location_city']}"
+                estimated_price = round(best["pricing_per_hour_cny"] * body.quantity * 2, 2)
+        else:
+            # Traditional matching
+            matches = match_maker_for_order(
+                db,
+                body.delivery_province, body.delivery_city, body.delivery_district,
+                body.material or body.material_preference,
+                order_type=body.order_type.value if body.order_type else "print_only",
+            )
 
-        if matches:
-            best = matches[0]
-            maker_id = best["id"]
-            maker_region = f"{best['location_province']} {best['location_city']}"
-            estimated_price = round(best["pricing_per_hour_cny"] * body.quantity * 2, 2)
+            if matches:
+                best = matches[0]
+                maker_id = best["id"]
+                maker_region = f"{best['location_province']} {best['location_city']}"
+                estimated_price = round(best["pricing_per_hour_cny"] * body.quantity * 2, 2)
 
         fee_rate = PLATFORM_FEE_EXPRESS if body.urgency == "express" else PLATFORM_FEE_NORMAL
         platform_fee = round(estimated_price * fee_rate, 2)
@@ -145,16 +168,18 @@ def create_order(body: OrderCreateRequest, identity: dict = Depends(get_authenti
                 delivery_province, delivery_city, delivery_district, delivery_address,
                 urgency, status, notes,
                 price_total_cny, platform_fee_cny, maker_income_cny,
+                file_id, color, auto_match,
                 created_at, updated_at)
-               VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+               VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
             (
                 order_id, order_number, body.order_type.value if body.order_type else "print_only",
                 identity["identity_id"], maker_id,
-                body.component_id, body.quantity, body.material_preference,
+                body.component_id, body.quantity, body.material or body.material_preference,
                 body.delivery_province, body.delivery_city, body.delivery_district,
                 body.delivery_address,  # 仅存数据库，不给Maker看
                 body.urgency.value, "pending", body.notes,
                 estimated_price, platform_fee, maker_income,
+                body.file_id, body.color, 1 if body.auto_match else 0,
                 now, now,
             ),
         )
@@ -199,6 +224,36 @@ def list_orders(identity: dict = Depends(get_authenticated_identity), page: int 
             results["as_maker"].append(_maker_view(dict(r)))
 
     return results
+
+
+@router.get("/available")
+def get_available_orders(identity: dict = Depends(get_authenticated_identity)):
+    """Get orders available for makers to accept, filtered by maker capabilities."""
+    agent_id = identity["identity_id"]
+    
+    with get_db() as db:
+        # Get maker information to filter by capabilities
+        maker_info = db.execute(
+            "SELECT * FROM makers WHERE owner_id = ?", 
+            (agent_id,)
+        ).fetchone()
+        
+        if not maker_info:
+            raise HTTPException(status_code=403, detail="Not registered as a maker")
+        
+        # Get available orders (pending status, no maker assigned)
+        available_orders = db.execute("""
+            SELECT * FROM orders 
+            WHERE status = 'pending' AND maker_id IS NULL
+            ORDER BY created_at DESC
+        """).fetchall()
+        
+        # Convert to maker view format
+        result = []
+        for order in available_orders:
+            result.append(_maker_view(dict(order)))
+    
+    return {"available_orders": result, "total": len(result)}
 
 
 @router.get("/{order_id}")
@@ -416,3 +471,107 @@ def get_messages(order_id: str, identity: dict = Depends(get_authenticated_ident
         }
         for m in msgs
     ]
+
+
+# ─── Enhanced Order Matching Endpoints ──────────────────
+# These endpoints are for the enhanced order matching system
+
+@router.post("/{order_id}/claim")  
+def claim_order(order_id: str, identity: dict = Depends(get_authenticated_identity)):
+    """Maker claims an unassigned order (enhanced matching)."""
+    agent_id = identity["identity_id"]
+    now = datetime.now(timezone.utc).isoformat()
+    
+    with get_db() as db:
+        # Verify maker exists
+        maker_info = db.execute(
+            "SELECT * FROM makers WHERE owner_id = ?", 
+            (agent_id,)
+        ).fetchone()
+        
+        if not maker_info:
+            raise HTTPException(status_code=403, detail="Not registered as a maker")
+        
+        # Get order
+        order = db.execute("SELECT * FROM orders WHERE id = ?", (order_id,)).fetchone()
+        if not order:
+            raise HTTPException(status_code=404, detail="Order not found")
+        
+        if order["status"] != "pending":
+            raise HTTPException(status_code=400, detail="Order is not available")
+        
+        if order["maker_id"] is not None:
+            raise HTTPException(status_code=400, detail="Order already assigned")
+        
+        # Accept the order
+        db.execute("""
+            UPDATE orders 
+            SET maker_id = ?, status = 'accepted', updated_at = ?
+            WHERE id = ?
+        """, (maker_info["id"], now, order_id))
+    
+    return {"message": "Order claimed successfully", "order_id": order_id, "status": "accepted"}
+
+
+@router.post("/{order_id}/complete")
+def complete_order(order_id: str, identity: dict = Depends(get_authenticated_identity)):
+    """Maker marks order as completed."""
+    agent_id = identity["identity_id"]
+    now = datetime.now(timezone.utc).isoformat()
+    
+    with get_db() as db:
+        # Get order and verify ownership
+        order = db.execute("SELECT * FROM orders WHERE id = ?", (order_id,)).fetchone()
+        if not order:
+            raise HTTPException(status_code=404, detail="Order not found")
+        
+        # Check if the authenticated user is the maker for this order
+        if order["maker_id"]:
+            maker = db.execute("SELECT owner_id FROM makers WHERE id = ?", (order["maker_id"],)).fetchone()
+            if not maker or maker["owner_id"] != agent_id:
+                raise HTTPException(status_code=403, detail="Not your order")
+        else:
+            raise HTTPException(status_code=403, detail="Order not assigned")
+        
+        if order["status"] not in ["accepted", "printing", "assembling", "quality_check"]:
+            raise HTTPException(status_code=400, detail="Order cannot be completed from current status")
+        
+        # Mark as completed
+        db.execute("""
+            UPDATE orders 
+            SET status = 'completed', updated_at = ?
+            WHERE id = ?
+        """, (now, order_id))
+    
+    return {"message": "Order completed successfully", "order_id": order_id, "status": "completed"}
+
+
+@router.post("/{order_id}/cancel")
+def cancel_order(order_id: str, identity: dict = Depends(get_authenticated_identity)):
+    """Cancel an order (customer or maker can cancel)."""
+    agent_id = identity["identity_id"]
+    now = datetime.now(timezone.utc).isoformat()
+    
+    with get_db() as db:
+        # Get order
+        order = db.execute("SELECT * FROM orders WHERE id = ?", (order_id,)).fetchone()
+        if not order:
+            raise HTTPException(status_code=404, detail="Order not found")
+        
+        order_dict = dict(order)
+        role = _get_user_role_for_order(db, order_dict, agent_id)
+        
+        if not role:
+            raise HTTPException(status_code=403, detail="Not authorized to cancel this order")
+        
+        if order["status"] in ["completed", "delivered", "cancelled"]:
+            raise HTTPException(status_code=400, detail="Order cannot be cancelled")
+        
+        # Cancel the order
+        db.execute("""
+            UPDATE orders 
+            SET status = 'cancelled', updated_at = ?
+            WHERE id = ?
+        """, (now, order_id))
+    
+    return {"message": "Order cancelled successfully", "order_id": order_id, "status": "cancelled"}

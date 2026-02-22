@@ -335,6 +335,11 @@ class OrderCreateRequest(BaseModel):
     delivery_address: str = Field(..., min_length=5)
     urgency: OrderUrgency = OrderUrgency.normal
     notes: Optional[str] = None
+    # New fields for enhanced order matching
+    file_id: Optional[str] = None
+    material: Optional[str] = None
+    color: Optional[str] = None
+    auto_match: bool = False
 
 
 class OrderCreateResponse(BaseModel):

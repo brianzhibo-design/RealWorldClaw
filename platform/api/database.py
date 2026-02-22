@@ -34,6 +34,8 @@ def get_db():
 def init_db():
     """创建所有表"""
     from .models.user import USERS_TABLE_SQL
+    from .models.files import FILES_TABLE_SQL
+    from .models.community import COMMUNITY_TABLES_SQL
 
     with get_db() as db:
         db.executescript(USERS_TABLE_SQL)
@@ -176,6 +178,10 @@ def init_db():
             shipping_carrier TEXT,
             estimated_completion TEXT,
             actual_completion TEXT,
+            -- New enhanced matching fields
+            file_id TEXT,
+            color TEXT,
+            auto_match INTEGER NOT NULL DEFAULT 0,
             created_at TEXT NOT NULL,
             updated_at TEXT NOT NULL
         );
@@ -344,6 +350,24 @@ def init_db():
         CREATE INDEX IF NOT EXISTS idx_nodes_location ON nodes(fuzzy_latitude, fuzzy_longitude);
         CREATE INDEX IF NOT EXISTS idx_nodes_heartbeat ON nodes(last_heartbeat);
         """)
+        
+        # Add files and community tables
+        db.executescript(FILES_TABLE_SQL)
+        db.executescript(COMMUNITY_TABLES_SQL)
+        
+        # Add new columns to existing orders table if they don't exist
+        try:
+            db.execute("ALTER TABLE orders ADD COLUMN file_id TEXT")
+        except:
+            pass  # Column already exists
+        try:
+            db.execute("ALTER TABLE orders ADD COLUMN color TEXT")
+        except:
+            pass  # Column already exists
+        try:
+            db.execute("ALTER TABLE orders ADD COLUMN auto_match INTEGER NOT NULL DEFAULT 0")
+        except:
+            pass  # Column already exists
 
 
 if __name__ == "__main__":

@@ -323,3 +323,331 @@ class TestOrderReview:
             headers=_auth(MAKER_KEY),
         )
         assert resp.status_code == 403
+
+
+# ─── Enhanced Order Matching Tests ───────────────────────
+
+class TestEnhancedOrders:
+    """Test enhanced order functionality with file_id, auto_match, etc."""
+
+    def test_create_order_with_file_id(self):
+        """Test creating order with attached file."""
+        _seed_world()
+        
+        # First create a file (mock file creation)
+        with get_db() as db:
+            file_id = "test-file-id-123"
+            db.execute("""
+                INSERT INTO files (
+                    id, filename, original_filename, size, file_type, mime_type,
+                    file_path, uploader_id, uploader_type, uploaded_at, updated_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (
+                file_id, "test.stl", "test.stl", 1024, ".stl", "model/stl",
+                "/tmp/test.stl", "customer_001", "agent", "2024-01-01T00:00:00Z", "2024-01-01T00:00:00Z"
+            ))
+        
+        order_data = {
+            "component_id": "servo-bracket",
+            "quantity": 2,
+            "delivery_province": "广东省",
+            "delivery_city": "深圳市",
+            "delivery_district": "南山区",
+            "delivery_address": "科技园1号",
+            "file_id": file_id,
+            "material": "PLA",
+            "color": "red",
+            "auto_match": False
+        }
+        
+        resp = client.post("/api/v1/orders", json=order_data, headers=_auth(CUSTOMER_KEY))
+        assert resp.status_code == 201
+        
+        # Verify order was created with enhanced fields
+        with get_db() as db:
+            order = db.execute(
+                "SELECT * FROM orders WHERE order_number = ?", 
+                (resp.json()["order_number"],)
+            ).fetchone()
+            assert order["file_id"] == file_id
+            assert order["material"] == "PLA"
+            assert order["color"] == "red"
+            assert order["auto_match"] == 0
+
+    def test_create_order_with_auto_match(self):
+        """Test creating order with auto-matching enabled."""
+        _seed_world()
+        
+        order_data = {
+            "component_id": "servo-bracket",
+            "quantity": 1,
+            "delivery_province": "广东省",
+            "delivery_city": "深圳市",
+            "delivery_district": "南山区",
+            "delivery_address": "科技园1号",
+            "material": "ABS",
+            "auto_match": True
+        }
+        
+        resp = client.post("/api/v1/orders", json=order_data, headers=_auth(CUSTOMER_KEY))
+        assert resp.status_code == 201
+        
+        # Verify auto_match was set
+        with get_db() as db:
+            order = db.execute(
+                "SELECT * FROM orders WHERE order_number = ?", 
+                (resp.json()["order_number"],)
+            ).fetchone()
+            assert order["auto_match"] == 1
+
+    def test_create_order_with_invalid_file_id(self):
+        """Test creating order with non-existent file ID."""
+        _seed_world()
+        
+        order_data = {
+            "component_id": "servo-bracket",
+            "quantity": 1,
+            "delivery_province": "广东省",
+            "delivery_city": "深圳市",
+            "delivery_district": "南山区",
+            "delivery_address": "科技园1号",
+            "file_id": "nonexistent-file-id"
+        }
+        
+        resp = client.post("/api/v1/orders", json=order_data, headers=_auth(CUSTOMER_KEY))
+        assert resp.status_code == 400
+        assert "File not found" in resp.json()["detail"]
+
+    def test_get_available_orders(self):
+        """Test getting orders available for makers."""
+        _seed_world()
+        
+        # Create some orders
+        order1_data = {
+            "component_id": "servo-bracket",
+            "quantity": 1,
+            "delivery_province": "广东省",
+            "delivery_city": "深圳市",
+            "delivery_district": "南山区",
+            "delivery_address": "科技园1号",
+        }
+        
+        order2_data = {
+            "component_id": "wheel-hub",
+            "quantity": 2,
+            "delivery_province": "北京市",
+            "delivery_city": "朝阳区",
+            "delivery_district": "望京",
+            "delivery_address": "SOHO 1号",
+        }
+        
+        client.post("/api/v1/orders", json=order1_data, headers=_auth(CUSTOMER_KEY))
+        client.post("/api/v1/orders", json=order2_data, headers=_auth(CUSTOMER_KEY))
+        
+        # Get available orders as a maker
+        resp = client.get("/api/v1/orders/available", headers=_auth(MAKER_KEY))
+        assert resp.status_code == 200
+        
+        data = resp.json()
+        assert "available_orders" in data
+        assert data["total"] >= 2  # Should have at least the 2 we created
+        
+        # All orders should be pending with no maker assigned
+        for order in data["available_orders"]:
+            assert order["status"] == "pending"
+
+    def test_get_available_orders_not_maker(self):
+        """Test getting available orders when not registered as maker."""
+        resp = client.get("/api/v1/orders/available", headers=_auth(CUSTOMER_KEY))
+        assert resp.status_code == 403
+        assert "Not registered as a maker" in resp.json()["detail"]
+
+    def test_claim_order(self):
+        """Test maker claiming an order."""
+        _seed_world()
+        
+        # Create an order
+        order_data = {
+            "component_id": "servo-bracket",
+            "quantity": 1,
+            "delivery_province": "广东省",
+            "delivery_city": "深圳市",
+            "delivery_district": "南山区",
+            "delivery_address": "科技园1号",
+        }
+        
+        order_resp = client.post("/api/v1/orders", json=order_data, headers=_auth(CUSTOMER_KEY))
+        order_id = order_resp.json()["order_id"]
+        
+        # Claim the order as a maker
+        resp = client.post(f"/api/v1/orders/{order_id}/claim", headers=_auth(MAKER_KEY))
+        assert resp.status_code == 200
+        assert resp.json()["status"] == "accepted"
+        
+        # Verify order status changed
+        with get_db() as db:
+            order = db.execute("SELECT * FROM orders WHERE id = ?", (order_id,)).fetchone()
+            assert order["status"] == "accepted"
+            assert order["maker_id"] is not None
+
+    def test_claim_nonexistent_order(self):
+        """Test claiming non-existent order."""
+        _seed_world()
+        
+        resp = client.post("/api/v1/orders/nonexistent-id/claim", headers=_auth(MAKER_KEY))
+        assert resp.status_code == 404
+        assert "Order not found" in resp.json()["detail"]
+
+    def test_claim_already_assigned_order(self):
+        """Test claiming order that's already assigned."""
+        _seed_world()
+        
+        # Create and claim an order
+        order_data = {
+            "component_id": "servo-bracket",
+            "quantity": 1,
+            "delivery_province": "广东省",
+            "delivery_city": "深圳市",
+            "delivery_district": "南山区",
+            "delivery_address": "科技园1号",
+        }
+        
+        order_resp = client.post("/api/v1/orders", json=order_data, headers=_auth(CUSTOMER_KEY))
+        order_id = order_resp.json()["order_id"]
+        
+        # First maker claims
+        client.post(f"/api/v1/orders/{order_id}/claim", headers=_auth(MAKER_KEY))
+        
+        # Second attempt should fail
+        resp = client.post(f"/api/v1/orders/{order_id}/claim", headers=_auth(MAKER_KEY))
+        assert resp.status_code == 400
+        assert "Order already assigned" in resp.json()["detail"]
+
+    def test_complete_order(self):
+        """Test maker completing an order."""
+        _seed_world()
+        
+        # Create and claim an order
+        order_data = {
+            "component_id": "servo-bracket",
+            "quantity": 1,
+            "delivery_province": "广东省",
+            "delivery_city": "深圳市",
+            "delivery_district": "南山区",
+            "delivery_address": "科技园1号",
+        }
+        
+        order_resp = client.post("/api/v1/orders", json=order_data, headers=_auth(CUSTOMER_KEY))
+        order_id = order_resp.json()["order_id"]
+        
+        # Claim the order
+        client.post(f"/api/v1/orders/{order_id}/claim", headers=_auth(MAKER_KEY))
+        
+        # Complete the order
+        resp = client.post(f"/api/v1/orders/{order_id}/complete", headers=_auth(MAKER_KEY))
+        assert resp.status_code == 200
+        assert resp.json()["status"] == "completed"
+        
+        # Verify order status
+        with get_db() as db:
+            order = db.execute("SELECT * FROM orders WHERE id = ?", (order_id,)).fetchone()
+            assert order["status"] == "completed"
+
+    def test_complete_order_not_maker(self):
+        """Test completing order when not the assigned maker."""
+        _seed_world()
+        
+        # Create and accept an order
+        order_data = {
+            "component_id": "servo-bracket",
+            "quantity": 1,
+            "delivery_province": "广东省",
+            "delivery_city": "深圳市",
+            "delivery_district": "南山区",
+            "delivery_address": "科技园1号",
+        }
+        
+        order_resp = client.post("/api/v1/orders", json=order_data, headers=_auth(CUSTOMER_KEY))
+        order_id = order_resp.json()["order_id"]
+        
+        # Customer tries to complete (should fail)
+        resp = client.post(f"/api/v1/orders/{order_id}/complete", headers=_auth(CUSTOMER_KEY))
+        assert resp.status_code == 403
+
+    def test_cancel_order_customer(self):
+        """Test customer cancelling an order."""
+        _seed_world()
+        
+        # Create an order
+        order_data = {
+            "component_id": "servo-bracket",
+            "quantity": 1,
+            "delivery_province": "广东省",
+            "delivery_city": "深圳市",
+            "delivery_district": "南山区",
+            "delivery_address": "科技园1号",
+        }
+        
+        order_resp = client.post("/api/v1/orders", json=order_data, headers=_auth(CUSTOMER_KEY))
+        order_id = order_resp.json()["order_id"]
+        
+        # Cancel the order
+        resp = client.post(f"/api/v1/orders/{order_id}/cancel", headers=_auth(CUSTOMER_KEY))
+        assert resp.status_code == 200
+        assert resp.json()["status"] == "cancelled"
+        
+        # Verify order status
+        with get_db() as db:
+            order = db.execute("SELECT * FROM orders WHERE id = ?", (order_id,)).fetchone()
+            assert order["status"] == "cancelled"
+
+    def test_cancel_order_maker(self):
+        """Test maker cancelling a claimed order."""
+        _seed_world()
+        
+        # Create and claim an order
+        order_data = {
+            "component_id": "servo-bracket",
+            "quantity": 1,
+            "delivery_province": "广东省",
+            "delivery_city": "深圳市",
+            "delivery_district": "南山区",
+            "delivery_address": "科技园1号",
+        }
+        
+        order_resp = client.post("/api/v1/orders", json=order_data, headers=_auth(CUSTOMER_KEY))
+        order_id = order_resp.json()["order_id"]
+        
+        # Claim the order
+        client.post(f"/api/v1/orders/{order_id}/claim", headers=_auth(MAKER_KEY))
+        
+        # Maker cancels the order
+        resp = client.post(f"/api/v1/orders/{order_id}/cancel", headers=_auth(MAKER_KEY))
+        assert resp.status_code == 200
+        assert resp.json()["status"] == "cancelled"
+
+    def test_cancel_completed_order_fails(self):
+        """Test that completed orders cannot be cancelled."""
+        _seed_world()
+        
+        # Create, claim, and complete an order
+        order_data = {
+            "component_id": "servo-bracket",
+            "quantity": 1,
+            "delivery_province": "广东省",
+            "delivery_city": "深圳市",
+            "delivery_district": "南山区",
+            "delivery_address": "科技园1号",
+        }
+        
+        order_resp = client.post("/api/v1/orders", json=order_data, headers=_auth(CUSTOMER_KEY))
+        order_id = order_resp.json()["order_id"]
+        
+        # Claim and complete the order
+        client.post(f"/api/v1/orders/{order_id}/claim", headers=_auth(MAKER_KEY))
+        client.post(f"/api/v1/orders/{order_id}/complete", headers=_auth(MAKER_KEY))
+        
+        # Try to cancel - should fail
+        resp = client.post(f"/api/v1/orders/{order_id}/cancel", headers=_auth(CUSTOMER_KEY))
+        assert resp.status_code == 400
+        assert "Order cannot be cancelled" in resp.json()["detail"]
