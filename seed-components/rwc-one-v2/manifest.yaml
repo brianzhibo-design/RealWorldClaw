@@ -1,0 +1,80 @@
+# Clawbie V2 — RealWorldClaw One V2
+# 蟹爪手机壳 + M5StickC Plus2 一体化方案
+# 美羊羊🎀 设计 | 2026-02
+
+name: rwc-one-v2
+version: 2.0.0
+codename: clawbie-v2
+description: >
+  Clawbie V2 — 买一块板，打印一个壳，5分钟变身蟹爪宝宝。
+  基于M5StickC Plus2的一体化设计，零接线零焊接。
+
+hardware:
+  core: M5StickC Plus2
+  mcu: ESP32-S2 (Xtensa LX7, 240MHz)
+  display: 1.14" TFT 135×240 (ST7789V2)
+  buttons: 2 (A: front, B: side)
+  sensors:
+    - 6-axis IMU (MPU6886)
+    - Microphone (SPM1423)
+    - IR transmitter
+  audio: Buzzer (GPIO2)
+  led: Internal LED
+  battery: 390mAh Li-Po
+  charging: USB-C (5V)
+  dimensions: 54.2 × 25.5 × 13.2 mm
+  weight: ~30g (bare board)
+
+optional_modules:
+  - name: DHT22
+    purpose: 精确温湿度
+    pins: [GND, 3V3, G26]
+    cost_cny: 8
+
+shell_variants:
+  - id: peace
+    emoji: ✌️
+    file: models/clawbie-shell-peace.scad
+    description: 剪刀手/和平蟹爪
+  - id: fist
+    emoji: ✊
+    file: models/clawbie-shell-fist.scad
+    description: 握拳蟹爪
+  - id: wave
+    emoji: 👋
+    file: models/clawbie-shell-wave.scad
+    description: 挥手蟹爪
+
+cost:
+  basic_cny: 89
+  full_cny: 97
+  basic_note: 只需M5StickC Plus2
+  full_note: + DHT22温湿度模块
+
+assembly:
+  time_minutes: 5
+  soldering: false
+  wiring: false
+  tools_needed: []
+  steps:
+    - 烧录固件 (USB-C连电脑)
+    - 套上外壳 (卡扣式)
+    - 开机使用
+
+print:
+  time_hours: "<2"
+  material: PLA/PETG
+  supports: false
+  infill: 15%
+  layer_height: 0.2mm
+
+firmware:
+  framework: Arduino
+  platform: espressif32
+  libraries:
+    - M5StickCPlus2
+    - PubSubClient (MQTT)
+    - ArduinoJson
+    - DHT (optional)
+
+license: MIT

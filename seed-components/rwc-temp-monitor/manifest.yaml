@@ -1,0 +1,133 @@
+# ─── RealWorldClaw Component Manifest ───
+# 种子组件包 #1：温湿度监控器（DHT22版）
+# 作者：美羊羊🎀 @ 羊村 RealWorldClaw 团队
+
+id: rwc-temp-monitor
+version: 1.0.0
+display_name:
+  en: "Temperature & Humidity Monitor"
+  zh: "温湿度监控器"
+description:
+  en: "Indoor temperature and humidity monitoring device with WiFi connectivity and MQTT reporting. Uses DHT22 sensor for reliable sensing with ±0.5°C/±2%RH accuracy. Features LED status indicator and snap-fit 3D printed enclosure. Perfect first RealWorldClaw project for beginners."
+  zh: "室内温湿度监控设备，支持WiFi连接和MQTT数据上报。使用DHT22传感器，精度±0.5°C/±2%RH。配备LED状态指示灯和卡扣式3D打印外壳。非常适合作为RealWorldClaw入门项目。"
+author: meiyangyang
+license: MIT
+tags: [sensor, temperature, humidity, indoor, esp32, mqtt, beginner, dht22]
+
+capabilities:
+  - temperature_sensing
+  - humidity_sensing
+  - data_reporting
+  - led_status
+
+hardware:
+  compute: esp32-c3
+  sensors:
+    - model: DHT22
+      interface: gpio
+      pin: 4
+      voltage: "3.3V"
+      datasheet_url: "https://www.sparkfun.com/datasheets/Sensors/Temperature/DHT22.pdf"
+  actuators:
+    - model: LED-3mm-Green
+      type: display
+      interface: gpio
+      pin: 8
+      voltage: "3.3V"
+      max_current: "20mA"
+  power:
+    type: usb-c
+    voltage: "5V"
+    consumption: "0.3W"
+    peak_consumption: "0.5W"
+    sleep_consumption: "0.01W"
+  estimated_cost:
+    CNY: 25
+    USD: 4
+
+printing:
+  files:
+    - path: models/enclosure-bottom.stl
+      quantity: 1
+      color: white
+      notes: "由 enclosure.scad 生成，底壳含USB-C开孔和通风格栅"
+    - path: models/enclosure-lid.stl
+      quantity: 1
+      color: white
+      notes: "由 enclosure.scad 生成，卡扣式盖板"
+  material: PLA
+  layer_height: "0.2mm"
+  infill: "20%"
+  supports: false
+  estimated_time: "1h45m"
+  estimated_filament: "28g"
+  min_bed_size: [120, 120]
+  print_orientation: "大平面朝下，两件可同盘打印"
+  nozzle_temp: "210°C"
+  bed_temp: "60°C"
+
+physical:
+  module_size: 2U
+  dimensions: [60, 40, 30]
+  weight: "45g"
+  mounting: m3-20mm-grid
+  mounting_types: [desktop, wall_mount, magnetic]
+  protection: CF-P0
+
+electrical:
+  logic_level: "3.3V"
+  interfaces:
+    - type: gpio
+      connector: pin-header-3P
+      pinout: [VCC, DATA, GND]
+      direction: in
+    - type: power
+      connector: USB-C
+      pinout: [VBUS, GND]
+      direction: in
+
+communication:
+  protocol: mqtt
+  topics:
+    publish:
+      - "rwc/{agent_id}/temp-monitor/temperature"
+      - "rwc/{agent_id}/temp-monitor/humidity"
+      - "rwc/{agent_id}/temp-monitor/status"
+    subscribe:
+      - "rwc/{agent_id}/temp-monitor/command"
+      - "rwc/{agent_id}/temp-monitor/config"
+  discovery: true
+  ota_update: true
+
+software:
+  firmware_platform: arduino
+  dependencies:
+    - name: DHT-sensor-library
+      version: ">=1.4.0"
+    - name: PubSubClient
+      version: ">=2.8.0"
+    - name: ArduinoJson
+      version: ">=6.0.0"
+    - name: Adafruit_Unified_Sensor
+      version: ">=1.1.0"
+  openclaw_skill: temp-monitor
+  build_command: "pio run -e esp32c3"
+  flash_command: "pio run -e esp32c3 -t upload"
+
+compatible_with:
+  bases: [desktop-base-v1, wall-mount-v1, magnetic-base-v1]
+  addons: [oled-display-addon, battery-18650-addon, solar-panel-addon]
+
+completeness:
+  has_models: true
+  has_wiring: true
+  has_firmware: true
+  has_agent: true
+  has_docs: true
+
+thermal:
+  class: passive-none
+  max_ambient: "50°C"
+
+waterproof:
+  seal_type: none

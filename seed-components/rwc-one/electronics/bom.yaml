@@ -1,0 +1,110 @@
+# RWC-ONE Bill of Materials
+# 物料清单 + 估计成本
+# 价格为淘宝/AliExpress 参考价（2024年）
+
+bom:
+  - id: MCU
+    name: ESP32-C3 SuperMini
+    description: "主控板，WiFi+BLE，USB-C，超小尺寸 (22x18mm)"
+    quantity: 1
+    unit_cost_usd: 2.50
+    unit_cost_cny: 15.00
+    source: "淘宝 / AliExpress"
+    datasheet: "https://docs.espressif.com/projects/esp-idf/en/latest/esp32c3/"
+    notes: "自带USB-C口，可直接供电+烧录"
+
+  - id: OLED
+    name: "0.96\" I2C OLED 显示屏 (SSD1306)"
+    description: "128x64 蓝色/白色 OLED，I2C接口"
+    quantity: 1
+    unit_cost_usd: 1.80
+    unit_cost_cny: 10.00
+    source: "淘宝 / AliExpress"
+    interface: "I2C (SDA, SCL)"
+    voltage: "3.3V / 5V"
+    notes: "选圆形安装更好看，方形也可以"
+
+  - id: DHT22
+    name: DHT22 温湿度传感器
+    description: "数字温湿度传感器，精度±0.5°C / ±2%RH"
+    quantity: 1
+    unit_cost_usd: 2.00
+    unit_cost_cny: 8.00
+    source: "淘宝 / AliExpress"
+    interface: "单总线 (1-Wire style)"
+    voltage: "3.3V - 5V"
+    notes: "需要10kΩ上拉电阻（数据线到VCC）"
+
+  - id: LED_RING
+    name: WS2812B RGB LED 灯环 (8灯)
+    description: "NeoPixel兼容 RGB LED环，外径32mm"
+    quantity: 1
+    unit_cost_usd: 1.50
+    unit_cost_cny: 6.00
+    source: "淘宝 / AliExpress"
+    interface: "单线数据 (DIN)"
+    voltage: "5V"
+    notes: "8颗灯珠版本，嵌入底座槽内"
+
+  - id: BUZZER
+    name: 无源蜂鸣器 5V
+    description: "被动式蜂鸣器，可编程频率"
+    quantity: 1
+    unit_cost_usd: 0.30
+    unit_cost_cny: 1.00
+    source: "淘宝 / AliExpress"
+    notes: "可选组件，不装也行"
+
+  - id: BUTTON
+    name: 6x6x5mm 轻触开关
+    description: "PCB直插轻触按钮"
+    quantity: 1
+    unit_cost_usd: 0.05
+    unit_cost_cny: 0.20
+    source: "淘宝 / AliExpress"
+    notes: "用于切换显示模式"
+
+  - id: RESISTOR
+    name: 10kΩ 电阻
+    description: "DHT22 数据线上拉电阻"
+    quantity: 1
+    unit_cost_usd: 0.02
+    unit_cost_cny: 0.10
+    source: "淘宝 / AliExpress"
+
+  - id: WIRES
+    name: 杜邦线 母对母
+    description: "连接线材，10cm 长"
+    quantity: 10
+    unit_cost_usd: 0.05
+    unit_cost_cny: 0.20
+    source: "淘宝 / AliExpress"
+    notes: "也可以直接焊接，更可靠"
+
+  - id: USB_CABLE
+    name: USB-C 数据线
+    description: "供电 + 烧录用"
+    quantity: 1
+    unit_cost_usd: 1.00
+    unit_cost_cny: 5.00
+    source: "大多数人已有"
+    notes: "确保是数据线，不是纯充电线"
+
+  - id: FILAMENT
+    name: PLA 耗材
+    description: "3D打印用料，约30-40g"
+    quantity: 40  # grams
+    unit_cost_usd: 0.80
+    unit_cost_cny: 3.00
+    source: "3D打印耗材店"
+    notes: "橙色/红色/荧光绿推荐"
+
+summary:
+  total_electronics_usd: 9.22
+  total_electronics_cny: 45.50
+  total_with_filament_usd: 10.02
+  total_with_filament_cny: 48.50
+  notes: |
+    以上为单件成本，批量购买更便宜。
+    USB线大多数人已有，实际新购成本约 ¥40-50 / $8-10。
+    这可能是你能做的最便宜的桌面AI机器人了！🦀
