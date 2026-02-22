@@ -1,0 +1,89 @@
+module:
+  id: "rwc-relay-v1"
+  name: "5V Relay Module"
+  version: "1.0.0"
+  type: "actuator"
+  author: "RealWorldClaw"
+  license: "Apache-2.0"
+  created_at: "2026-02-22"
+
+description:
+  short: "5V relay for switching AC/DC loads up to 10A"
+  long: "Isolated relay module for controlling high-power devices. Built-in flyback diode and LED indicator. Safe switching of AC mains or DC motors."
+
+capabilities:
+  - id: "switch"
+    type: "write"
+    unit: "boolean"
+    states: [false, true]
+    response_time_ms: 10
+    
+  - id: "state"
+    type: "read"
+    unit: "boolean"
+    description: "Current relay state feedback"
+
+hardware:
+  bom_cost_usd: 2.80
+  power: "5V"
+  current_control_ma: 20
+  current_coil_ma: 70
+  connector: "rwc-bus-v0.1"
+  dimensions_mm: [30, 20, 15]
+  weight_g: 8
+
+ratings:
+  max_switching_voltage_ac: 250
+  max_switching_voltage_dc: 30
+  max_switching_current: 10
+  contact_life_cycles: 100000
+  insulation_voltage: 4000
+
+components:
+  - part: "5V Relay SPDT"
+    qty: 1
+    part_no: "SRD-05VDC-SL-C"
+    cost_usd: 1.50
+  - part: "2N2222 NPN Transistor"
+    qty: 1
+    cost_usd: 0.20
+  - part: "1N4007 Diode"
+    qty: 1
+    cost_usd: 0.10
+  - part: "1k Resistor"
+    qty: 1
+    cost_usd: 0.05
+  - part: "LED"
+    qty: 1
+    cost_usd: 0.15
+  - part: "PCB + Terminal blocks"
+    qty: 1
+    cost_usd: 0.80
+
+files:
+  firmware: "firmware/main.ino"
+  pcb_gerber: "hardware/gerbers.zip"
+  schematic: "hardware/schematic.pdf"
+  case_stl: "models/case.stl"
+  wiring_diagram: "hardware/wiring.png"
+  safety_guide: "SAFETY.md"
+
+safety:
+  warnings:
+    - "HIGH VOLTAGE - Risk of electric shock"
+    - "Ensure proper AC wiring by qualified electrician"
+    - "Do not exceed 10A switching current"
+    - "Use appropriate fuses/breakers"
+  certifications: []
+
+compatibility:
+  rwc_protocol: "0.1"
+  energy_core: ["v1.0", "v1.1"]
+  tested_with: ["ESP32-S3"]
+
+tags:
+  - "power"
+  - "high-voltage"
+  - "home-automation"
+  - "intermediate"
+  - "safety-critical"

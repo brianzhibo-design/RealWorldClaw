@@ -1,0 +1,69 @@
+module:
+  id: "rwc-temp-humidity-v1"
+  name: "Temperature & Humidity Sensor"
+  version: "1.0.0"
+  type: "sensor"
+  author: "RealWorldClaw"
+  license: "Apache-2.0"
+  created_at: "2026-02-22"
+  
+description:
+  short: "DHT22-based temperature and humidity sensor"
+  long: "Accurate digital temperature and humidity sensor using DHT22 chip. Easy to assemble, no soldering required."
+
+capabilities:
+  - id: "temperature"
+    type: "read" 
+    unit: "celsius"
+    range: [-40, 80]
+    accuracy: "±0.5°C"
+    resolution: 0.1
+    interval_ms: 2000
+    
+  - id: "humidity"
+    type: "read"
+    unit: "percent"
+    range: [0, 100] 
+    accuracy: "±2%"
+    resolution: 0.1
+    interval_ms: 2000
+
+hardware:
+  bom_cost_usd: 3.50
+  power: "3.3V"
+  current_max_ma: 15
+  current_typical_ma: 1
+  connector: "rwc-bus-v0.1"
+  dimensions_mm: [25, 15, 8]
+  weight_g: 3
+  
+components:
+  - part: "DHT22"
+    qty: 1
+    supplier: "Adafruit"
+    part_no: "385"
+    cost_usd: 2.50
+  - part: "Resistor 10k"
+    qty: 1
+    cost_usd: 0.10
+  - part: "PCB"  
+    qty: 1
+    cost_usd: 0.90
+
+files:
+  firmware: "firmware/main.ino"
+  pcb_gerber: "hardware/gerbers.zip"
+  schematic: "hardware/schematic.pdf"
+  case_stl: "models/case.stl"
+  assembly_guide: "README.md"
+  
+compatibility:
+  rwc_protocol: "0.1"
+  energy_core: ["v1.0", "v1.1"]
+  tested_with: ["ESP32-S3"]
+
+tags:
+  - "environmental"
+  - "indoor"
+  - "beginner"
+  - "verified"
