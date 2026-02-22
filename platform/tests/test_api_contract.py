@@ -1,4 +1,4 @@
-"""API契约测试 — 暖羊羊🐑出品
+"""API契约测试 - RealWorldClaw QA Team
 
 验证：
 - 响应格式（JSON schema）

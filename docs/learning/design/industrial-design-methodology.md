@@ -353,4 +353,4 @@ iPad手绘草图 → Shapr3D快速建模 → 导出STL → 3D打印验证 → �
 
 ---
 
-*花羊羊🌸 | RWC CPO | 持续更新中...*
+*RealWorldClaw Team | Continuous updates*

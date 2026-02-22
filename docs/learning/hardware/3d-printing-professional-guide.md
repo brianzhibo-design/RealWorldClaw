@@ -223,5 +223,5 @@
 
 ---
 
-*Created: 2026-02-21 by 蛋蛋🥚*
+*Created: 2026-02-21 by RealWorldClaw Team*
 *Sources: Bambu Lab docs, Tom's Hardware P2S review, 3DPrintedDecor comparison, Sinterit tolerance guide, Hubs snap-fit guide, Ultimaker material comparison*

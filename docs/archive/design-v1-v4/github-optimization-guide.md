@@ -70,7 +70,7 @@ git push origin v0.1.0-alpha
 - **建议**：添加 "First Good Issue" 引导，降低新手门槛
 
 ### LICENSE ✅ 正确
-- MIT License，Copyright 2026 RealWorldClaw / 羊村公司
+- MIT License，Copyright 2026 RealWorldClaw / RealWorldClaw
 - 无需修改
 
 ### .github/ Templates ✅ 完善

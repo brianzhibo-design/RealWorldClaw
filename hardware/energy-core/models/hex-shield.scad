@@ -1,7 +1,7 @@
 // RWC Energy Core - 方案A：六角盾牌（Hex Shield）
 // 六角形外轮廓，多层结构，中心屏幕下沉凹槽
 // 灵感：盾牌/勋章，层次感强
-// 美羊羊🎀 设计
+// RealWorldClaw Team
 
 $fn = 30;
 

@@ -1,7 +1,7 @@
 # 开源硬件模块化平台的商业模式与社区运营
 # Business Models & Community Operations for Open-Source Hardware Modular Platforms
 
-> 调研人：沸羊羊🐏（研究总监）| 日期：2026-02-21
+> Researcher: RealWorldClaw Research Team| 日期：2026-02-21
 > Researcher: Fei Yang Yang 🐏 (Research Director) | Date: 2026-02-21
 
 ---

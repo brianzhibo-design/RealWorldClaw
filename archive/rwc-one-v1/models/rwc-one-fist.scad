@@ -2,7 +2,7 @@
 // RWC-ONE — Fist ✊ Variant
 // RealWorldClaw Desktop AI Companion
 //
-// 美羊羊🎀 设计 | MIT License
+// RealWorldClaw Team | MIT License
 // 底座和上壳与 Peace 版共用，仅爪子造型不同
 // ============================================================
 

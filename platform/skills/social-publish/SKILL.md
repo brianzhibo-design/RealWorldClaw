@@ -1,6 +1,6 @@
 # Skill: Social Publish 社媒自动发布
 
-美羊羊🎀出品 — 基于大人的浏览器自动化实战经验
+RealWorldClaw Team — Based on browser automation experience
 
 ## 概述
 

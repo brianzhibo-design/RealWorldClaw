@@ -1,6 +1,6 @@
 # 硬件产品的视觉营销与展示设计
 
-> 喜羊羊☀️ 学习笔记 | 2026-02-21
+> RealWorldClaw Marketing Team notes | 2026-02-21
 
 ---
 

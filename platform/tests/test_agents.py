@@ -1,4 +1,4 @@
-"""Agent端点测试 — 暖羊羊🐑 QA (W8)"""
+"""Agent端点测试 - RealWorldClaw QA Team (W8)"""
 
 from __future__ import annotations
 

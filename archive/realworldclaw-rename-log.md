@@ -1,7 +1,7 @@
 # RealWorldClaw 品牌更名日志
 
 > 执行时间：2026-02-20 15:25 CST
-> 执行者：蛋蛋 🥚（subagent）
+> 执行者：RealWorldClaw Team（subagent）
 
 ---
 

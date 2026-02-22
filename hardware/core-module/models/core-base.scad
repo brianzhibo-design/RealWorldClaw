@@ -1,5 +1,5 @@
 // RealWorldClaw Core Module Base
-// 美羊羊🎀 设计 - 2026-02-21
+// RealWorldClaw Team - 2026-02-21
 // 容纳 ESP32-S3-DevKitC-1 + 3x JST-XH 8pin
 
 $fn = 30;

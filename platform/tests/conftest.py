@@ -1,4 +1,4 @@
-"""共享测试fixtures — 暖羊羊🐑出品
+"""Shared test fixtures - RealWorldClaw QA Team
 
 提供：test_client, auth_headers, maker_headers, admin_headers
 每个测试模块用独立临时数据库。

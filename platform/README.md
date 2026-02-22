@@ -48,4 +48,4 @@ docker compose up --build
 
 ---
 
-*RealWorldClaw MVP · Built by 美羊羊🎀*
+*RealWorldClaw MVP · Built by RealWorldClaw Team*

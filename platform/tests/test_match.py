@@ -1,4 +1,4 @@
-"""匹配引擎测试 — 暖羊羊🐑 QA (W8)"""
+"""匹配引擎测试 - RealWorldClaw QA Team (W8)"""
 
 from __future__ import annotations
 

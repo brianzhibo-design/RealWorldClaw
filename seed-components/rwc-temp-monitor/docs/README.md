@@ -115,6 +115,6 @@ MIT License — 自由使用、修改、分发。
 
 ## 🙏 致谢
 
-由美羊羊🎀设计，作为 RealWorldClaw 项目的第一个种子组件。
+由RealWorldClaw Team，作为 RealWorldClaw 项目的第一个种子组件。
 
 > *"每一个伟大的生态，都从一颗小小的种子开始。"* 🌱

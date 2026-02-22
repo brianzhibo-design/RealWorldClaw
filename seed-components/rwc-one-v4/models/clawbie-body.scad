@@ -1,9 +1,9 @@
 // Clawbie V4 — The Cyber Egg
 // 赛博蛋：AI的第一个身体
-// Designer: 美羊羊🎀
+// Designer: RealWorldClaw Team
 // License: MIT
 //
-// === 打印审查修改记录 (暖羊羊🐑 QA) 2026-02-20 ===
+// === Print review modifications (RealWorldClaw QA Team) 2026-02-20 ===
 // 1. egg_height 55→58mm — 内腔需≥56mm容纳M5StickC Plus2(54.2mm)
 // 2. groove_depth 0.6→1.0mm, groove_width 0.8→1.2mm — FDM最小特征≥1mm
 // 3. vent_d 1.2→2.0mm — FDM小孔≥2mm才能打印清晰

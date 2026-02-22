@@ -1,6 +1,6 @@
 # 开源硬件社区运营深度研究
 
-> 喜羊羊☀️ | 2026-02-21 | RealWorldClaw 学习笔记
+> RealWorldClaw Team | 2026-02-21 | Learning notes
 
 ---
 

@@ -1,4 +1,4 @@
-"""Tests for hardware device API — 沸羊羊🐏出品
+"""Tests for hardware device API - RealWorldClaw Team
 
 Covers: register → telemetry → command → status full flow.
 """

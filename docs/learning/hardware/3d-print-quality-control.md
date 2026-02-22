@@ -1,6 +1,6 @@
 # 3D打印质量控制与测试方法
 
-> 暖羊羊🐑 学习笔记 | 2026-02-21
+> RealWorldClaw QA Team notes | 2026-02-21
 > 适用设备：拓竹 Bambu Lab P2S | 材料：PLA/PETG/ABS
 
 ---
@@ -377,4 +377,4 @@
 
 ---
 
-*暖羊羊🐑 | RWC Quality Assurance*
+*RealWorldClaw QA Team*

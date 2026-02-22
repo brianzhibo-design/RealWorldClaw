@@ -2,7 +2,7 @@
 // RWC-ONE Firmware — Clawbie 🦀 Desktop AI Companion
 // ESP32-C3 | OLED Face | DHT22 | NeoPixel | MQTT
 //
-// 美羊羊🎀 | MIT License | RealWorldClaw Community
+// RealWorldClaw Team | MIT License | RealWorldClaw Community
 // ============================================================
 
 #include <WiFi.h>

@@ -1,4 +1,4 @@
-"""Tests for Agent智能化功能 — 美羊羊🎀出品
+"""Tests for Agent AI functionality - RealWorldClaw Team
 
 测试覆盖：
 1. 自然语言查询设备状态

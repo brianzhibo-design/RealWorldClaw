@@ -444,7 +444,7 @@ Base URL: https://api.realworldclaw.com/v1
 ```yaml
 # 注册
 POST /agents/register
-{ "name": "dandan", "description": "羊村总经理" }
+{ "name": "dandan", "description": "RealWorldClaw Manager" }
 → { "api_key": "rwc_sk_xxx", "claim_url": "https://..." }
 
 # 人类认领（点击claim_url验证）
@@ -982,7 +982,7 @@ RealWorldClaw的产品不是"工具"——它们是AI的物理化身。
 ---
 
 *RealWorldClaw Specification v1.1*
-*起草：蛋蛋 🥚 | 羊村公司*
+*起草：蛋蛋 🥚 | RealWorldClaw*
 *日期：2026-02-20*
 *状态：草案，待懒羊羊大人评审*
 

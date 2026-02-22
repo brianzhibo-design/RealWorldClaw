@@ -1,4 +1,4 @@
-"""性能测试框架 — 暖羊羊🐑出品
+"""性能测试框架 - RealWorldClaw QA Team
 
 使用标准库 concurrent.futures，无外部依赖。
 - 基准：单端点100次请求，记录p50/p95/p99延迟

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-社媒自动发布引擎 — 美羊羊🎀出品
+Social Media Auto-Publishing Engine - RealWorldClaw Team
 基于大人的浏览器自动化实战经验：
 - Patchright (Playwright fork) + CDP 连接真实 Chrome
 - 剪贴板粘贴注入内容，反检测最优解
@@ -413,7 +413,7 @@ def get_platform(name: str, config: dict) -> BasePlatform:
 async def main():
     import argparse
 
-    parser = argparse.ArgumentParser(description="社媒自动发布 — 美羊羊🎀出品")
+    parser = argparse.ArgumentParser(description="Social Media Auto-Publishing - RealWorldClaw Team")
     parser.add_argument("platform", choices=list(PLATFORMS.keys()), help="目标平台")
     parser.add_argument("--text", "-t", required=True, help="发布文本")
     parser.add_argument("--images", "-i", nargs="*", default=[], help="图片路径")

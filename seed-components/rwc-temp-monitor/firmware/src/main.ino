@@ -4,7 +4,7 @@
  * 硬件：ESP32-C3 SuperMini + DHT22 + LED
  * 功能：WiFi连接、MQTT上报、DHT22读取、LED状态指示、OTA更新
  * 
- * 作者：美羊羊🎀 @ 羊村 RealWorldClaw
+ * Author: RealWorldClaw Team
  * 协议：MIT License
  */
 

@@ -1,5 +1,5 @@
 // RWC Energy Core - Triangle (方案A)
-// 等边三角形能量核心 by 美羊羊🎀
+// Triangle Energy Core by RealWorldClaw Team
 $fn = 30;
 
 // Parameters

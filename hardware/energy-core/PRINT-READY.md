@@ -2,7 +2,7 @@
 
 **生成日期**：2026-02-22  
 **设计方案**：Square（方形）分体式 5 件套  
-**设计师**：美羊羊🎀 | 审查：慢羊羊🧓 | 打印工程：小灰灰🐺
+**Design Team**: RealWorldClaw Contributors
 
 ---
 

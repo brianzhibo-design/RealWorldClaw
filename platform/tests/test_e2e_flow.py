@@ -1,6 +1,6 @@
 """端到端集成测试 — 完整订单生命周期
 
-美羊羊🎀出品 | 从注册到评价，一气呵成
+RealWorldClaw Team | Complete flow from registration to review
 Maker Network版本：支持Maker/Builder两种角色
 """
 

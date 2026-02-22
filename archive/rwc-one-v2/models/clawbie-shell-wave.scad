@@ -1,5 +1,5 @@
 // Clawbie V2 Shell — 👋 Wave / 挥手蟹爪
-// 美羊羊🎀 设计 | OpenSCAD
+// RealWorldClaw Team | OpenSCAD
 // 打印建议：PLA, 0.2mm层高, 15%填充, 无支撑, <2小时
 
 /* === 共享参数 === */

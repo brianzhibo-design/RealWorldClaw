@@ -1,5 +1,5 @@
 // RWC Energy Core - Square (方案B)
-// 正方形能量核心 by 美羊羊🎀
+// Square Energy Core by RealWorldClaw Team
 $fn = 30;
 
 // Parameters

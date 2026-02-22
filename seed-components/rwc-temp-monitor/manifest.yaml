@@ -1,6 +1,6 @@
 # ─── RealWorldClaw Component Manifest ───
 # 种子组件包 #1：温湿度监控器（DHT22版）
-# 作者：美羊羊🎀 @ 羊村 RealWorldClaw 团队
+# Author: RealWorldClaw Team 团队
 
 id: rwc-temp-monitor
 version: 1.0.0

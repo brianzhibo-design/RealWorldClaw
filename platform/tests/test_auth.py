@@ -1,4 +1,4 @@
-"""Authentication system tests — 美羊羊🎀 CTO approved."""
+"""Authentication system tests - RealWorldClaw Team"""
 
 from __future__ import annotations
 

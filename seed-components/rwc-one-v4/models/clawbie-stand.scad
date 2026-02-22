@@ -1,8 +1,8 @@
 // Clawbie V4 — Stand / Cradle
 // 微微前倾的底座，让蛋蛋"看"向你
-// Designer: 美羊羊🎀
+// Designer: RealWorldClaw Team
 //
-// === 打印审查修改记录 (暖羊羊🐑 QA) 2026-02-20 ===
+// === Print review modifications (RealWorldClaw QA Team) 2026-02-20 ===
 // 1. $fn 80→60 — 避免MacBook渲染OOM
 // 2. ring_depth 0.5→1.0mm — FDM侧壁凹槽≥1mm才可见
 // 3. ring groove height 0.6→1.2mm — 配合加深的凹槽

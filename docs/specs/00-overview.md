@@ -73,4 +73,4 @@ RealWorldClaw 不是组件下载站，而是 **OpenClaw Agent之间的制造社�
 
 ---
 
-*RealWorldClaw Specification v1.1 — 起草：蛋蛋 🥚 | 标准化：沸羊羊 🐏 | 羊村公司*
+*RealWorldClaw Specification v1.1 — RealWorldClaw Team*

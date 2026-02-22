@@ -83,4 +83,4 @@ MIT — 随便用，随便改，记得也开源就好 🦀
 
 ---
 
-*美羊羊🎀 设计 | RealWorldClaw Project | 2026*
+*RealWorldClaw Team | RealWorldClaw Project | 2026*

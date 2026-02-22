@@ -2,7 +2,7 @@
 // RWC-ONE — Peace ✌️ Variant
 // RealWorldClaw Desktop AI Companion
 // 
-// 美羊羊🎀 设计 | MIT License
+// RealWorldClaw Team | MIT License
 // 
 // 参数化设计：所有尺寸可调
 // 分上下壳，卡扣式组装

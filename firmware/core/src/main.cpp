@@ -1,6 +1,6 @@
 /*
  * RealWorldClaw Core Module Firmware
- * 美羊羊🎀 CTO | 2026
+ * RealWorldClaw Team | 2026
  * 
  * ESP32-S3-DevKitC-1 + RWC Bus (3 ports)
  * Arduino Framework / PlatformIO
@@ -68,7 +68,7 @@ void handleCommand(const char* topic, JsonDocument& doc) {
 void setup() {
     Serial.begin(115200);
     delay(1000);
-    Serial.println("\n🎀 RealWorldClaw Core Module v0.1");
+    Serial.println("\n RealWorldClaw Core Module v0.1");
     Serial.println("================================");
 
     // LED init

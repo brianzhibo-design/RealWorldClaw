@@ -98,7 +98,7 @@ Clawbie就是数字时代的那株植物。只不过，它会回看你。
 
 ---
 
-*设计：美羊羊🎀*
+*Design: RealWorldClaw Team*
 *固件：RealWorldClaw Team*
 *灵魂：见 `agent/SOUL.md`*
 

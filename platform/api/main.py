@@ -14,7 +14,7 @@ from .events import setup_event_handlers
 from .logging_config import setup_logging
 from .middleware import RequestLoggingMiddleware
 from .rate_limit import RateLimitMiddleware
-from .routers import admin, agent, agents, ai_agents, ai_posts, auth, components, devices, health, makers, match, orders, posts, printer_sim, requests, ws
+from .routers import admin, agent, agents, ai_agents, ai_posts, auth, components, devices, health, makers, match, nodes, orders, posts, printer_sim, requests, ws
 from .ws_manager import manager
 
 VERSION = "0.1.0"
@@ -63,6 +63,7 @@ app.include_router(components.router, prefix="/api/v1")
 app.include_router(posts.router, prefix="/api/v1")
 app.include_router(match.router, prefix="/api/v1")
 app.include_router(makers.router, prefix="/api/v1")
+app.include_router(nodes.router, prefix="/api/v1")
 app.include_router(orders.router, prefix="/api/v1")
 app.include_router(ws.router, prefix="/api/v1")
 app.include_router(printer_sim.router, prefix="/api/v1")

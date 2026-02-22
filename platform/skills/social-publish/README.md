@@ -1,6 +1,6 @@
 # 社媒自动发布 Social Publish
 
-美羊羊🎀出品
+RealWorldClaw Team
 
 ## 快速开始
 

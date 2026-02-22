@@ -1,7 +1,7 @@
 // RWC Energy Core - 方案B：晶体核心（Crystal Core）
 // 不规则多面体切面造型，像水晶/钻石
 // 多角度摆放，科幻感强
-// 美羊羊🎀 设计
+// RealWorldClaw Team
 
 $fn = 30;
 

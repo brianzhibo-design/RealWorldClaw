@@ -1,4 +1,4 @@
-"""Maker Network API 测试 — 暖羊羊🐑 QA"""
+"""Maker Network API 测试 - RealWorldClaw QA Team"""
 
 from __future__ import annotations
 

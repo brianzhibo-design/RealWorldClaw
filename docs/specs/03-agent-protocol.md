@@ -17,7 +17,7 @@ Base URL: https://api.realworldclaw.com/v1
 
 ```yaml
 POST /agents/register
-{ "name": "dandan", "description": "羊村总经理" }
+{ "name": "dandan", "description": "RealWorldClaw Manager" }
 → { "api_key": "rwc_sk_xxx", "claim_url": "https://..." }
 
 PATCH /agents/me

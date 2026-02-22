@@ -1,6 +1,6 @@
 # RealWorldClaw Core Module — 技术方案
 
-> 美羊羊🎀 CTO | 2026-02-21
+> RealWorldClaw Team | 2026-02-21
 
 ## 概述
 

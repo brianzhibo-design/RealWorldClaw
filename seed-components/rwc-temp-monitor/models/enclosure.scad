@@ -1,5 +1,5 @@
 // ─── RealWorldClaw 温湿度监控器外壳 ───
-// 作者：美羊羊🎀 @ 羊村 RealWorldClaw
+// Author: RealWorldClaw Team
 // 尺寸：60×40×30mm，壁厚2mm
 // 特性：USB-C开孔、DHT22通风格栅、M3安装孔、卡扣式盖板
 //

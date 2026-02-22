@@ -1,6 +1,6 @@
 # ESP32-S3 开发指南 — RWC项目
 
-> 小灰灰🐺 整理 | 2026-02-21
+> RealWorldClaw Hardware Team | 2026-02-21
 > 面向 RealWorldClaw 项目的 ESP32-S3 硬件开发速查手册
 
 ---
@@ -542,4 +542,4 @@ gen_esp32part.py ptable.bin
 
 ---
 
-*持续更新中 —— 小灰灰🐺 于羊村硬件部*
+*Continuous updates by RealWorldClaw Hardware Team*

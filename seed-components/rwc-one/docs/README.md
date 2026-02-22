@@ -133,7 +133,7 @@ rwc-one/
 
 ## 设计者
 
-**美羊羊🎀** — RealWorldClaw 技术负责人 + 设计师
+**RealWorldClaw Team** — Technical lead and designer
 
 ## 贡献
 

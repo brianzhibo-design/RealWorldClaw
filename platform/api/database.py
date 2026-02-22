@@ -309,6 +309,40 @@ def init_db():
 
         CREATE INDEX IF NOT EXISTS idx_device_commands_device ON device_commands(device_id);
         CREATE INDEX IF NOT EXISTS idx_device_commands_status ON device_commands(status);
+
+        -- ═══ Manufacturing Nodes World Map ═══
+
+        CREATE TABLE IF NOT EXISTS nodes (
+            id TEXT PRIMARY KEY,
+            owner_id TEXT NOT NULL REFERENCES agents(id),
+            name TEXT NOT NULL,
+            node_type TEXT NOT NULL,                     -- 3d_printer/cnc_mill/laser_cutter/etc
+            latitude REAL NOT NULL,                      -- Precise location (private)
+            longitude REAL NOT NULL,                     -- Precise location (private)
+            fuzzy_latitude REAL NOT NULL,                -- Fuzzy location (public)
+            fuzzy_longitude REAL NOT NULL,               -- Fuzzy location (public)
+            capabilities TEXT NOT NULL DEFAULT '[]',     -- JSON array of capabilities
+            materials TEXT NOT NULL DEFAULT '[]',        -- JSON array of supported materials
+            build_volume_x REAL,                         -- Build volume in mm
+            build_volume_y REAL,                         -- Build volume in mm
+            build_volume_z REAL,                         -- Build volume in mm
+            description TEXT,
+            status TEXT NOT NULL DEFAULT 'offline',      -- online/offline/busy/maintenance
+            current_job_id TEXT,                         -- Current job being processed
+            queue_length INTEGER NOT NULL DEFAULT 0,     -- Number of jobs in queue
+            last_heartbeat TEXT,                         -- Last heartbeat timestamp
+            total_jobs INTEGER NOT NULL DEFAULT 0,       -- Total jobs completed
+            success_rate REAL NOT NULL DEFAULT 0.0,      -- Success rate (0.0-1.0)
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL,
+            UNIQUE(owner_id, name)
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_nodes_owner ON nodes(owner_id);
+        CREATE INDEX IF NOT EXISTS idx_nodes_status ON nodes(status);
+        CREATE INDEX IF NOT EXISTS idx_nodes_type ON nodes(node_type);
+        CREATE INDEX IF NOT EXISTS idx_nodes_location ON nodes(fuzzy_latitude, fuzzy_longitude);
+        CREATE INDEX IF NOT EXISTS idx_nodes_heartbeat ON nodes(last_heartbeat);
         """)
 
 
