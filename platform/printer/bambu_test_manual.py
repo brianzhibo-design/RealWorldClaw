@@ -1,3 +1,4 @@
+import pytest
 #!/usr/bin/env python3
 """
 拓竹 Bambu Lab 打印机连接测试脚本
@@ -40,6 +41,7 @@ def pretty(obj) -> str:
     return json.dumps(obj, indent=2, default=str, ensure_ascii=False)
 
 
+@pytest.mark.skip(reason="Requires real printer")
 async def test_discover():
     """测试局域网发现"""
     print("\n🔍 正在搜索局域网内的拓竹打印机...")
@@ -52,6 +54,7 @@ async def test_discover():
         print("\n⚠️ 未发现打印机 (确保打印机已开机且在同一局域网, 并开启了局域网模式)")
 
 
+@pytest.mark.skip(reason="Requires real printer")
 async def test_connection(ip: str, code: str, serial: str = ""):
     """测试连接和状态获取"""
     adapter = BambuLabAdapter(host=ip, access_code=code, serial=serial)

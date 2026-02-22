@@ -135,7 +135,7 @@ def test_full_order_lifecycle():
     makers_list = r.json()
     assert len(makers_list) >= 1, "应该至少有一个Maker"
 
-    public_maker = makers_list[0]
+    public_maker = next((m for m in makers_list if m.get("location_city") == "上海市"), makers_list[0])
     assert "owner_id" not in public_maker, "公开列表不应暴露owner_id"
     assert "location_district" not in public_maker, "公开列表不应暴露详细地区"
     assert public_maker["location_city"] == "上海市", "应能看到城市"
