@@ -1,4 +1,4 @@
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://frank-lease-babies-tremendous.trycloudflare.com/api/v1';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://realworldclaw-api.fly.dev/api/v1';
 
 export { API_BASE };
 
