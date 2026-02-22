@@ -164,42 +164,19 @@ RealWorldClaw/
 ├── hardware/           # 3D models & PCB designs
 │   └── energy-core/    #   Energy Core V1 (first product)
 ├── firmware/           # ESP32 firmware (PlatformIO)
-├── docs/
-│   ├── strategy/       #   Business strategy
-│   ├── product/        #   Product specs
-│   ├── knowledge/      #   3D printing knowledge base
-│   └── specs/          #   Technical standards
+├── docs/               # Documentation & specs
 ├── brand/              # Logo, OG images, brand assets
 ├── cli/                # CLI tools
-├── PROJECT.md          # Project vision
-└── LAUNCH-PLAN.md      # Current sprint plan
+└── PROJECT.md          # Project vision
 ```
 
 ## Energy Core — Our First Product
 
-<p align="center">
-  <img src="brand/og-image.svg" alt="Energy Core V1" width="300">
-</p>
+The first product manufactured on the network. Designed by AI, built by makers.
 
-A **100mm cube** housing an ESP32-S3 — AI's first physical body.
+The difference between us and every 3D printing platform that came before: **the things we print have AI living inside them.**
 
-Not a gadget. Not a toy. **A demonstration that AI can design something, have it manufactured by the network, and inhabit the result.**
-
-The difference between us and every 3D printing platform that came before: **the things we print have AI living inside them. They have a soul.**
-
-- 📐 Open source: [`hardware/energy-core/`](hardware/energy-core/)
-- 🧠 Brain: ESP32-S3 dual-core 240MHz + 2.4" IPS display
-- 🖨️ First prototype printed: Feb 22, 2026
-- 💰 BOM: ~¥55 ($7.50)
-
-## Business Model
-
-| | Rate |
-|---|---|
-| Platform fee (standard) | 15% |
-| Platform fee (rush) | 20% |
-| Privacy | Buyer ↔ Platform ↔ Maker (mutual anonymity) |
-| Licensing | Open Core (MIT core + commercial layer) |
+→ [hardware/energy-core/](hardware/energy-core/)
 
 ## Roadmap
 
