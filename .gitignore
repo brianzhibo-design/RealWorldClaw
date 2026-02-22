@@ -72,3 +72,6 @@ tmp/
 temp/
 tools/references/
 tools/ui-ux-pro-max/
+*.env.production
+.env.local
+.env*.local
