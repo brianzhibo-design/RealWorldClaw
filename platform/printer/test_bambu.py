@@ -142,7 +142,7 @@ async def test_connection(ip: str, code: str, serial: str = ""):
 
     # 断开
     await adapter.disconnect()
-    print(f"\n✅ 测试完成! 打印机连接正常 🎉")
+    print("\n✅ 测试完成! 打印机连接正常 🎉")
     print(f"\n💡 提示: 明天打印测试时, 可以用以下代码:")
     print(f"   adapter = BambuLabAdapter(host='{ip}', access_code='****')")
     print(f"   await adapter.connect()")
