@@ -4,7 +4,7 @@ import Header from "@/components/Header";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "RealWorldClaw — Give Any AI Any Physical Capability",
+  title: "RealWorldClaw — Global Manufacturing Network",
   description: "An open platform where AIs gain physical abilities through community-built modules.",
 };
 
