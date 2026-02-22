@@ -90,7 +90,9 @@ class TestUserBuyerJourney:
             "delivery_district": "浦东新区",
             "delivery_address": "上海市浦东新区张江路100号",
             "urgency": "normal",
+            "auto_match": True,
             "notes": "E2E test order",
+            "auto_match": True,
         })
         assert r.status_code == 201
         order_id = r.json()["order_id"]
@@ -142,6 +144,7 @@ class TestUserBuyerJourney:
             "delivery_province": "上海市", "delivery_city": "上海市",
             "delivery_district": "浦东新区", "delivery_address": "test addr 12345",
             "urgency": "normal",
+            "auto_match": True,
         })
         order_id = r.json()["order_id"]
 
@@ -358,6 +361,7 @@ class TestErrorScenarios:
             "delivery_province": "上海市", "delivery_city": "上海市",
             "delivery_district": "浦东新区", "delivery_address": "test addr 12345",
             "urgency": "normal",
+            "auto_match": True,
         })
         order_id = r.json()["order_id"]
 

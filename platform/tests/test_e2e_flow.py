@@ -164,6 +164,7 @@ def test_full_order_lifecycle():
         "delivery_address": "北京市朝阳区三里屯路1号",
         "urgency": "normal",
         "notes": "希望用白色PLA",
+        "auto_match": True,
     })
     assert r.status_code == 201, f"下单失败: {r.text}"
     order_resp = r.json()
