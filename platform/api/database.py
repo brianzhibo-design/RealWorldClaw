@@ -63,7 +63,7 @@ def init_db():
             display_name TEXT NOT NULL,
             description TEXT NOT NULL,
             version TEXT NOT NULL DEFAULT '0.1.0',
-            author_id TEXT NOT NULL REFERENCES agents(id),
+            author_id TEXT NOT NULL,
             tags TEXT,          -- JSON array
             capabilities TEXT,  -- JSON array
             compute TEXT,
@@ -85,7 +85,7 @@ def init_db():
             type TEXT NOT NULL DEFAULT 'discussion',
             title TEXT NOT NULL,
             content TEXT NOT NULL,
-            author_id TEXT NOT NULL REFERENCES agents(id),
+            author_id TEXT NOT NULL,
             tags TEXT,          -- JSON array
             component_id TEXT,
             hardware_available TEXT,  -- JSON array
@@ -100,8 +100,8 @@ def init_db():
 
         CREATE TABLE IF NOT EXISTS replies (
             id TEXT PRIMARY KEY,
-            post_id TEXT NOT NULL REFERENCES posts(id),
-            author_id TEXT NOT NULL REFERENCES agents(id),
+            post_id TEXT NOT NULL,
+            author_id TEXT NOT NULL,
             content TEXT NOT NULL,
             component_id TEXT,
             created_at TEXT NOT NULL
@@ -109,8 +109,8 @@ def init_db():
 
         CREATE TABLE IF NOT EXISTS votes (
             id TEXT PRIMARY KEY,
-            post_id TEXT NOT NULL REFERENCES posts(id),
-            agent_id TEXT NOT NULL REFERENCES agents(id),
+            post_id TEXT NOT NULL,
+            agent_id TEXT NOT NULL,
             direction TEXT NOT NULL,  -- 'up' or 'down'
             created_at TEXT NOT NULL,
             UNIQUE(post_id, agent_id)
@@ -125,7 +125,7 @@ def init_db():
 
         CREATE TABLE IF NOT EXISTS makers (
             id TEXT PRIMARY KEY,
-            owner_id TEXT NOT NULL REFERENCES agents(id),
+            owner_id TEXT NOT NULL,  -- user or agent ID (unified auth)
             maker_type TEXT NOT NULL DEFAULT 'maker',  -- 'maker' | 'builder'
             printer_model TEXT NOT NULL,
             printer_brand TEXT NOT NULL,
@@ -157,8 +157,8 @@ def init_db():
             id TEXT PRIMARY KEY,
             order_number TEXT UNIQUE NOT NULL,
             order_type TEXT NOT NULL DEFAULT 'print_only',  -- 'print_only' | 'full_build'
-            customer_id TEXT NOT NULL REFERENCES agents(id),
-            maker_id TEXT REFERENCES makers(id),
+            customer_id TEXT NOT NULL,
+            maker_id TEXT,
             component_id TEXT NOT NULL,
             quantity INTEGER NOT NULL DEFAULT 1,
             material TEXT,
@@ -187,7 +187,7 @@ def init_db():
 
         CREATE TABLE IF NOT EXISTS order_messages (
             id TEXT PRIMARY KEY,
-            order_id TEXT NOT NULL REFERENCES orders(id),
+            order_id TEXT NOT NULL,
             sender_id TEXT NOT NULL,
             sender_role TEXT NOT NULL,                   -- customer/maker/platform
             message TEXT NOT NULL,
@@ -198,8 +198,8 @@ def init_db():
 
         CREATE TABLE IF NOT EXISTS order_reviews (
             id TEXT PRIMARY KEY,
-            order_id TEXT NOT NULL REFERENCES orders(id),
-            reviewer_id TEXT NOT NULL REFERENCES agents(id),
+            order_id TEXT NOT NULL,
+            reviewer_id TEXT NOT NULL,
             rating INTEGER NOT NULL,
             comment TEXT,
             created_at TEXT NOT NULL,
@@ -230,7 +230,7 @@ def init_db():
 
         CREATE TABLE IF NOT EXISTS ai_posts (
             id TEXT PRIMARY KEY,
-            agent_id TEXT NOT NULL REFERENCES ai_agents(id),
+            agent_id TEXT NOT NULL,
             content TEXT NOT NULL,
             post_type TEXT NOT NULL DEFAULT 'update',
             tags TEXT NOT NULL DEFAULT '[]',           -- JSON array
@@ -243,7 +243,7 @@ def init_db():
         CREATE INDEX IF NOT EXISTS idx_ai_posts_type ON ai_posts(post_type);
 
         CREATE TABLE IF NOT EXISTS ai_post_likes (
-            post_id TEXT NOT NULL REFERENCES ai_posts(id),
+            post_id TEXT NOT NULL,
             liker TEXT NOT NULL,
             created_at TEXT NOT NULL,
             PRIMARY KEY (post_id, liker)
@@ -251,7 +251,7 @@ def init_db():
 
         CREATE TABLE IF NOT EXISTS capability_requests (
             id TEXT PRIMARY KEY,
-            agent_id TEXT NOT NULL REFERENCES ai_agents(id),
+            agent_id TEXT NOT NULL,
             capability TEXT NOT NULL,
             description TEXT NOT NULL,
             status TEXT NOT NULL DEFAULT 'open',  -- open/claimed/fulfilled
@@ -285,7 +285,7 @@ def init_db():
 
         CREATE TABLE IF NOT EXISTS telemetry (
             id TEXT PRIMARY KEY,
-            device_id TEXT NOT NULL REFERENCES devices(id),
+            device_id TEXT NOT NULL,
             timestamp TEXT NOT NULL,
             sensor_type TEXT NOT NULL,
             value REAL NOT NULL,
@@ -299,7 +299,7 @@ def init_db():
 
         CREATE TABLE IF NOT EXISTS device_commands (
             id TEXT PRIMARY KEY,
-            device_id TEXT NOT NULL REFERENCES devices(id),
+            device_id TEXT NOT NULL,
             command TEXT NOT NULL,
             parameters TEXT NOT NULL DEFAULT '{}',      -- JSON
             requester_agent_id TEXT NOT NULL,
@@ -314,7 +314,7 @@ def init_db():
 
         CREATE TABLE IF NOT EXISTS nodes (
             id TEXT PRIMARY KEY,
-            owner_id TEXT NOT NULL REFERENCES agents(id),
+            owner_id TEXT NOT NULL,  -- user or agent ID (unified auth)
             name TEXT NOT NULL,
             node_type TEXT NOT NULL,                     -- 3d_printer/cnc_mill/laser_cutter/etc
             latitude REAL NOT NULL,                      -- Precise location (private)
