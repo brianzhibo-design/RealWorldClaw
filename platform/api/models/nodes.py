@@ -20,6 +20,7 @@ class NodeType(str, enum.Enum):
 class NodeStatus(str, enum.Enum):
     """Node online status"""
     online = "online"
+    idle = "idle"  # alias for online (node is available)
     offline = "offline"
     busy = "busy"
     maintenance = "maintenance"

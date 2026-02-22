@@ -45,3 +45,43 @@ def require_role(*roles: str) -> Callable:
             raise HTTPException(status_code=403, detail=f"Requires role: {', '.join(roles)}")
         return user
     return _check
+
+
+def get_authenticated_identity(authorization: str = Header(...)) -> dict:
+    """Unified auth: accepts JWT (user) or agent API key.
+
+    Returns a dict with at least:
+      - "identity_type": "user" | "agent"
+      - "identity_id": user or agent ID
+      - plus the full row from the relevant table
+    """
+    if not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Invalid authorization header format")
+    token = authorization.removeprefix("Bearer ")
+
+    # Try JWT first
+    try:
+        payload = decode_token(token)
+        if payload.get("type") == "access":
+            user_id = payload.get("sub")
+            if user_id:
+                with get_db() as db:
+                    row = db.execute("SELECT * FROM users WHERE id = ?", (user_id,)).fetchone()
+                if row and row["is_active"]:
+                    result = dict(row)
+                    result["identity_type"] = "user"
+                    result["identity_id"] = row["id"]
+                    return result
+    except JWTError:
+        pass
+
+    # Fall back to agent API key
+    with get_db() as db:
+        row = db.execute("SELECT * FROM agents WHERE api_key = ?", (token,)).fetchone()
+    if row:
+        result = dict(row)
+        result["identity_type"] = "agent"
+        result["identity_id"] = row["id"]
+        return result
+
+    raise HTTPException(status_code=401, detail="Invalid credentials")

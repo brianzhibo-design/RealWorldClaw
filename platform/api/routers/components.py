@@ -9,7 +9,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 
 from ..database import get_db
 from ..models.schemas import ComponentCreate, ComponentResponse
-from .agents import get_current_agent
+from ..deps import get_authenticated_identity
 
 router = APIRouter(prefix="/components", tags=["components"])
 
@@ -104,10 +104,10 @@ def get_component(component_id: str):
 @router.post("", response_model=ComponentResponse, status_code=201)
 def create_component(
     req: ComponentCreate,
-    agent: dict = Depends(get_current_agent),
+    identity: dict = Depends(get_authenticated_identity),
 ):
     """Create a new component. Requires API key auth."""
-    if agent["status"] != "active":
+    if identity.get("status") not in (None, "active"):
         raise HTTPException(403, "Agent must be active to upload components")
 
     now = datetime.now(timezone.utc).isoformat()
@@ -130,7 +130,7 @@ def create_component(
                estimated_print_time, estimated_filament_g, status,
                downloads, rating, review_count, created_at, updated_at)
                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'unverified', 0, 0.0, 0, ?, ?)""",
-            (req.id, display_name, description, req.version, agent["id"],
+            (req.id, display_name, description, req.version, identity["identity_id"],
              json.dumps(req.tags), json.dumps(req.capabilities),
              req.compute, req.material, req.estimated_cost_cny,
              req.estimated_print_time, req.estimated_filament_g, now, now),

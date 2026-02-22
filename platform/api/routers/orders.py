@@ -28,7 +28,7 @@ from ..models.schemas import (
     OrderStatusUpdate,
 )
 from ..services.matching import match_maker_for_order
-from .agents import get_current_agent
+from ..deps import get_authenticated_identity
 
 router = APIRouter(prefix="/orders", tags=["orders"])
 
@@ -112,7 +112,7 @@ def _get_user_role_for_order(db, order: dict, agent_id: str) -> str | None:
 # ─── Routes ──────────────────────────────────────────────
 
 @router.post("", status_code=201)
-def create_order(body: OrderCreateRequest, agent: dict = Depends(get_current_agent)):
+def create_order(body: OrderCreateRequest, identity: dict = Depends(get_authenticated_identity)):
     now = datetime.now(timezone.utc).isoformat()
     order_id = str(uuid.uuid4())
     order_number = _generate_order_number()
@@ -149,7 +149,7 @@ def create_order(body: OrderCreateRequest, agent: dict = Depends(get_current_age
                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
             (
                 order_id, order_number, body.order_type.value if body.order_type else "print_only",
-                agent["id"], maker_id,
+                identity["identity_id"], maker_id,
                 body.component_id, body.quantity, body.material_preference,
                 body.delivery_province, body.delivery_city, body.delivery_district,
                 body.delivery_address,  # 仅存数据库，不给Maker看
@@ -172,9 +172,9 @@ def create_order(body: OrderCreateRequest, agent: dict = Depends(get_current_age
 
 
 @router.get("")
-def list_orders(agent: dict = Depends(get_current_agent), page: int = Query(1, ge=1), per_page: int = Query(20, ge=1, le=100)):
+def list_orders(identity: dict = Depends(get_authenticated_identity), page: int = Query(1, ge=1), per_page: int = Query(20, ge=1, le=100)):
     offset = (page - 1) * per_page
-    agent_id = agent["id"]
+    agent_id = identity["identity_id"]
 
     with get_db() as db:
         customer_orders = db.execute(
@@ -202,13 +202,13 @@ def list_orders(agent: dict = Depends(get_current_agent), page: int = Query(1, g
 
 
 @router.get("/{order_id}")
-def get_order(order_id: str, agent: dict = Depends(get_current_agent)):
+def get_order(order_id: str, identity: dict = Depends(get_authenticated_identity)):
     with get_db() as db:
         row = db.execute("SELECT * FROM orders WHERE id = ?", (order_id,)).fetchone()
         if not row:
             raise HTTPException(status_code=404, detail="Order not found")
         order = dict(row)
-        role = _get_user_role_for_order(db, order, agent["id"])
+        role = _get_user_role_for_order(db, order, identity["identity_id"])
 
     if role == "customer":
         return {"role": "customer", "order": _customer_view(order)}
@@ -218,7 +218,7 @@ def get_order(order_id: str, agent: dict = Depends(get_current_agent)):
 
 
 @router.put("/{order_id}/accept")
-def accept_order(order_id: str, body: OrderAcceptRequest, agent: dict = Depends(get_current_agent)):
+def accept_order(order_id: str, body: OrderAcceptRequest, identity: dict = Depends(get_authenticated_identity)):
     now = datetime.now(timezone.utc).isoformat()
 
     with get_db() as db:
@@ -233,7 +233,7 @@ def accept_order(order_id: str, body: OrderAcceptRequest, agent: dict = Depends(
             raise HTTPException(status_code=400, detail="No maker assigned")
 
         maker = db.execute("SELECT owner_id FROM makers WHERE id = ?", (order["maker_id"],)).fetchone()
-        if not maker or maker["owner_id"] != agent["id"]:
+        if not maker or maker["owner_id"] != identity["identity_id"]:
             raise HTTPException(status_code=403, detail="Not assigned to your maker profile")
 
         est = (datetime.now(timezone.utc) + timedelta(hours=body.estimated_hours)).isoformat()
@@ -246,7 +246,7 @@ def accept_order(order_id: str, body: OrderAcceptRequest, agent: dict = Depends(
 
 
 @router.put("/{order_id}/status")
-def update_order_status(order_id: str, body: OrderStatusUpdate, agent: dict = Depends(get_current_agent)):
+def update_order_status(order_id: str, body: OrderStatusUpdate, identity: dict = Depends(get_authenticated_identity)):
     now = datetime.now(timezone.utc).isoformat()
 
     valid_transitions = {
@@ -263,7 +263,7 @@ def update_order_status(order_id: str, body: OrderStatusUpdate, agent: dict = De
             raise HTTPException(status_code=404, detail="Order not found")
         order = dict(row)
 
-        role = _get_user_role_for_order(db, order, agent["id"])
+        role = _get_user_role_for_order(db, order, identity["identity_id"])
         if role != "maker":
             raise HTTPException(status_code=403, detail="Only maker can update status")
 
@@ -277,7 +277,7 @@ def update_order_status(order_id: str, body: OrderStatusUpdate, agent: dict = De
 
 
 @router.put("/{order_id}/shipping")
-def update_shipping(order_id: str, body: OrderShippingUpdate, agent: dict = Depends(get_current_agent)):
+def update_shipping(order_id: str, body: OrderShippingUpdate, identity: dict = Depends(get_authenticated_identity)):
     now = datetime.now(timezone.utc).isoformat()
 
     with get_db() as db:
@@ -286,7 +286,7 @@ def update_shipping(order_id: str, body: OrderShippingUpdate, agent: dict = Depe
             raise HTTPException(status_code=404, detail="Order not found")
         order = dict(row)
 
-        role = _get_user_role_for_order(db, order, agent["id"])
+        role = _get_user_role_for_order(db, order, identity["identity_id"])
         if role != "maker":
             raise HTTPException(status_code=403, detail="Only maker can add shipping info")
 
@@ -299,7 +299,7 @@ def update_shipping(order_id: str, body: OrderShippingUpdate, agent: dict = Depe
 
 
 @router.post("/{order_id}/confirm")
-def confirm_delivery(order_id: str, agent: dict = Depends(get_current_agent)):
+def confirm_delivery(order_id: str, identity: dict = Depends(get_authenticated_identity)):
     now = datetime.now(timezone.utc).isoformat()
 
     with get_db() as db:
@@ -308,7 +308,7 @@ def confirm_delivery(order_id: str, agent: dict = Depends(get_current_agent)):
             raise HTTPException(status_code=404, detail="Order not found")
         order = dict(row)
 
-        if order["customer_id"] != agent["id"]:
+        if order["customer_id"] != identity["identity_id"]:
             raise HTTPException(status_code=403, detail="Only customer can confirm delivery")
         if order["status"] not in ("delivered", "shipping"):
             raise HTTPException(status_code=400, detail="Order not in deliverable state")
@@ -324,7 +324,7 @@ def confirm_delivery(order_id: str, agent: dict = Depends(get_current_agent)):
 
 
 @router.post("/{order_id}/review", status_code=201)
-def review_order(order_id: str, body: OrderReviewRequest, agent: dict = Depends(get_current_agent)):
+def review_order(order_id: str, body: OrderReviewRequest, identity: dict = Depends(get_authenticated_identity)):
     now = datetime.now(timezone.utc).isoformat()
 
     with get_db() as db:
@@ -333,14 +333,14 @@ def review_order(order_id: str, body: OrderReviewRequest, agent: dict = Depends(
             raise HTTPException(status_code=404, detail="Order not found")
         order = dict(row)
 
-        if order["customer_id"] != agent["id"]:
+        if order["customer_id"] != identity["identity_id"]:
             raise HTTPException(status_code=403, detail="Only customer can review")
         if order["status"] != "completed":
             raise HTTPException(status_code=400, detail="Order not completed yet")
 
         existing = db.execute(
             "SELECT id FROM order_reviews WHERE order_id = ? AND reviewer_id = ?",
-            (order_id, agent["id"]),
+            (order_id, identity["identity_id"]),
         ).fetchone()
         if existing:
             raise HTTPException(status_code=400, detail="Already reviewed")
@@ -348,7 +348,7 @@ def review_order(order_id: str, body: OrderReviewRequest, agent: dict = Depends(
         review_id = str(uuid.uuid4())
         db.execute(
             "INSERT INTO order_reviews (id, order_id, reviewer_id, rating, comment, created_at) VALUES (?,?,?,?,?,?)",
-            (review_id, order_id, agent["id"], body.rating, body.comment, now),
+            (review_id, order_id, identity["identity_id"], body.rating, body.comment, now),
         )
 
         # 更新Maker平均评分
@@ -364,7 +364,7 @@ def review_order(order_id: str, body: OrderReviewRequest, agent: dict = Depends(
 
 
 @router.post("/{order_id}/messages", status_code=201)
-def send_message(order_id: str, body: OrderMessageCreate, agent: dict = Depends(get_current_agent)):
+def send_message(order_id: str, body: OrderMessageCreate, identity: dict = Depends(get_authenticated_identity)):
     now = datetime.now(timezone.utc).isoformat()
 
     with get_db() as db:
@@ -373,14 +373,14 @@ def send_message(order_id: str, body: OrderMessageCreate, agent: dict = Depends(
             raise HTTPException(status_code=404, detail="Order not found")
         order = dict(row)
 
-        role = _get_user_role_for_order(db, order, agent["id"])
+        role = _get_user_role_for_order(db, order, identity["identity_id"])
         if not role:
             raise HTTPException(status_code=403, detail="Not your order")
 
         msg_id = str(uuid.uuid4())
         db.execute(
             "INSERT INTO order_messages (id, order_id, sender_id, sender_role, message, created_at) VALUES (?,?,?,?,?,?)",
-            (msg_id, order_id, agent["id"], role, body.message, now),
+            (msg_id, order_id, identity["identity_id"], role, body.message, now),
         )
 
     return {
@@ -391,14 +391,14 @@ def send_message(order_id: str, body: OrderMessageCreate, agent: dict = Depends(
 
 
 @router.get("/{order_id}/messages")
-def get_messages(order_id: str, agent: dict = Depends(get_current_agent)):
+def get_messages(order_id: str, identity: dict = Depends(get_authenticated_identity)):
     with get_db() as db:
         row = db.execute("SELECT * FROM orders WHERE id = ?", (order_id,)).fetchone()
         if not row:
             raise HTTPException(status_code=404, detail="Order not found")
         order = dict(row)
 
-        role = _get_user_role_for_order(db, order, agent["id"])
+        role = _get_user_role_for_order(db, order, identity["identity_id"])
         if not role:
             raise HTTPException(status_code=403, detail="Not your order")
 

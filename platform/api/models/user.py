@@ -31,8 +31,17 @@ class UserRegisterRequest(BaseModel):
 
 
 class UserLoginRequest(BaseModel):
-    email: str
+    email: Optional[str] = None
+    username: Optional[str] = None
     password: str
+
+    @field_validator("email")
+    @classmethod
+    def validate_login_id(cls, v, info):
+        """At least one of email or username must be provided."""
+        if v is None and info.data.get("username") is None:
+            raise ValueError("Either email or username is required")
+        return v
 
 
 class UserUpdateRequest(BaseModel):

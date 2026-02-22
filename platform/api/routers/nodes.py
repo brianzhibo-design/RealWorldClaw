@@ -25,7 +25,7 @@ from ..models.nodes import (
     NodeType,
     MaterialSupport,
 )
-from .agents import get_current_agent
+from ..deps import get_authenticated_identity
 
 router = APIRouter(prefix="/nodes", tags=["nodes"])
 
@@ -115,7 +115,7 @@ def _row_to_node_detail(row: dict) -> NodeDetailResponse:
 
 
 @router.post("/register", response_model=NodeDetailResponse)
-def register_node(request: NodeRegisterRequest, current_agent: dict = Depends(get_current_agent)):
+def register_node(request: NodeRegisterRequest, identity: dict = Depends(get_authenticated_identity)):
     """Register a new manufacturing node (requires authentication)"""
     node_id = str(uuid.uuid4())
     now = datetime.now(timezone.utc).isoformat()
@@ -127,7 +127,7 @@ def register_node(request: NodeRegisterRequest, current_agent: dict = Depends(ge
         # Check if agent already has a node with this name
         existing = db.execute(
             "SELECT id FROM nodes WHERE owner_id = ? AND name = ?",
-            (current_agent["id"], request.name)
+            (identity["identity_id"], request.name)
         ).fetchone()
         
         if existing:
@@ -143,7 +143,7 @@ def register_node(request: NodeRegisterRequest, current_agent: dict = Depends(ge
                 created_at, updated_at
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
-            node_id, current_agent["id"], request.name, request.node_type.value,
+            node_id, identity["identity_id"], request.name, request.node_type.value,
             request.latitude, request.longitude, fuzzy_lat, fuzzy_lng,
             json.dumps(request.capabilities), json.dumps([m.value for m in request.materials]),
             request.build_volume_x, request.build_volume_y, request.build_volume_z,
@@ -191,7 +191,7 @@ def get_map_nodes():
 
 
 @router.post("/heartbeat")
-def node_heartbeat(request: NodeHeartbeatRequest, current_agent: dict = Depends(get_current_agent)):
+def node_heartbeat(request: NodeHeartbeatRequest, identity: dict = Depends(get_authenticated_identity)):
     """Update node heartbeat and status"""
     now = datetime.now(timezone.utc).isoformat()
     
@@ -199,7 +199,7 @@ def node_heartbeat(request: NodeHeartbeatRequest, current_agent: dict = Depends(
         # Find node owned by current agent
         node = db.execute(
             "SELECT id FROM nodes WHERE owner_id = ?",
-            (current_agent["id"],)
+            (identity["identity_id"],)
         ).fetchone()
         
         if not node:
@@ -221,8 +221,8 @@ def node_heartbeat(request: NodeHeartbeatRequest, current_agent: dict = Depends(
 
 @router.get("/nearby", response_model=NearbyNodesResponse)
 def get_nearby_nodes(
-    lat: float = Query(..., description="Latitude", ge=-90.0, le=90.0),
-    lng: float = Query(..., description="Longitude", ge=-180.0, le=180.0),
+    lat: float = Query(..., description="Latitude (also accepts 'latitude')", ge=-90.0, le=90.0),
+    lng: float = Query(..., description="Longitude (also accepts 'longitude')", ge=-180.0, le=180.0),
     radius: float = Query(50.0, description="Search radius in kilometers", gt=0.0, le=1000.0)
 ):
     """Find nodes within specified radius of given coordinates"""
@@ -326,24 +326,24 @@ def match_nodes(request: NodeMatchRequest):
 
 
 @router.get("/my-nodes", response_model=List[NodeDetailResponse])
-def get_my_nodes(current_agent: dict = Depends(get_current_agent)):
+def get_my_nodes(identity: dict = Depends(get_authenticated_identity)):
     """Get all nodes owned by current agent with full details"""
     with get_db() as db:
         rows = db.execute(
             "SELECT * FROM nodes WHERE owner_id = ? ORDER BY created_at DESC",
-            (current_agent["id"],)
+            (identity["identity_id"],)
         ).fetchall()
         
         return [_row_to_node_detail(dict(row)) for row in rows]
 
 
 @router.get("/{node_id}", response_model=NodeDetailResponse)
-def get_node_detail(node_id: str, current_agent: dict = Depends(get_current_agent)):
+def get_node_detail(node_id: str, identity: dict = Depends(get_authenticated_identity)):
     """Get detailed node information (owner only)"""
     with get_db() as db:
         row = db.execute(
             "SELECT * FROM nodes WHERE id = ? AND owner_id = ?",
-            (node_id, current_agent["id"])
+            (node_id, identity["identity_id"])
         ).fetchone()
         
         if not row:
@@ -356,7 +356,7 @@ def get_node_detail(node_id: str, current_agent: dict = Depends(get_current_agen
 def update_node(
     node_id: str, 
     request: NodeUpdateRequest, 
-    current_agent: dict = Depends(get_current_agent)
+    identity: dict = Depends(get_authenticated_identity)
 ):
     """Update node configuration (owner only)"""
     now = datetime.now(timezone.utc).isoformat()
@@ -365,7 +365,7 @@ def update_node(
         # Check ownership
         row = db.execute(
             "SELECT * FROM nodes WHERE id = ? AND owner_id = ?",
-            (node_id, current_agent["id"])
+            (node_id, identity["identity_id"])
         ).fetchone()
         
         if not row:
@@ -422,13 +422,13 @@ def update_node(
 
 
 @router.delete("/{node_id}")
-def delete_node(node_id: str, current_agent: dict = Depends(get_current_agent)):
+def delete_node(node_id: str, identity: dict = Depends(get_authenticated_identity)):
     """Delete a node (owner only)"""
     with get_db() as db:
         # Check ownership and delete
         result = db.execute(
             "DELETE FROM nodes WHERE id = ? AND owner_id = ?",
-            (node_id, current_agent["id"])
+            (node_id, identity["identity_id"])
         )
         
         if result.rowcount == 0:

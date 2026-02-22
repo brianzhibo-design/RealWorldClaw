@@ -12,7 +12,7 @@ from ..database import get_db
 from ..models.schemas import (
     PostCreate, PostResponse, ReplyCreate, ReplyResponse, VoteRequest,
 )
-from .agents import get_current_agent
+from ..deps import get_authenticated_identity
 
 router = APIRouter(prefix="/posts", tags=["posts"])
 
@@ -72,8 +72,8 @@ def list_posts(
 # ─── POST /posts ─────────────────────────────────────────
 
 @router.post("", response_model=PostResponse, status_code=201)
-def create_post(req: PostCreate, agent: dict = Depends(get_current_agent)):
-    if agent["status"] != "active":
+def create_post(req: PostCreate, identity: dict = Depends(get_authenticated_identity)):
+    if identity.get("status") not in (None, "active"):
         raise HTTPException(403, "Agent must be active to post")
 
     now = datetime.now(timezone.utc).isoformat()
@@ -85,7 +85,7 @@ def create_post(req: PostCreate, agent: dict = Depends(get_current_agent)):
                hardware_available, budget_cny, status, upvotes, downvotes, reply_count,
                created_at, updated_at)
                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'open', 0, 0, 0, ?, ?)""",
-            (post_id, req.type.value, req.title, req.content, agent["id"],
+            (post_id, req.type.value, req.title, req.content, identity["identity_id"],
              json.dumps(req.tags), req.component_id,
              json.dumps(req.hardware_available) if req.hardware_available else None,
              req.budget_cny, now, now),
@@ -109,7 +109,7 @@ def get_post(post_id: str):
 # ─── POST /posts/{post_id}/replies ──────────────────────
 
 @router.post("/{post_id}/replies", response_model=ReplyResponse, status_code=201)
-def create_reply(post_id: str, req: ReplyCreate, agent: dict = Depends(get_current_agent)):
+def create_reply(post_id: str, req: ReplyCreate, identity: dict = Depends(get_authenticated_identity)):
     now = datetime.now(timezone.utc).isoformat()
     reply_id = f"reply_{secrets.token_hex(6)}"
 
@@ -120,13 +120,13 @@ def create_reply(post_id: str, req: ReplyCreate, agent: dict = Depends(get_curre
 
         db.execute(
             "INSERT INTO replies (id, post_id, author_id, content, component_id, created_at) VALUES (?, ?, ?, ?, ?, ?)",
-            (reply_id, post_id, agent["id"], req.content, req.component_id, now),
+            (reply_id, post_id, identity["identity_id"], req.content, req.component_id, now),
         )
         db.execute("UPDATE posts SET reply_count = reply_count + 1, updated_at = ? WHERE id = ?", (now, post_id))
 
     return ReplyResponse(
-        id=reply_id, post_id=post_id, author_id=agent["id"],
-        author_name=agent["name"], content=req.content,
+        id=reply_id, post_id=post_id, author_id=identity["identity_id"],
+        author_name=identity.get("name", identity.get("username", "anonymous")), content=req.content,
         created_at=datetime.fromisoformat(now),
     )
 
@@ -134,7 +134,7 @@ def create_reply(post_id: str, req: ReplyCreate, agent: dict = Depends(get_curre
 # ─── POST /posts/{post_id}/vote ─────────────────────────
 
 @router.post("/{post_id}/vote")
-def vote_post(post_id: str, req: VoteRequest, agent: dict = Depends(get_current_agent)):
+def vote_post(post_id: str, req: VoteRequest, identity: dict = Depends(get_authenticated_identity)):
     now = datetime.now(timezone.utc).isoformat()
     vote_id = f"vote_{secrets.token_hex(6)}"
 
@@ -144,7 +144,7 @@ def vote_post(post_id: str, req: VoteRequest, agent: dict = Depends(get_current_
             raise HTTPException(404, "Post not found")
 
         existing = db.execute(
-            "SELECT * FROM votes WHERE post_id = ? AND agent_id = ?", (post_id, agent["id"])
+            "SELECT * FROM votes WHERE post_id = ? AND agent_id = ?", (post_id, identity["identity_id"])
         ).fetchone()
 
         if existing:
@@ -161,7 +161,7 @@ def vote_post(post_id: str, req: VoteRequest, agent: dict = Depends(get_current_
         else:
             db.execute(
                 "INSERT INTO votes (id, post_id, agent_id, direction, created_at) VALUES (?, ?, ?, ?, ?)",
-                (vote_id, post_id, agent["id"], req.direction.value, now),
+                (vote_id, post_id, identity["identity_id"], req.direction.value, now),
             )
             col = "upvotes" if req.direction.value == "up" else "downvotes"
             db.execute(f"UPDATE posts SET {col} = {col} + 1 WHERE id = ?", (post_id,))

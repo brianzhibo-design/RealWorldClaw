@@ -21,7 +21,7 @@ from ..models.schemas import (
     MakerStatusUpdate,
     MakerUpdateRequest,
 )
-from .agents import get_current_agent
+from ..deps import get_authenticated_identity
 
 router = APIRouter(prefix="/makers", tags=["makers"])
 
@@ -63,7 +63,7 @@ def _row_to_owner(row: dict) -> dict:
 # ─── Routes ──────────────────────────────────────────────
 
 @router.post("/register", status_code=201)
-def register_maker(body: MakerRegisterRequest, agent: dict = Depends(get_current_agent)):
+def register_maker(body: MakerRegisterRequest, identity: dict = Depends(get_authenticated_identity)):
     now = datetime.now(timezone.utc).isoformat()
     maker_id = str(uuid.uuid4())
 
@@ -85,7 +85,7 @@ def register_maker(body: MakerRegisterRequest, agent: dict = Depends(get_current
                 availability, pricing_per_hour_cny, description, created_at, updated_at)
                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
             (
-                maker_id, agent["id"], body.maker_type,
+                maker_id, identity["identity_id"], body.maker_type,
                 body.printer_model, body.printer_brand,
                 body.build_volume_x, body.build_volume_y, body.build_volume_z,
                 json.dumps(body.materials, ensure_ascii=False),
@@ -152,14 +152,14 @@ def get_maker(maker_id: str):
 
 
 @router.put("/{maker_id}")
-def update_maker(maker_id: str, body: MakerUpdateRequest, agent: dict = Depends(get_current_agent)):
+def update_maker(maker_id: str, body: MakerUpdateRequest, identity: dict = Depends(get_authenticated_identity)):
     now = datetime.now(timezone.utc).isoformat()
 
     with get_db() as db:
         row = db.execute("SELECT * FROM makers WHERE id = ?", (maker_id,)).fetchone()
         if not row:
             raise HTTPException(status_code=404, detail="Maker not found")
-        if row["owner_id"] != agent["id"]:
+        if row["owner_id"] != identity["identity_id"]:
             raise HTTPException(status_code=403, detail="Not your maker profile")
 
         updates: dict = {}
@@ -188,14 +188,14 @@ def update_maker(maker_id: str, body: MakerUpdateRequest, agent: dict = Depends(
 
 
 @router.put("/{maker_id}/status")
-def update_maker_status(maker_id: str, body: MakerStatusUpdate, agent: dict = Depends(get_current_agent)):
+def update_maker_status(maker_id: str, body: MakerStatusUpdate, identity: dict = Depends(get_authenticated_identity)):
     now = datetime.now(timezone.utc).isoformat()
 
     with get_db() as db:
         row = db.execute("SELECT owner_id FROM makers WHERE id = ?", (maker_id,)).fetchone()
         if not row:
             raise HTTPException(status_code=404, detail="Maker not found")
-        if row["owner_id"] != agent["id"]:
+        if row["owner_id"] != identity["identity_id"]:
             raise HTTPException(status_code=403, detail="Not your maker profile")
 
         db.execute(

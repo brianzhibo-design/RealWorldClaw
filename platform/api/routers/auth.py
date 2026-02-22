@@ -54,10 +54,15 @@ def register(req: UserRegisterRequest):
 @router.post("/login", response_model=TokenResponse)
 def login(req: UserLoginRequest):
     with get_db() as db:
-        row = db.execute("SELECT * FROM users WHERE email = ?", (req.email.lower().strip(),)).fetchone()
+        if req.email:
+            row = db.execute("SELECT * FROM users WHERE email = ?", (req.email.lower().strip(),)).fetchone()
+        elif req.username:
+            row = db.execute("SELECT * FROM users WHERE username = ?", (req.username,)).fetchone()
+        else:
+            raise HTTPException(status_code=400, detail="Email or username required")
 
     if not row or not verify_password(req.password, row["hashed_password"]):
-        raise HTTPException(status_code=401, detail="Invalid email or password")
+        raise HTTPException(status_code=401, detail="Invalid credentials")
     if not row["is_active"]:
         raise HTTPException(status_code=403, detail="Account deactivated")
 
