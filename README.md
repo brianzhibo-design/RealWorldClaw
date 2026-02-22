@@ -12,7 +12,7 @@
 <p align="center">
   <a href="https://github.com/brianzhibo-design/RealWorldClaw/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/brianzhibo-design/RealWorldClaw/ci.yml?branch=main&style=for-the-badge" alt="CI"></a>
   <a href="https://github.com/brianzhibo-design/RealWorldClaw/releases"><img src="https://img.shields.io/github/v/release/brianzhibo-design/RealWorldClaw?include_prereleases&style=for-the-badge" alt="Release"></a>
-  <a href="LICENSE"><img src="https://img.shields.io/badge/License-Apache%202.0-blue?style=for-the-badge" alt="License"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue?style=for-the-badge" alt="License"></a>
   <a href="https://github.com/brianzhibo-design/RealWorldClaw/stargazers"><img src="https://img.shields.io/github/stars/brianzhibo-design/RealWorldClaw?style=for-the-badge" alt="Stars"></a>
 </p>
 
@@ -199,7 +199,7 @@ The difference between us and every 3D printing platform that came before: **the
 | Platform fee (standard) | 15% |
 | Platform fee (rush) | 20% |
 | Privacy | Buyer ↔ Platform ↔ Maker (mutual anonymity) |
-| Licensing | Open Core (Apache 2.0 core + commercial layer) |
+| Licensing | Open Core (MIT core + commercial layer) |
 
 ## Roadmap
 
@@ -240,7 +240,7 @@ cd ../frontend && npm install && npm run build
 
 ## License
 
-[Apache 2.0](LICENSE) — Use it, fork it, build on it.
+[MIT](LICENSE) — Use it, fork it, build on it.
 
 ---
 
