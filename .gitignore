@@ -75,3 +75,5 @@ tools/ui-ux-pro-max/
 *.env.production
 .env.local
 .env*.local
+*.gcode
+*.3mf
