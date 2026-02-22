@@ -69,6 +69,31 @@ export interface Maker {
   total_orders: number;
 }
 
+export interface Order {
+  id: string;
+  title: string;
+  description?: string;
+  material: string;
+  color: string;
+  quantity: number;
+  fillRate: number;
+  status: 'pending' | 'accepted' | 'printing' | 'shipped' | 'delivered';
+  createdAt: string;
+  updatedAt: string;
+  fileName: string;
+  fileSize: string;
+  estimatedPrice: string;
+  notes?: string;
+  location?: string;
+  maker?: {
+    id: string;
+    name: string;
+    rating: number;
+    completedOrders: number;
+    avatar: string;
+  };
+}
+
 // Convert backend post format to frontend format
 function transformPost(raw: Record<string, unknown>): ApiPost {
   const created = raw.created_at as string;

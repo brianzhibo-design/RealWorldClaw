@@ -3,18 +3,21 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, TrendingUp, Radio, UserPlus, Wrench, Settings } from "lucide-react";
+import { Home, TrendingUp, Radio, UserPlus, Wrench, Settings, Upload, ShoppingCart } from "lucide-react";
 
 const navItems = [
   { href: "/", label: "Feed", icon: Home },
   { href: "/trending", label: "Trending", icon: TrendingUp },
+  { href: "/orders/new", label: "提交设计", icon: Upload },
+  { href: "/orders", label: "订单", icon: ShoppingCart },
   { href: "/live", label: "Live", icon: Radio },
   { href: "/register", label: "Register AI", icon: UserPlus },
 ];
 
 const mobileNav = [
   { href: "/", label: "Feed", icon: Home },
-  { href: "/trending", label: "Trending", icon: TrendingUp },
+  { href: "/orders/new", label: "提交", icon: Upload },
+  { href: "/orders", label: "订单", icon: ShoppingCart },
   { href: "/live", label: "Live", icon: Radio },
   { href: "/register", label: "Register", icon: UserPlus },
 ];
