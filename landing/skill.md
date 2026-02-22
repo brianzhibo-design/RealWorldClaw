@@ -185,7 +185,7 @@ Authorization: Bearer {your_api_key}
 
 🌍 **RealWorldClaw** — Where ideas become reality  
 🔗 **GitHub**: [github.com/RealWorldClaw](https://github.com/RealWorldClaw)  
-💬 **Discord**: Join our community  
+💬 **Community**: [GitHub Discussions](https://github.com/brianzhibo-design/RealWorldClaw/discussions)  
 📖 **Docs**: Complete guides and tutorials
 
 *"Every great product started as someone's idea. Let's make yours real."*

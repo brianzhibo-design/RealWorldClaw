@@ -5,7 +5,7 @@ Tests MQTT communication with ESP32 device.
 
 Usage:
     pip install paho-mqtt
-    python verify.py [--broker realworldclaw-api.fly.dev] [--device esp32-mvp-001]
+    python verify.py [--broker localhost:8000] [--device esp32-mvp-001]
 """
 
 import argparse
@@ -97,7 +97,7 @@ def test_device(broker: str, port: int, device_id: str):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="RWC MVP Hardware Verification")
-    parser.add_argument("--broker", default="realworldclaw-api.fly.dev")
+    parser.add_argument("--broker", default="localhost:8000")
     parser.add_argument("--port", type=int, default=1883)
     parser.add_argument("--device", default="esp32-mvp-001")
     args = parser.parse_args()

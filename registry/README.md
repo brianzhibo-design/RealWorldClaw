@@ -32,7 +32,7 @@ module:
   version: "1.0.0"
   type: "sensor"
   author: "RealWorldClaw"
-  license: "Apache-2.0"
+  license: "MIT"
   
 capabilities:
   - id: "temperature"

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """RealWorldClaw E2E Tests — Full User & Device Flows.
 
-Tests against the live API: https://realworldclaw-api.fly.dev/api/v1
+Tests against the live API: https://localhost:8000/api/v1
 Run: python -m pytest tests/e2e/test_full_flow.py -v
 """
 
@@ -11,7 +11,7 @@ import uuid
 
 import requests
 
-BASE = os.getenv("RWC_API_BASE", "https://realworldclaw-api.fly.dev/api/v1")
+BASE = os.getenv("RWC_API_BASE", "https://localhost:8000/api/v1")
 TIMEOUT = 15
 
 

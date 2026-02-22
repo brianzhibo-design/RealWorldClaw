@@ -33,7 +33,7 @@ python emulator.py --module temp-humidity
 python emulator.py --module temp-humidity --interval 2
 
 # Connect to live API
-python emulator.py --module temp-humidity --api https://realworldclaw-api.fly.dev --agent-key YOUR_KEY
+python emulator.py --module temp-humidity --api https://localhost:8000 --agent-key YOUR_KEY
 
 # Run multiple modules
 python emulator.py --module temp-humidity,relay

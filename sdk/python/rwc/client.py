@@ -16,7 +16,7 @@ from .models import (
     OrderList,
 )
 
-DEFAULT_BASE_URL = "https://realworldclaw-api.fly.dev/api/v1"
+DEFAULT_BASE_URL = "https://localhost:8000/api/v1"
 
 
 class RWCClient:

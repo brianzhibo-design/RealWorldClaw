@@ -76,4 +76,4 @@ desktop-assistant/
 
 ## 📜 许可证
 
-Apache-2.0 — 自由使用、修改、分享。
+MIT — 自由使用、修改、分享。

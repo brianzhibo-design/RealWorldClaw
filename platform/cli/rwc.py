@@ -104,7 +104,7 @@ def cmd_validate(args):
 def main():
     parser = argparse.ArgumentParser(
         prog="rwc",
-        description="🐾 RealWorldClaw CLI — Agent驱动的3D打印组件平台",
+        description="🐾 RealWorldClaw CLI — Distributed manufacturing network",
     )
     subparsers = parser.add_subparsers(dest="command")
 

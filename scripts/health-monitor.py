@@ -13,8 +13,8 @@ log = logging.getLogger("health-monitor")
 
 ENDPOINTS = [
     {"name": "Landing Page", "url": "https://realworldclaw.com", "expect_status": 200},
-    {"name": "API Health", "url": "https://realworldclaw-api.fly.dev/api/v1/health", "expect_status": 200},
-    {"name": "Frontend", "url": "https://realworldclaw-api.fly.dev/", "expect_status": 200},
+    {"name": "API Health", "url": "https://localhost:8000/api/v1/health", "expect_status": 200},
+    {"name": "Frontend", "url": "https://localhost:8000/", "expect_status": 200},
 ]
 
 INTERVAL = 60  # seconds

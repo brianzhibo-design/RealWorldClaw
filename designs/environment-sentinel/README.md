@@ -87,4 +87,4 @@ environment-sentinel/
 
 ## License
 
-Apache-2.0 — 自由使用、修改、商用。
+MIT — 自由使用、修改、商用。

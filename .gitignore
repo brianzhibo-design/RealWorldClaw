@@ -77,3 +77,5 @@ tools/ui-ux-pro-max/
 .env*.local
 *.gcode
 *.3mf
+*.db-wal
+*.db-shm
