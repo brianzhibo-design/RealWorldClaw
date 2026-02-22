@@ -1,0 +1,6 @@
+target-version = "py310"
+line-length = 120
+exclude = [
+    "printer/bambu_test_manual.py",
+    "printer/bambu_test_cli.py",
+]
