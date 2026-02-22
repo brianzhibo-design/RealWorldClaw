@@ -1,6 +1,6 @@
 # 🐾 RealWorldClaw Platform MVP
 
-Agent驱动的3D打印组件平台 — 让AI帮你造东西。
+Distributed manufacturing network — turn any idea into reality。
 
 ## Quick Start
 

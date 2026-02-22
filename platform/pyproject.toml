@@ -1,9 +1,9 @@
 [project]
 name = "realworldclaw"
 version = "0.1.0"
-description = "RealWorldClaw Platform — Agent驱动的3D打印组件平台"
+description = "RealWorldClaw — Distributed manufacturing network"
 requires-python = ">=3.10"
-license = {text = "Apache-2.0"}
+license = {text = "MIT"}
 dependencies = [
     "fastapi>=0.109.0",
     "uvicorn[standard]>=0.27.0",
