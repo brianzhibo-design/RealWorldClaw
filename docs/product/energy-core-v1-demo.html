@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Energy Core V1 — Product Showcase</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#f0f0f5;font-family:-apple-system,sans-serif;overflow-x:hidden;color:#333}
+#canvas{width:100%;height:100vh;display:block}
+.page{max-width:900px;margin:0 auto;padding:60px 24px 100px}
+.page h2{font-size:2.4em;font-weight:200;letter-spacing:1px;text-align:center;margin-bottom:6px}
+.page h2 span{color:#4ecdc4;font-weight:400}
+.page .sub{text-align:center;color:#999;font-size:1.05em;margin-bottom:60px}
+.sec{margin:50px 0 20px;font-size:.85em;color:#4ecdc4;text-transform:uppercase;letter-spacing:3px;font-weight:600}
+.card{background:#fff;border-radius:16px;padding:28px;margin:16px 0;box-shadow:0 1px 6px rgba(0,0,0,.04)}
+.row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #f5f5fa;font-size:.92em}
+.row:last-child{border:none}
+.row .k{color:#999}.row .v{font-family:'SF Mono',monospace;color:#333}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:16px 0}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin:16px 0}
+.cell{background:#fff;border-radius:12px;padding:20px;box-shadow:0 1px 4px rgba(0,0,0,.03)}
+.cell em{display:block;color:#4ecdc4;font-style:normal;font-size:.78em;letter-spacing:1px;text-transform:uppercase;font-weight:600;margin-bottom:6px}
+.cell p{color:#777;line-height:1.65;font-size:.9em}
+.hero-stat{text-align:center;padding:40px 0}
+.hero-stat .num{font-size:4em;font-weight:100;color:#4ecdc4;line-height:1}
+.hero-stat .unit{font-size:1.2em;color:#aaa;margin-top:4px}
+.stats{display:flex;justify-content:center;gap:60px;margin:40px 0}
+.stat{text-align:center}
+.stat .n{font-size:2.2em;font-weight:200;color:#333}
+.stat .l{font-size:.8em;color:#aaa;text-transform:uppercase;letter-spacing:1px;margin-top:2px}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;color:#bbb;font-size:.75em;text-transform:uppercase;letter-spacing:1px;padding:10px 0;border-bottom:2px solid #f0f0f5}
+td{padding:12px 0;border-bottom:1px solid #f7f7fb;font-size:.9em}
+td:last-child{text-align:right;font-family:'SF Mono',monospace;color:#4ecdc4;font-weight:500}
+tfoot td{font-weight:700;border-top:2px solid #eee;color:#222}
+.timeline{position:relative;padding:20px 0 20px 30px;margin:20px 0}
+.timeline::before{content:'';position:absolute;left:10px;top:0;bottom:0;width:2px;background:linear-gradient(180deg,#4ecdc4,#ddd)}
+.tl-item{position:relative;margin:24px 0;padding-left:20px}
+.tl-item::before{content:'';position:absolute;left:-24px;top:6px;width:10px;height:10px;border-radius:50%;background:#4ecdc4}
+.tl-item h4{font-size:.95em;color:#333;margin-bottom:4px}
+.tl-item p{font-size:.85em;color:#888;line-height:1.5}
+.badge{display:inline-block;background:#e8faf9;color:#2a9d8f;padding:3px 10px;border-radius:10px;font-size:.78em;font-weight:500}
+.cta{text-align:center;margin:60px 0 0}
+.cta a{display:inline-block;padding:14px 36px;background:#4ecdc4;color:#fff;text-decoration:none;border-radius:24px;font-size:1em;font-weight:500;transition:all .2s;box-shadow:0 4px 16px rgba(78,205,196,.3)}
+.cta a:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(78,205,196,.4)}
+@media(max-width:640px){.grid2{grid-template-columns:1fr}.stats{flex-direction:column;gap:20px;align-items:center}}
+#hud{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);display:flex;gap:8px;z-index:10}
+#hud button{padding:10px 20px;border:none;border-radius:20px;font-size:.88em;cursor:pointer;font-weight:500;
+  background:rgba(255,255,255,.9);color:#555;backdrop-filter:blur(10px);border:1px solid rgba(0,0,0,.08);
+  transition:all .2s;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+#hud button.on{background:rgba(78,205,196,.95);color:#fff;border-color:transparent}
+#hud button:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,.1)}
+#label{position:fixed;top:24px;left:50%;transform:translateX(-50%);font-size:1.1em;font-weight:300;
+  color:#888;letter-spacing:3px;text-transform:uppercase;z-index:10}
+</style>
+</head>
+<body>
+<div id="label">ENERGY CORE V1 — 100mm</div>
+<div id="canvas"></div>
+<div id="hud">
+  <button class="on" data-m="assembled">Assembled</button>
+  <button data-m="exploded">Exploded</button>
+  <button data-m="xray">X-Ray</button>
+  <button data-m="front">Front Detail</button>
+  <button data-m="back">Back Detail</button>
+</div>
+
+<!-- ═══ PRODUCT PAGE ═══ -->
+<div class="page">
+
+  <h2><span>Energy Core</span> V1</h2>
+  <p class="sub">一颗可以长大的种子 — A seed that grows into anything</p>
+
+  <div class="stats">
+    <div class="stat"><div class="n">100mm</div><div class="l">Standard Cube</div></div>
+    <div class="stat"><div class="n">4</div><div class="l">Parts Total</div></div>
+    <div class="stat"><div class="n">¥55</div><div class="l">BOM Cost</div></div>
+    <div class="stat"><div class="n">∞</div><div class="l">Possibilities</div></div>
+  </div>
+
+  <!-- WHAT IS IT -->
+  <div class="sec">是什么 What Is It</div>
+  <div class="grid2">
+    <div class="cell">
+      <em>🧠 智能核心</em>
+      <p>ESP32-S3双核处理器，WiFi+蓝牙，2.8寸IPS屏幕，麦克风，喇叭。一个100mm的正方体，装着一颗完整的AI大脑。</p>
+    </div>
+    <div class="cell">
+      <em>🌱 可进化设计</em>
+      <p>顶部十字卡口接手办或传感器，底部可嵌入任何身体。今天是桌面伴侣，明天是行走的机器人。标准化意味着一切兼容。</p>
+    </div>
+  </div>
+
+  <!-- SPECS -->
+  <div class="sec">📐 规格 Specifications</div>
+  <div class="card">
+    <div class="row"><span class="k">外形尺寸</span><span class="v">100 × 100 × 100 mm</span></div>
+    <div class="row"><span class="k">圆角半径</span><span class="v">R3 mm</span></div>
+    <div class="row"><span class="k">壁厚</span><span class="v">2.5 mm (3D打印 PLA/PETG)</span></div>
+    <div class="row"><span class="k">主控</span><span class="v">ESP32-S3 · 双核 Xtensa LX7 · 240MHz</span></div>
+    <div class="row"><span class="k">存储</span><span class="v">16MB Flash · 512KB SRAM</span></div>
+    <div class="row"><span class="k">屏幕</span><span class="v">2.8" IPS TFT · 240×320 · ILI9341</span></div>
+    <div class="row"><span class="k">无线</span><span class="v">WiFi 802.11 b/g/n · BLE 5.0</span></div>
+    <div class="row"><span class="k">音频输入</span><span class="v">MEMS 麦克风 (板载)</span></div>
+    <div class="row"><span class="k">音频输出</span><span class="v">I2S 喇叭 (JST接口)</span></div>
+    <div class="row"><span class="k">扩展</span><span class="v">I2C · UART · GPIO · MicroSD</span></div>
+    <div class="row"><span class="k">供电</span><span class="v">Type-C 5V (支持锂电池扩展)</span></div>
+    <div class="row"><span class="k">软件</span><span class="v">Arduino · LVGL · OpenClaw Skill</span></div>
+  </div>
+
+  <!-- SIX FACES -->
+  <div class="sec">🧩 六面设计 Six Faces</div>
+  <div class="grid3">
+    <div class="cell"><em>正面 Front</em><p>2.8" IPS 屏幕<br>表情 · 状态 · 数据</p></div>
+    <div class="cell"><em>背面 Back</em><p>Type-C 供电口<br>喇叭出音格栅</p></div>
+    <div class="cell"><em>顶部 Top</em><p>纯平 + 十字槽<br>手办 · 传感器 · 扩展</p></div>
+    <div class="cell"><em>底部 Bottom</em><p>纯平<br>桌面放置 · 嵌入槽位</p></div>
+    <div class="cell"><em>左侧 Left</em><p>预留<br>未来模块扩展</p></div>
+    <div class="cell"><em>右侧 Right</em><p>预留<br>未来模块扩展</p></div>
+  </div>
+
+  <!-- INTERNAL STRUCTURE -->
+  <div class="sec">🔩 内部结构 Internal</div>
+  <div class="grid2">
+    <div class="cell">
+      <em>前壳 Front Shell</em>
+      <p>屏幕窗口开口<br>PCB定位唇边<br>顶面十字卡口<br>一体3D打印成型</p>
+    </div>
+    <div class="cell">
+      <em>后壳 Back Shell</em>
+      <p>4个PCB安装柱 (M3)<br>Type-C 通孔<br>喇叭格栅 + 腔体<br>内部加强筋<br>一体3D打印成型</p>
+    </div>
+  </div>
+  <div class="card">
+    <div class="row"><span class="k">PCB尺寸</span><span class="v">50.00 × 86.00 × 9.10 mm</span></div>
+    <div class="row"><span class="k">安装孔</span><span class="v">4 × ∅3.2mm · 间距 42×78mm</span></div>
+    <div class="row"><span class="k">前壳深度</span><span class="v">~15mm (容纳屏幕+PCB)</span></div>
+    <div class="row"><span class="k">后壳深度</span><span class="v">~85mm (容纳喇叭+走线+扩展空间)</span></div>
+    <div class="row"><span class="k">余量</span><span class="v">左右各22.5mm · 上下各4.5mm · 后方43mm</span></div>
+  </div>
+
+  <!-- BOM -->
+  <div class="sec">📦 物料清单 BOM</div>
+  <div class="card">
+    <table>
+      <thead><tr><th>#</th><th>零件</th><th>规格</th><th>成本</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>ESP32-S3 一体板</td><td>ES3N28P · 无触摸 · 含屏幕+MIC+充电管理</td><td>~¥45</td></tr>
+        <tr><td>2</td><td>小喇叭</td><td>随板附赠 · JST连接</td><td>¥0</td></tr>
+        <tr><td>3</td><td>前壳</td><td>3D打印 PLA · ~2h打印时间</td><td>~¥5</td></tr>
+        <tr><td>4</td><td>后壳</td><td>3D打印 PLA · ~3h打印时间</td><td>~¥5</td></tr>
+      </tbody>
+      <tfoot><tr><td></td><td colspan="2">总计 Total</td><td>≈ ¥55</td></tr></tfoot>
+    </table>
+  </div>
+
+  <!-- EVOLUTION -->
+  <div class="sec">🚀 进化路线 Evolution</div>
+  <div class="grid2">
+    <div class="card">
+      <h3 style="margin-bottom:12px;font-size:1em">🤖 路线 1 — 技术进化</h3>
+      <div class="timeline">
+        <div class="tl-item"><h4>V1 · Energy Core</h4><p>智能方块 · 屏幕+语音+WiFi</p></div>
+        <div class="tl-item"><h4>V2 · +传感器模块</h4><p>温湿度 · 运动检测 · 光线感应</p></div>
+        <div class="tl-item"><h4>V3 · +舵机模块</h4><p>头部旋转 · 机械臂 · 云台</p></div>
+        <div class="tl-item"><h4>V4 · +肢体外壳</h4><p>3D打印手脚 · 多关节</p></div>
+        <div class="tl-item"><h4>V5 · +移动底盘</h4><p>轮式/足式 · 全尺寸机器人</p></div>
+      </div>
+    </div>
+    <div class="card">
+      <h3 style="margin-bottom:12px;font-size:1em">🎭 路线 2 — 娱乐进化</h3>
+      <div class="timeline">
+        <div class="tl-item"><h4>V1 · Energy Core</h4><p>智能方块 · 屏幕+语音+WiFi</p></div>
+        <div class="tl-item"><h4>V2 · +手办角色</h4><p>可更换造型 · 对应人格/音色</p></div>
+        <div class="tl-item"><h4>V3 · +社交互动</h4><p>多台联机 · 朋友互动 · 表情传递</p></div>
+        <div class="tl-item"><h4>V4 · +内容生态</h4><p>角色商店 · 语音包 · 小游戏</p></div>
+        <div class="tl-item"><h4>V5 · +AR融合</h4><p>虚实结合 · 摄像头识别 · 空间互动</p></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EMBED SCENARIOS -->
+  <div class="sec">🔗 嵌入场景 Embed Scenarios</div>
+  <div class="grid3">
+    <div class="cell"><em>🎭 桌面伴侣</em><p>手办卡在顶部<br>屏幕显示表情<br>语音对话互动</p></div>
+    <div class="cell"><em>🤖 机器人胸腔</em><p>躯干预留100mm槽位<br>Core = 心脏<br>逐步加肢体进化</p></div>
+    <div class="cell"><em>🏠 墙壁面板</em><p>3D打印挂架<br>智能家居中枢<br>温度/湿度/语音控制</p></div>
+    <div class="cell"><em>🚗 移动平台</em><p>小车/六足顶部<br>Core = 大脑<br>WiFi远程操控</p></div>
+    <div class="cell"><em>🎓 教育套件</em><p>I2C/UART/GPIO扩展<br>Arduino编程入门<br>最简AI硬件教学</p></div>
+    <div class="cell"><em>🌱 植物看护</em><p>土壤湿度传感器<br>自动浇水提醒<br>生长数据记录</p></div>
+  </div>
+
+  <!-- OPEN PLATFORM -->
+  <div class="sec">🌐 开放平台 Open Platform</div>
+  <div class="grid2">
+    <div class="cell">
+      <em>OpenClaw Skill</em>
+      <p><code>clawhub install realworldclaw</code><br>任何OpenClaw AI agent一键获得物理世界能力。传感器读取、执行器控制、自动化规则。</p>
+    </div>
+    <div class="cell">
+      <em>RWC Protocol v0.1</em>
+      <p>标准化的AI-物理设备通信协议。模块发现、能力声明、命令格式。任何平台都可接入。</p>
+    </div>
+  </div>
+
+  <div class="cta">
+    <a href="https://github.com/brianzhibo-design/RealWorldClaw" target="_blank">GitHub → Star & Contribute</a>
+  </div>
+
+</div>
+<!-- END PRODUCT PAGE -->
+
+<script type="importmap">
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.162.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.162.0/examples/jsm/"}}
+</script>
+<script type="module">
+import*as THREE from'three';
+import{OrbitControls}from'three/addons/controls/OrbitControls.js';
+import{RoundedBoxGeometry}from'three/addons/geometries/RoundedBoxGeometry.js';
+
+const wrap=document.getElementById('canvas');
+let W=wrap.clientWidth,H=wrap.clientHeight;
+
+// ═══ SCENE ═══
+const scene=new THREE.Scene();
+scene.background=new THREE.Color(0xe8e8f0);
+
+const camera=new THREE.PerspectiveCamera(30,W/H,0.1,200);
+camera.position.set(10,6,11);
+
+const renderer=new THREE.WebGLRenderer({antialias:true});
+renderer.setSize(W,H);
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.shadowMap.enabled=true;
+renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+renderer.toneMapping=THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure=1.6;
+wrap.appendChild(renderer.domElement);
+
+const orbit=new OrbitControls(camera,renderer.domElement);
+orbit.enableDamping=true;orbit.dampingFactor=0.04;
+orbit.minDistance=5;orbit.maxDistance=20;
+orbit.autoRotate=true;orbit.autoRotateSpeed=0.6;
+
+// ═══ LIGHTING ═══
+// Key light (warm white, top-right)
+const keyLight=new THREE.DirectionalLight(0xfff8f0,2.2);
+keyLight.position.set(8,14,6);keyLight.castShadow=true;
+keyLight.shadow.mapSize.set(4096,4096);
+keyLight.shadow.camera.near=1;keyLight.shadow.camera.far=30;
+keyLight.shadow.camera.left=-8;keyLight.shadow.camera.right=8;
+keyLight.shadow.camera.top=8;keyLight.shadow.camera.bottom=-8;
+keyLight.shadow.bias=-0.0001;
+scene.add(keyLight);
+
+// Fill (cool blue, left)
+const fillLight=new THREE.DirectionalLight(0x8899cc,0.6);
+fillLight.position.set(-6,5,-4);scene.add(fillLight);
+
+// Rim (warm, behind)
+const rimLight=new THREE.DirectionalLight(0xffddc0,0.4);
+rimLight.position.set(0,4,-10);scene.add(rimLight);
+
+// Ambient
+scene.add(new THREE.AmbientLight(0xc8c8e0,1.0));
+
+// Environment hemisphere
+scene.add(new THREE.HemisphereLight(0xddeeff,0x998877,0.4));
+
+// Ground
+const groundGeo=new THREE.PlaneGeometry(60,60);
+const groundMat=new THREE.ShadowMaterial({opacity:0.08});
+const ground=new THREE.Mesh(groundGeo,groundMat);
+ground.rotation.x=-Math.PI/2;ground.position.y=-2.55;
+ground.receiveShadow=true;scene.add(ground);
+
+// Subtle ground disc for context
+const discGeo=new THREE.CircleGeometry(4,48);
+const discMat=new THREE.MeshStandardMaterial({color:0xd8d8e0,roughness:0.9,metalness:0});
+const disc=new THREE.Mesh(discGeo,discMat);
+disc.rotation.x=-Math.PI/2;disc.position.y=-2.54;
+disc.receiveShadow=true;scene.add(disc);
+
+// ═══ SCALE: 1 unit = 20mm ═══
+// 100mm=5u, 50mm=2.5u, 86mm=4.3u, 2.5mmWall=0.125u, 9.1mmPCB=0.455u
+const C=5; // cube edge
+const WT=0.125; // wall thickness (2.5mm)
+// Shell split: front shell ~15mm thick (screen+PCB), back shell ~85mm
+const FS=0.75; // front shell depth (15mm)
+const BS=C-FS; // back shell depth (85mm)
+
+// ═══ MATERIALS ═══
+const mShellF=new THREE.MeshPhysicalMaterial({
+  color:0xf7f7fa,metalness:0.0,roughness:0.18,
+  clearcoat:0.9,clearcoatRoughness:0.06,
+  transparent:true,opacity:1,side:THREE.DoubleSide
+});
+const mShellB=new THREE.MeshPhysicalMaterial({
+  color:0xf0f0f5,metalness:0.0,roughness:0.22,
+  clearcoat:0.7,clearcoatRoughness:0.1,
+  transparent:true,opacity:1,side:THREE.DoubleSide
+});
+const mPCB=new THREE.MeshPhysicalMaterial({color:0x146b30,roughness:0.4,clearcoat:0.3});
+const mChip=new THREE.MeshStandardMaterial({color:0x111111,roughness:0.25,metalness:0.3});
+const mShield=new THREE.MeshStandardMaterial({color:0xc0c0c5,metalness:0.85,roughness:0.1});
+const mMetal=new THREE.MeshStandardMaterial({color:0xb8b8b8,metalness:0.92,roughness:0.06});
+const mCopper=new THREE.MeshStandardMaterial({color:0xbb7733,metalness:0.8,roughness:0.15});
+const mBlack=new THREE.MeshPhysicalMaterial({color:0x050508,clearcoat:1,clearcoatRoughness:0.02});
+const mSpk=new THREE.MeshStandardMaterial({color:0x222222,roughness:0.6});
+const mSilicone=new THREE.MeshStandardMaterial({color:0x333333,roughness:0.85});
+const mWhiteComp=new THREE.MeshStandardMaterial({color:0xf0f0ea,roughness:0.4});
+const mGold=new THREE.MeshStandardMaterial({color:0xd4a846,metalness:0.9,roughness:0.1});
+
+// Helper
+function box(w,h,d,mat,pos,parent){
+  const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);
+  m.position.set(...pos);parent.add(m);return m;
+}
+function cyl(r,h,mat,pos,rot,parent){
+  const m=new THREE.Mesh(new THREE.CylinderGeometry(r,r,h,24),mat);
+  m.position.set(...pos);
+  if(rot)m.rotation.set(...rot);
+  parent.add(m);return m;
+}
+
+// ═══ FRONT SHELL ═══
+const frontG=new THREE.Group();
+
+// Shell body
+const fBody=new THREE.Mesh(new RoundedBoxGeometry(C,C,FS,5,0.1),mShellF);
+fBody.castShadow=true;
+frontG.add(fBody);
+
+// Screen bezel — precision frame
+const bezelFrame=new THREE.Mesh(new RoundedBoxGeometry(2.55,3.25,0.035,3,0.04),mBlack);
+bezelFrame.position.z=FS/2+0.002;
+frontG.add(bezelFrame);
+
+// Inner bezel edge (subtle printed chamfer)
+const bezelEdge=new THREE.Mesh(new RoundedBoxGeometry(2.65,3.35,0.015,3,0.03),
+  new THREE.MeshStandardMaterial({color:0xeeeef0,roughness:0.25}));
+bezelEdge.position.z=FS/2+0.0005;
+frontG.add(bezelEdge);
+
+// Actual screen canvas
+const sCan=document.createElement('canvas');
+sCan.width=240;sCan.height=320;
+const sx=sCan.getContext('2d');
+const sTex=new THREE.CanvasTexture(sCan);
+sTex.minFilter=THREE.LinearFilter;
+const sMesh=new THREE.Mesh(new THREE.PlaneGeometry(2.16,2.88),new THREE.MeshBasicMaterial({map:sTex}));
+sMesh.position.z=FS/2+0.02;
+frontG.add(sMesh);
+
+function drawScreen(t){
+  sx.fillStyle='#080810';sx.fillRect(0,0,240,320);
+
+  const blink=Math.sin(t*2.2)>0.96?2:26;
+  // Eye whites (subtle)
+  sx.fillStyle='rgba(78,205,196,0.06)';
+  sx.beginPath();sx.ellipse(80,115,30,30,0,0,Math.PI*2);sx.fill();
+  sx.beginPath();sx.ellipse(160,115,30,30,0,0,Math.PI*2);sx.fill();
+
+  // Irises
+  sx.fillStyle='#4ecdc4';
+  sx.beginPath();sx.ellipse(80,115,22,blink,0,0,Math.PI*2);sx.fill();
+  sx.beginPath();sx.ellipse(160,115,22,blink,0,0,Math.PI*2);sx.fill();
+
+  // Pupils
+  const px=Math.sin(t*0.5)*5,py=Math.cos(t*0.7)*2;
+  sx.fillStyle='#080810';
+  sx.beginPath();sx.ellipse(80+px,115+py,9,Math.min(blink,10),0,0,Math.PI*2);sx.fill();
+  sx.beginPath();sx.ellipse(160+px,115+py,9,Math.min(blink,10),0,0,Math.PI*2);sx.fill();
+
+  // Highlights
+  if(blink>5){
+    sx.fillStyle='rgba(255,255,255,0.4)';
+    sx.beginPath();sx.ellipse(72,107,5,4,0,0,Math.PI*2);sx.fill();
+    sx.beginPath();sx.ellipse(152,107,5,4,0,0,Math.PI*2);sx.fill();
+    sx.fillStyle='rgba(255,255,255,0.15)';
+    sx.beginPath();sx.ellipse(88,122,3,2,0,0,Math.PI*2);sx.fill();
+    sx.beginPath();sx.ellipse(168,122,3,2,0,0,Math.PI*2);sx.fill();
+  }
+
+  // Mouth
+  sx.strokeStyle='#4ecdc4';sx.lineWidth=2.5;sx.lineCap='round';
+  sx.beginPath();
+  const mAmp=10+Math.sin(t*1.2)*6;
+  sx.moveTo(88,178);sx.quadraticCurveTo(120,178+mAmp,152,178);sx.stroke();
+
+  // Cheeks
+  sx.fillStyle='rgba(255,110,100,0.06)';
+  sx.beginPath();sx.ellipse(50,162,16,10,0,0,Math.PI*2);sx.fill();
+  sx.beginPath();sx.ellipse(190,162,16,10,0,0,Math.PI*2);sx.fill();
+
+  // Status bar
+  const grad=sx.createLinearGradient(0,270,0,320);
+  grad.addColorStop(0,'#0c0c18');grad.addColorStop(1,'#101020');
+  sx.fillStyle=grad;sx.fillRect(0,270,240,50);
+
+  sx.fillStyle='#4ecdc4';sx.font='bold 12px system-ui';
+  sx.fillText('Energy Core',72,290);
+  sx.fillStyle='#3a3a55';sx.font='10px monospace';
+  sx.fillText('WiFi ✓  MIC ✓  SPK ✓  24°C',34,308);
+
+  // Breathing border glow
+  const glow=0.3+0.7*(0.5+0.5*Math.sin(t*1.5));
+  const hue=Math.floor((t*15)%360);
+  sx.strokeStyle=`hsla(${hue},60%,65%,${glow*0.3})`;
+  sx.lineWidth=4;
+  sx.strokeRect(4,4,232,312);
+
+  sTex.needsUpdate=true;
+}
+
+// Top cross slot (printed recess)
+const slotCol=new THREE.MeshStandardMaterial({color:0xe0e0e4,roughness:0.4});
+box(1.2,0.02,0.12,slotCol,[0,C/2-0.008,0],frontG);
+box(0.12,0.02,1.2,slotCol,[0,C/2-0.008,0],frontG);
+
+// Printed shell lip (mating edge — ring around open face)
+const lipGeo=new RoundedBoxGeometry(C-0.02,C-0.02,0.04,4,0.08);
+const lipMat=new THREE.MeshStandardMaterial({color:0xe8e8ec,roughness:0.3});
+const lip=new THREE.Mesh(lipGeo,lipMat);
+lip.position.z=-FS/2+0.02;
+frontG.add(lip);
+
+frontG.position.z=C/2-FS/2;
+
+// ═══ BACK SHELL ═══
+const backG=new THREE.Group();
+
+const bBody=new THREE.Mesh(new RoundedBoxGeometry(C,C,BS,5,0.1),mShellB);
+bBody.castShadow=true;
+backG.add(bBody);
+
+// Type-C cutout
+const usbPort=new THREE.Mesh(new RoundedBoxGeometry(0.46,0.17,0.14,1,0.045),mMetal);
+usbPort.position.set(0,-0.75,-BS/2-0.005);
+backG.add(usbPort);
+const usbHole=new THREE.Mesh(new THREE.PlaneGeometry(0.34,0.1),new THREE.MeshBasicMaterial({color:0x111}));
+usbHole.position.set(0,-0.75,-BS/2+0.065);usbHole.rotation.y=Math.PI;
+backG.add(usbHole);
+
+// Speaker grille — precision hole array
+const grilleMat=new THREE.MeshBasicMaterial({color:0xc8c8cc});
+for(let r=0;r<6;r++)for(let c=0;c<6;c++){
+  const h=new THREE.Mesh(new THREE.CircleGeometry(0.045,12),grilleMat);
+  h.position.set(-0.55+c*0.22, 0.5+r*0.2, -BS/2-0.001);
+  h.rotation.y=Math.PI;
+  backG.add(h);
+}
+// Grille surround (subtle recess)
+const grilleSurr=new THREE.Mesh(new RoundedBoxGeometry(1.6,1.5,0.02,2,0.04),
+  new THREE.MeshStandardMaterial({color:0xe2e2e6,roughness:0.35}));
+grilleSurr.position.set(0,1.0,-BS/2+0.005);
+backG.add(grilleSurr);
+
+// Printed standoffs (4, matching PCB M3 holes at 42×78mm=2.1×3.9u spacing)
+const hX=2.1/2,hY=3.9/2;
+[[-hX,hY],[hX,hY],[hX,-hY],[-hX,-hY]].forEach(([x,y])=>{
+  // Standoff cylinder
+  const standoff=cyl(0.1,0.5,new THREE.MeshStandardMaterial({color:0xeaeaed,roughness:0.3}),
+    [x,y+0.15,BS/2-0.4],[Math.PI/2,0,0],backG);
+  // Screw hole (dark center)
+  cyl(0.04,0.08,new THREE.MeshBasicMaterial({color:0x555}),
+    [x,y+0.15,BS/2-0.15],[Math.PI/2,0,0],backG);
+});
+
+// Back shell internal ribs (structural, printed)
+const ribMat=new THREE.MeshStandardMaterial({color:0xeaeaee,roughness:0.35});
+box(0.04,C*0.6,BS*0.3,ribMat,[C/2-0.3,0,0],backG); // right rib
+box(0.04,C*0.6,BS*0.3,ribMat,[-C/2+0.3,0,0],backG); // left rib
+box(C*0.6,0.04,BS*0.3,ribMat,[0,-C/2+0.3,0],backG); // bottom rib
+
+// Mating edge lip (receives front shell lip)
+const bLip=new THREE.Mesh(new RoundedBoxGeometry(C-0.04,C-0.04,0.035,4,0.08),
+  new THREE.MeshStandardMaterial({color:0xe5e5e9,roughness:0.3}));
+bLip.position.z=BS/2-0.015;
+backG.add(bLip);
+
+backG.position.z=-(C/2-BS/2);
+
+// ═══ INTERNALS ═══
+const intG=new THREE.Group();
+
+// ─── PCB (50×86mm=2.5×4.3u, 1.6mm=0.08u thick) ───
+const pcb=box(2.5,4.3,0.08,mPCB,[0,0.15,C/2-FS+0.2],intG);
+
+// PCB copper traces (subtle, top layer)
+const traceMat=new THREE.MeshStandardMaterial({color:0xc4923a,metalness:0.7,roughness:0.3});
+// Main power trace
+box(2.3,0.015,0.005,traceMat,[0,-1.8,C/2-FS+0.245],intG);
+box(0.015,3.5,0.005,traceMat,[1.1,0.2,C/2-FS+0.245],intG);
+box(0.015,3.5,0.005,traceMat,[-1.1,0.2,C/2-FS+0.245],intG);
+
+// Solder mask text (tiny)
+// (implied by PCB material)
+
+// ─── FRONT: Screen module (on PCB front face) ───
+// TFT glass
+const tftGlass=box(2.5,3.46,0.04,
+  new THREE.MeshPhysicalMaterial({color:0x0a0a12,roughness:0.05,metalness:0.05,clearcoat:0.5}),
+  [0,0.55,C/2-FS+0.26],intG);
+// TFT backlight frame
+box(2.5,3.46,0.02,new THREE.MeshStandardMaterial({color:0xdddddd,roughness:0.3}),
+  [0,0.55,C/2-FS+0.22],intG);
+
+// FPC ribbon cable (screen to PCB)
+const fpcMat=new THREE.MeshStandardMaterial({color:0xcc9933,roughness:0.6,metalness:0.1});
+box(0.5,1.0,0.008,fpcMat,[0,-1.0,C/2-FS+0.24],intG);
+// FPC connector on PCB
+box(0.6,0.08,0.04,mChip,[0,-1.45,C/2-FS+0.22],intG);
+
+// ─── BACK: Components on PCB rear ───
+const pcbBack=C/2-FS+0.12; // Z position of PCB back face
+
+// ESP32-S3 module with RF shield
+box(0.95,0.95,0.06,mShield,[0.35,0.6,pcbBack],intG);
+// Module label area
+box(0.7,0.7,0.005,mChip,[0.35,0.6,pcbBack-0.035],intG);
+
+// Antenna area (meander trace, bottom of PCB)
+const antArea=box(1.3,0.5,0.008,mCopper,[0.3,-1.65,pcbBack],intG);
+
+// Crystal oscillator
+box(0.12,0.08,0.04,mShield,[-0.2,0.9,pcbBack],intG);
+
+// Voltage regulator
+box(0.15,0.1,0.05,mChip,[0.9,1.3,pcbBack],intG);
+
+// Bypass capacitors (tiny, scattered)
+const capMat=new THREE.MeshStandardMaterial({color:0x8b7355,roughness:0.4,metalness:0.2});
+[[-0.4,0.3],[0.7,0.2],[-0.6,1.0],[0.2,1.5],[-0.3,-0.5],[0.6,-0.8]].forEach(([x,y])=>{
+  box(0.06,0.04,0.03,capMat,[x,y,pcbBack],intG);
+});
+
+// Resistor array
+box(0.16,0.04,0.03,mChip,[-0.7,0.5,pcbBack],intG);
+
+// USB-C connector (on PCB edge)
+const usbC=box(0.44,0.18,0.12,mMetal,[0,-1.75,pcbBack],intG);
+
+// MicroSD slot
+box(0.6,0.55,0.08,mMetal,[-0.65,-0.3,pcbBack-0.02],intG);
+
+// MEMS microphone
+cyl(0.07,0.04,mChip,[-0.85,1.75,pcbBack],[Math.PI/2,0,0],intG);
+// Mic hole (sound port)
+cyl(0.025,0.02,new THREE.MeshBasicMaterial({color:0x333}),[-0.85,1.75,pcbBack-0.03],[Math.PI/2,0,0],intG);
+
+// RGB LED
+box(0.08,0.08,0.03,new THREE.MeshBasicMaterial({color:0x44ddcc}),[0.85,1.2,pcbBack],intG);
+// LED glow
+const ledGlow=new THREE.PointLight(0x44ddcc,0.15,0.8);
+ledGlow.position.set(0.85,1.2,pcbBack-0.1);
+intG.add(ledGlow);
+
+// Speaker JST connector (white)
+box(0.2,0.12,0.06,mWhiteComp,[-1.0,1.5,pcbBack],intG);
+// Battery JST connector
+box(0.2,0.12,0.06,mWhiteComp,[-1.0,-1.55,pcbBack],intG);
+
+// I2C header pins (4-pin)
+for(let i=0;i<4;i++){
+  cyl(0.015,0.2,mGold,[-0.45+i*0.1,1.8,pcbBack-0.05],[0,0,0],intG);
+}
+
+// UART header pins (3-pin)
+for(let i=0;i<3;i++){
+  cyl(0.015,0.2,mGold,[-0.5+i*0.1,-1.6,pcbBack-0.05],[0,0,0],intG);
+}
+
+// RESET button (tactile switch)
+box(0.12,0.12,0.06,mSilicone,[-0.85,0.5,pcbBack],intG);
+// BOOT button
+box(0.12,0.12,0.06,mSilicone,[-0.85,-0.9,pcbBack],intG);
+
+// Charging IC (near battery connector)
+box(0.15,0.12,0.04,mChip,[-0.6,-1.3,pcbBack],intG);
+
+// ─── SPEAKER (in back shell cavity) ───
+// Full speaker assembly
+const spkZ=-0.6;
+// Frame
+cyl(0.75,0.25,new THREE.MeshStandardMaterial({color:0x2a2a2a,metalness:0.3,roughness:0.5}),
+  [0,0.8,spkZ],[Math.PI/2,0,0],intG);
+// Magnet
+cyl(0.35,0.18,new THREE.MeshStandardMaterial({color:0x3a3a3a,metalness:0.6,roughness:0.3}),
+  [0,0.8,spkZ+0.15],[Math.PI/2,0,0],intG);
+// Cone
+const coneMesh=new THREE.Mesh(
+  new THREE.ConeGeometry(0.55,0.06,32),
+  new THREE.MeshStandardMaterial({color:0x2e2e2e,roughness:0.85,side:THREE.DoubleSide})
+);
+coneMesh.rotation.x=-Math.PI/2;
+coneMesh.position.set(0,0.8,spkZ-0.16);
+intG.add(coneMesh);
+// Dust cap
+cyl(0.15,0.03,new THREE.MeshStandardMaterial({color:0x252525,roughness:0.7}),
+  [0,0.8,spkZ-0.19],[Math.PI/2,0,0],intG);
+// Surround (rubber ring)
+const surroundGeo=new THREE.TorusGeometry(0.6,0.05,8,32);
+const surround=new THREE.Mesh(surroundGeo,mSilicone);
+surround.position.set(0,0.8,spkZ-0.14);
+intG.add(surround);
+
+// ─── WIRING ───
+// Speaker wire (red)
+const wire1Path=new THREE.CatmullRomCurve3([
+  new THREE.Vector3(-1.0,1.5,pcbBack-0.03),
+  new THREE.Vector3(-0.9,1.3,pcbBack-0.2),
+  new THREE.Vector3(-0.5,1.1,-0.1),
+  new THREE.Vector3(-0.2,0.9,-0.35),
+  new THREE.Vector3(0,0.8,spkZ+0.1),
+]);
+intG.add(new THREE.Mesh(
+  new THREE.TubeGeometry(wire1Path,20,0.012,6,false),
+  new THREE.MeshStandardMaterial({color:0xcc2222,roughness:0.6})
+));
+
+// Speaker wire (black)
+const wire2Path=new THREE.CatmullRomCurve3([
+  new THREE.Vector3(-0.9,1.5,pcbBack-0.03),
+  new THREE.Vector3(-0.8,1.2,pcbBack-0.25),
+  new THREE.Vector3(-0.4,1.0,-0.05),
+  new THREE.Vector3(-0.1,0.85,-0.3),
+  new THREE.Vector3(0.1,0.8,spkZ+0.1),
+]);
+intG.add(new THREE.Mesh(
+  new THREE.TubeGeometry(wire2Path,20,0.012,6,false),
+  new THREE.MeshStandardMaterial({color:0x1a1a1a,roughness:0.6})
+));
+
+intG.visible=false;
+scene.add(frontG);scene.add(backG);scene.add(intG);
+
+// ═══ VIEW MODES ═══
+let mode='assembled';
+const cameraTargets={
+  assembled:{pos:[10,6,11],target:[0,0,0]},
+  exploded:{pos:[10,6,11],target:[0,0,0]},
+  xray:{pos:[10,6,11],target:[0,0,0]},
+  front:{pos:[0,0,7],target:[0,0,2]},
+  back:{pos:[0,0,-8],target:[0,0,-2]},
+};
+
+document.querySelectorAll('#hud button').forEach(b=>{
+  b.onclick=()=>{
+    mode=b.dataset.m;
+    document.querySelectorAll('#hud button').forEach(x=>x.classList.toggle('on',x===b));
+    const ct=cameraTargets[mode];
+    if(mode==='front'||mode==='back'){
+      orbit.autoRotate=false;
+      camera.position.set(...ct.pos);
+      orbit.target.set(...ct.target);
+    } else {
+      orbit.autoRotate=true;
+    }
+  };
+});
+
+// ═══ ANIMATE ═══
+const clock=new THREE.Clock();
+(function animate(){
+  requestAnimationFrame(animate);
+  const t=clock.getElapsedTime();
+
+  let fz=C/2-FS/2, bz=-(C/2-BS/2);
+  let showI=false, opacity=1;
+
+  if(mode==='exploded'){
+    fz=C/2-FS/2+3;
+    bz=-(C/2-BS/2)-3;
+    showI=true;
+  } else if(mode==='xray'){
+    showI=true;
+    opacity=0.12;
+  } else if(mode==='front'){
+    showI=false;opacity=1;
+  } else if(mode==='back'){
+    fz=C/2-FS/2+4;
+    showI=true;opacity=1;
+  }
+
+  frontG.position.z+=(fz-frontG.position.z)*0.04;
+  backG.position.z+=(bz-backG.position.z)*0.04;
+  intG.visible=showI;
+  mShellF.opacity+=(opacity-mShellF.opacity)*0.04;
+  mShellB.opacity+=(opacity-mShellB.opacity)*0.04;
+
+  drawScreen(t);
+  orbit.update();
+  renderer.render(scene,camera);
+})();
+
+window.addEventListener('resize',()=>{
+  W=wrap.clientWidth;H=wrap.clientHeight;
+  camera.aspect=W/H;camera.updateProjectionMatrix();
+  renderer.setSize(W,H);
+});
+</script>
+</body>
+</html>
