@@ -301,3 +301,116 @@ export async function fetchStats(): Promise<{
     return null;
   }
 }
+
+// Order-related API functions (mock implementations for now)
+export async function fetchOrders(type: 'public' | 'my' = 'public'): Promise<Order[]> {
+  try {
+    // Mock data - replace with actual API call
+    const res = await fetch(`${API_BASE}/orders?type=${type}`, { cache: 'no-store' });
+    if (!res.ok) return [];
+    const data = await res.json();
+    return data.orders || data;
+  } catch {
+    // Return mock data when API is not available
+    return [];
+  }
+}
+
+export async function fetchOrder(id: string): Promise<Order | null> {
+  try {
+    const res = await fetch(`${API_BASE}/orders/${id}`, { cache: 'no-store' });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch {
+    return null;
+  }
+}
+
+export async function createOrder(data: {
+  title: string;
+  material: string;
+  color: string;
+  quantity: number;
+  fillRate: number;
+  notes?: string;
+  fileName: string;
+  fileSize: number;
+}): Promise<{ success: boolean; order_id?: string; error?: string }> {
+  try {
+    const res = await fetch(`${API_BASE}/orders`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      return { success: false, error: err.detail || 'Order creation failed' };
+    }
+    const result = await res.json();
+    return { success: true, order_id: result.id };
+  } catch {
+    return { success: false, error: 'API unavailable' };
+  }
+}
+
+export async function updateOrderStatus(
+  orderId: string, 
+  status: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const res = await fetch(`${API_BASE}/orders/${orderId}/status`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status }),
+    });
+    if (!res.ok) return { success: false, error: 'Status update failed' };
+    return { success: true };
+  } catch {
+    return { success: false, error: 'API unavailable' };
+  }
+}
+
+export async function acceptOrder(orderId: string): Promise<{ success: boolean; error?: string }> {
+  try {
+    const res = await fetch(`${API_BASE}/orders/${orderId}/accept`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    if (!res.ok) return { success: false, error: 'Accept order failed' };
+    return { success: true };
+  } catch {
+    return { success: false, error: 'API unavailable' };
+  }
+}
+
+export async function registerMaker(data: {
+  name: string;
+  email: string;
+  city: string;
+  country: string;
+  printerBrand: string;
+  printerModel: string;
+  printerCount: number;
+  buildVolume: string;
+  supportedMaterials: string[];
+  hourlyRate: number;
+  bio?: string;
+  phone?: string;
+  wechat?: string;
+}): Promise<{ success: boolean; maker_id?: string; error?: string }> {
+  try {
+    const res = await fetch(`${API_BASE}/makers/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      return { success: false, error: err.detail || 'Maker registration failed' };
+    }
+    const result = await res.json();
+    return { success: true, maker_id: result.id };
+  } catch {
+    return { success: false, error: 'API unavailable' };
+  }
+}

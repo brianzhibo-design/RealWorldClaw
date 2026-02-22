@@ -16,10 +16,8 @@ import json
 import ssl
 import time
 import subprocess
-import hashlib
-from pathlib import Path
 from typing import Optional, Dict, Any
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass
 from enum import Enum
 
 class PrinterType(Enum):
@@ -178,7 +176,7 @@ class PrinterAdapter:
             result = subprocess.run(['which', 'prusa-slicer'], capture_output=True, text=True)
             if result.returncode == 0:
                 return result.stdout.strip()
-        except:
+        except Exception:
             pass
         return None
     
@@ -257,7 +255,7 @@ class BambuAdapter:
         
         # 发送gcode行（Bambu支持通过MQTT发送单行gcode）
         with open(gcode_path) as f:
-            lines = [l.strip() for l in f if l.strip() and not l.startswith(';')]
+            lines = [line.strip() for line in f if line.strip() and not line.startswith(';')]
         
         print(f"📨 Sending {len(lines)} gcode lines...")
         for i, line in enumerate(lines):
@@ -304,7 +302,7 @@ class BambuAdapter:
                 data = json.loads(msg.payload)
                 if 'print' in data:
                     result.update(data['print'])
-            except:
+            except Exception:
                 pass
         
         def on_connect(c, u, f, rc, p=None):
@@ -423,7 +421,6 @@ class MoonrakerAdapter:
         self.base_url = f"http://{config.ip}:{config.port}"
     
     def upload(self, gcode_path: str) -> bool:
-        filename = os.path.basename(gcode_path)
         cmd = [
             'curl', '-s', '-F', f'file=@{gcode_path}',
             f'{self.base_url}/server/files/upload'
@@ -464,13 +461,12 @@ class PrusaLinkAdapter:
         self.headers = {"X-Api-Key": config.api_key}
     
     def upload(self, gcode_path: str) -> bool:
-        filename = os.path.basename(gcode_path)
         cmd = [
             'curl', '-s', '-X', 'PUT',
             '-H', f'X-Api-Key: {self.config.api_key}',
             '-H', 'Content-Type: application/octet-stream',
             '--data-binary', f'@{gcode_path}',
-            f'{self.base_url}/api/v1/files/usb/{filename}'
+            f'{self.base_url}/api/v1/files/usb/{os.path.basename(gcode_path)}'
         ]
         result = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
         return result.returncode == 0
@@ -526,7 +522,7 @@ def quick_print(stl_path: str, printer_config: Dict) -> str:
     
     # 2. 上传并打印
     adapter.upload_and_print(gcode_path)
-    print(f"🖨️ Printing started!")
+    print("🖨️ Printing started!")
     
     return gcode_path
 

@@ -9,7 +9,7 @@ import json
 import uuid
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 
 from ..database import get_db
 
@@ -230,10 +230,9 @@ class AgentService:
             relay_devices = self.query_device_status()
             result["results"].extend([
                 {
-                    "type": "device_status",
+                    "type": d.type,
                     "device": d.name,
                     "device_id": d.device_id,
-                    "type": d.type,
                     "capabilities": d.capabilities,
                     "status": d.status
                 }
