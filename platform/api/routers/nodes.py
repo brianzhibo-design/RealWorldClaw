@@ -31,7 +31,7 @@ router = APIRouter(prefix="/nodes", tags=["nodes"])
 
 # Constants for location fuzzing and heartbeat timeout
 LOCATION_FUZZ_DEGREES = 0.01  # ~1km radius
-HEARTBEAT_TIMEOUT_MINUTES = 5
+HEARTBEAT_TIMEOUT_MINUTES = 1440  # 24 hours — nodes stay visible longer
 EARTH_RADIUS_KM = 6371.0
 
 

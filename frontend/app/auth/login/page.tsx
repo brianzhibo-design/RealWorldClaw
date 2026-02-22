@@ -32,7 +32,7 @@ export default function LoginPage() {
       });
       router.push("/dashboard");
     } catch {
-      setError("登录失败，请检查邮箱和密码");
+      setError("Login failed. Please check your email and password.");
     } finally {
       setLoading(false);
     }
@@ -48,17 +48,17 @@ export default function LoginPage() {
       >
         {/* Logo */}
         <div className="text-center mb-8">
-          <span className="text-3xl">🔧</span>
-          <h1 className="text-xl font-semibold mt-3">登录 RealWorldClaw</h1>
+          <span className="text-3xl">🌍</span>
+          <h1 className="text-xl font-semibold mt-3">Sign in to RealWorldClaw</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            让你的 3D 打印机成为智能工厂
+            The open manufacturing network
           </p>
         </div>
 
         <Card className="p-6 border-border/50">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium">邮箱</label>
+              <label className="text-sm font-medium">Email</label>
               <Input
                 type="email"
                 placeholder="you@example.com"
@@ -68,7 +68,7 @@ export default function LoginPage() {
               />
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium">密码</label>
+              <label className="text-sm font-medium">Password</label>
               <Input
                 type="password"
                 placeholder="••••••••"
@@ -83,15 +83,15 @@ export default function LoginPage() {
             )}
 
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "登录中..." : "登录"}
+              {loading ? "Signing in..." : "Sign In"}
             </Button>
           </form>
         </Card>
 
         <p className="text-center text-sm text-muted-foreground mt-4">
-          还没有账号？{" "}
+          Don&apos;t have an account?{" "}
           <Link href="/auth/register" className="text-primary hover:underline">
-            注册
+            Sign Up
           </Link>
         </p>
       </motion.div>

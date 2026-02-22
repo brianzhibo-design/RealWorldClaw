@@ -33,7 +33,7 @@ export default function RegisterPage() {
       });
       router.push("/dashboard");
     } catch {
-      setError("注册失败，请稍后重试");
+      setError("Registration failed，请稍后重试");
     } finally {
       setLoading(false);
     }
@@ -49,7 +49,7 @@ export default function RegisterPage() {
       >
         <div className="text-center mb-8">
           <span className="text-3xl">🔧</span>
-          <h1 className="text-xl font-semibold mt-3">创建账号</h1>
+          <h1 className="text-xl font-semibold mt-3">Create Account</h1>
           <p className="text-sm text-muted-foreground mt-1">
             加入 RealWorldClaw 社区
           </p>
@@ -58,7 +58,7 @@ export default function RegisterPage() {
         <Card className="p-6 border-border/50">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium">用户名</label>
+              <label className="text-sm font-medium">Username</label>
               <Input
                 placeholder="maker_brian"
                 value={username}
@@ -67,7 +67,7 @@ export default function RegisterPage() {
               />
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium">邮箱</label>
+              <label className="text-sm font-medium">Email</label>
               <Input
                 type="email"
                 placeholder="you@example.com"
@@ -77,7 +77,7 @@ export default function RegisterPage() {
               />
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium">密码</label>
+              <label className="text-sm font-medium">Password</label>
               <Input
                 type="password"
                 placeholder="至少 8 位"
@@ -93,13 +93,13 @@ export default function RegisterPage() {
             )}
 
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "注册中..." : "注册"}
+              {loading ? "Signing up..." : "注册"}
             </Button>
           </form>
         </Card>
 
         <p className="text-center text-sm text-muted-foreground mt-4">
-          已有账号？{" "}
+          Already have an account?{" "}
           <Link href="/auth/login" className="text-primary hover:underline">
             登录
           </Link>
