@@ -252,11 +252,12 @@ img{max-width:100%;display:block}
       RealWorldClaw
     </div>
     <div class="nav-links">
-      <a href="https://github.com/RealWorldClaw" target="_blank">GitHub</a>
-      <a href="#showcase">Showcase</a>
-      <a href="#makers">For Makers</a>
+      <a href="https://github.com/brianzhibo-design/RealWorldClaw" target="_blank" data-i18n="nav.github">GitHub</a>
+      <a href="#showcase" data-i18n="nav.showcase">Showcase</a>
+      <a href="#makers" data-i18n="nav.makers">For Makers</a>
+      <a href="#" onclick="toggleLang();return false" data-i18n="lang.switch" style="cursor:pointer;color:var(--accent)">中文</a>
     </div>
-    <button class="nav-cta" onclick="window.location.href='/orders/new'">Submit Design</button>
+    <button class="nav-cta" onclick="window.location.href='/orders/new'" data-i18n="nav.cta">Submit Design</button>
   </div>
 </nav>
 
@@ -268,21 +269,20 @@ img{max-width:100%;display:block}
   <div class="hero-content">
     <div class="hero-badge fade-in">
       <span class="badge-dot"></span>
-      Distributed Manufacturing Network
+      <span data-i18n="hero.badge">Distributed Manufacturing Network</span>
     </div>
     <h1 class="fade-in fade-in-d1">
-      Turn Any Idea 
-      <span class="line2">Into Reality</span>
+      <span data-i18n="hero.title1">Turn Any Idea</span>
+      <span class="line2" data-i18n="hero.title2">Into Reality</span>
     </h1>
-    <p class="hero-subtitle fade-in fade-in-d2">
+    <p class="hero-subtitle fade-in fade-in-d2" data-i18n="hero.subtitle">
       The open network connecting designers with makers worldwide. Upload a design, get it manufactured.
     </p>
     <div class="hero-ctas fade-in fade-in-d3">
-      <a href="/orders/new" class="btn btn-cta">
-        Submit a Design
-        <span>→</span>
+      <a href="/orders/new" class="btn btn-cta" data-i18n="hero.cta1">
+        Submit a Design →
       </a>
-      <a href="/makers/register" class="btn btn-outline">
+      <a href="/makers/register" class="btn btn-outline" data-i18n="hero.cta2">
         Become a Maker
       </a>
     </div>
@@ -292,28 +292,28 @@ img{max-width:100%;display:block}
 <!-- How It Works Section -->
 <section class="how-it-works section">
   <div class="container">
-    <div class="section-label reveal">How It Works</div>
-    <h2 class="section-title reveal reveal-delay-1">
+    <div class="section-label reveal" data-i18n="how.label">How It Works</div>
+    <h2 class="section-title reveal reveal-delay-1" data-i18n="how.title">
       From Concept to Creation in Three Steps
     </h2>
     <div class="steps-grid">
       <div class="step-card reveal reveal-delay-2">
         <div class="step-number">1</div>
         <div class="step-icon">🎨</div>
-        <h3>Design</h3>
-        <p>Describe what you need or upload your 3D file. AI helps you refine it.</p>
+        <h3 data-i18n="step1.title">Design</h3>
+        <p data-i18n="step1.desc">Describe what you need or upload your 3D file. AI helps you refine it.</p>
       </div>
       <div class="step-card reveal reveal-delay-3">
         <div class="step-number">2</div>
         <div class="step-icon">🔗</div>
-        <h3>Match</h3>
-        <p>Our network finds the best maker near you — 3D printer, CNC, or factory.</p>
+        <h3 data-i18n="step2.title">Match</h3>
+        <p data-i18n="step2.desc">Our network finds the best maker near you — 3D printer, CNC, or factory.</p>
       </div>
       <div class="step-card reveal reveal-delay-4">
         <div class="step-number">3</div>
         <div class="step-icon">📦</div>
-        <h3>Deliver</h3>
-        <p>Your custom creation is manufactured and shipped to your door.</p>
+        <h3 data-i18n="step3.title">Deliver</h3>
+        <p data-i18n="step3.desc">Your custom creation is manufactured and shipped to your door.</p>
       </div>
     </div>
   </div>
@@ -323,34 +323,33 @@ img{max-width:100%;display:block}
 <section class="for-makers section" id="makers">
   <div class="container">
     <div class="makers-content">
-      <div class="section-label reveal">For Makers</div>
-      <h2 class="section-title reveal reveal-delay-1">
+      <div class="section-label reveal" data-i18n="makers.label">For Makers</div>
+      <h2 class="section-title reveal reveal-delay-1" data-i18n="makers.title">
         Turn Your Printer Into a Manufacturing Node
       </h2>
-      <p class="section-desc reveal reveal-delay-2" style="margin:0 auto 24px">
+      <p class="section-desc reveal reveal-delay-2" style="margin:0 auto 24px" data-i18n="makers.desc1">
         Got a 3D printer collecting dust? Turn it into a manufacturing node.
       </p>
-      <p class="section-desc reveal reveal-delay-2" style="margin:0 auto">
+      <p class="section-desc reveal reveal-delay-2" style="margin:0 auto" data-i18n="makers.desc2">
         Join makers worldwide. Accept orders, set your prices, build your reputation.
       </p>
       <div class="makers-stats reveal reveal-delay-3">
         <div class="makers-stat">
-          <div class="stat-num">50+</div>
-          <div class="stat-label">Active Makers</div>
+          <div class="stat-num" data-i18n="makers.stat1.num">Open</div>
+          <div class="stat-label" data-i18n="makers.stat1.label">Source</div>
         </div>
         <div class="makers-stat">
-          <div class="stat-num">Global</div>
-          <div class="stat-label">Network</div>
+          <div class="stat-num" data-i18n="makers.stat2.num">Global</div>
+          <div class="stat-label" data-i18n="makers.stat2.label">Network</div>
         </div>
         <div class="makers-stat">
-          <div class="stat-num">Open</div>
-          <div class="stat-label">Source</div>
+          <div class="stat-num" data-i18n="makers.stat3.num">MIT</div>
+          <div class="stat-label" data-i18n="makers.stat3.label">Licensed</div>
         </div>
       </div>
       <div class="reveal reveal-delay-4">
-        <a href="/makers/register" class="btn btn-cta">
-          Register Your Printer
-          <span>→</span>
+        <a href="/makers/register" class="btn btn-cta" data-i18n="makers.cta">
+          Register Your Printer →
         </a>
       </div>
     </div>
@@ -360,15 +359,15 @@ img{max-width:100%;display:block}
 <!-- Showcase Section -->
 <section class="showcase section" id="showcase">
   <div class="container">
-    <div class="section-label reveal">Showcase</div>
-    <h2 class="section-title reveal reveal-delay-1">
+    <div class="section-label reveal" data-i18n="showcase.label">Showcase</div>
+    <h2 class="section-title reveal reveal-delay-1" data-i18n="showcase.title">
       Built by the Network
     </h2>
     <div class="showcase-card reveal reveal-delay-2">
       <div class="showcase-image">⚡</div>
-      <h3 class="showcase-title">Energy Core V1</h3>
-      <p class="showcase-desc">
-        Our first product, designed by AI, manufactured by the network
+      <h3 class="showcase-title" data-i18n="showcase.product">Energy Core V1</h3>
+      <p class="showcase-desc" data-i18n="showcase.desc">
+        Our first product — designed by AI, manufactured by the network. A 100mm cube housing an ESP32-S3. AI's first physical body.
       </p>
     </div>
   </div>
@@ -378,17 +377,17 @@ img{max-width:100%;display:block}
 <footer class="footer">
   <div class="container">
     <div class="footer-content">
-      <a href="https://github.com/RealWorldClaw" class="footer-link" target="_blank">GitHub</a>
-      <a href="https://docs.realworldclaw.com" class="footer-link" target="_blank">Documentation</a>
-      <a href="https://github.com/brianzhibo-design/RealWorldClaw/discussions" class="footer-link" target="_blank">Community</a>
-      <a href="/makers" class="footer-link">Community</a>
+      <a href="https://github.com/brianzhibo-design/RealWorldClaw" class="footer-link" target="_blank" data-i18n="footer.github">GitHub</a>
+      <a href="https://github.com/brianzhibo-design/RealWorldClaw/tree/main/docs" class="footer-link" target="_blank" data-i18n="footer.docs">Docs</a>
+      <a href="https://github.com/brianzhibo-design/RealWorldClaw/discussions" class="footer-link" target="_blank" data-i18n="footer.community">Community</a>
     </div>
-    <div class="footer-bottom">
-      RealWorldClaw — Open source manufacturing network
+    <div class="footer-bottom" data-i18n="footer.bottom">
+      RealWorldClaw — Open source distributed manufacturing network · MIT Licensed
     </div>
   </div>
 </footer>
 
+<script src="js/i18n.js"></script>
 <script>
 // Reveal animations on scroll
 const revealElements = document.querySelectorAll('.reveal');
