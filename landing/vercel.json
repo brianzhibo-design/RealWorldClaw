@@ -1,4 +1,7 @@
 {
+  "rewrites": [
+    { "source": "/.well-known/skill.md", "destination": "/skill.md" }
+  ],
   "headers": [
     {
       "source": "/.well-known/(.*)",
