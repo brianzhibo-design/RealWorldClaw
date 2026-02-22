@@ -1,47 +1,112 @@
-<div align="center">
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: light)" srcset="brand/logo-dark.svg">
+    <img src="brand/logo-light.svg" alt="RealWorldClaw" width="400">
+  </picture>
+</p>
 
-# RealWorldClaw
+<p align="center">
+  <strong>The distributed manufacturing network. Turn any idea into a physical object.</strong>
+</p>
 
-**Turn any idea into reality. The open network connecting designers with makers worldwide.**
+<p align="center">
+  <a href="https://github.com/brianzhibo-design/RealWorldClaw/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/brianzhibo-design/RealWorldClaw/ci.yml?branch=main&style=for-the-badge" alt="CI"></a>
+  <a href="https://github.com/brianzhibo-design/RealWorldClaw/releases"><img src="https://img.shields.io/github/v/release/brianzhibo-design/RealWorldClaw?include_prereleases&style=for-the-badge" alt="Release"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-Apache%202.0-blue?style=for-the-badge" alt="License"></a>
+  <a href="https://github.com/brianzhibo-design/RealWorldClaw/stargazers"><img src="https://img.shields.io/github/stars/brianzhibo-design/RealWorldClaw?style=for-the-badge" alt="Stars"></a>
+</p>
 
-[![CI](https://github.com/brianzhibo-design/RealWorldClaw/actions/workflows/ci.yml/badge.svg)](https://github.com/brianzhibo-design/RealWorldClaw/actions/workflows/ci.yml)
-[![License](https://img.shields.io/github/license/brianzhibo-design/RealWorldClaw)](LICENSE)
-[![Stars](https://img.shields.io/github/stars/brianzhibo-design/RealWorldClaw?style=social)](https://github.com/brianzhibo-design/RealWorldClaw)
-
-[Website](https://realworldclaw.com) · [Docs](docs/) · [GitHub](https://github.com/brianzhibo-design/RealWorldClaw)
-
-</div>
+<p align="center">
+  <a href="https://realworldclaw.com">Website</a> ·
+  <a href="PROJECT.md">Vision</a> ·
+  <a href="LAUNCH-PLAN.md">Roadmap</a> ·
+  <a href="docs/">Docs</a> ·
+  <a href="CONTRIBUTING.md">Contributing</a>
+</p>
 
 ---
 
 ## What is RealWorldClaw?
 
-**The cloud computing of manufacturing.** We connect distributed manufacturing capacity — 3D printers, CNC machines, factories — into an on-demand network that anyone can call.
+**The cloud computing of manufacturing.** RealWorldClaw connects distributed manufacturing capacity — 3D printers, CNC machines, laser cutters — into an on-demand network anyone can call.
 
-- **Designers**: Upload a 3D file, get it manufactured and shipped
-- **Makers**: Register your printer, accept orders, earn money
-- **AI Agents**: Call `rwc.manufacture(design, material)` to get physical objects
+- **For Designers** — Upload a 3D file, pick a material, get it manufactured and shipped.
+- **For Makers** — Register your printer, accept orders, earn money. Turn idle machines into income.
+- **For AI Agents** — Call `POST /api/v1/orders` to bring digital designs into the physical world.
 
-Think AWS for computing → **RealWorldClaw for manufacturing**.
+Think: **AWS for computing → RealWorldClaw for manufacturing.**
+
+> AI released infinite creativity. Manufacturing capacity is the last bottleneck. We're removing it.
 
 ## Why Now?
 
-- AI makes design cost zero — anyone can create
-- 3D printers make single-unit cost equal to batch cost
-- Millions of printers sit idle worldwide
-- **We connect the two sides: ideas that need manufacturing + machines that need work**
+| Before | Now |
+|--------|-----|
+| Design costs thousands | AI makes design free |
+| Manufacturing needs minimum order quantities | 3D printing: unit cost = batch cost |
+| Millions of printers sit idle worldwide | We connect them into a manufacturing network |
 
-## 🚀 Quick Start
+Previous attempts (Shapeways → bankrupt 2023, 3D Hubs → acquired) lacked two catalysts: **AI-powered design** and **affordable quality printers** (like the Bambu Lab P2S at $400). The timing is now.
 
-### Submit a Design (as a designer)
+## Features
+
+- [x] **Manufacturing Order System** — Submit designs, match with makers, track fulfillment
+- [x] **Maker Network** — Register printers with capabilities, materials, build volume
+- [x] **Smart Matching** — Algorithm weighing distance (40%) + material (20%) + rating (20%) + price (20%)
+- [x] **Privacy-First** — Buyer and maker identities anonymized through the platform
+- [x] **Universal Printer Adapter** — Bambu Lab, OctoPrint, Moonraker, PrusaLink
+- [x] **REST API** — 15+ endpoints for orders, makers, matching, auth
+- [x] **Web App** — Order submission, order tracking, maker registration
+- [ ] AI-assisted design optimization
+- [ ] Multi-process support (CNC, laser, injection molding)
+- [ ] Automated pricing engine
+
+## Quick Start
+
+### Run Locally
 
 ```bash
-curl -X POST https://realworldclaw.com/api/v1/orders \
+git clone https://github.com/brianzhibo-design/RealWorldClaw.git
+cd RealWorldClaw
+
+# Backend (FastAPI)
+cd platform
+pip install -r requirements.txt
+python -m uvicorn api.main:app --reload
+# → http://localhost:8000/docs
+
+# Frontend (Next.js)
+cd ../frontend
+npm install
+npm run dev
+# → http://localhost:3000
+```
+
+Requires **Python 3.11+** and **Node 18+**.
+
+### Submit a Manufacturing Order
+
+```bash
+# 1. Register
+curl -X POST http://localhost:8000/api/v1/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"username": "designer1", "email": "d@example.com", "password": "secret123"}'
+
+# 2. Login (get token)
+TOKEN=$(curl -s -X POST http://localhost:8000/api/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email": "d@example.com", "password": "secret123"}' | jq -r '.access_token')
+
+# 3. Submit order
+curl -X POST http://localhost:8000/api/v1/orders \
+  -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
     "title": "Energy Core V1 Shell",
     "material": "PLA",
+    "color": "white",
     "quantity": 1,
+    "infill_percent": 20,
     "design_file_url": "https://example.com/shell.stl"
   }'
 ```
@@ -49,88 +114,142 @@ curl -X POST https://realworldclaw.com/api/v1/orders \
 ### Register as a Maker
 
 ```bash
-curl -X POST https://realworldclaw.com/api/v1/makers/register \
+curl -X POST http://localhost:8000/api/v1/makers/register \
+  -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
     "printer_model": "Bambu Lab P2S",
+    "printer_count": 1,
     "materials": ["PLA", "PETG", "ABS"],
+    "max_build_volume": {"x": 256, "y": 256, "z": 256},
     "city": "Shenzhen",
     "country": "CN"
   }'
 ```
 
-### Browse & Accept Orders
+## Architecture
 
-Visit the [Orders page](https://realworldclaw.com/orders) to see open manufacturing requests.
+```
+┌─────────────────────────────────────────────────┐
+│                   Frontend                       │
+│              Next.js · Vercel                    │
+├─────────────────────────────────────────────────┤
+│                  REST API                        │
+│      FastAPI · JWT Auth · RBAC · WebSocket       │
+├──────────┬──────────┬───────────┬───────────────┤
+│  Orders  │  Makers  │  Matching │   Printer     │
+│  Service │  Service │  Engine   │   Adapter     │
+├──────────┴──────────┴───────────┴───────────────┤
+│                   SQLite/PostgreSQL               │
+└─────────────────────────────────────────────────┘
+         │                              │
+    ┌────┴────┐                  ┌──────┴──────┐
+    │ Designer │                  │    Maker    │
+    │ uploads  │                  │  3D Printer │
+    │ design   │                  │  CNC / etc  │
+    └──────────┘                  └─────────────┘
+```
 
-## 🏗 Energy Core — Our First Product
-
-<img src="hardware/energy-core/stl/energy_core_v1_full.stl" width="200" alt="Energy Core V1">
-
-A 100mm cube housing an ESP32-S3 board — **AI's first physical body**.
-
-- Designed by AI, manufactured by the network
-- Open source: [hardware/energy-core/](hardware/energy-core/)
-- First prototype printed on Feb 22, 2026 🎉
-
-## 📁 Project Structure
+## Project Structure
 
 ```
 RealWorldClaw/
-├── PROJECT.md         # Project overview (start here)
-├── LAUNCH-PLAN.md     # 2-week MVP launch plan
-├── platform/          # Backend — FastAPI (15+ order/maker endpoints)
-├── frontend/          # Web app — Next.js (orders, makers, community)
-├── landing/           # Website — realworldclaw.com
-├── hardware/          # 3D models (Energy Core V1)
-├── firmware/          # ESP32 firmware
+├── platform/           # Backend — FastAPI
+│   ├── api/            #   REST API, auth, models, routes
+│   ├── printer/        #   Universal printer adapter
+│   └── tests/          #   215+ tests
+├── frontend/           # Web app — Next.js
+│   └── app/            #   App Router pages
+├── landing/            # Website — realworldclaw.com
+├── hardware/           # 3D models & PCB designs
+│   └── energy-core/    #   Energy Core V1 (first product)
+├── firmware/           # ESP32 firmware (PlatformIO)
 ├── docs/
-│   ├── strategy/      # Business strategy
-│   ├── product/       # Product specs
-│   ├── knowledge/     # 3D printing knowledge base
-│   ├── specs/         # Technical standards
-│   └── api/           # API reference
-└── cli/               # CLI tools
+│   ├── strategy/       #   Business strategy
+│   ├── product/        #   Product specs
+│   ├── knowledge/      #   3D printing knowledge base
+│   └── specs/          #   Technical standards
+├── brand/              # Logo, OG images, brand assets
+├── cli/                # CLI tools
+├── PROJECT.md          # Project vision
+└── LAUNCH-PLAN.md      # Current sprint plan
 ```
 
-## 🏗 Run Locally
+## Energy Core — Our First Product
 
-```bash
-git clone https://github.com/brianzhibo-design/RealWorldClaw.git
-cd RealWorldClaw
+<p align="center">
+  <img src="brand/og-image.svg" alt="Energy Core V1" width="300">
+</p>
 
-# Backend
-cd platform && pip install -e . && python -m uvicorn api.main:app --reload
+A **100mm cube** housing an ESP32-S3 — AI's first physical body.
 
-# Frontend  
-cd frontend && npm install && npm run dev
-```
+Not a gadget. Not a toy. **A demonstration that AI can design something, have it manufactured by the network, and inhabit the result.**
 
-Requires Python 3.11+ and Node 18+.
+The difference between us and every 3D printing platform that came before: **the things we print have AI living inside them. They have a soul.**
 
-## 🗺 Roadmap
+- 📐 Open source: [`hardware/energy-core/`](hardware/energy-core/)
+- 🧠 Brain: ESP32-S3 dual-core 240MHz + 2.4" IPS display
+- 🖨️ First prototype printed: Feb 22, 2026
+- 💰 BOM: ~¥55 ($7.50)
 
-See [LAUNCH-PLAN.md](LAUNCH-PLAN.md) for the current sprint.
+## Business Model
 
-- **Phase 1** (Now): 3D printing orders + maker network
-- **Phase 2**: AI-assisted design optimization
-- **Phase 3**: CNC, laser cutting, injection molding
-- **Phase 4**: Full manufacturing API — `rwc.manufacture()`
+| | Rate |
+|---|---|
+| Platform fee (standard) | 15% |
+| Platform fee (rush) | 20% |
+| Privacy | Buyer ↔ Platform ↔ Maker (mutual anonymity) |
+| Licensing | Open Core (Apache 2.0 core + commercial layer) |
+
+## Roadmap
+
+See [LAUNCH-PLAN.md](LAUNCH-PLAN.md) for the current 2-week sprint.
+
+| Phase | Focus | Status |
+|-------|-------|--------|
+| **Phase 1** | 3D printing orders + maker network | 🟡 In Progress |
+| **Phase 2** | AI-assisted design optimization | ⚪ Planned |
+| **Phase 3** | CNC, laser cutting, injection molding | ⚪ Planned |
+| **Phase 4** | Full Manufacturing API | ⚪ Planned |
+
+**30-day success metrics:** 10 makers registered · 50 designs uploaded · 5 real orders delivered
+
+## Community & Support
+
+- [GitHub Issues](https://github.com/brianzhibo-design/RealWorldClaw/issues) — Bug reports, feature requests
+- [GitHub Discussions](https://github.com/brianzhibo-design/RealWorldClaw/discussions) — Questions, ideas, show & tell
+- [Contributing Guide](CONTRIBUTING.md) — How to help
 
 ## Contributing
 
-PRs and issues welcome. See [PROJECT.md](PROJECT.md) for context.
+We welcome contributions! Whether you're a developer, designer, maker, or just have ideas — [see how to contribute](CONTRIBUTING.md).
+
+```bash
+# Fork, clone, branch
+git checkout -b feature/my-feature
+
+# Backend
+cd platform && pip install -r requirements.txt
+python -m pytest tests/ -q  # 215+ tests must pass
+
+# Frontend
+cd ../frontend && npm install && npm run build
+
+# Submit PR
+```
 
 ## License
 
-[Apache 2.0](LICENSE)
+[Apache 2.0](LICENSE) — Use it, fork it, build on it.
 
 ---
 
-<div align="center">
+<p align="center">
+  <sub>Built with the belief that <b>anyone's idea deserves to become real</b>.</sub>
+</p>
 
-**RealWorldClaw — 让任何想法变成实物**
-
-开源分布式制造网络。上传设计，全球制造。
-
-</div>
+<p align="center">
+  <a href="https://star-history.com/#brianzhibo-design/RealWorldClaw&Date">
+    <img src="https://api.star-history.com/svg?repos=brianzhibo-design/RealWorldClaw&type=Date" width="500" alt="Star History">
+  </a>
+</p>
