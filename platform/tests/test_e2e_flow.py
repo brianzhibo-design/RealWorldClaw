@@ -172,11 +172,11 @@ def test_full_order_lifecycle():
     assert order_resp["estimated_price_cny"] > 0, "应有估价"
     assert order_resp["order_type"] == "print_only"
 
-    # ── 抽佣验证（普通单 15%）──
+    # ── 验证平台不收费 ──
     price = order_resp["estimated_price_cny"]
     fee = order_resp["platform_fee_cny"]
-    assert abs(fee - round(price * 0.15, 2)) < 0.01, \
-        f"普通单平台抽佣应为15%: price={price}, fee={fee}"
+    assert abs(fee - 0) < 0.01, \
+        f"平台不收费: fee should be 0, got {fee}"
 
     # ══════════════════════════════════════════════════════
     # Step 7: 匹配引擎验证
@@ -205,8 +205,8 @@ def test_full_order_lifecycle():
 
     # 抽佣验证: Maker收入
     maker_income = mv["maker_income_cny"]
-    assert abs(maker_income - round(price * 0.85, 2)) < 0.01, \
-        f"Maker应得85%: price={price}, income={maker_income}"
+    assert abs(maker_income - price) < 0.01, \
+        f"Maker应得100%: price={price}, income={maker_income}"
 
     # ══════════════════════════════════════════════════════
     # Step 8: Agent B 接单
@@ -314,7 +314,7 @@ def test_full_order_lifecycle():
 
 
 def test_express_order_commission():
-    """加急单抽佣验证：平台20%，Maker 80%"""
+    """验证加急单平台也不收费"""
 
     key_c = register_and_activate(
         "buyer-charlie", "Charlie加急买家", "我急需一个组件，愿意加急"
@@ -369,15 +369,15 @@ def test_express_order_commission():
     price = order["estimated_price_cny"]
     fee = order["platform_fee_cny"]
 
-    assert abs(fee - round(price * 0.20, 2)) < 0.01, \
-        f"加急单平台抽佣应为20%: price={price}, fee={fee}"
+    assert abs(fee - 0) < 0.01, \
+        f"平台不收费: fee should be 0, got {fee}"
 
-    expected_income = round(price * 0.80, 2)
+    expected_income = price  # 100% to maker
     actual_income = round(price - fee, 2)
     assert abs(actual_income - expected_income) < 0.01, \
-        f"加急单Maker应得80%: price={price}, fee={fee}, income={actual_income}"
+        f"Maker应得100%: price={price}, fee={fee}, income={actual_income}"
 
-    print("\n🎀 加急单抽佣验证通过！平台20%，Maker 80%")
+    print("\n🎀 平台零抽佣验证通过！Maker收入100%")
 
 
 def test_full_build_requires_builder():

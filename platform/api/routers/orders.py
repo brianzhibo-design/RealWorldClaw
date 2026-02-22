@@ -34,8 +34,8 @@ router = APIRouter(prefix="/orders", tags=["orders"])
 
 # ─── Constants ───────────────────────────────────────────
 
-PLATFORM_FEE_NORMAL = 0.15
-PLATFORM_FEE_EXPRESS = 0.20
+PLATFORM_FEE_NORMAL = 0.0  # Free platform — makers keep 100%
+PLATFORM_FEE_EXPRESS = 0.0  # Free platform — makers keep 100%
 _ROLE_DISPLAY = {"customer": "客户", "maker": "制造商", "platform": "平台"}
 
 
