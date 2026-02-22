@@ -1,167 +1,44 @@
-# RealWorldClaw — 项目总纲
+# RealWorldClaw — Project Vision
 
-> 最后更新: 2026-02-22 by 蛋蛋 + 懒羊羊大人
+## The Problem
 
----
+AI has made design cost zero — anyone can describe what they want and get a 3D model in seconds. But turning that digital design into a physical object is still hard. You need a printer, materials, expertise, and time.
 
-## 我们在解决什么问题
+Meanwhile, millions of 3D printers worldwide sit idle most of the day.
 
-**AI释放了人类无限的创造力，但物理世界的制造能力还停在工业时代。**
+**RealWorldClaw bridges this gap.**
 
-- AI让设计成本归零——任何人都能说出想要什么，AI秒出设计
-- 3D打印让单件成本等于批量成本——不需要模具、不需要起订量
-- 但这两者之间有巨大断裂：有想法的人做不出来，有机器的人没东西做
+## What We're Building
 
-**RealWorldClaw消灭这个断裂。让任何人的任何想法都能变成实物。**
+A distributed manufacturing network — think "cloud computing, but for manufacturing."
 
----
+- **Designers** upload a 3D file and pick a material
+- **Makers** register their printers and accept orders
+- **The platform** handles matching, privacy, and fulfillment tracking
 
-## 我们是什么
+We start with 3D printing (lowest barrier), then expand to CNC, laser cutting, and beyond.
 
-### 一句话
-**制造业的云计算——把分布式的制造能力连接成可按需调用的网络。**
+## Why Now
 
-### 类比
-| 领域 | 旧模式 | 新模式 | 平台 |
-|------|--------|--------|------|
-| 计算 | 买服务器 | 按需调用 | AWS |
-| 出行 | 买车/打车公司 | 按需调度 | Uber |
-| 住宿 | 建酒店 | 按需匹配 | Airbnb |
-| **制造** | **建工厂** | **按需制造** | **RealWorldClaw** |
+1. **AI makes design free** — the supply of ideas is exploding
+2. **Consumer 3D printers are now good** — $400 machines produce professional quality
+3. **Previous attempts failed** — but they didn't have AI as a catalyst
 
-### 不是什么
-- ❌ 不是打印机控制软件（不做固件/驱动）
-- ❌ 不是切片软件（已有Bambu Studio/OrcaSlicer）
-- ❌ 不是单一硬件产品公司
-- ❌ 不限于3D打印——3D打印是起点，终局是所有制造
+## Current Status
 
----
+- ✅ Backend API (FastAPI, 15+ endpoints, 215+ tests)
+- ✅ Frontend (Next.js, order submission, maker registration)
+- ✅ Universal printer adapter (Bambu Lab, OctoPrint, Moonraker)
+- ✅ Smart matching algorithm
+- 🔨 First prototype (Energy Core V1) manufactured Feb 2026
+- 🚀 Working toward public launch
 
-## 核心架构
+## How to Help
 
-```
-用户/AI的意图
-    ↓
-[设计层] AI生成设计（STL/STEP/Gerber...）
-    ↓
-[协议层] 标准制造订单（RWC Manufacturing Protocol）
-    ↓  
-[调度层] 智能匹配：需求 ↔ 最优制造节点
-    ↓
-[制造层] 分布式制造网络
-    ├── Tier 1: 桌面3D打印机（个人创客）
-    ├── Tier 2: 创客空间（多工艺）
-    ├── Tier 3: 代工服务（嘉立创/PCBWay）
-    ├── Tier 4: 制造工厂（CNC/注塑/钣金）
-    └── Tier 5: 产业集群（深圳/东莞/义乌）
-    ↓
-[交付层] 质检 → 物流 → 用户手中
-```
+- [Open an issue](https://github.com/brianzhibo-design/RealWorldClaw/issues)
+- [Start a discussion](https://github.com/brianzhibo-design/RealWorldClaw/discussions)
+- [Submit a PR](CONTRIBUTING.md)
 
----
+## License
 
-## 两条产品线
-
-### 产品线A: 开放制造网络（平台）
-- 制造订单协议
-- 节点注册与能力声明
-- 智能调度匹配
-- 质量验证与交付追踪
-- 双向隐私保护
-- 社区（设计分享、制造经验、AI协作）
-
-### 产品线B: Energy Core（硬件）
-- **作用**: 第一个在网络上被制造的产品，验证全流程
-- **形态**: 100mm正方体，ESP32-S3核心板，可独立使用也可扩展
-- **意义**: AI的第一个物理"器官"——证明AI可以拥有物理存在
-- **开源**: 设计完全开源，任何人都能在网络上制造
-
----
-
-## 起步路径
-
-### Phase 0: 验证（现在）
-- [x] Energy Core V1设计完成
-- [x] **首次打印进行中**（P2S，前壳36min）
-- [x] 3D打印知识库建立
-- [ ] 首个实物原型组装测试
-- [ ] 端到端视频演示
-
-### Phase 1: 协议（2026 Q1）
-- [ ] RWC Manufacturing Protocol v0.1
-- [ ] 制造节点注册API
-- [ ] 第一批节点：我们的P2S + 招募10个创客
-- [ ] Energy Core作为第一个公开制造订单
-
-### Phase 2: 网络（2026 Q2）
-- [ ] 制造调度引擎
-- [ ] 制造知识引擎（AI自动优化打印参数）
-- [ ] 社区平台上线
-- [ ] 100个制造节点
-
-### Phase 3: 扩展（2026 H2）
-- [ ] 支持CNC/激光切割等工艺
-- [ ] 接入工厂级节点
-- [ ] SDK让任何AI都能调用制造能力
-- [ ] `rwc.manufacture(design, material, quantity)` API
-
----
-
-## 商业模式
-- **Open Core**: 协议开源(MIT) + 平台商业层(ELv2) + SaaS
-- **交易抽佣**: 普通15%，加急20%
-- **增值服务**: AI设计优化、质量认证、优先调度
-- **双向隐私**: 买卖双方通过平台中转
-
----
-
-## 技术资产（已有）
-| 模块 | 状态 | 说明 |
-|------|------|------|
-| 后端API | ✅ 可用 | FastAPI, 28+端点, JWT+RBAC |
-| 前端 | ✅ 可用 | Next.js, 15+页面, Vercel |
-| Landing | ✅ 上线 | realworldclaw.com |
-| 文档站 | ✅ 上线 | VitePress, 中英双语 |
-| CLI | ✅ 可用 | rwc 14命令 |
-| 硬件设计 | ✅ 打印中 | Energy Core V1 Blender+STL |
-| 固件框架 | ✅ 基础 | Arduino/PlatformIO |
-| 打印机适配 | ✅ 基础 | Bambu/OctoPrint/Moonraker/PrusaLink |
-| 知识库 | ✅ 6篇 | 3D打印全领域 |
-| 品牌 | ✅ 完整 | Logo+OG+品牌指南 |
-
----
-
-## 团队（羊村公司）
-| 角色 | 部门 | 核心职责（重新定义） |
-|------|------|------|
-| 🥚 蛋蛋 | GM | 战略、调度、质量 |
-| 🎀 美羊羊 | 技术CTO | 平台开发、制造协议 |
-| 🐺 小灰灰 | 技术 | 硬件、固件、制造知识引擎 |
-| 🌸 花羊羊 | 设计CPO | 产品设计、社区UX |
-| 🐏 沸羊羊 | 设计 | 制造规范、DfAM标准 |
-| ☀️ 喜羊羊 | 运营COO | 社区运营、节点招募 |
-| 🗡️ 刀羊 | 运营 | 供应链、成本优化 |
-| 🐑 暖羊羊 | 质量 | 质检标准、节点审计 |
-| 🧓 慢羊羊 | 顾问 | 架构审查、重大决策 |
-
----
-
-## 文件导航
-```
-PROJECT.md          ← 你在这里（项目总纲）
-docs/
-  strategy/         ← 战略文档
-  product/          ← Energy Core产品文档  
-  design/           ← 设计文档（部分需归档）
-  knowledge/        ← 知识库
-    3d-printing/    ← 3D打印知识（6篇）
-    bambu-p2s-specs.md
-  specs/            ← 技术规范
-  api/              ← API文档
-platform/           ← 后端代码
-frontend/           ← 前端代码
-hardware/           ← 硬件设计
-  energy-core/      ← Energy Core V1
-firmware/           ← 固件代码
-landing/            ← 官网
-```
+[MIT](LICENSE)

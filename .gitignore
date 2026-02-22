@@ -70,3 +70,13 @@ tools/ui-ux-pro-max/
 venv/
 yarn-debug.log*
 yarn-error.log*
+docs/strategy/
+# Internal docs (not for public)
+docs/strategy/
+docs/archive/PROJECT-internal.md
+docs/archive/LAUNCH-PLAN-internal.md
+platform/ORDERS_SYSTEM_README.md
+frontend/ORDERS_FEATURE_SUMMARY.md
+content/
+seed-components/*/agent/SOUL.md
+docs-site/guides/maker-network.md

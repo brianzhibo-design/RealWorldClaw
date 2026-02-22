@@ -46,7 +46,7 @@ Think: **AWS for computing → RealWorldClaw for manufacturing.**
 | Manufacturing needs minimum order quantities | 3D printing: unit cost = batch cost |
 | Millions of printers sit idle worldwide | We connect them into a manufacturing network |
 
-Previous attempts (Shapeways → bankrupt 2023, 3D Hubs → acquired) lacked two catalysts: **AI-powered design** and **affordable quality printers** (like the Bambu Lab P2S at $400). The timing is now.
+Previous attempts lacked two catalysts that exist today: **AI-powered design** and **affordable quality printers**. The timing is now.
 
 ## Features
 
