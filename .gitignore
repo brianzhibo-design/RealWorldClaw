@@ -1,81 +1,72 @@
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.egg-info/
-*.egg
-dist/
-build/
-*.whl
-.pytest_cache/
-.mypy_cache/
-.ruff_cache/
-htmlcov/
-.coverage
-coverage.xml
-
-# Virtual environments
-.env
-.venv/
-venv/
-ENV/
-
-# Node
-node_modules/
-.next/
-out/
-.nuxt/
-.turbo/
-*.tsbuildinfo
-
-# Package managers
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-.pnpm-debug.log*
-
-# Database (local dev)
-*.db
-*.sqlite3
-
-# OS
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-Thumbs.db
-ehthumbs.db
-Desktop.ini
-
-# IDE
-.idea/
-.vscode/
-*.swp
-*.swo
-*~
-*.sublime-workspace
-*.sublime-project
-
-# Docker
-docker-compose.override.yml
-
-# Secrets
-.env.local
-.env.*.local
-*.pem
-*.key
 
 # Build artifacts
+# Database (local dev)
+# Docker
+# IDE
+# Node
+# OS
+# Package managers
+# Python
+# Secrets
+# Virtual environments
+*$py.class
+*.3mf
+*.db
+*.db-shm
+*.db-wal
+*.egg
+*.egg-info/
+*.env.production
+*.gcode
+*.key
 *.log
-tmp/
+*.pem
+*.py[cod]
+*.sqlite3
+*.sublime-project
+*.sublime-workspace
+*.swo
+*.swp
+*.tsbuildinfo
+*.whl
+*~
+.DS_Store
+.DS_Store?
+.Spotlight-V100
+.Trashes
+._*
+.coverage
+.env
+.env*.local
+.env.*.local
+.env.local
+.idea/
+.mypy_cache/
+.next/
+.nuxt/
+.pnpm-debug.log*
+.pytest_cache/
+.ruff_cache/
+.turbo/
+.venv/
+.vscode/
+Desktop.ini
+ENV/
+Thumbs.db
+__pycache__/
+build/
+coverage.xml
+dist/
+docker-compose.override.yml
+ehthumbs.db
+htmlcov/
+node_modules/
+npm-debug.log*
+out/
 temp/
+tmp/
 tools/references/
 tools/ui-ux-pro-max/
-*.env.production
-.env.local
-.env*.local
-*.gcode
-*.3mf
-*.db-wal
-*.db-shm
+venv/
+yarn-debug.log*
+yarn-error.log*

@@ -39,7 +39,7 @@ requirements:
   
 metadata:
   author: "RealWorldClaw"
-  license: "Apache-2.0"
+  license: "MIT"
   bom_cost_usd: 3.50
 ```
 

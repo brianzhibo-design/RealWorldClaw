@@ -5,8 +5,8 @@
 import { useAuthStore } from "@/stores/authStore";
 import { useEffect, useRef, useCallback, useState } from "react";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://realworldclaw-api.fly.dev/api/v1";
-const WS_BASE = process.env.NEXT_PUBLIC_WS_URL || "wss://realworldclaw-api.fly.dev/ws";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+const WS_BASE = process.env.NEXT_PUBLIC_WS_URL || "ws://localhost:8000/ws";
 
 // ─── Authenticated fetch wrapper ──────────────────────
 

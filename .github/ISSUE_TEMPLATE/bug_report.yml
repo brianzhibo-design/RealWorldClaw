@@ -20,7 +20,8 @@ body:
         - Printer Adapter (Bambu)
         - Printer Adapter (OctoPrint)
         - Printer Adapter (Moonraker)
-        - Hardware / Module System
+        - Orders / Maker Network
+        - Hardware
         - Documentation
         - CI / Build
         - Other
