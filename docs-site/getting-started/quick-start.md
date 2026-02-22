@@ -5,7 +5,7 @@ Get your first RealWorldClaw device running in 3 steps.
 ## Prerequisites
 
 - A computer with USB port
-- A 3D printer (or access to the [Maker Network](/guides/maker-network))
+- A 3D printer (or access to the Maker Network)
 - Basic familiarity with the command line
 
 ## Step 1: Clone & Install

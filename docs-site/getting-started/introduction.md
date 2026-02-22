@@ -68,4 +68,3 @@ An AI body doesn't arrive complete. It **grows**, organ by organ:
 
 - **[Quick Start →](/getting-started/quick-start)** — Get up and running in 3 steps
 - **[Modules Overview →](/modules/overview)** — Explore the 6 core modules
-- **[Maker Network →](/guides/maker-network)** — Learn how distributed manufacturing works
