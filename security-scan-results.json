@@ -1,0 +1,38 @@
+[
+  {
+    "severity": "CRITICAL",
+    "category": "gitignore",
+    "message": ".env file is tracked in git: frontend/.env.example",
+    "file": "frontend/.env.example"
+  },
+  {
+    "severity": "CRITICAL",
+    "category": "gitignore",
+    "message": ".env file is tracked in git: frontend/.env.production",
+    "file": "frontend/.env.production"
+  },
+  {
+    "severity": "CRITICAL",
+    "category": "gitignore",
+    "message": ".env file is tracked in git: platform/.env.example",
+    "file": "platform/.env.example"
+  },
+  {
+    "severity": "HIGH",
+    "category": "hardcoded_secret",
+    "message": "Possible Token found",
+    "file": "docs/demos/e2e-demo-script.md"
+  },
+  {
+    "severity": "HIGH",
+    "category": "hardcoded_secret",
+    "message": "Possible Token found",
+    "file": "docs/demos/e2e-demo-script.md"
+  },
+  {
+    "severity": "HIGH",
+    "category": "dependency",
+    "message": "frontend: 19 high/critical npm vulnerabilities",
+    "file": ""
+  }
+]

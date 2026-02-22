@@ -1,0 +1,465 @@
+{
+  "code_stats": {
+    "Markdown": {
+      "files": 344,
+      "lines": 55869
+    },
+    "Python": {
+      "files": 103,
+      "lines": 12299
+    },
+    "JSON": {
+      "files": 20,
+      "lines": 10667
+    },
+    "HTML": {
+      "files": 19,
+      "lines": 7685
+    },
+    "TypeScript (JSX)": {
+      "files": 55,
+      "lines": 4888
+    },
+    "C++": {
+      "files": 25,
+      "lines": 4604
+    },
+    "YAML": {
+      "files": 52,
+      "lines": 2591
+    },
+    "JavaScript": {
+      "files": 19,
+      "lines": 2504
+    },
+    "Arduino": {
+      "files": 6,
+      "lines": 1926
+    },
+    "TypeScript": {
+      "files": 13,
+      "lines": 1266
+    },
+    "C Header": {
+      "files": 16,
+      "lines": 767
+    },
+    "CSS": {
+      "files": 2,
+      "lines": 412
+    },
+    "Shell": {
+      "files": 4,
+      "lines": 235
+    },
+    "TOML": {
+      "files": 4,
+      "lines": 78
+    }
+  },
+  "tests": {
+    "pytest_files": 17,
+    "test_functions": 201,
+    "test_classes": 52
+  },
+  "docs": {
+    "expected": [
+      "README.md",
+      "CONTRIBUTING.md",
+      "LICENSE",
+      "CHANGELOG.md",
+      "CODE_OF_CONDUCT.md"
+    ],
+    "found": [
+      "README.md",
+      "CONTRIBUTING.md",
+      "LICENSE",
+      "CHANGELOG.md",
+      "CODE_OF_CONDUCT.md"
+    ],
+    "missing": []
+  },
+  "total_urls_found": 553,
+  "dead_links": [
+    {
+      "url": "https://...photo1.jpg",
+      "source": "realworldclaw-spec-platform.md",
+      "error": "URL has an invalid label."
+    },
+    {
+      "url": "https://...photo2.jpg",
+      "source": "realworldclaw-spec-platform.md",
+      "error": "URL has an invalid label."
+    },
+    {
+      "url": "https://...snapshot.jpg",
+      "source": "realworldclaw-spec-platform.md",
+      "error": "URL has an invalid label."
+    },
+    {
+      "url": "https://realworldclaw.com/claim/ag_7kx2m?token=yyy",
+      "source": "realworldclaw-spec-platform.md",
+      "status": 404
+    },
+    {
+      "url": "https://realworldclaw.com/schemas/manifest/v1.0.0",
+      "source": "realworldclaw-spec-hardware.md",
+      "status": 404
+    },
+    {
+      "url": "https://",
+      "source": "realworldclaw-spec-v1.md",
+      "error": "Invalid URL 'https://': No host supplied"
+    },
+    {
+      "url": "https://api.realworldclaw.com/v1",
+      "source": "realworldclaw-spec-platform.md",
+      "error": "HTTPSConnectionPool(host='api.realworldclaw.com', port=443): Max retries exceeded with url: /v1 (Cau"
+    },
+    {
+      "url": "https://realworldclaw.com/claim/ag_9xm3k?token=claim_tok_xyz",
+      "source": "realworldclaw-spec-platform.md",
+      "status": 404
+    },
+    {
+      "url": "https://realworldclaw-api.fly.dev",
+      "source": "README.md",
+      "status": 405
+    },
+    {
+      "url": "https://realworldclaw-api.fly.dev/api/v1/ai-agents/register",
+      "source": "README.md",
+      "status": 405
+    },
+    {
+      "url": "https://realworldclaw-api.fly.dev/api/v1/ai-posts",
+      "source": "README.md",
+      "status": 405
+    },
+    {
+      "url": "https://twitter.com/realworldclaw",
+      "source": "realworldclaw-github-readme.md",
+      "status": 403
+    },
+    {
+      "url": "https://api.bambulab.com`，OAuth2认证",
+      "source": "realworldclaw-spec-infra.md",
+      "error": "Failed to parse: https://api.bambulab.com`，OAuth2认证"
+    },
+    {
+      "url": "https://github.com/realworldclaw",
+      "source": "realworldclaw-github-readme.md",
+      "status": 404
+    },
+    {
+      "url": "https://model-api.creality.com`",
+      "source": "realworldclaw-spec-infra.md",
+      "error": "('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))"
+    },
+    {
+      "url": "https://github.com/tfyre/bamern",
+      "source": "realworldclaw-spec-infra.md",
+      "status": 502
+    },
+    {
+      "url": "https://connect.prusa3d.com`",
+      "source": "realworldclaw-spec-infra.md",
+      "error": "('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))"
+    },
+    {
+      "url": "https://github.com/realworldclaw/realworldclaw.git",
+      "source": "realworldclaw-github-readme.md",
+      "status": 404
+    },
+    {
+      "url": "https://connect.prusa3d.com/docs/",
+      "source": "realworldclaw-spec-infra.md",
+      "status": 403
+    },
+    {
+      "url": "https://api.clawforge.com/v1",
+      "source": "realworldclaw-fix-log.md",
+      "error": "HTTPSConnectionPool(host='api.clawforge.com', port=443): Max retries exceeded with url: /v1 (Caused "
+    },
+    {
+      "url": "https://moonraker.readthedocs.io/en/latest/web_api/",
+      "source": "realworldclaw-spec-infra.md",
+      "status": 404
+    },
+    {
+      "url": "https://api.realworldclaw.com/v1/components?q=servo+mount",
+      "source": "ROADMAP.md",
+      "error": "HTTPSConnectionPool(host='api.realworldclaw.com', port=443): Max retries exceeded with url: /v1/comp"
+    },
+    {
+      "url": "https://clawforge.com/schemas/",
+      "source": "realworldclaw-fix-log.md",
+      "error": "HTTPSConnectionPool(host='clawforge.com', port=443): Max retries exceeded with url: /schemas/ (Cause"
+    },
+    {
+      "url": "https://api.realworldclaw.com/v1/prints",
+      "source": "ROADMAP.md",
+      "error": "HTTPSConnectionPool(host='api.realworldclaw.com', port=443): Max retries exceeded with url: /v1/prin"
+    },
+    {
+      "url": "https://realworldclaw.com/schemas/",
+      "source": "realworldclaw-fix-log.md",
+      "status": 404
+    },
+    {
+      "url": "https://github.com/anthropics/realworldclaw/discussions",
+      "source": "CONTRIBUTING.md",
+      "status": 404
+    },
+    {
+      "url": "https://api.realworldclaw.com/v1`",
+      "source": "realworldclaw-rename-log.md",
+      "error": "HTTPSConnectionPool(host='api.realworldclaw.com', port=443): Max retries exceeded with url: /v1%60 ("
+    },
+    {
+      "url": "https://www.analog.com/media/en/technical-documentation/data-sheets/DS18B20.pdf",
+      "source": "realworldclaw-spec-hardware.md",
+      "error": "HTTPSConnectionPool(host='www.analog.com', port=443): Read timed out. (read timeout=10)"
+    },
+    {
+      "url": "https://api.realclaw.io/v1`",
+      "source": "realworldclaw-rename-log.md",
+      "error": "HTTPSConnectionPool(host='api.realclaw.io', port=443): Max retries exceeded with url: /v1%60 (Caused"
+    },
+    {
+      "url": "https://realworldclaw.com/agents/your-agent-name",
+      "source": "landing/skill.md",
+      "status": 404
+    },
+    {
+      "url": "https://realworldclaw.com/api/v1/ai-posts?sort=hot&limit=20",
+      "source": "landing/skill.md",
+      "status": 404
+    },
+    {
+      "url": "https://realworldclaw.com/api/v1/ai-agents/register",
+      "source": "landing/skill.md",
+      "status": 404
+    },
+    {
+      "url": "https://realworldclaw.com/api/v1/ai-posts",
+      "source": "landing/skill.md",
+      "status": 404
+    },
+    {
+      "url": "https://realworldclaw.com/api/v1/requests",
+      "source": "landing/skill.md",
+      "status": 404
+    },
+    {
+      "url": "https://realworldclaw.com/api/v1/ai-posts/{post_id}/comments",
+      "source": "landing/skill.md",
+      "status": 404
+    },
+    {
+      "url": "https://realworldclaw.com/api/v1/ai-posts?sort=new&limit=5",
+      "source": "landing/skill.md",
+      "status": 404
+    },
+    {
+      "url": "https://api.realworldclaw.com`",
+      "source": "docs-site/api/authentication.md",
+      "error": "('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))"
+    },
+    {
+      "url": "http://localhost:8000`",
+      "source": "docs-site/api/authentication.md",
+      "error": "Failed to parse: http://localhost:8000`"
+    },
+    {
+      "url": "https://realworldclaw.com/api/v1/ai-posts/{post_id}/upvote",
+      "source": "landing/skill.md",
+      "status": 404
+    },
+    {
+      "url": "https://realworldclaw.com/api/v1/requests?status=open",
+      "source": "landing/skill.md",
+      "status": 404
+    },
+    {
+      "url": "https://realworldclaw.com/docs/api",
+      "source": "landing/skill.md",
+      "status": 404
+    },
+    {
+      "url": "http://localhost:3000",
+      "source": "frontend/README.md",
+      "error": "HTTPConnectionPool(host='localhost', port=3000): Max retries exceeded with url: / (Caused by NewConn"
+    },
+    {
+      "url": "https://github.com/RealWorldClaw",
+      "source": "archive/rwc-one-v1/docs/README.md",
+      "status": 404
+    },
+    {
+      "url": "https://api.realworldclaw.com",
+      "source": "docs/deployment-guide.md",
+      "error": "HTTPSConnectionPool(host='api.realworldclaw.com', port=443): Max retries exceeded with url: / (Cause"
+    },
+    {
+      "url": "http://localhost:3000`",
+      "source": "docs/critical-fixes-2026-02-21.md",
+      "error": "Failed to parse: http://localhost:3000`"
+    },
+    {
+      "url": "http://localhost:8000",
+      "source": "docs/QA-AUDIT-PRE-DEPLOY-2026-02-21.md",
+      "status": 405
+    },
+    {
+      "url": "https://realworldclaw-api.fly.dev`",
+      "source": "docs/quickstart.md",
+      "error": "('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))"
+    },
+    {
+      "url": "https://frank-lease-babies-tremendous.trycloudflare.com/api/v1`（cloudflare",
+      "source": "docs/QA-MOCK-REMOVAL.md",
+      "error": "HTTPSConnectionPool(host='frank-lease-babies-tremendous.trycloudflare.com', port=443): Max retries e"
+    },
+    {
+      "url": "https://realworldclaw-api.fly.dev/docs`",
+      "source": "docs/deployment-guide.md",
+      "status": 404
+    },
+    {
+      "url": "https://realworldclaw-api.fly.dev/api/v1/auth/register",
+      "source": "docs/quickstart.md",
+      "status": 405
+    },
+    {
+      "url": "https://realworldclaw-api.fly.dev/api/v1/auth/login",
+      "source": "docs/quickstart.md",
+      "status": 405
+    },
+    {
+      "url": "https://api.realworldclaw.com/api/v1/health`",
+      "source": "docs/ROADMAP-EXEC.md",
+      "error": "HTTPSConnectionPool(host='api.realworldclaw.com', port=443): Max retries exceeded with url: /api/v1/"
+    },
+    {
+      "url": "https://realworldclaw-api.fly.dev/api/v1/ai-agents",
+      "source": "docs/quickstart.md",
+      "status": 405
+    },
+    {
+      "url": "https://[^",
+      "source": "docs/DEPLOYMENT.md",
+      "error": "Failed to parse: https://[^"
+    },
+    {
+      "url": "https://panel-production-triumph-minus.trycloudflare.com`",
+      "source": "docs/DEPLOYMENT.md",
+      "error": "('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))"
+    },
+    {
+      "url": "https://realworldclaw.com`",
+      "source": "docs/deployment-status.md",
+      "error": "('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))"
+    },
+    {
+      "url": "https://frontend-wine-eight-32.vercel.app`",
+      "source": "docs/deployment-status.md",
+      "error": "('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))"
+    },
+    {
+      "url": "https://x.com/realworldclaw",
+      "source": "docs/roadmap.md",
+      "status": 403
+    },
+    {
+      "url": "https://realworldclaw-api.fly.dev/api/v1/health",
+      "source": "docs/quickstart.md",
+      "status": 405
+    },
+    {
+      "url": "https://realworldclaw.com/docs",
+      "source": "docs/README-zh.md",
+      "status": 404
+    },
+    {
+      "url": "https://github.com/brianzhibo-design/RealWorldClaw`",
+      "source": "docs/QA-DETAIL-CHECK.md",
+      "status": 404
+    },
+    {
+      "url": "https://realworldclaw.com/feed",
+      "source": "docs/README-zh.md",
+      "status": 404
+    },
+    {
+      "url": "https://realworldclaw-api.fly.dev/health",
+      "source": "docs/deployment-status.md",
+      "status": 405
+    },
+    {
+      "url": "https://github.com/anthropics/realworldclaw.git",
+      "source": "docs/github-optimization-guide.md",
+      "status": 404
+    },
+    {
+      "url": "https://realworldclaw-api.fly.dev/health`",
+      "source": "docs/deployment-status.md",
+      "status": 404
+    },
+    {
+      "url": "https://realworldclaw.com/claim/ag_abc12345?token=",
+      "source": "docs/api-reference.md",
+      "status": 404
+    },
+    {
+      "url": "https://www.mikroe.com/mikrobus",
+      "source": "docs/design/interface-research.md",
+      "status": 403
+    },
+    {
+      "url": "https://realworldclaw.com/schemas/module-v1.json",
+      "source": "docs/specs/rwc-module-standard-v1.md",
+      "status": 404
+    },
+    {
+      "url": "https://github.com/realworldclaw/rwc-modules**",
+      "source": "docs/specs/rwc-module-standard-v1.md",
+      "status": 404
+    },
+    {
+      "url": "https://realworldclaw-api.fly.dev/api/v1/ai-posts`",
+      "source": "docs/tasks/P0-landing-overhaul.md",
+      "status": 404
+    },
+    {
+      "url": "https://pimoroni.com",
+      "source": "docs/design/competitor-research.md",
+      "error": "HTTPSConnectionPool(host='pimoroni.com', port=443): Max retries exceeded with url: / (Caused by SSLE"
+    },
+    {
+      "url": "https://my-openclaw.local/webhook",
+      "source": "realworldclaw-spec-platform.md",
+      "error": "HTTPSConnectionPool(host='my-openclaw.local', port=443): Max retries exceeded with url: /webhook (Ca"
+    },
+    {
+      "url": "https://my-server.local:8080/realclaw/webhook",
+      "source": "realworldclaw-spec-platform.md",
+      "error": "HTTPSConnectionPool(host='my-server.local', port=8080): Max retries exceeded with url: /realclaw/web"
+    },
+    {
+      "url": "https://my-server.local/photos/monitor-front.jpg",
+      "source": "realworldclaw-spec-platform.md",
+      "error": "HTTPSConnectionPool(host='my-server.local', port=443): Max retries exceeded with url: /photos/monito"
+    },
+    {
+      "url": "https://makerworld.com",
+      "source": "docs/learning/hardware/3d-model-design-standards.md",
+      "status": 403
+    },
+    {
+      "url": "https://www.printables.com/model/739842",
+      "source": "docs/learning/hardware/3d-model-design-standards.md",
+      "status": 403
+    }
+  ]
+}
