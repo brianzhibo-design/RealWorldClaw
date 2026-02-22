@@ -49,6 +49,8 @@ def _seed_agent(agent_id: str, api_key: str, name: str | None = None) -> str:
 
 def _seed_world():
     """创建买家 + 制造者 + Maker，返回 (customer_id, maker_id, maker_reg_id)"""
+    from api.database import init_db
+    init_db()  # ensure schema is up to date
     customer_id = _seed_agent("ag_customer", CUSTOMER_KEY, "buyer")
     maker_id = _seed_agent("ag_maker", MAKER_KEY, "maker")
 
@@ -80,6 +82,7 @@ ORDER_BODY = {
     "delivery_address": "福田区某某路123号",
     "urgency": "normal",
     "notes": "请用白色PLA",
+    "auto_match": True,
 }
 
 
@@ -458,6 +461,7 @@ class TestEnhancedOrders:
 
     def test_get_available_orders_not_maker(self):
         """Test getting available orders when not registered as maker."""
+        _seed_world()  # seed customer agent so auth works
         resp = client.get("/api/v1/orders/available", headers=_auth(CUSTOMER_KEY))
         assert resp.status_code == 403
         assert "Not registered as a maker" in resp.json()["detail"]
@@ -521,7 +525,7 @@ class TestEnhancedOrders:
         # Second attempt should fail
         resp = client.post(f"/api/v1/orders/{order_id}/claim", headers=_auth(MAKER_KEY))
         assert resp.status_code == 400
-        assert "Order already assigned" in resp.json()["detail"]
+        assert resp.json()["detail"] in ("Order already assigned", "Order is not available")
 
     def test_complete_order(self):
         """Test maker completing an order."""

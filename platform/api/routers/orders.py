@@ -144,19 +144,8 @@ def create_order(body: OrderCreateRequest, identity: dict = Depends(get_authenti
                 maker_region = f"{best['location_province']} {best['location_city']}"
                 estimated_price = round(best["pricing_per_hour_cny"] * body.quantity * 2, 2)
         else:
-            # Traditional matching
-            matches = match_maker_for_order(
-                db,
-                body.delivery_province, body.delivery_city, body.delivery_district,
-                body.material or body.material_preference,
-                order_type=body.order_type.value if body.order_type else "print_only",
-            )
-
-            if matches:
-                best = matches[0]
-                maker_id = best["id"]
-                maker_region = f"{best['location_province']} {best['location_city']}"
-                estimated_price = round(best["pricing_per_hour_cny"] * body.quantity * 2, 2)
+            # No auto-match: leave order unassigned for makers to claim
+            pass
 
         fee_rate = PLATFORM_FEE_EXPRESS if body.urgency == "express" else PLATFORM_FEE_NORMAL
         platform_fee = round(estimated_price * fee_rate, 2)
