@@ -167,7 +167,7 @@ def init_db():
             delivery_province TEXT NOT NULL,
             delivery_city TEXT NOT NULL,
             delivery_district TEXT NOT NULL,
-            delivery_address TEXT NOT NULL,              -- 仅平台可见！
+            delivery_address TEXT NOT NULL,              -- Platform-only visible!
             urgency TEXT NOT NULL DEFAULT 'normal',
             status TEXT NOT NULL DEFAULT 'pending',
             notes TEXT,

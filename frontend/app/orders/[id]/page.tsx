@@ -155,7 +155,7 @@ export default function OrderDetailPage() {
                 }`}>
                   {order.status}
                 </span>
-                <span className="text-slate-500 text-sm">{formatDate(order.created_at)}</span>
+                <span className="text-slate-400 text-sm">{formatDate(order.created_at)}</span>
               </div>
             </div>
           </div>
@@ -210,18 +210,18 @@ export default function OrderDetailPage() {
           <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-6">
             <h2 className="text-lg font-semibold mb-4">💬 Messages</h2>
             {msgError ? (
-              <p className="text-slate-500 text-sm italic">Messages coming soon</p>
+              <p className="text-slate-400 text-sm italic">Messages coming soon</p>
             ) : messages && messages.length > 0 ? (
               <div className="space-y-3 max-h-64 overflow-y-auto">
                 {messages.map((m) => (
                   <div key={m.id} className="p-3 bg-slate-800/50 rounded-lg border border-slate-700">
                     <p className="text-slate-300 text-sm">{m.content}</p>
-                    <p className="text-slate-500 text-xs mt-1">{formatDate(m.created_at)}</p>
+                    <p className="text-slate-400 text-xs mt-1">{formatDate(m.created_at)}</p>
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="text-slate-500 text-sm">No messages yet</p>
+              <p className="text-slate-400 text-sm">No messages yet</p>
             )}
           </div>
         </div>
@@ -244,13 +244,13 @@ export default function OrderDetailPage() {
                       className={`w-10 h-10 rounded-full border-2 flex items-center justify-center text-sm transition-colors ${
                         i <= currentStep
                           ? "bg-sky-600 border-sky-500 text-white"
-                          : "bg-slate-800 border-slate-700 text-slate-500"
+                          : "bg-slate-800 border-slate-700 text-slate-400"
                       }`}
                     >
                       {s.icon}
                     </div>
                     <div className="flex-1">
-                      <div className={`font-medium ${i <= currentStep ? "text-white" : "text-slate-500"}`}>
+                      <div className={`font-medium ${i <= currentStep ? "text-white" : "text-slate-400"}`}>
                         {s.label}
                       </div>
                       {i === currentStep && (

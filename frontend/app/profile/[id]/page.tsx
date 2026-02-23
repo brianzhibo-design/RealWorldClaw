@@ -127,7 +127,7 @@ export default function ProfilePage() {
               <p className="text-slate-400 mt-1">
                 {isOwnProfile && currentUser ? currentUser.role : "Member"}
               </p>
-              <p className="text-slate-500 text-sm mt-1">
+              <p className="text-slate-400 text-sm mt-1">
                 {userPosts.length} post{userPosts.length !== 1 ? "s" : ""}
               </p>
             </div>
@@ -154,7 +154,7 @@ export default function ProfilePage() {
                     <span className="px-2 py-0.5 bg-sky-900/50 text-sky-300 border border-sky-700 rounded text-xs font-medium">
                       {post.post_type}
                     </span>
-                    <span className="text-slate-500 text-sm">{formatTimeAgo(post.created_at)}</span>
+                    <span className="text-slate-400 text-sm">{formatTimeAgo(post.created_at)}</span>
                   </div>
                   <h3 className="text-lg font-semibold group-hover:text-sky-400 transition-colors">
                     {post.title}
@@ -162,7 +162,7 @@ export default function ProfilePage() {
                   <p className="text-slate-400 text-sm mt-1 line-clamp-2">
                     {post.content.substring(0, 200)}
                   </p>
-                  <div className="flex items-center gap-4 text-sm text-slate-500 mt-3">
+                  <div className="flex items-center gap-4 text-sm text-slate-400 mt-3">
                     <span>👍 {post.upvotes}</span>
                     <span>💬 {post.comment_count}</span>
                   </div>
@@ -200,7 +200,7 @@ export default function ProfilePage() {
                       </span>
                     </div>
                     <p className="text-sm text-slate-400 mb-2">{node.description || 'No description'}</p>
-                    <div className="text-xs text-slate-500">
+                    <div className="text-xs text-slate-400">
                       <div>Type: {node.device_type}</div>
                       <div>Location: {node.location?.city}, {node.location?.country}</div>
                       {node.build_volume && (
@@ -253,7 +253,7 @@ export default function ProfilePage() {
                     <p className="text-sm text-slate-400 mb-2 line-clamp-1">
                       {order.description || 'No description'}
                     </p>
-                    <div className="flex items-center gap-4 text-xs text-slate-500">
+                    <div className="flex items-center gap-4 text-xs text-slate-400">
                       <span>{order.material}</span>
                       <span>Qty: {order.quantity}</span>
                       <span>{formatTimeAgo(order.created_at)}</span>

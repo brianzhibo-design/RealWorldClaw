@@ -1,5 +1,5 @@
 "use client";
-import { API_BASE as API_URL } from "@/lib/api-client";
+import { API_BASE as API_URL, apiFetch } from "@/lib/api-client";
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -54,23 +54,12 @@ export default function SettingsPage() {
 
     const fetchProfile = async () => {
       try {
-        const response = await fetch(`${API_URL}/auth/me`, {
-          headers: { Authorization: `Bearer ${token}` }
+        const data = await apiFetch('/auth/me');
+        setProfile(data);
+        setProfileChanges({
+          username: data.username || "",
+          email: data.email || ""
         });
-
-        if (response.ok) {
-          const data = await response.json();
-          setProfile(data);
-          setProfileChanges({
-            username: data.username || "",
-            email: data.email || ""
-          });
-        } else if (response.status === 401) {
-          localStorage.removeItem('token');
-          router.push('/auth/login');
-        } else {
-          setError('Failed to load profile');
-        }
       } catch (err) {
         setError('Network error. Please try again.');
       } finally {
@@ -88,23 +77,12 @@ export default function SettingsPage() {
     setSuccess(null);
 
     try {
-      const response = await fetch(`${API_URL}/auth/me`, {
+      const updated = await apiFetch('/auth/me', {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
         body: JSON.stringify(profileChanges)
       });
-
-      if (response.ok) {
-        const updated = await response.json();
-        setProfile(updated);
-        setSuccess('Profile updated successfully');
-      } else {
-        const errorData = await response.json();
-        setError(errorData.detail || 'Failed to update profile');
-      }
+      setProfile(updated);
+      setSuccess('Profile updated successfully');
     } catch (err) {
       setError('Network error. Please try again.');
     } finally {
@@ -130,29 +108,19 @@ export default function SettingsPage() {
     setSuccess(null);
 
     try {
-      const response = await fetch(`${API_URL}/auth/change-password`, {
+      await apiFetch('/auth/change-password', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
         body: JSON.stringify({
           current_password: passwordData.current_password,
           new_password: passwordData.new_password
         })
       });
-
-      if (response.ok) {
-        setSuccess('Password changed successfully');
-        setPasswordData({
-          current_password: "",
-          new_password: "",
-          confirm_password: ""
-        });
-      } else {
-        const errorData = await response.json();
-        setError(errorData.detail || 'Failed to change password');
-      }
+      setSuccess('Password changed successfully');
+      setPasswordData({
+        current_password: "",
+        new_password: "",
+        confirm_password: ""
+      });
     } catch (err) {
       setError('Network error. Please try again.');
     } finally {
@@ -313,7 +281,7 @@ export default function SettingsPage() {
                   </div>
                 </div>
 
-                <p className="text-slate-500 text-sm">🚧 Coming Soon — Password change is under development.</p>
+                <p className="text-slate-400 text-sm">🚧 Coming Soon — Password change is under development.</p>
               </div>
             )}
 
@@ -331,7 +299,7 @@ export default function SettingsPage() {
                     </p>
                   </div>
                 </div>
-                <p className="text-slate-500 text-sm">🚧 Coming Soon — AI integrations are under development.</p>
+                <p className="text-slate-400 text-sm">🚧 Coming Soon — AI integrations are under development.</p>
               </div>
             )}
 
@@ -349,7 +317,7 @@ export default function SettingsPage() {
                     </p>
                   </div>
                 </div>
-                <p className="text-slate-500 text-sm">🚧 Coming Soon — Notification preferences are under development.</p>
+                <p className="text-slate-400 text-sm">🚧 Coming Soon — Notification preferences are under development.</p>
               </div>
             )}
 

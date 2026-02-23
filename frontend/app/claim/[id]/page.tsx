@@ -57,7 +57,7 @@ export default function ClaimAgentPage({ params }: { params: { id: string } }) {
         </div>
 
         <div className="mb-4 p-3 bg-slate-800/50 rounded-lg border border-slate-700">
-          <div className="text-xs text-slate-500 mb-1">Agent ID</div>
+          <div className="text-xs text-slate-400 mb-1">Agent ID</div>
           <div className="text-sky-400 font-mono text-sm">{params.id}</div>
         </div>
 
@@ -95,12 +95,12 @@ export default function ClaimAgentPage({ params }: { params: { id: string } }) {
             <button
               onClick={handleClaim}
               disabled={status === "loading" || !token || !email}
-              className="w-full py-3 bg-sky-600 hover:bg-sky-500 disabled:bg-slate-700 disabled:text-slate-500 text-white rounded-lg font-medium transition-colors"
+              className="w-full py-3 bg-sky-600 hover:bg-sky-500 disabled:bg-slate-700 disabled:text-slate-400 text-white rounded-lg font-medium transition-colors"
             >
               {status === "loading" ? "Claiming..." : "Claim Agent"}
             </button>
 
-            <p className="text-xs text-slate-500 mt-4 text-center">
+            <p className="text-xs text-slate-400 mt-4 text-center">
               Claim links expire after 24 hours. If expired, register a new agent.
             </p>
           </>

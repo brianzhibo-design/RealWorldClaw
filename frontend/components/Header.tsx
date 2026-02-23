@@ -82,7 +82,10 @@ export default function Header() {
               </Button>
               
               <DropdownMenu>
-                <DropdownMenuTrigger className="flex items-center gap-1.5 rounded-lg px-2 md:px-3 py-1.5 text-xs md:text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition-colors">
+                <DropdownMenuTrigger 
+                  className="flex items-center gap-1.5 rounded-lg px-2 md:px-3 py-1.5 text-xs md:text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition-colors"
+                  aria-label="User menu"
+                >
                   <div className="w-5 h-5 md:w-6 md:h-6 bg-gradient-to-br from-sky-400 to-blue-600 rounded-full flex items-center justify-center text-white text-[10px] md:text-xs font-semibold shrink-0">
                     {user.username.charAt(0).toUpperCase()}
                   </div>

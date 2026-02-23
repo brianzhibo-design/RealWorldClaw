@@ -130,14 +130,14 @@ function NewOrderContent() {
                   className={`flex items-center justify-center w-8 h-8 rounded-full text-xs font-bold transition-colors ${
                     i <= step
                       ? "bg-sky-600 text-white"
-                      : "bg-slate-800 text-slate-500 border border-slate-700"
+                      : "bg-slate-800 text-slate-400 border border-slate-700"
                   }`}
                 >
                   {i < step ? "✓" : i + 1}
                 </div>
                 <span
                   className={`text-xs hidden sm:block ${
-                    i <= step ? "text-sky-400" : "text-slate-500"
+                    i <= step ? "text-sky-400" : "text-slate-400"
                   }`}
                 >
                   {s}
@@ -182,7 +182,7 @@ function NewOrderContent() {
                 <div>
                   <div className="text-4xl mb-2">✅</div>
                   <p className="text-sky-400 font-medium">{fileName}</p>
-                  <p className="text-slate-500 text-sm mt-1">Click to replace</p>
+                  <p className="text-slate-400 text-sm mt-1">Click to replace</p>
                 </div>
               ) : (
                 <div>
@@ -190,7 +190,7 @@ function NewOrderContent() {
                   <p className="text-slate-300">
                     Drag & drop your STL/image file here
                   </p>
-                  <p className="text-slate-500 text-sm mt-1">
+                  <p className="text-slate-400 text-sm mt-1">
                     or click to browse
                   </p>
                 </div>
@@ -206,7 +206,7 @@ function NewOrderContent() {
                 if (f) handleFileUpload(f);
               }}
             />
-            <p className="text-slate-500 text-xs mt-3">
+            <p className="text-slate-400 text-xs mt-3">
               Supported: STL, OBJ, 3MF, STEP, PNG, JPG. File is optional.
             </p>
           </div>
@@ -295,7 +295,7 @@ function NewOrderContent() {
               <div className="p-6 border border-slate-700 rounded-lg text-center">
                 <div className="text-3xl mb-3">🤖</div>
                 <p className="text-slate-300 font-medium">Auto-match best maker</p>
-                <p className="text-slate-500 text-sm mt-1">
+                <p className="text-slate-400 text-sm mt-1">
                   We&apos;ll find the best available maker for your order
                 </p>
               </div>
@@ -382,7 +382,7 @@ function NewOrderContent() {
             <button
               onClick={() => setStep(step + 1)}
               disabled={!canNext()}
-              className="px-6 py-3 bg-sky-600 hover:bg-sky-500 disabled:bg-slate-700 disabled:text-slate-500 text-white rounded-lg font-medium transition-colors"
+              className="px-6 py-3 bg-sky-600 hover:bg-sky-500 disabled:bg-slate-700 disabled:text-slate-400 text-white rounded-lg font-medium transition-colors"
             >
               Next →
             </button>
@@ -390,7 +390,7 @@ function NewOrderContent() {
             <button
               onClick={handleSubmit}
               disabled={submitting}
-              className="px-8 py-3 bg-sky-600 hover:bg-sky-500 disabled:bg-slate-700 disabled:text-slate-500 text-white rounded-lg font-semibold transition-colors"
+              className="px-8 py-3 bg-sky-600 hover:bg-sky-500 disabled:bg-slate-700 disabled:text-slate-400 text-white rounded-lg font-semibold transition-colors"
             >
               {submitting ? "Submitting..." : "🚀 Place Order"}
             </button>

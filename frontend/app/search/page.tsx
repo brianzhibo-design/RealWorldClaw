@@ -154,10 +154,10 @@ function SearchContent() {
                     {result.type === "post" ? "📝 Post" : "🖨️ Node"}
                   </span>
                   {result.created_at && (
-                    <span className="text-slate-500 text-sm">{formatTimeAgo(result.created_at)}</span>
+                    <span className="text-slate-400 text-sm">{formatTimeAgo(result.created_at)}</span>
                   )}
                   {result.metadata?.status && (
-                    <span className={`text-xs ${result.metadata.status === "online" ? "text-green-400" : "text-slate-500"}`}>
+                    <span className={`text-xs ${result.metadata.status === "online" ? "text-green-400" : "text-slate-400"}`}>
                       ● {result.metadata.status}
                     </span>
                   )}
@@ -169,7 +169,7 @@ function SearchContent() {
                   <p className="text-slate-400 text-sm line-clamp-2">{result.snippet}</p>
                 )}
                 {result.metadata?.node_type && (
-                  <p className="text-slate-500 text-xs mt-2">Type: {result.metadata.node_type}</p>
+                  <p className="text-slate-400 text-xs mt-2">Type: {result.metadata.node_type}</p>
                 )}
               </Link>
             ))}
@@ -178,7 +178,7 @@ function SearchContent() {
           <div className="text-center py-16">
             <div className="text-5xl mb-4">🔍</div>
             <p className="text-slate-400 text-lg">No results found for &quot;{searchQuery}&quot;</p>
-            <p className="text-slate-500 mt-2">Try different keywords or check the spelling</p>
+            <p className="text-slate-400 mt-2">Try different keywords or check the spelling</p>
           </div>
         ) : (
           <div className="text-center py-16">

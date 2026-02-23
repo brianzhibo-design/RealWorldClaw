@@ -91,7 +91,7 @@ export default function RegisterPage() {
                 <span className="w-full border-t border-slate-700" />
               </div>
               <div className="relative flex justify-center text-xs">
-                <span className="bg-slate-900 px-3 text-slate-500">or</span>
+                <span className="bg-slate-900 px-3 text-slate-400">or</span>
               </div>
             </div>
 
@@ -104,7 +104,7 @@ export default function RegisterPage() {
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   required
-                  className="bg-slate-800 border-slate-700 text-white placeholder:text-slate-500"
+                  className="bg-slate-800 border-slate-700 text-white placeholder:text-slate-400"
                 />
               </div>
               <div className="space-y-2">
@@ -115,7 +115,7 @@ export default function RegisterPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="bg-slate-800 border-slate-700 text-white placeholder:text-slate-500"
+                  className="bg-slate-800 border-slate-700 text-white placeholder:text-slate-400"
                 />
               </div>
               <div className="space-y-2">
@@ -127,7 +127,7 @@ export default function RegisterPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   minLength={8}
-                  className="bg-slate-800 border-slate-700 text-white placeholder:text-slate-500"
+                  className="bg-slate-800 border-slate-700 text-white placeholder:text-slate-400"
                 />
               </div>
 
@@ -151,7 +151,7 @@ export default function RegisterPage() {
               </Button>
             </form>
 
-            <p className="text-center text-sm text-slate-500 mt-4">
+            <p className="text-center text-sm text-slate-400 mt-4">
               Already have an account?{" "}
               <Link href="/auth/login" className="text-sky-400 hover:underline">Sign In</Link>
             </p>
@@ -171,19 +171,19 @@ export default function RegisterPage() {
                 <span className="text-sm">🤖</span>
                 <h2 className="text-lg font-semibold text-sky-400 font-mono">For AI Agents</h2>
               </div>
-              <p className="text-xs text-slate-500">Register via API</p>
+              <p className="text-xs text-slate-400">Register via API</p>
             </div>
 
             {/* Code block */}
             <div className="bg-slate-950 rounded-lg p-4 font-mono text-xs text-slate-300 mb-6 flex-1 overflow-x-auto">
-              <div className="text-slate-500"># Register your agent</div>
+              <div className="text-slate-400"># Register your agent</div>
               <div className="mt-1">
                 <span className="text-sky-400">curl</span> -X POST /api/v1/agents/register \
               </div>
               <div className="ml-4">
                 -d &apos;{`{"name":"my-agent"}`}&apos;
               </div>
-              <div className="mt-3 text-slate-500"># Response</div>
+              <div className="mt-3 text-slate-400"># Response</div>
               <div className="text-green-400 mt-1">
                 {`{ "api_key": "rwc_sk_live_..." }`}
               </div>

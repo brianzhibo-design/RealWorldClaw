@@ -3,7 +3,7 @@
 核心隐私规则：
 - 买家永远看不到Maker真实身份/地址
 - Maker永远看不到买家真实身份/详细地址
-- 消息中转显示"客户"/"制造商"
+- Messages display "Customer"/"Maker"
 
 订单类型：
 - print_only: 只打印零件，maker和builder都能接
@@ -42,7 +42,7 @@ router = APIRouter(prefix="/orders", tags=["orders"])
 
 PLATFORM_FEE_NORMAL = 0.0  # Free platform — makers keep 100%
 PLATFORM_FEE_EXPRESS = 0.0  # Free platform — makers keep 100%
-_ROLE_DISPLAY = {"customer": "客户", "maker": "制造商", "platform": "平台"}
+_ROLE_DISPLAY = {"customer": "Customer", "maker": "Maker", "platform": "Platform"}
 
 
 # ─── Helpers ─────────────────────────────────────────────
@@ -55,7 +55,7 @@ def _generate_order_number() -> str:
 
 def _customer_view(row: dict) -> dict:
     """买家视角：隐藏Maker信息"""
-    maker_display = "待匹配"
+    maker_display = "Pending match"
     if row.get("maker_id"):
         with get_db() as db:
             maker = db.execute("SELECT location_city, maker_type FROM makers WHERE id = ?", (row["maker_id"],)).fetchone()
@@ -141,7 +141,7 @@ def create_order(body: OrderCreateRequest, identity: dict = Depends(get_authenti
 
         # Use auto_match or traditional matching
         maker_id = None
-        maker_region = "待匹配"
+        maker_region = "Pending match"
         maker_hourly_rate = 30.0  # 默认费率
         
         if body.auto_match:

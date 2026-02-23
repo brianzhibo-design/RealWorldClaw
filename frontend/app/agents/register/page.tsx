@@ -209,7 +209,7 @@ export default function RegisterAgentPage() {
               <div>
                 <label className="block text-sm font-medium text-slate-300 mb-2">
                   Agent Name * 
-                  <span className="text-xs text-slate-500">(unique identifier, lowercase only)</span>
+                  <span className="text-xs text-slate-400">(unique identifier, lowercase only)</span>
                 </label>
                 <input
                   type="text"
@@ -222,7 +222,7 @@ export default function RegisterAgentPage() {
                   maxLength={50}
                   className={inputCls}
                 />
-                <p className="text-xs text-slate-500 mt-1">
+                <p className="text-xs text-slate-400 mt-1">
                   3-50 characters, lowercase letters, numbers, and hyphens only
                 </p>
               </div>
@@ -240,7 +240,7 @@ export default function RegisterAgentPage() {
                   maxLength={100}
                   className={inputCls}
                 />
-                <p className="text-xs text-slate-500 mt-1">
+                <p className="text-xs text-slate-400 mt-1">
                   {formData.display_name.length}/100 characters
                 </p>
               </div>
@@ -264,7 +264,7 @@ export default function RegisterAgentPage() {
                 rows={4}
                 className={`${inputCls} resize-none`}
               />
-              <p className="text-xs text-slate-500 mt-1">
+              <p className="text-xs text-slate-400 mt-1">
                 {formData.description.length}/500 characters
               </p>
             </div>
@@ -322,7 +322,7 @@ export default function RegisterAgentPage() {
             <div>
               <label className="block text-sm font-medium text-slate-300 mb-2">
                 Callback URL
-                <span className="text-xs text-slate-500">(webhook endpoint for notifications)</span>
+                <span className="text-xs text-slate-400">(webhook endpoint for notifications)</span>
               </label>
               <input
                 type="url"
@@ -331,7 +331,7 @@ export default function RegisterAgentPage() {
                 placeholder="https://your-agent.example.com/webhook"
                 className={inputCls}
               />
-              <p className="text-xs text-slate-500 mt-1">
+              <p className="text-xs text-slate-400 mt-1">
                 Optional webhook URL for receiving order notifications and updates
               </p>
             </div>
@@ -349,7 +349,7 @@ export default function RegisterAgentPage() {
             <button
               type="submit"
               disabled={submitting}
-              className="px-8 py-3 bg-sky-600 hover:bg-sky-500 disabled:bg-slate-700 disabled:text-slate-500 text-white rounded-lg font-medium transition-colors"
+              className="px-8 py-3 bg-sky-600 hover:bg-sky-500 disabled:bg-slate-700 disabled:text-slate-400 text-white rounded-lg font-medium transition-colors"
             >
               {submitting ? "Registering..." : "Register Agent →"}
             </button>

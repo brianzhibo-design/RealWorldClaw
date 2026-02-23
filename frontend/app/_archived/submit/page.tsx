@@ -474,7 +474,7 @@ export default function SubmitPage() {
           <button
             onClick={handleNext}
             disabled={uploading || submitting || (step === 1 && (!file || !uploadedFileId))}
-            className="px-6 py-3 bg-sky-600 hover:bg-sky-500 disabled:bg-slate-700 disabled:text-slate-500 text-white rounded-md font-medium transition-colors min-h-[44px] flex-1 sm:flex-initial"
+            className="px-6 py-3 bg-sky-600 hover:bg-sky-500 disabled:bg-slate-700 disabled:text-slate-400 text-white rounded-md font-medium transition-colors min-h-[44px] flex-1 sm:flex-initial"
           >
             {step === 1 
               ? (uploading ? `Uploading... ${uploadProgress}%` : uploadedFileId ? "Continue →" : "Upload & Continue")

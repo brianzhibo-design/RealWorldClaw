@@ -129,7 +129,7 @@ export default function NodeDetailPage() {
         <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-6">
           <h2 className="text-lg font-semibold mb-4">📍 Location</h2>
           <p className="text-slate-300">{coordToCity(node.fuzzy_latitude, node.fuzzy_longitude)}</p>
-          <p className="text-slate-500 text-sm mt-1">
+          <p className="text-slate-400 text-sm mt-1">
             {node.fuzzy_latitude.toFixed(4)}°, {node.fuzzy_longitude.toFixed(4)}°
           </p>
         </div>

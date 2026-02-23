@@ -435,7 +435,7 @@ class OrderMessageResponse(BaseModel):
     id: str
     order_id: str
     sender_role: MessageSenderRole  # "customer" / "maker" / "platform"
-    sender_display: str  # "客户" / "制造商" / "平台"
+    sender_display: str  # "Customer" / "Maker" / "Platform"
     message: str
     created_at: datetime
 

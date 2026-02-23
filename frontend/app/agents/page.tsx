@@ -193,7 +193,7 @@ export default function AgentsPage() {
                 </p>
 
                 <div className="mt-4 pt-4 border-t border-slate-800">
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs text-slate-400">
                     Registered {new Date(agent.created_at).toLocaleDateString()}
                   </p>
                 </div>

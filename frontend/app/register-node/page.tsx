@@ -341,13 +341,13 @@ export default function RegisterNodePage() {
           <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-6">
             <h2 className="text-xl font-semibold mb-4">💡 Description (max 500 chars)</h2>
             <textarea value={formData.description} onChange={e => setFormData(prev => ({ ...prev, description: e.target.value }))} placeholder="Describe your setup, specialties, or capabilities..." rows={4} maxLength={500} className={`${inputCls} resize-none`} />
-            <div className="text-xs text-slate-500 mt-1 text-right">{formData.description.length}/500</div>
+            <div className="text-xs text-slate-400 mt-1 text-right">{formData.description.length}/500</div>
           </div>
 
           {/* Submit */}
           <div className="flex justify-between">
             <button type="button" onClick={() => router.back()} className="px-4 py-2 text-slate-400 hover:text-slate-300 transition-colors">← Cancel</button>
-            <button type="submit" disabled={submitting} className="px-8 py-3 bg-sky-600 hover:bg-sky-500 disabled:bg-slate-700 disabled:text-slate-500 text-white rounded-lg font-medium transition-colors">
+            <button type="submit" disabled={submitting} className="px-8 py-3 bg-sky-600 hover:bg-sky-500 disabled:bg-slate-700 disabled:text-slate-400 text-white rounded-lg font-medium transition-colors">
               {submitting ? "Registering..." : "Register Node →"}
             </button>
           </div>

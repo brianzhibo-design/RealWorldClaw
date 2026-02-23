@@ -52,6 +52,7 @@ export default function VoteButtons({
       <button
         onClick={() => handleVote('up')}
         disabled={loading}
+        aria-label="Upvote"
         className={`${buttonSize} rounded-md border transition-all hover:scale-110 ${
           currentVote === 'up'
             ? 'bg-sky-500/20 border-sky-500 text-sky-400'

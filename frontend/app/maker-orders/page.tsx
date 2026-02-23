@@ -265,7 +265,7 @@ export default function MakerOrdersPage() {
                     <button
                       onClick={() => handleAcceptOrder(order.id)}
                       disabled={accepting === order.id}
-                      className="w-full px-4 py-2 bg-sky-600 hover:bg-sky-500 disabled:bg-slate-700 disabled:text-slate-500 text-white rounded-md text-sm font-medium transition-colors"
+                      className="w-full px-4 py-2 bg-sky-600 hover:bg-sky-500 disabled:bg-slate-700 disabled:text-slate-400 text-white rounded-md text-sm font-medium transition-colors"
                     >
                       {accepting === order.id ? "Accepting..." : "Accept Order"}
                     </button>

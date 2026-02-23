@@ -288,7 +288,7 @@ export default function NewPostPage() {
                   <div className="border-2 border-dashed border-slate-600 rounded-lg p-8 text-center">
                     <div className="text-4xl mb-2">📁</div>
                     <p className="text-slate-400">Image and file upload coming soon</p>
-                    <p className="text-sm text-slate-500 mt-2">For now, include image URLs in your content</p>
+                    <p className="text-sm text-slate-400 mt-2">For now, include image URLs in your content</p>
                   </div>
                 </div>
               )}

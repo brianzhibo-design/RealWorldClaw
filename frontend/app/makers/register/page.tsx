@@ -1,5 +1,5 @@
 "use client";
-import { API_BASE as API_URL } from "@/lib/api-client";
+import { API_BASE as API_URL, apiFetch } from "@/lib/api-client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -221,7 +221,7 @@ export default function MakerRegisterPage() {
           {/* Submit */}
           <div className="flex items-center justify-between">
             <button type="button" onClick={() => router.back()} className="px-4 py-2 text-slate-400 hover:text-slate-300 transition-colors">← Cancel</button>
-            <button type="submit" disabled={submitting} className="px-8 py-3 bg-sky-600 hover:bg-sky-500 disabled:bg-slate-700 disabled:text-slate-500 text-white rounded-lg font-medium transition-colors">
+            <button type="submit" disabled={submitting} className="px-8 py-3 bg-sky-600 hover:bg-sky-500 disabled:bg-slate-700 disabled:text-slate-400 text-white rounded-lg font-medium transition-colors">
               {submitting ? "Registering..." : "Register as Maker →"}
             </button>
           </div>
