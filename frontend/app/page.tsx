@@ -346,7 +346,7 @@ export default function Home() {
                 GitHub Repository →
               </a>
               <a 
-                href="https://api.realworldclaw.com/docs"
+                href="https://realworldclaw-api.fly.dev/docs"
                 target="_blank"
                 rel="noopener noreferrer" 
                 className="inline-flex items-center gap-2 px-8 py-4 bg-slate-800 hover:bg-slate-700 text-white font-semibold rounded-xl transition-all duration-200 hover:-translate-y-0.5 text-lg shadow-lg"
