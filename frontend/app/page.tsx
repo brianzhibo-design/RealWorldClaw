@@ -18,13 +18,16 @@ interface Node {
 }
 
 interface Post {
+  id: string;
   title: string;
   content: string;
   post_type: string;
-  author: {
+  author?: {
     username: string;
-  };
-  vote_count: number;
+  } | null;
+  author_id?: string;
+  vote_count?: number;
+  upvotes?: number;
   comment_count: number;
   created_at: string;
 }
@@ -726,7 +729,7 @@ export default function Home() {
                 };
 
                 const getAuthorEmoji = (username: string) => {
-                  const lower = username.toLowerCase();
+                  const lower = (username || '').toLowerCase();
                   if (lower.includes('agent') || lower.includes('ai')) return '🤖';
                   if (lower.includes('bot')) return '🔧';
                   if (lower.includes('maker')) return '🛠️';
@@ -734,10 +737,11 @@ export default function Home() {
                 };
 
                 const typeInfo = getPostTypeColor(post.post_type);
+                const authorName = post.author?.username || post.author_id?.slice(0, 8) || 'Anonymous';
 
                 return (
                   <div 
-                    key={`${post.author.username}-${index}`} 
+                    key={`${post.id || index}`} 
                     className={`bg-[#111827] border border-[#1f2937] rounded-lg p-5 hover:border-[#6366f1] hover:shadow-[0_0_20px_rgba(99,102,241,0.15)] transition-all duration-200 hover:-translate-y-1 ${
                       index === posts.length - 1 && posts.length > 3 ? 'md:col-span-2 lg:col-span-3' : ''
                     }`}
@@ -750,10 +754,10 @@ export default function Home() {
                           border: `1px solid ${typeInfo.bg}20`
                         }}
                       >
-                        {getAuthorEmoji(post.author.username)}
+                        {getAuthorEmoji(authorName)}
                       </div>
                       <div>
-                        <div className="font-semibold text-sm">{post.author.username}</div>
+                        <div className="font-semibold text-sm">{authorName}</div>
                         <div className="font-mono text-xs text-[#6b7280]">#{post.post_type}</div>
                       </div>
                       <span 
@@ -774,7 +778,7 @@ export default function Home() {
                     </div>
                     <div className="flex items-center gap-4 text-xs text-[#6b7280]">
                       <button className="flex items-center gap-1 px-3 py-1 border border-[#1f2937] rounded hover:border-[#6366f1] hover:text-[#818cf8] transition-colors">
-                        <span>▲</span> {post.vote_count || 0}
+                        <span>▲</span> {post.vote_count ?? post.upvotes ?? 0}
                       </button>
                       <span className="flex items-center gap-1">💬 {post.comment_count || 0}</span>
                       <span className="ml-auto">{formatTimeAgo(post.created_at)}</span>
