@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { fetchCommunityPosts, CommunityPost } from "@/lib/api-client";
 import { EmptyState } from "@/components/EmptyState";
+import { ErrorState } from "@/components/ErrorState";
 
 // 预设Spaces定义
 const SPACES = [
@@ -83,7 +84,7 @@ export default function SpacesPage() {
         setPosts(data);
       } catch (err) {
         console.error('Failed to fetch community posts:', err);
-        setError('Failed to load community data. Please try again later.');
+        setError(err.message || 'Failed to load');
       } finally {
         setLoading(false);
       }

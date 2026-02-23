@@ -2,6 +2,7 @@
 import { fetchAvailableOrders, fetchAcceptedOrders, acceptOrder } from "@/lib/api-client";
 import { useAuthStore } from "@/stores/authStore";
 import { EmptyState } from "@/components/EmptyState";
+import { ErrorState } from "@/components/ErrorState";
 
 import { useState, useEffect, useCallback } from "react";
 
@@ -47,7 +48,7 @@ export default function MakerOrdersPage() {
         setMyOrders(data);
       }
     } catch (err) {
-      setError("Failed to load orders");
+      setError(err.message || 'Failed to load');
     } finally {
       setLoading(false);
     }
@@ -91,7 +92,7 @@ export default function MakerOrdersPage() {
         setError(result.error || "Failed to accept order");
       }
     } catch (err) {
-      setError("Network error. Please try again.");
+      setError(err.message || 'Failed to load');
     } finally {
       setAccepting(null);
     }
@@ -181,11 +182,7 @@ export default function MakerOrdersPage() {
         </div>
 
         {/* Error message */}
-        {error && (
-          <div className="mb-6 p-4 bg-red-900/50 border border-red-800 rounded-lg text-red-200">
-            {error}
-          </div>
-        )}
+        {error && <ErrorState message={error} />}
 
         {/* Loading state */}
         {loading && (
