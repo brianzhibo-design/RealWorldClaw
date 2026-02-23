@@ -202,3 +202,131 @@ export async function fetchStats(): Promise<{
     return null;
   }
 }
+
+// Community API functions
+export interface CommunityPost {
+  id: string;
+  title: string;
+  content: string;
+  post_type: 'discussion' | 'request' | 'task' | 'showcase';
+  author: string;
+  author_id: string;
+  created_at: string;
+  updated_at: string;
+  upvotes: number;
+  comment_count: number;
+  tags: string[];
+  materials?: string[];
+  budget?: number;
+  deadline?: string;
+  images?: string[];
+  files?: string[];
+}
+
+export interface CommunityComment {
+  id: string;
+  post_id: string;
+  content: string;
+  author: string;
+  author_id: string;
+  created_at: string;
+  updated_at: string;
+  upvotes: number;
+}
+
+export async function fetchCommunityPosts(
+  type?: string, 
+  page = 1, 
+  limit = 20
+): Promise<CommunityPost[]> {
+  try {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      limit: limit.toString(),
+      ...(type && type !== '' && { type }),
+    });
+    
+    const res = await fetch(`${API_BASE}/community/posts?${params}`);
+    if (!res.ok) return [];
+    const data = await res.json();
+    return Array.isArray(data) ? data : data.posts || [];
+  } catch {
+    return [];
+  }
+}
+
+export async function fetchCommunityPost(id: string): Promise<CommunityPost | null> {
+  try {
+    const res = await fetch(`${API_BASE}/community/posts/${id}`);
+    if (!res.ok) return null;
+    return await res.json();
+  } catch {
+    return null;
+  }
+}
+
+export async function fetchPostComments(postId: string): Promise<CommunityComment[]> {
+  try {
+    const res = await fetch(`${API_BASE}/community/posts/${postId}/comments`);
+    if (!res.ok) return [];
+    const data = await res.json();
+    return Array.isArray(data) ? data : data.comments || [];
+  } catch {
+    return [];
+  }
+}
+
+export async function createCommunityPost(data: {
+  title: string;
+  content: string;
+  post_type: 'discussion' | 'request' | 'task' | 'showcase';
+  tags?: string[];
+  materials?: string[];
+  budget?: number;
+  deadline?: string;
+}): Promise<{ success: boolean; post_id?: string; error?: string }> {
+  try {
+    const token = localStorage.getItem('auth_token');
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (token) headers.Authorization = `Bearer ${token}`;
+
+    const res = await fetch(`${API_BASE}/community/posts`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      return { success: false, error: err.detail || 'Post creation failed' };
+    }
+    const result = await res.json();
+    return { success: true, post_id: result.id };
+  } catch {
+    return { success: false, error: 'API unavailable' };
+  }
+}
+
+export async function createComment(
+  postId: string, 
+  content: string
+): Promise<{ success: boolean; comment_id?: string; error?: string }> {
+  try {
+    const token = localStorage.getItem('auth_token');
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (token) headers.Authorization = `Bearer ${token}`;
+
+    const res = await fetch(`${API_BASE}/community/posts/${postId}/comments`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ content }),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      return { success: false, error: err.detail || 'Comment creation failed' };
+    }
+    const result = await res.json();
+    return { success: true, comment_id: result.id };
+  } catch {
+    return { success: false, error: 'API unavailable' };
+  }
+}

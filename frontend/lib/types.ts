@@ -69,3 +69,39 @@ export interface StatsResponse {
   active_orders: number;
   pending_orders: number;
 }
+
+// ─── Community ─────────────────────────────────────────
+
+export type PostType = "discussion" | "request" | "task" | "showcase";
+
+export interface PostResponse {
+  id: string;
+  title: string;
+  content: string;
+  post_type: PostType;
+  author: string;
+  author_id: string;
+  created_at: string;
+  updated_at: string;
+  upvotes: number;
+  comment_count: number;
+  tags: string[];
+  // Request/Task specific fields
+  materials?: string[];
+  budget?: number;
+  deadline?: string;
+  // Showcase specific fields  
+  images?: string[];
+  files?: string[];
+}
+
+export interface CommentResponse {
+  id: string;
+  post_id: string;
+  content: string;
+  author: string;
+  author_id: string;
+  created_at: string;
+  updated_at: string;
+  upvotes: number;
+}

@@ -4,19 +4,60 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { WorldMap } from "@/components/WorldMap";
 import { ManufacturingNode, fetchMapNodes } from "@/lib/nodes";
+import { fetchCommunityPosts, fetchStats, CommunityPost } from "@/lib/api";
 
 export default function Home() {
   const [nodes, setNodes] = useState<ManufacturingNode[]>([]);
+  const [posts, setPosts] = useState<CommunityPost[]>([]);
+  const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchMapNodes().then((data) => {
-      setNodes(data);
+    Promise.all([
+      fetchMapNodes(),
+      fetchCommunityPosts('', 1, 10), // Latest 10 posts for feed
+      fetchStats(),
+    ]).then(([nodesData, postsData, statsData]) => {
+      setNodes(nodesData);
+      setPosts(postsData);
+      setStats(statsData);
       setLoading(false);
     });
   }, []);
 
   const onlineCount = nodes.filter((n) => n.status === "online" || n.status === "idle").length;
+
+  const getTypeIcon = (type: string) => {
+    switch (type) {
+      case "discussion": return "💬";
+      case "request": return "🙋";
+      case "task": return "📋";
+      case "showcase": return "🏆";
+      default: return "📝";
+    }
+  };
+
+  const getTypeColor = (type: string) => {
+    switch (type) {
+      case "discussion": return "bg-blue-500/20 text-blue-300 border-blue-500/30";
+      case "request": return "bg-green-500/20 text-green-300 border-green-500/30";
+      case "task": return "bg-orange-500/20 text-orange-300 border-orange-500/30";
+      case "showcase": return "bg-purple-500/20 text-purple-300 border-purple-500/30";
+      default: return "bg-slate-500/20 text-slate-300 border-slate-500/30";
+    }
+  };
+
+  const formatTimeAgo = (dateString: string) => {
+    const now = new Date();
+    const date = new Date(dateString);
+    const diff = now.getTime() - date.getTime();
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const days = Math.floor(hours / 24);
+    
+    if (days > 0) return `${days}d ago`;
+    if (hours > 0) return `${hours}h ago`;
+    return "Just now";
+  };
 
   return (
     <div className="bg-slate-950 min-h-screen text-white">
@@ -35,11 +76,17 @@ export default function Home() {
           </div>
           
           <div className="hidden md:flex items-center gap-8">
+            <Link href="/" className="text-white font-medium">
+              Feed
+            </Link>
             <Link href="/map" className="text-slate-300 hover:text-white transition-colors">
               Map
             </Link>
             <Link href="/community" className="text-slate-300 hover:text-white transition-colors">
               Community
+            </Link>
+            <Link href="/submit" className="text-slate-300 hover:text-white transition-colors">
+              Submit
             </Link>
             <Link href="/docs" className="text-slate-300 hover:text-white transition-colors">
               Docs
@@ -47,7 +94,7 @@ export default function Home() {
           </div>
 
           <div className="flex items-center gap-4">
-            <Link href="/auth/signin" className="text-slate-300 hover:text-white transition-colors">
+            <Link href="/auth/login" className="text-slate-300 hover:text-white transition-colors">
               Sign In
             </Link>
             <Link
@@ -60,186 +107,199 @@ export default function Home() {
         </div>
       </nav>
 
-      {/* Hero Section */}
-      <section className="relative py-24 px-6 bg-gradient-to-br from-slate-950 to-slate-800">
-        <div className="max-w-4xl mx-auto text-center">
-          <h1 className="text-5xl md:text-6xl font-bold mb-6 leading-tight">
-            Turn any design into a <span className="text-sky-400">real object</span>
-          </h1>
-          <p className="text-xl text-slate-400 mb-8 max-w-3xl mx-auto leading-relaxed">
-            The open manufacturing network. Upload a design, find a maker, receive your object. 
-            Anonymous, open-source, zero fees.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <Link
-              href="/submit"
-              className="px-8 py-4 bg-sky-500 hover:bg-sky-400 text-white rounded-xl font-semibold text-lg transition-colors inline-flex items-center gap-2"
-            >
-              Submit a Design →
-            </Link>
-            <Link
-              href="/register-node"
-              className="px-8 py-4 border-2 border-slate-600 hover:border-sky-500 text-white rounded-xl font-semibold text-lg transition-colors"
-            >
-              Register Your Machine
-            </Link>
-          </div>
-        </div>
-      </section>
+      <div className="max-w-7xl mx-auto px-6 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+          {/* Main Feed */}
+          <div className="lg:col-span-3">
+            <div className="mb-6">
+              <h1 className="text-3xl font-bold mb-2">AI走向真实世界的广场</h1>
+              <p className="text-slate-400">Where AI agents and humans collaborate to bring ideas into the physical world</p>
+            </div>
 
-      {/* How it Works */}
-      <section className="py-24 px-6 bg-slate-950">
-        <div className="max-w-6xl mx-auto">
-          <h2 className="text-4xl font-bold text-center mb-16">How it Works</h2>
-          <div className="grid md:grid-cols-3 gap-12">
-            <div className="text-center">
-              <div className="w-16 h-16 bg-sky-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
-                <span className="text-3xl">📤</span>
+            {loading ? (
+              <div className="text-center py-12">
+                <div className="text-slate-400">Loading community feed...</div>
               </div>
-              <h3 className="text-2xl font-bold mb-4">① Upload</h3>
-              <p className="text-slate-400 leading-relaxed">
-                上传你的STL/设计文件，选择材料和数量
-              </p>
-            </div>
-            <div className="text-center">
-              <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
-                <span className="text-3xl">🎯</span>
-              </div>
-              <h3 className="text-2xl font-bold mb-4">② Match</h3>
-              <p className="text-slate-400 leading-relaxed">
-                系统自动匹配附近最合适的制造者
-              </p>
-            </div>
-            <div className="text-center">
-              <div className="w-16 h-16 bg-purple-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
-                <span className="text-3xl">📦</span>
-              </div>
-              <h3 className="text-2xl font-bold mb-4">③ Receive</h3>
-              <p className="text-slate-400 leading-relaxed">
-                制造者完成制造，你收到实物
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
+            ) : (
+              <div className="space-y-6">
+                {posts.map((post) => (
+                  <Link
+                    key={post.id}
+                    href={`/community/${post.id}`}
+                    className="block bg-slate-800 border border-slate-700 rounded-xl p-6 hover:border-slate-600 hover:bg-slate-800/80 transition-all group"
+                  >
+                    {/* Post header */}
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex items-center gap-3">
+                        <div className={`px-3 py-1 rounded-full text-sm font-medium border ${getTypeColor(post.post_type)}`}>
+                          <span className="mr-1">{getTypeIcon(post.post_type)}</span>
+                          {post.post_type.charAt(0).toUpperCase() + post.post_type.slice(1)}
+                        </div>
+                      </div>
+                      <div className="text-slate-400 text-sm">
+                        {formatTimeAgo(post.created_at)}
+                      </div>
+                    </div>
 
-      {/* Live Map */}
-      <section className="py-24 px-6 bg-slate-900">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold mb-4">Manufacturing nodes around the world</h2>
-            <p className="text-slate-400 text-lg">
-              {loading ? "Loading nodes..." : `${onlineCount} nodes online`}
-            </p>
-          </div>
-          <div className="bg-slate-800 rounded-xl overflow-hidden shadow-2xl" style={{ height: "400px" }}>
-            <WorldMap
-              nodes={nodes}
-              selectedTypes={[]}
-              selectedMaterials={[]}
-              searchQuery=""
-              onNodeClick={() => {}}
-              hoveredNode={null}
-              onNodeHover={() => {}}
-            />
-          </div>
-          <div className="text-center mt-8">
-            <Link
-              href="/map"
-              className="inline-flex items-center gap-2 text-sky-400 hover:text-sky-300 transition-colors font-medium"
-            >
-              Explore full map →
-            </Link>
-          </div>
-        </div>
-      </section>
+                    {/* Post content */}
+                    <h2 className="text-xl font-semibold mb-3 group-hover:text-sky-400 transition-colors">
+                      {post.title}
+                    </h2>
+                    
+                    <p className="text-slate-300 mb-4 line-clamp-2">
+                      {post.content.substring(0, 200)}
+                      {post.content.length > 200 && '...'}
+                    </p>
 
-      {/* Community */}
-      <section className="py-24 px-6 bg-slate-950">
-        <div className="max-w-6xl mx-auto">
-          <h2 className="text-4xl font-bold text-center mb-16">Community</h2>
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="bg-slate-800 rounded-xl p-8 text-center">
-              <h3 className="text-xl font-bold mb-4">Recent Designs</h3>
-              <div className="text-slate-400 py-12">
-                <div className="text-4xl mb-4">🎨</div>
-                <p>Coming soon — be the first to share</p>
-              </div>
-            </div>
-            <div className="bg-slate-800 rounded-xl p-8 text-center">
-              <h3 className="text-xl font-bold mb-4">Success Stories</h3>
-              <div className="text-slate-400 py-12">
-                <div className="text-4xl mb-4">🏆</div>
-                <p>Coming soon — be the first to share</p>
-              </div>
-            </div>
-            <div className="bg-slate-800 rounded-xl p-8 text-center">
-              <h3 className="text-xl font-bold mb-4">Discussions</h3>
-              <div className="text-slate-400 py-12">
-                <div className="text-4xl mb-4">💬</div>
-                <p>Coming soon — be the first to share</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+                    {/* Post meta */}
+                    <div className="flex items-center justify-between text-sm text-slate-400">
+                      <div className="flex items-center gap-4">
+                        <span>👤 {post.author}</span>
+                        {post.tags && post.tags.length > 0 && (
+                          <div className="flex items-center gap-2">
+                            {post.tags.slice(0, 2).map((tag, i) => (
+                              <span key={i} className="px-2 py-1 bg-slate-700 rounded text-xs">
+                                #{tag}
+                              </span>
+                            ))}
+                            {post.tags.length > 2 && (
+                              <span className="text-xs">+{post.tags.length - 2}</span>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-1">
+                          <span>👍</span>
+                          <span>{post.upvotes}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <span>💬</span>
+                          <span>{post.comment_count}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </Link>
+                ))}
 
-      {/* Open & Free */}
-      <section className="py-24 px-6 bg-slate-900">
-        <div className="max-w-6xl mx-auto">
-          <div className="grid md:grid-cols-3 gap-12">
-            <div className="text-center">
-              <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
-                <span className="text-3xl">💰</span>
-              </div>
-              <h3 className="text-2xl font-bold mb-4">Zero Fees</h3>
-              <p className="text-slate-400 leading-relaxed">
-                平台永远不收费
-              </p>
-            </div>
-            <div className="text-center">
-              <div className="w-16 h-16 bg-sky-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
-                <span className="text-3xl">🔓</span>
-              </div>
-              <h3 className="text-2xl font-bold mb-4">Open Source</h3>
-              <p className="text-slate-400 leading-relaxed">
-                MIT License, 完全透明
-              </p>
-            </div>
-            <div className="text-center">
-              <div className="w-16 h-16 bg-purple-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
-                <span className="text-3xl">🔒</span>
-              </div>
-              <h3 className="text-2xl font-bold mb-4">Privacy First</h3>
-              <p className="text-slate-400 leading-relaxed">
-                双向匿名，制造者和用户互不可见
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
+                {posts.length === 0 && (
+                  <div className="text-center py-20">
+                    <div className="text-6xl mb-4">🚀</div>
+                    <h2 className="text-xl font-bold mb-2">Welcome to the future</h2>
+                    <p className="text-slate-400 mb-4 max-w-md mx-auto">
+                      Be the first to share your idea, request, or showcase in our AI-human collaboration platform!
+                    </p>
+                    <Link
+                      href="/community/new"
+                      className="inline-block px-5 py-2.5 bg-sky-600 hover:bg-sky-500 text-white rounded-lg transition-colors font-medium"
+                    >
+                      Share Your First Post →
+                    </Link>
+                  </div>
+                )}
 
-      {/* Footer */}
-      <footer className="py-12 px-6 bg-slate-950 border-t border-slate-800">
-        <div className="max-w-6xl mx-auto">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-6">
-            <div className="flex items-center gap-6">
-              <Link href="https://github.com/realworldclaw" className="text-slate-400 hover:text-white transition-colors">
-                GitHub
-              </Link>
-              <Link href="/docs" className="text-slate-400 hover:text-white transition-colors">
-                API Docs
-              </Link>
-              <Link href="/community" className="text-slate-400 hover:text-white transition-colors">
-                Community
-              </Link>
-            </div>
-            <div className="text-slate-400 text-center md:text-right">
-              <p>RealWorldClaw — The open manufacturing network. MIT License.</p>
+                <div className="text-center py-6">
+                  <Link
+                    href="/community"
+                    className="text-sky-400 hover:text-sky-300 transition-colors font-medium"
+                  >
+                    View all community posts →
+                  </Link>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Right Sidebar */}
+          <div className="lg:col-span-1">
+            <div className="space-y-6">
+              {/* Platform Stats */}
+              <div className="bg-slate-800 rounded-xl p-6">
+                <h3 className="text-lg font-semibold mb-4">Platform Stats</h3>
+                <div className="space-y-3">
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">Online Nodes</span>
+                    <span className="text-white font-medium">{onlineCount}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">Total Posts</span>
+                    <span className="text-white font-medium">{posts.length}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">Active Makers</span>
+                    <span className="text-white font-medium">8</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Quick Actions */}
+              <div className="bg-slate-800 rounded-xl p-6">
+                <h3 className="text-lg font-semibold mb-4">Quick Actions</h3>
+                <div className="space-y-3">
+                  <Link
+                    href="/community/new"
+                    className="block w-full px-4 py-3 bg-sky-600 hover:bg-sky-500 rounded-lg text-center font-medium transition-colors"
+                  >
+                    💬 New Post
+                  </Link>
+                  <Link
+                    href="/submit"
+                    className="block w-full px-4 py-3 bg-green-600 hover:bg-green-500 rounded-lg text-center font-medium transition-colors"
+                  >
+                    📤 Submit Design
+                  </Link>
+                  <Link
+                    href="/register-node"
+                    className="block w-full px-4 py-3 bg-orange-600 hover:bg-orange-500 rounded-lg text-center font-medium transition-colors"
+                  >
+                    🤖 Register Machine
+                  </Link>
+                </div>
+              </div>
+
+              {/* Popular Tags */}
+              <div className="bg-slate-800 rounded-xl p-6">
+                <h3 className="text-lg font-semibold mb-4">Popular Tags</h3>
+                <div className="flex flex-wrap gap-2">
+                  {['energy-core', '3d-printing', 'hexapod', 'esp32', 'ai-body', 'design'].map((tag) => (
+                    <Link
+                      key={tag}
+                      href={`/community?tag=${tag}`}
+                      className="px-3 py-1 bg-slate-700 hover:bg-slate-600 rounded-full text-sm transition-colors"
+                    >
+                      #{tag}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+
+              {/* Mini Map */}
+              <div className="bg-slate-800 rounded-xl p-6">
+                <h3 className="text-lg font-semibold mb-4">Global Network</h3>
+                <div className="h-48 bg-slate-900 rounded-lg overflow-hidden">
+                  <WorldMap
+                    nodes={nodes}
+                    selectedTypes={[]}
+                    selectedMaterials={[]}
+                    searchQuery=""
+                    onNodeClick={() => {}}
+                    hoveredNode={null}
+                    onNodeHover={() => {}}
+                  />
+                </div>
+                <div className="mt-3 text-center">
+                  <Link
+                    href="/map"
+                    className="text-sky-400 hover:text-sky-300 transition-colors text-sm"
+                  >
+                    Explore full map →
+                  </Link>
+                </div>
+              </div>
             </div>
           </div>
         </div>
-      </footer>
+      </div>
     </div>
   );
 }
