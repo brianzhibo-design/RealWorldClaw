@@ -84,23 +84,8 @@ export default function ProfilePage() {
         const filtered = data.filter(post => post.author === user.username);
         setUserPosts(filtered);
         
-        // Mock comments data
-        setUserComments([
-          {
-            id: '1',
-            content: 'Great idea! I would love to help with the implementation.',
-            post_title: 'AI-controlled 3D printer network',
-            created_at: '2024-02-20T10:30:00Z',
-            upvotes: 5
-          },
-          {
-            id: '2', 
-            content: 'Have you considered using ESP32 for the wireless communication?',
-            post_title: 'Building a smart workshop',
-            created_at: '2024-02-18T15:45:00Z',
-            upvotes: 8
-          },
-        ]);
+        // TODO: fetch real comments from API when endpoint available
+        setUserComments([]);
       } catch (err) {
         console.error('Failed to fetch user data:', err);
         setError('Failed to load profile data. Please try again later.');

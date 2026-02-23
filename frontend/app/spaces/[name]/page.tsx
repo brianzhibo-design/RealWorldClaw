@@ -218,7 +218,7 @@ export default function SpacePage() {
               
               {/* Stats */}
               <div className="flex items-center gap-6 text-sm text-slate-400">
-                <span>👥 {Math.floor(Math.random() * 500) + 50} members</span>
+                <span>👥 New community</span>
                 <span>📝 {filteredPosts.length} posts</span>
                 <span>📊 Active</span>
               </div>

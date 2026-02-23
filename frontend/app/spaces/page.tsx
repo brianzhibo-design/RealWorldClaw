@@ -94,8 +94,7 @@ export default function SpacesPage() {
   };
 
   const getMemberCount = () => {
-    // Mock member count
-    return Math.floor(Math.random() * 500) + 50;
+    return 0; // TODO: fetch real member count from API
   };
 
   return (
