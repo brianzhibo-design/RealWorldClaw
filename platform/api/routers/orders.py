@@ -127,6 +127,7 @@ def _get_user_role_for_order(db, order: dict, agent_id: str) -> str | None:
 
 @router.post("", status_code=201)
 def create_order(body: OrderCreateRequest, identity: dict = Depends(get_authenticated_identity)):
+    logger.info("Creating order: identity=%s type=%s qty=%d", identity["identity_id"], body.order_type, body.quantity)
     now = datetime.now(timezone.utc).isoformat()
     order_id = str(uuid.uuid4())
     order_number = _generate_order_number()
@@ -322,6 +323,7 @@ def accept_order(order_id: str, body: OrderAcceptRequest, identity: dict = Depen
             db.execute("ROLLBACK")
             raise
 
+    logger.info("Order accepted: order=%s by=%s est=%s", order_id, identity["identity_id"], est)
     return {"order_id": order_id, "status": "accepted", "estimated_completion": est}
 
 

@@ -1,6 +1,10 @@
 """Community API for posts and comments."""
 
 from __future__ import annotations
+import logging
+logger = logging.getLogger(__name__)
+
+
 
 import html
 import json

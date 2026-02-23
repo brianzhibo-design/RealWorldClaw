@@ -7,6 +7,10 @@ Builder: 打印+组装+测试，交付成品机器人
 """
 
 from __future__ import annotations
+import logging
+logger = logging.getLogger(__name__)
+
+
 
 import json
 import uuid

@@ -1,6 +1,10 @@
 """Nodes router for Manufacturing Capability World Map system."""
 
 from __future__ import annotations
+import logging
+logger = logging.getLogger(__name__)
+
+
 
 import json
 import math
