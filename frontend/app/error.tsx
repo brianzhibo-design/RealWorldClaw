@@ -21,7 +21,7 @@ export default function Error({
           <div className="text-6xl mb-6">⚠️</div>
           <h1 className="text-3xl font-bold text-white mb-4">Something Went Wrong</h1>
           <p className="text-slate-400 mb-6">
-            An unexpected error occurred. We've been notified and are working to fix it.
+            An unexpected error occurred. We&apos;ve been notified and are working to fix it.
           </p>
         </div>
         

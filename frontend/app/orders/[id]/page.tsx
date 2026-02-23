@@ -79,7 +79,7 @@ export default function OrderDetailPage() {
     if (!params.id) return;
 
     apiFetch<{ role: string; order: Order } | Order>(`/orders/${params.id}`)
-      .then( => setOrder(res.order || res))
+      .then((res) => setOrder(res.order || res))
       .catch((err) => {
         if (err.message?.includes("401")) router.push("/auth/login");
         else setError("Failed to load order");
@@ -100,7 +100,7 @@ export default function OrderDetailPage() {
       await apiFetch(url, opts);
       // Refresh order
       const raw = await apiFetch<{ role: string; order: Order } | Order>(`/orders/${params.id}`);
-      const updated = raw as Record<string, unknown>.order || raw;
+      const updated = (raw as Record<string, unknown>).order || raw;
       setOrder(updated);
     } catch (err) {
       alert((err as Error).message || "Action failed");

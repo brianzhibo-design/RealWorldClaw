@@ -95,8 +95,6 @@ export default function MakerRegisterPage() {
       setTimeout(() => {
         router.push("/maker-orders");
       }, 3000);
-        setError(errorData.detail || "Registration failed");
-      }
     } catch {
       setError("Network error. Please try again.");
     } finally {

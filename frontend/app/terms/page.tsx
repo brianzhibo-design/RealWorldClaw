@@ -78,7 +78,7 @@ export default function TermsOfService() {
           <section className="mb-8">
             <h2 className="text-2xl font-semibold text-white mb-4">Disclaimers</h2>
             <p className="mb-4">
-              The platform is provided "as is" without warranties of any kind. 
+              The platform is provided &ldquo;as is&rdquo; without warranties of any kind. 
               We disclaim all warranties, express or implied, including but not limited to 
               merchantability, fitness for a particular purpose, and non-infringement. 
               We are not liable for any indirect, incidental, special, or consequential damages.

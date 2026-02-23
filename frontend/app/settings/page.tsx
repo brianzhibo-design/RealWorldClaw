@@ -359,6 +359,7 @@ export default function SettingsPage() {
                     >
                       Delete Account
                     </button>
+                  </div>
                 </div>
               </div>
             )}
