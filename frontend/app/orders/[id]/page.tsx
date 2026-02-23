@@ -67,6 +67,12 @@ export default function OrderDetailPage() {
   const [actionLoading, setActionLoading] = useState(false);
   const [messages, setMessages] = useState<Message[] | null>(null);
   const [msgError, setMsgError] = useState(false);
+  
+  // Review system state
+  const [reviewRating, setReviewRating] = useState(0);
+  const [reviewComment, setReviewComment] = useState("");
+  const [reviewSubmitting, setReviewSubmitting] = useState(false);
+  const [reviewSubmitted, setReviewSubmitted] = useState(false);
 
   useEffect(() => {
     if (!token) { router.push("/auth/login"); return; }
@@ -100,6 +106,32 @@ export default function OrderDetailPage() {
       alert((err as Error).message || "Action failed");
     } finally {
       setActionLoading(false);
+    }
+  };
+
+  const submitReview = async () => {
+    if (reviewRating === 0) {
+      alert("Please select a rating");
+      return;
+    }
+
+    setReviewSubmitting(true);
+    try {
+      await apiFetch(`/orders/${params.id}/review`, {
+        method: 'POST',
+        body: JSON.stringify({
+          rating: reviewRating,
+          comment: reviewComment
+        })
+      });
+      
+      setReviewSubmitted(true);
+      setReviewRating(0);
+      setReviewComment("");
+    } catch (err) {
+      alert((err as Error).message || "Failed to submit review");
+    } finally {
+      setReviewSubmitting(false);
     }
   };
 
@@ -224,6 +256,81 @@ export default function OrderDetailPage() {
               <p className="text-slate-400 text-sm">No messages yet</p>
             )}
           </div>
+
+          {/* Review System - Show for completed/delivered orders */}
+          {(status === "completed" || status === "delivered") && isBuyer && (
+            <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-6">
+              <h2 className="text-lg font-semibold mb-4">⭐ Rate Your Order</h2>
+              
+              {reviewSubmitted ? (
+                <div className="text-center py-6">
+                  <div className="text-4xl mb-3">✅</div>
+                  <p className="text-green-400 font-semibold text-lg">Review submitted!</p>
+                  <p className="text-slate-400 text-sm mt-2">Thank you for your feedback</p>
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  {/* Star Rating */}
+                  <div>
+                    <label className="block text-sm font-medium text-slate-300 mb-3">Rating</label>
+                    <div className="flex gap-1">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <button
+                          key={star}
+                          type="button"
+                          onClick={() => setReviewRating(star)}
+                          className={`text-3xl transition-all duration-200 hover:scale-110 ${
+                            star <= reviewRating 
+                              ? "text-sky-400 drop-shadow-[0_0_8px_rgba(56,189,248,0.5)]" 
+                              : "text-slate-600 hover:text-slate-500"
+                          }`}
+                        >
+                          ⭐
+                        </button>
+                      ))}
+                    </div>
+                    {reviewRating > 0 && (
+                      <p className="text-sm text-slate-400 mt-2">
+                        {reviewRating === 1 && "Poor"}
+                        {reviewRating === 2 && "Fair"}
+                        {reviewRating === 3 && "Good"}
+                        {reviewRating === 4 && "Very Good"}
+                        {reviewRating === 5 && "Excellent"}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Comment */}
+                  <div>
+                    <label className="block text-sm font-medium text-slate-300 mb-3">Comment (optional)</label>
+                    <textarea
+                      value={reviewComment}
+                      onChange={(e) => setReviewComment(e.target.value)}
+                      placeholder="Tell us about your experience..."
+                      rows={4}
+                      className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent resize-none"
+                    />
+                  </div>
+
+                  {/* Submit Button */}
+                  <button
+                    onClick={submitReview}
+                    disabled={reviewSubmitting || reviewRating === 0}
+                    className="w-full py-3 bg-sky-600 hover:bg-sky-500 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-colors"
+                  >
+                    {reviewSubmitting ? (
+                      <span className="flex items-center justify-center gap-2">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
+                        Submitting...
+                      </span>
+                    ) : (
+                      "Submit Review"
+                    )}
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Sidebar */}
