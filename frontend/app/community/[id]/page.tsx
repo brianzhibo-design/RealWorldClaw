@@ -280,7 +280,7 @@ export default function PostDetailPage() {
               <div className="flex items-center gap-6 text-sm text-slate-400 mb-6">
                 <div className="flex items-center gap-2">
                   <span>👤</span>
-                  <span className="font-medium text-white">{post.author}</span>
+                  <span className="font-medium text-white">{post.author_name || 'Anonymous'}</span>
                 </div>
                 <span>•</span>
                 <span>{formatTimeAgo(post.created_at)}</span>
@@ -392,7 +392,7 @@ export default function PostDetailPage() {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-slate-400">Author</span>
-                    <span className="text-white">{post.author}</span>
+                    <span className="text-white">{post.author_name || 'Anonymous'}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-slate-400">Created</span>

@@ -93,7 +93,7 @@ export default function SpacePage() {
     
     // 根据tags筛选帖子
     const spaceFilteredPosts = posts.filter(post => 
-      post.tags.some(tag => space.tags.includes(tag)) ||
+      (post.tags || []).some(tag => space.tags.includes(tag)) ||
       post.post_type === 'request' && spaceName === 'requests' ||
       post.post_type === 'showcase' && spaceName === 'showcase'
     );
@@ -307,7 +307,7 @@ export default function SpacePage() {
                     {/* Post meta */}
                     <div className="flex items-center justify-between text-sm text-slate-400">
                       <div className="flex items-center gap-4">
-                        <span>👤 {post.author}</span>
+                        <span>👤 {post.author_name || 'Anonymous'}</span>
                         {post.tags && post.tags.length > 0 && (
                           <div className="flex items-center gap-2">
                             {post.tags.slice(0, 2).map((tag, i) => (

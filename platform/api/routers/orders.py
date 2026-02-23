@@ -22,6 +22,7 @@ from ..database import get_db
 from ..models.schemas import (
     OrderAcceptRequest,
     OrderCreateRequest,
+    OrderEstimateRequest,
     OrderMessageCreate,
     OrderReviewRequest,
     OrderShippingUpdate,
@@ -29,6 +30,7 @@ from ..models.schemas import (
 )
 from ..services.matching import match_maker_for_order
 from ..deps import get_authenticated_identity
+from ..pricing import estimate_price
 
 router = APIRouter(prefix="/orders", tags=["orders"])
 
@@ -135,7 +137,7 @@ def create_order(body: OrderCreateRequest, identity: dict = Depends(get_authenti
         # Use auto_match or traditional matching
         maker_id = None
         maker_region = "待匹配"
-        estimated_price = 0.0
+        maker_hourly_rate = 30.0  # 默认费率
         
         if body.auto_match:
             # Auto-matching logic: find nearby online nodes
@@ -150,14 +152,22 @@ def create_order(body: OrderCreateRequest, identity: dict = Depends(get_authenti
                 best = matches[0]
                 maker_id = best["id"]
                 maker_region = f"{best['location_province']} {best['location_city']}"
-                estimated_price = round(best["pricing_per_hour_cny"] * body.quantity * 2, 2)
+                maker_hourly_rate = best.get("pricing_per_hour_cny", 30.0)
         else:
             # No auto-match: leave order unassigned for makers to claim
             pass
 
-        fee_rate = PLATFORM_FEE_EXPRESS if body.urgency == "express" else PLATFORM_FEE_NORMAL
-        platform_fee = round(estimated_price * fee_rate, 2)
-        maker_income = round(estimated_price - platform_fee, 2)
+        # 使用定价引擎计算价格
+        pricing_result = estimate_price(
+            material=body.material or body.material_preference or "PLA",
+            quantity=body.quantity,
+            maker_hourly_rate=maker_hourly_rate,
+            urgency=body.urgency.value
+        )
+        
+        estimated_price = pricing_result["estimated_price_cny"]
+        platform_fee = pricing_result["platform_fee_cny"]
+        maker_income = pricing_result["maker_income_cny"]
 
         db.execute(
             """INSERT INTO orders
@@ -587,3 +597,25 @@ def cancel_order(order_id: str, identity: dict = Depends(get_authenticated_ident
         """, (now, order_id))
     
     return {"message": "Order cancelled successfully", "order_id": order_id, "status": "cancelled"}
+
+
+@router.post("/estimate")
+def estimate_order_price(body: OrderEstimateRequest, identity: dict = Depends(get_authenticated_identity)):
+    """Get a price estimate before creating an order."""
+    # 如果指定了maker_id，用maker的hourly_rate
+    # 否则用默认值
+    maker_hourly_rate = 30.0  # 默认值
+    
+    if body.maker_id:
+        with get_db() as db:
+            maker = db.execute("SELECT pricing_per_hour_cny FROM makers WHERE id = ?", (body.maker_id,)).fetchone()
+            if maker and maker["pricing_per_hour_cny"]:
+                maker_hourly_rate = maker["pricing_per_hour_cny"]
+    
+    result = estimate_price(
+        material=body.material or "PLA",
+        quantity=body.quantity or 1,
+        maker_hourly_rate=maker_hourly_rate,
+        urgency=body.urgency or "normal"
+    )
+    return result

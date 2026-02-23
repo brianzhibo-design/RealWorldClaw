@@ -402,6 +402,13 @@ class OrderStatusUpdate(BaseModel):
     status: OrderStatus
 
 
+class OrderEstimateRequest(BaseModel):
+    material: str = "PLA"
+    quantity: int = 1
+    urgency: str = "normal"
+    maker_id: Optional[str] = None
+
+
 class OrderShippingUpdate(BaseModel):
     shipping_carrier: str
     shipping_tracking: str

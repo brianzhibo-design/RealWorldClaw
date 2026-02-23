@@ -230,7 +230,7 @@ export default function CommunityPage() {
                       {post.post_type.charAt(0).toUpperCase() + post.post_type.slice(1)}
                     </div>
                     <span className="text-xs sm:text-sm text-muted-foreground">
-                      by {post.author}
+                      by {post.author_name || 'Anonymous'}
                     </span>
                     {post.materials && post.materials.length > 0 && (
                       <div className="hidden sm:flex items-center gap-1">
