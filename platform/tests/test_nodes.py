@@ -82,8 +82,8 @@ class TestNodeRegistration:
         
         assert data["name"] == SAMPLE_NODE_DATA["name"]
         assert data["node_type"] == SAMPLE_NODE_DATA["node_type"]
-        assert data["latitude"] == SAMPLE_NODE_DATA["latitude"]
-        assert data["longitude"] == SAMPLE_NODE_DATA["longitude"]
+        # Public endpoint returns fuzzy location only (not precise)
+        assert "fuzzy_latitude" in data
         assert abs(data["fuzzy_latitude"] - SAMPLE_NODE_DATA["latitude"]) <= 0.01
         assert abs(data["fuzzy_longitude"] - SAMPLE_NODE_DATA["longitude"]) <= 0.01
         assert data["capabilities"] == SAMPLE_NODE_DATA["capabilities"]
