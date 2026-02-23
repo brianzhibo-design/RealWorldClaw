@@ -1,5 +1,6 @@
 "use client";
 import { API_BASE as API_URL, apiFetch } from "@/lib/api-client";
+import { useAuthStore } from "@/stores/authStore";
 import { EmptyState } from "@/components/EmptyState";
 
 import { useState, useEffect } from "react";
@@ -54,8 +55,8 @@ export default function OrdersPage() {
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<TabType>('all');
 
-  // Check auth — try multiple token sources for compatibility
-  const token = typeof window !== "undefined" ? (localStorage.getItem("auth_token") || localStorage.getItem("token")) : null;
+  // Check auth
+  const token = useAuthStore((state) => state.token);
 
   useEffect(() => {
     if (!token) {
