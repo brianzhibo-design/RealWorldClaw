@@ -27,10 +27,12 @@ class TestUserBuyerJourney:
         })
         assert r.status_code == 201
         data = r.json()
-        assert data["email"] == "buyer@example.com"
-        assert data["username"] == "buyer_wang"
-        assert data["role"] == "user"
-        assert data["is_active"] is True
+        assert "access_token" in data
+        user = data["user"]
+        assert user["email"] == "buyer@example.com"
+        assert user["username"] == "buyer_wang"
+        assert user["role"] == "user"
+        assert user["is_active"] is True
 
     def test_user_login(self, client):
         # Register first

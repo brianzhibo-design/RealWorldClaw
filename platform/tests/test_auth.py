@@ -41,10 +41,13 @@ class TestRegister:
         r = _register()
         assert r.status_code == 201
         data = r.json()
-        assert data["email"] == "test@example.com"
-        assert data["username"] == "testuser"
-        assert data["role"] == "user"
-        assert data["is_active"] is True
+        assert "access_token" in data
+        assert "user" in data
+        user = data["user"]
+        assert user["email"] == "test@example.com"
+        assert user["username"] == "testuser"
+        assert user["role"] == "user"
+        assert user["is_active"] is True
 
     def test_register_duplicate_email(self):
         _register()

@@ -98,9 +98,12 @@ class TestResponseFormats:
             "email": "schema@test.com", "username": "schemauser", "password": "securepass123",
         })
         data = r.json()
+        assert "access_token" in data
+        assert "user" in data
+        user = data["user"]
         required = ["id", "email", "username", "role", "is_active", "created_at", "updated_at"]
         for field in required:
-            assert field in data, f"Missing field in user: {field}"
+            assert field in user, f"Missing field in user: {field}"
 
     def test_login_response_schema(self, client):
         client.post(f"{API}/auth/register", json={
@@ -112,7 +115,7 @@ class TestResponseFormats:
         data = r.json()
         assert "access_token" in data
         assert "refresh_token" in data
-        assert "token_type" in data
+        assert "user" in data
         assert isinstance(data["access_token"], str)
         assert len(data["access_token"]) > 10
 
