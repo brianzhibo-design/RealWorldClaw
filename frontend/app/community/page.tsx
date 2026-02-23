@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { fetchCommunityPosts, CommunityPost, votePost } from "@/lib/api";
+import { fetchCommunityPosts, CommunityPost, votePost } from "@/lib/api-client";
 import { useAuthStore } from "@/stores/authStore";
 
 const POST_TYPES = [

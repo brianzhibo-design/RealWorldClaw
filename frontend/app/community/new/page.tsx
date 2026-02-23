@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { createCommunityPost } from "@/lib/api";
+import { createCommunityPost } from "@/lib/api-client";
 import { useAuthStore } from "@/stores/authStore";
 
 const POST_TYPES = [

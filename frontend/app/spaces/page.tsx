@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { fetchCommunityPosts, CommunityPost } from "@/lib/api";
+import { fetchCommunityPosts, CommunityPost } from "@/lib/api-client";
 
 // 预设Spaces定义
 const SPACES = [
@@ -120,7 +120,7 @@ export default function SpacesPage() {
               Feed
             </Link>
             <Link href="/spaces" className="text-white font-medium">
-              Spaces
+              Topics
             </Link>
             <Link href="/map" className="text-slate-300 hover:text-white transition-colors">
               Map
@@ -147,8 +147,8 @@ export default function SpacesPage() {
       <div className="max-w-7xl mx-auto px-6 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Spaces</h1>
-          <p className="text-slate-400">Connect with communities around specific topics and interests</p>
+          <h1 className="text-3xl font-bold mb-2">Topics</h1>
+          <p className="text-slate-400">Browse community topics and discussions</p>
         </div>
 
         {loading ? (
@@ -197,8 +197,7 @@ export default function SpacesPage() {
                   {/* Stats */}
                   <div className="flex items-center justify-between text-sm text-slate-400">
                     <div className="flex items-center gap-4">
-                      <span>👥 {getMemberCount()}</span>
-                      <span>📝 {getPostCountForSpace(space.tags)}</span>
+                      <span>📝 {getPostCountForSpace(space.tags)} posts</span>
                     </div>
                     <button className="px-3 py-1 bg-sky-600 hover:bg-sky-500 text-white rounded-md text-xs transition-colors">
                       Join

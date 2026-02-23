@@ -6,6 +6,7 @@ import uuid
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel, Field
 
 from ..database import get_db
 from ..deps import get_current_user
@@ -139,6 +140,24 @@ def update_me(req: UserUpdateRequest, user: dict = Depends(get_current_user)):
         row = db.execute("SELECT * FROM users WHERE id = ?", (user["id"],)).fetchone()
 
     return _user_response(row)
+
+
+class _ChangePasswordRequest(BaseModel):
+    current_password: str
+    new_password: str = Field(..., min_length=8)
+
+
+@router.post("/change-password")
+def change_password(req: _ChangePasswordRequest, user: dict = Depends(get_current_user)):
+    if not verify_password(req.current_password, user["hashed_password"]):
+        raise HTTPException(status_code=400, detail="Current password is incorrect")
+
+    now = datetime.now(timezone.utc).isoformat()
+    hashed = hash_password(req.new_password)
+    with get_db() as db:
+        db.execute("UPDATE users SET hashed_password = ?, updated_at = ? WHERE id = ?", (hashed, now, user["id"]))
+
+    return {"message": "Password updated successfully"}
 
 
 @router.post("/logout")

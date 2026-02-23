@@ -325,7 +325,7 @@ class MakerOwnerResponse(MakerPublicResponse):
 # ─── Order Models (Maker Network) ────────────────────────
 
 class OrderCreateRequest(BaseModel):
-    component_id: str
+    component_id: Optional[str] = None
     order_type: OrderType = OrderType.print_only
     quantity: int = Field(..., ge=1)
     material_preference: Optional[str] = None

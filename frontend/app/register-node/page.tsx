@@ -1,5 +1,5 @@
 "use client";
-import { API_BASE as API_URL } from "@/lib/api";
+import { API_BASE as API_URL } from "@/lib/api-client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -16,14 +16,18 @@ const NODE_TYPES = [
 const COMMON_MATERIALS = ["PLA", "ABS", "PETG", "TPU", "Nylon", "Resin", "Wood", "Metal", "Acrylic"];
 
 const PRESET_CITIES: Record<string, { lat: number; lng: number }> = {
-  "Beijing": { lat: 39.9042, lng: 116.4074 },
-  "Shanghai": { lat: 31.2304, lng: 121.4737 },
   "Shenzhen": { lat: 22.5431, lng: 114.0579 },
+  "Shanghai": { lat: 31.2304, lng: 121.4737 },
+  "Beijing": { lat: 39.9042, lng: 116.4074 },
   "Guangzhou": { lat: 23.1291, lng: 113.2644 },
-  "Hangzhou": { lat: 30.2741, lng: 120.1551 },
-  "Chengdu": { lat: 30.5728, lng: 104.0668 },
-  "Nanjing": { lat: 32.0603, lng: 118.7969 },
-  "Wuhan": { lat: 30.5928, lng: 114.3055 },
+  "Tokyo": { lat: 35.6762, lng: 139.6503 },
+  "Seoul": { lat: 37.5665, lng: 126.9780 },
+  "Singapore": { lat: 1.3521, lng: 103.8198 },
+  "San Francisco": { lat: 37.7749, lng: -122.4194 },
+  "New York": { lat: 40.7128, lng: -74.0060 },
+  "London": { lat: 51.5074, lng: -0.1278 },
+  "Berlin": { lat: 52.5200, lng: 13.4050 },
+  "Sydney": { lat: -33.8688, lng: 151.2093 },
 };
 
 export default function RegisterNodePage() {
@@ -43,6 +47,9 @@ export default function RegisterNodePage() {
   const [capInput, setCapInput] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+  const [selectedCity, setSelectedCity] = useState<string>(""); // Empty for custom coordinates
+  const [locationMode, setLocationMode] = useState<"city" | "custom">("city");
 
   const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
 
@@ -74,10 +81,24 @@ export default function RegisterNodePage() {
     }
   };
 
-  const handlePresetCity = (city: string) => {
-    const coords = PRESET_CITIES[city];
-    if (coords) {
-      setFormData(prev => ({ ...prev, latitude: String(coords.lat), longitude: String(coords.lng) }));
+  const handleCityChange = (city: string) => {
+    setSelectedCity(city);
+    if (city && PRESET_CITIES[city]) {
+      const coords = PRESET_CITIES[city];
+      setFormData(prev => ({ 
+        ...prev, 
+        latitude: String(coords.lat), 
+        longitude: String(coords.lng) 
+      }));
+    }
+  };
+
+  const handleLocationModeChange = (mode: "city" | "custom") => {
+    setLocationMode(mode);
+    if (mode === "custom") {
+      setSelectedCity("");
+      // Clear coordinates when switching to custom mode
+      setFormData(prev => ({ ...prev, latitude: "", longitude: "" }));
     }
   };
 
@@ -86,6 +107,13 @@ export default function RegisterNodePage() {
     setError(null);
 
     if (!formData.name.trim() || formData.name.trim().length > 100) { setError("Name is required (1-100 chars)"); return; }
+    
+    // Validate location based on mode
+    if (locationMode === "city" && !selectedCity) {
+      setError("Please select a city or switch to custom coordinates");
+      return;
+    }
+    
     const lat = parseFloat(formData.latitude);
     const lng = parseFloat(formData.longitude);
     if (isNaN(lat) || lat < -90 || lat > 90) { setError("Latitude must be between -90 and 90"); return; }
@@ -119,8 +147,10 @@ export default function RegisterNodePage() {
       });
 
       if (response.ok) {
-        const node = await response.json();
-        router.push(`/dashboard?registered=${node.id}`);
+        setSuccess(true);
+        setTimeout(() => {
+          router.push("/map");
+        }, 3000);
       } else {
         const errorData = await response.json();
         setError(errorData.detail || "Failed to register node");
@@ -142,6 +172,12 @@ export default function RegisterNodePage() {
 
       <div className="max-w-4xl mx-auto px-6 py-8">
         {error && <div className="mb-6 p-4 bg-red-900/50 border border-red-800 rounded-lg text-red-200">{error}</div>}
+
+        {success && (
+          <div className="mb-6 p-4 bg-green-900/50 border border-green-800 rounded-lg text-green-200">
+            Node registered successfully! Redirecting...
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-8">
           {/* Name */}
@@ -170,25 +206,90 @@ export default function RegisterNodePage() {
           {/* Location */}
           <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-6">
             <h2 className="text-xl font-semibold mb-4">📍 Location *</h2>
+            
+            {/* Location Mode Toggle */}
             <div className="mb-4">
-              <label className="block text-xs text-slate-400 mb-2">Quick Select City</label>
-              <div className="flex flex-wrap gap-2">
-                {Object.keys(PRESET_CITIES).map(city => (
-                  <button key={city} type="button" onClick={() => handlePresetCity(city)}
-                    className="px-3 py-1 text-xs rounded-full bg-slate-700 text-slate-300 hover:bg-slate-600 transition-colors">{city}</button>
-                ))}
+              <label className="block text-sm font-medium text-slate-300 mb-2">Location Input Method</label>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => handleLocationModeChange("city")}
+                  className={`px-4 py-2 rounded-lg text-sm transition-colors ${
+                    locationMode === "city" 
+                      ? "bg-sky-600 text-white" 
+                      : "bg-slate-700 text-slate-300 hover:bg-slate-600"
+                  }`}
+                >
+                  Select City
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleLocationModeChange("custom")}
+                  className={`px-4 py-2 rounded-lg text-sm transition-colors ${
+                    locationMode === "custom" 
+                      ? "bg-sky-600 text-white" 
+                      : "bg-slate-700 text-slate-300 hover:bg-slate-600"
+                  }`}
+                >
+                  Custom Coordinates
+                </button>
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">Latitude * (-90 to 90)</label>
-                <input type="number" step="any" min="-90" max="90" value={formData.latitude} onChange={e => setFormData(prev => ({ ...prev, latitude: e.target.value }))} placeholder="e.g. 22.5431" required className={inputCls} />
+
+            {locationMode === "city" ? (
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-slate-300 mb-2">Select City</label>
+                <select
+                  value={selectedCity}
+                  onChange={(e) => handleCityChange(e.target.value)}
+                  required
+                  className={inputCls}
+                >
+                  <option value="">-- Select a city --</option>
+                  {Object.keys(PRESET_CITIES).map(city => (
+                    <option key={city} value={city}>
+                      {city} ({PRESET_CITIES[city].lat.toFixed(4)}, {PRESET_CITIES[city].lng.toFixed(4)})
+                    </option>
+                  ))}
+                </select>
+                {selectedCity && (
+                  <div className="mt-2 text-sm text-slate-400">
+                    Coordinates: {formData.latitude}, {formData.longitude}
+                  </div>
+                )}
               </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">Longitude * (-180 to 180)</label>
-                <input type="number" step="any" min="-180" max="180" value={formData.longitude} onChange={e => setFormData(prev => ({ ...prev, longitude: e.target.value }))} placeholder="e.g. 114.0579" required className={inputCls} />
+            ) : (
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">Latitude * (-90 to 90)</label>
+                  <input 
+                    type="number" 
+                    step="any" 
+                    min="-90" 
+                    max="90" 
+                    value={formData.latitude} 
+                    onChange={e => setFormData(prev => ({ ...prev, latitude: e.target.value }))} 
+                    placeholder="e.g. 22.5431" 
+                    required 
+                    className={inputCls} 
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">Longitude * (-180 to 180)</label>
+                  <input 
+                    type="number" 
+                    step="any" 
+                    min="-180" 
+                    max="180" 
+                    value={formData.longitude} 
+                    onChange={e => setFormData(prev => ({ ...prev, longitude: e.target.value }))} 
+                    placeholder="e.g. 114.0579" 
+                    required 
+                    className={inputCls} 
+                  />
+                </div>
               </div>
-            </div>
+            )}
           </div>
 
           {/* Build Volume (optional) */}

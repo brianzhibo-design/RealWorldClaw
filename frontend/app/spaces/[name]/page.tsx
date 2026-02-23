@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { fetchCommunityPosts, CommunityPost } from "@/lib/api";
+import { fetchCommunityPosts, CommunityPost } from "@/lib/api-client";
 
 // 预设Spaces定义
 const SPACES_CONFIG = {
@@ -174,7 +174,7 @@ export default function SpacePage() {
               Feed
             </Link>
             <Link href="/spaces" className="text-slate-300 hover:text-white transition-colors">
-              Spaces
+              Topics
             </Link>
             <Link href="/map" className="text-slate-300 hover:text-white transition-colors">
               Map
@@ -205,20 +205,16 @@ export default function SpacePage() {
                   </p>
                 </div>
                 <button
-                  onClick={() => setIsJoined(!isJoined)}
-                  className={`px-6 py-2 rounded-lg font-medium transition-colors ${
-                    isJoined
-                      ? 'bg-slate-700 text-slate-300 hover:bg-slate-600'
-                      : 'bg-sky-600 text-white hover:bg-sky-500'
-                  }`}
+                  disabled
+                  className="px-6 py-2 rounded-lg font-medium bg-slate-700 text-slate-400 cursor-not-allowed"
                 >
-                  {isJoined ? 'Joined ✓' : 'Join Space'}
+                  Coming Soon
                 </button>
               </div>
               
               {/* Stats */}
               <div className="flex items-center gap-6 text-sm text-slate-400">
-                <span>👥 New community</span>
+                <span>💬 {space.title}</span>
                 <span>📝 {filteredPosts.length} posts</span>
                 <span>📊 Active</span>
               </div>

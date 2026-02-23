@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { fetchCommunityPosts, CommunityPost } from "@/lib/api";
+import { fetchCommunityPosts, CommunityPost } from "@/lib/api-client";
 import { useAuthStore } from "@/stores/authStore";
 
 export default function ProfilePage() {

@@ -1,5 +1,5 @@
 "use client";
-import { API_BASE as API_URL } from "@/lib/api";
+import { API_BASE as API_URL } from "@/lib/api-client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -27,6 +27,7 @@ export default function MakerRegisterPage() {
 
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
 
   const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
 
@@ -91,7 +92,10 @@ export default function MakerRegisterPage() {
       });
 
       if (response.ok) {
-        router.push("/dashboard");
+        setSuccess(true);
+        setTimeout(() => {
+          router.push("/dashboard");
+        }, 3000);
       } else {
         const errorData = await response.json();
         setError(errorData.detail || "Registration failed");
@@ -117,6 +121,12 @@ export default function MakerRegisterPage() {
       <div className="max-w-4xl mx-auto px-6 py-8">
         {error && (
           <div className="mb-6 p-4 bg-red-900/50 border border-red-800 rounded-lg text-red-200">{error}</div>
+        )}
+
+        {success && (
+          <div className="mb-6 p-4 bg-green-900/50 border border-green-800 rounded-lg text-green-200">
+            Registration successful! Redirecting...
+          </div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-8">
