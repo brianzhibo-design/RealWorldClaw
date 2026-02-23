@@ -198,6 +198,27 @@ def logout():
     return {"message": "Logged out successfully"}
 
 
+@router.delete("/me")
+def delete_account(user: dict = Depends(get_current_user)):
+    """Delete user account and all associated data (GDPR right to erasure)."""
+    user_id = user["id"]
+    logger.warning("Account deletion requested: user=%s email=%s", user_id, user.get("email"))
+    now = datetime.now(timezone.utc).isoformat()
+    with get_db() as db:
+        # Soft-delete: deactivate and anonymize
+        db.execute(
+            "UPDATE users SET is_active = 0, email = ?, username = ?, updated_at = ? WHERE id = ?",
+            (f"deleted-{user_id[:8]}@removed.local", f"deleted-{user_id[:8]}", now, user_id),
+        )
+        # Clean up user content
+        db.execute("DELETE FROM community_comments WHERE author_id = ?", (user_id,))
+        db.execute("UPDATE community_posts SET author_id = 'deleted', content = '[deleted]' WHERE author_id = ?", (user_id,))
+        # Deactivate makers
+        db.execute("UPDATE makers SET status = 'inactive' WHERE owner_id = ?", (user_id,))
+    logger.info("Account deleted: user=%s", user_id)
+    return {"message": "Account deleted. Your data has been removed."}
+
+
 # ── OAuth helpers ──────────────────────────────────────────────
 
 def _oauth_find_or_create(db, *, email: str, username: str, oauth_provider: str, oauth_id: str) -> dict:

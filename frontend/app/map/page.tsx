@@ -52,6 +52,7 @@ export default function MapPage() {
           <p className="text-red-400 mb-4">{error}</p>
           <button
             onClick={() => window.location.reload()}
+            aria-label="Reload map"
             className="px-5 py-2.5 bg-sky-600 hover:bg-sky-500 text-white rounded-lg transition-colors font-medium"
           >
             Try Again

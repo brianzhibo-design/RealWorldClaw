@@ -244,7 +244,7 @@ export default function SpacePage() {
                 ].map(({ key, label }) => (
                   <button
                     key={key}
-                    onClick={() => setSortType(key as any)}
+                    onClick={() => setSortType(key as string)}
                     className={`px-4 py-2 border-b-2 transition-colors font-medium ${
                       sortType === key
                         ? 'border-sky-500 text-sky-400'

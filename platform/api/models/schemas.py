@@ -329,10 +329,10 @@ class OrderCreateRequest(BaseModel):
     order_type: OrderType = OrderType.print_only
     quantity: int = Field(..., ge=1)
     material_preference: Optional[str] = None
-    delivery_province: str
-    delivery_city: str
-    delivery_district: str
-    delivery_address: str = Field(..., min_length=5)
+    delivery_province: str = "—"
+    delivery_city: str = "—"
+    delivery_district: str = "—"
+    delivery_address: str = Field("—", min_length=1)
     urgency: OrderUrgency = OrderUrgency.normal
     notes: Optional[str] = None
     # New fields for enhanced order matching

@@ -55,11 +55,11 @@ export function WorldMap({
       {/* Zoom controls */}
       <div className="absolute top-4 right-4 z-10 flex flex-col gap-2">
         {[
-          { label: '+', action: () => zoom < 8 && setZoom(z => z * 1.5) },
-          { label: '−', action: () => zoom > 1 && setZoom(z => z / 1.5) },
-          { label: '⌂', action: () => { setZoom(1); setCenter([0, 20]); } },
-        ].map(({ label, action }) => (
-          <button key={label} onClick={action}
+          { label: '+', action: () => zoom < 8 && setZoom(z => z * 1.5), ariaLabel: 'Zoom in' },
+          { label: '−', action: () => zoom > 1 && setZoom(z => z / 1.5), ariaLabel: 'Zoom out' },
+          { label: '⌂', action: () => { setZoom(1); setCenter([0, 20]); }, ariaLabel: 'Reset view' },
+        ].map(({ label, action, ariaLabel }) => (
+          <button key={label} onClick={action} aria-label={ariaLabel}
             className="w-10 h-10 bg-slate-800/80 backdrop-blur-sm rounded-lg border border-slate-700 hover:bg-slate-700/80 transition-colors flex items-center justify-center text-white text-lg font-bold">
             {label}
           </button>

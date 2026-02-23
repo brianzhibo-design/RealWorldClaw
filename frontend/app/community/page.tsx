@@ -195,6 +195,7 @@ export default function CommunityPage() {
             <p className="text-muted-foreground mb-4">{error}</p>
             <button
               onClick={fetchPosts}
+              aria-label="Retry loading posts"
               className="px-4 py-2 bg-secondary hover:bg-secondary/80 rounded-md text-sm font-medium transition-colors"
             >
               Try Again
@@ -291,6 +292,7 @@ export default function CommunityPage() {
                   <div className="flex items-center gap-4">
                     <button
                       onClick={() => handleVote(post.id, 'up')}
+                      aria-label={`Upvote post (${post.upvotes})`}
                       className="flex items-center gap-1 hover:text-primary transition-colors"
                     >
                       <span>👍</span>

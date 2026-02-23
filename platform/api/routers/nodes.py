@@ -156,7 +156,9 @@ def register_node(request: NodeRegisterRequest, identity: dict = Depends(get_aut
         
         # Fetch and return the created node
         row = db.execute("SELECT * FROM nodes WHERE id = ?", (node_id,)).fetchone()
-        return _row_to_node_detail(dict(row))
+        
+    logger.info("Node registered: id=%s by=%s", node_id, identity["identity_id"])
+    return _row_to_node_detail(dict(row))
 
 
 @router.get("/map", response_model=List[NodeResponse])
@@ -219,6 +221,8 @@ def node_heartbeat(request: NodeHeartbeatRequest, identity: dict = Depends(get_a
             request.status.value, request.current_job_id, request.queue_length,
             now, now, node["id"]
         ))
+        
+        logger.info("Node heartbeat: id=%s by=%s status=%s", node["id"], identity["identity_id"], request.status.value)
         
         return {"message": "Heartbeat updated", "timestamp": now}
 

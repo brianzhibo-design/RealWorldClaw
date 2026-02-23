@@ -4,12 +4,12 @@ from __future__ import annotations
 import logging
 logger = logging.getLogger(__name__)
 
-
-
 import html
 import json
 import re
+import time
 import uuid
+from collections import defaultdict
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -32,6 +32,18 @@ from ..models.community import (
 # Lightweight HTML sanitizer (no extra dependency)
 _TAG_RE = re.compile(r"<[^>]+>")
 
+# Simple in-memory rate limiter for community actions
+_community_rate: dict[str, list[float]] = defaultdict(list)
+
+def _rate_check(key: str, max_calls: int, window: int) -> bool:
+    """Return True if request is allowed, False if rate-limited."""
+    now = time.monotonic()
+    bucket = _community_rate[key]
+    _community_rate[key] = [t for t in bucket if now - t < window]
+    if len(_community_rate[key]) >= max_calls:
+        return False
+    _community_rate[key].append(now)
+    return True
 
 def _sanitize(text: str) -> str:
     """Strip all HTML tags and escape remaining entities."""
@@ -89,6 +101,10 @@ async def create_post(
     identity: dict = Depends(get_authenticated_identity)
 ):
     """Create a new community post."""
+    # Rate limit check
+    if not _rate_check(f"post:{identity['identity_id']}", max_calls=10, window=3600):
+        raise HTTPException(429, "Too many posts. Try again later.")
+    
     # Sanitize user input
     post.title = _sanitize(post.title)
     post.content = _sanitize(post.content)
@@ -132,6 +148,7 @@ async def create_post(
             SELECT * FROM community_posts WHERE id = ?
         """, (post_id,)).fetchone()
     
+    logger.info("Post created: id=%s by=%s type=%s", post_id, identity["identity_id"], post.post_type)
     return _row_to_post_response(dict(row), db)
 
 
@@ -212,6 +229,10 @@ async def create_comment(
     identity: dict = Depends(get_authenticated_identity)
 ):
     """Add a comment to a post."""
+    # Rate limit check
+    if not _rate_check(f"comment:{identity['identity_id']}", max_calls=30, window=3600):
+        raise HTTPException(429, "Too many comments. Try again later.")
+    
     comment.content = _sanitize(comment.content)
 
     # Verify post exists
@@ -252,6 +273,8 @@ async def create_comment(
         comment_row = db.execute("""
             SELECT * FROM community_comments WHERE id = ?
         """, (comment_id,)).fetchone()
+    
+    logger.info("Comment created: post=%s by=%s", post_id, identity["identity_id"])
     
     return CommentResponse(
         id=comment_row["id"],
@@ -384,6 +407,8 @@ async def vote_post(
         row = db.execute(
             "SELECT upvotes, downvotes FROM community_posts WHERE id = ?", (post_id,)
         ).fetchone()
+    
+    logger.info("Vote on post: post=%s by=%s direction=%s", post_id, identity["identity_id"], direction)
     
     return VoteResponse(
         upvotes=row["upvotes"],

@@ -103,6 +103,7 @@ export function Sidebar() {
         {/* Collapse toggle */}
         <button
           onClick={toggleSidebar}
+          aria-label={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
           className="flex items-center justify-center w-full py-2 text-muted-foreground hover:text-foreground transition-colors"
         >
           {sidebarCollapsed ? (

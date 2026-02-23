@@ -171,7 +171,7 @@ export default function SettingsPage() {
                   <button
                     key={tab.key}
                     onClick={() => {
-                      setActiveTab(tab.key as any);
+                      setActiveTab(tab.key as string);
                       setError(null);
                       setSuccess(null);
                     }}
@@ -344,22 +344,21 @@ export default function SettingsPage() {
                       Permanently delete your account and all associated data. This action cannot be undone.
                     </p>
                     <button
-                      onClick={() => alert('Account deletion is not implemented in this demo.')}
+                      onClick={async () => {
+                        if (!confirm('Are you sure? This will permanently delete your account and all data. This cannot be undone.')) return;
+                        try {
+                          await apiFetch('/auth/me', { method: 'DELETE' });
+                          localStorage.clear();
+                          window.location.href = '/';
+                        } catch (err) {
+                          alert('Failed to delete account. Please try again.');
+                        }
+                      }}
+                      aria-label="Delete account permanently"
                       className="px-4 py-2 bg-red-600 hover:bg-red-500 text-white rounded-lg font-medium transition-colors"
                     >
                       Delete Account
                     </button>
-                  </div>
-
-                  <div className="bg-yellow-900/20 border border-yellow-800 rounded-lg p-4">
-                    <div className="flex items-center gap-2 text-yellow-400 mb-2">
-                      <span>⚠️</span>
-                      <span className="font-medium">Safety Notice</span>
-                    </div>
-                    <p className="text-sm text-yellow-300">
-                      Account deletion is disabled in this demo. In production, this would permanently remove all your data.
-                    </p>
-                  </div>
                 </div>
               </div>
             )}

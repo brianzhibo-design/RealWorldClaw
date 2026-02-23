@@ -131,7 +131,7 @@ function SearchContent() {
         ) : error ? (
           <div className="text-center py-12">
             <p className="text-red-400 mb-4">{error}</p>
-            <button onClick={() => doSearch(searchQuery, activeTab)} className="px-4 py-2 bg-sky-600 hover:bg-sky-500 rounded-lg text-white">
+            <button onClick={() => doSearch(searchQuery, activeTab)} aria-label="Retry search" className="px-4 py-2 bg-sky-600 hover:bg-sky-500 rounded-lg text-white">
               Retry
             </button>
           </div>

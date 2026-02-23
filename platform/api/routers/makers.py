@@ -101,6 +101,7 @@ def register_maker(body: MakerRegisterRequest, identity: dict = Depends(get_auth
         )
         row = db.execute("SELECT * FROM makers WHERE id = ?", (maker_id,)).fetchone()
 
+    logger.info("Maker registered: id=%s by=%s", maker_id, identity["identity_id"])
     return _row_to_owner(dict(row))
 
 

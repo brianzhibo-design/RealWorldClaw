@@ -187,7 +187,7 @@ export default function ProfilePage() {
               </div>
             ) : userNodes.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {userNodes.map((node: any) => (
+                {userNodes.map((node: Record<string, string>) => (
                   <div key={node.id} className="bg-slate-800 border border-slate-700 rounded-xl p-4">
                     <div className="flex items-start justify-between mb-3">
                       <h3 className="font-semibold">{node.device_brand} {node.device_model}</h3>
@@ -232,18 +232,18 @@ export default function ProfilePage() {
               </div>
             ) : userOrders.length > 0 ? (
               <div className="space-y-4">
-                {userOrders.slice(0, 5).map((order: any) => (
+                {userOrders.slice(0, 5).map((order: Record<string, string>) => (
                   <Link 
                     key={order.id} 
                     href={`/orders/${order.id}`}
                     className="block bg-slate-800 border border-slate-700 rounded-xl p-4 hover:border-slate-600 transition-all"
                   >
                     <div className="flex items-start justify-between mb-2">
-                      <h3 className="font-semibold">{order.title || `Order ${order.id.slice(0, 8)}`}</h3>
+                      <h3 className="font-semibold">{order.order_number || `Order ${order.id.slice(0, 8)}`}</h3>
                       <span className={`px-2 py-1 text-xs rounded-full ${
                         order.status === 'delivered' ? 'bg-green-900/50 text-green-400 border border-green-700' :
                         order.status === 'printing' ? 'bg-blue-900/50 text-blue-400 border border-blue-700' :
-                        order.status === 'shipped' ? 'bg-purple-900/50 text-purple-400 border border-purple-700' :
+                        order.status === 'shipping' ? 'bg-purple-900/50 text-purple-400 border border-purple-700' :
                         order.status === 'accepted' ? 'bg-yellow-900/50 text-yellow-400 border border-yellow-700' :
                         'bg-slate-900/50 text-slate-400 border border-slate-700'
                       }`}>

@@ -713,7 +713,7 @@ export default function Home() {
                 };
 
                 const typeInfo = getPostTypeColor(post.post_type);
-                const authorName = post.author?.username || (post as any).author_name || post.author_id?.slice(0, 8) || 'Anonymous';
+                const authorName = post.author?.username || post.author_name || post.author_id?.slice(0, 8) || 'Anonymous';
 
                 return (
                   <div 
@@ -829,7 +829,7 @@ export default function Home() {
       {/* Footer */}
       <footer className="bg-slate-950 border-t border-slate-800 py-8">
         <div className="max-w-6xl mx-auto px-6 text-center">
-          <div className="text-slate-500 text-sm">
+          <div className="text-slate-400 text-sm">
             © 2026 RealWorldClaw · 
             <a href="/privacy" className="hover:text-slate-400 transition-colors mx-2">Privacy</a> · 
             <a href="/terms" className="hover:text-slate-400 transition-colors mx-2">Terms</a> · 

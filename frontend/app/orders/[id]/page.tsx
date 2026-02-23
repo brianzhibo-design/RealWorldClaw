@@ -79,7 +79,7 @@ export default function OrderDetailPage() {
     if (!params.id) return;
 
     apiFetch<{ role: string; order: Order } | Order>(`/orders/${params.id}`)
-      .then((res: any) => setOrder(res.order || res))
+      .then( => setOrder(res.order || res))
       .catch((err) => {
         if (err.message?.includes("401")) router.push("/auth/login");
         else setError("Failed to load order");
@@ -100,7 +100,7 @@ export default function OrderDetailPage() {
       await apiFetch(url, opts);
       // Refresh order
       const raw = await apiFetch<{ role: string; order: Order } | Order>(`/orders/${params.id}`);
-      const updated = (raw as any).order || raw;
+      const updated = raw as Record<string, unknown>.order || raw;
       setOrder(updated);
     } catch (err) {
       alert((err as Error).message || "Action failed");
@@ -217,10 +217,10 @@ export default function OrderDetailPage() {
                   </div>
                 </div>
               )}
-              {(order as any).color && (
+              {order.color && (
                 <div>
                   <div className="text-sm text-slate-400">Color</div>
-                  <div className="font-medium">{(order as any).color}</div>
+                  <div className="font-medium">{order.color}</div>
                 </div>
               )}
             </div>
@@ -282,7 +282,7 @@ export default function OrderDetailPage() {
                           className={`text-3xl transition-all duration-200 hover:scale-110 ${
                             star <= reviewRating 
                               ? "text-sky-400 drop-shadow-[0_0_8px_rgba(56,189,248,0.5)]" 
-                              : "text-slate-600 hover:text-slate-500"
+                              : "text-slate-400 hover:text-slate-300"
                           }`}
                         >
                           ⭐

@@ -46,7 +46,7 @@ export function MapFilters({
         <div className="text-xs text-slate-400 mb-2 font-medium uppercase tracking-wider">Equipment</div>
         <div className="space-y-1">
           {Object.entries(NODE_TYPE_INFO).map(([key, info]) => (
-            <button key={key} onClick={() => toggleType(key)}
+            <button key={key} onClick={() => toggleType(key)} aria-label={`Toggle ${info.name} filter`}
               className={`w-full flex items-center gap-2 px-2 py-1 rounded text-xs text-left transition-colors ${
                 selectedTypes.includes(key)
                   ? 'bg-sky-900/50 text-sky-300 border border-sky-700'
@@ -63,7 +63,7 @@ export function MapFilters({
         <div className="text-xs text-slate-400 mb-2 font-medium uppercase tracking-wider">Materials</div>
         <div className="flex flex-wrap gap-1">
           {MATERIALS.map(m => (
-            <button key={m} onClick={() => toggleMaterial(m)}
+            <button key={m} onClick={() => toggleMaterial(m)} aria-label={`Toggle ${m.toUpperCase()} material filter`}
               className={`px-2 py-0.5 rounded text-xs transition-colors ${
                 selectedMaterials.includes(m)
                   ? 'bg-sky-600 text-white'
