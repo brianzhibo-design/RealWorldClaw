@@ -390,6 +390,27 @@ def init_db():
             pass  # Column already exists
 
 
+        # Enable foreign keys and add protective indexes
+        db.execute("PRAGMA foreign_keys = ON")
+
+        # Additional indexes for common queries
+        for idx_sql in [
+            "CREATE INDEX IF NOT EXISTS idx_community_posts_author ON community_posts(author_id)",
+            "CREATE INDEX IF NOT EXISTS idx_community_posts_type ON community_posts(post_type)",
+            "CREATE INDEX IF NOT EXISTS idx_community_comments_post ON community_comments(post_id)",
+            "CREATE INDEX IF NOT EXISTS idx_orders_customer ON orders(customer_id)",
+            "CREATE INDEX IF NOT EXISTS idx_orders_maker ON orders(maker_id)",
+            "CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(status)",
+            "CREATE INDEX IF NOT EXISTS idx_files_owner ON files(owner_id)",
+            "CREATE INDEX IF NOT EXISTS idx_agents_status ON agents(status)",
+            "CREATE INDEX IF NOT EXISTS idx_nodes_status ON nodes(status)",
+        ]:
+            try:
+                db.execute(idx_sql)
+            except Exception:
+                pass
+
+
 if __name__ == "__main__":
     init_db()
     print(f"✅ Database initialized at {DB_PATH}")
