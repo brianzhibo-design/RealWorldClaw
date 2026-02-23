@@ -46,9 +46,14 @@ export default function Header() {
                 <stop offset="100%" stopColor="#818cf8"/>
               </linearGradient>
             </defs>
-            <path d="M 22 100 V 30 H 44 A 17.5 17.5 0 0 1 44 65 H 22 M 38 65 L 56 100" fill="none" stroke="url(#hdrGrad)" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round"/>
-            <path d="M 64 30 L 74 100 L 89 58 L 104 100 L 114 30" fill="none" stroke="url(#hdrGrad)" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round"/>
-            <circle cx="22" cy="30" r="3.5" fill="#fff"/><circle cx="89" cy="58" r="3.5" fill="#fff"/>
+            {/* Network routes forming RW */}
+            <path d="M 22 100 V 30 H 44 A 17.5 17.5 0 0 1 44 65 H 22 M 38 65 L 56 100" fill="none" stroke="url(#hdrGrad)" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M 64 30 L 74 100 L 89 58 L 104 100 L 114 30" fill="none" stroke="url(#hdrGrad)" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round"/>
+            {/* Manufacturing nodes */}
+            <circle cx="22" cy="30" r="5" fill="#38bdf8"/><circle cx="22" cy="30" r="2.5" fill="#fff"/>
+            <circle cx="89" cy="58" r="5" fill="#38bdf8"/><circle cx="89" cy="58" r="2.5" fill="#fff"/>
+            <circle cx="64" cy="30" r="4" fill="#6366f1"/><circle cx="64" cy="30" r="2" fill="#fff"/>
+            <circle cx="114" cy="30" r="4" fill="#6366f1"/><circle cx="114" cy="30" r="2" fill="#fff"/>
           </svg>
           <span className="font-bold text-xs md:text-sm text-white hidden sm:inline">
             RealWorld<span className="text-sky-400">Claw</span>

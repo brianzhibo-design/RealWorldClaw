@@ -132,39 +132,70 @@ function AnimatedLogo() {
               <feGaussianBlur stdDeviation="2" result="blur"/>
               <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
             </filter>
+            <filter id="nodeGlow">
+              <feGaussianBlur stdDeviation="3" result="blur"/>
+              <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
           </defs>
           <rect width="130" height="130" rx="26" fill="#0c1222" stroke="#1e3a5f" strokeWidth="1"/>
+          
+          {/* Layer 1: Cross-links between nodes — the distributed network */}
+          <g opacity="0.15" stroke="#38bdf8" strokeWidth="0.8">
+            <line x1="22" y1="30" x2="64" y2="30"/>
+            <line x1="22" y1="30" x2="89" y2="58"/>
+            <line x1="64" y1="30" x2="114" y2="30"/>
+            <line x1="22" y1="100" x2="56" y2="100"/>
+            <line x1="56" y1="100" x2="74" y2="100"/>
+            <line x1="89" y1="58" x2="114" y2="30"/>
+            <line x1="44" y1="47" x2="64" y2="30"/>
+            <line x1="44" y1="47" x2="89" y2="58"/>
+          </g>
+
+          {/* Layer 2: Main paths — network routes that form R and W */}
           <g filter="url(#logoGlow)">
-            {/* R: vertical + arc + leg */}
+            {/* R: the first cluster */}
             <path 
               d="M 22 100 V 30 H 44 A 17.5 17.5 0 0 1 44 65 H 22 M 38 65 L 56 100" 
               fill="none" 
               stroke="url(#logoGrad)" 
-              strokeWidth="5" 
+              strokeWidth="4" 
               strokeLinecap="round" 
               strokeLinejoin="round"
               className={isLoaded ? "logo-path" : ""}
               style={{ animationDelay: '0s' }}
             />
-            {/* W */}
+            {/* W: the second cluster */}
             <path 
               d="M 64 30 L 74 100 L 89 58 L 104 100 L 114 30" 
               fill="none" 
               stroke="url(#logoGrad)" 
-              strokeWidth="5" 
+              strokeWidth="4" 
               strokeLinecap="round" 
               strokeLinejoin="round"
               className={isLoaded ? "logo-path" : ""}
               style={{ animationDelay: '0.5s' }}
             />
           </g>
-          {/* Key nodes at letter joints */}
-          <circle cx="22" cy="30" r="3" fill="#fff" className="node-1" />
-          <circle cx="22" cy="100" r="2.5" fill="#38bdf8" opacity="0.7" className="node-2" />
-          <circle cx="56" cy="100" r="2.5" fill="#38bdf8" opacity="0.7" className="node-3" />
-          <circle cx="64" cy="30" r="3" fill="#fff" className="node-4" />
-          <circle cx="89" cy="58" r="3" fill="#fff" className="node-5" />
-          <circle cx="114" cy="30" r="3" fill="#fff" className="node-6" />
+
+          {/* Layer 3: Manufacturing nodes — each is a machine with a heartbeat */}
+          <g filter="url(#nodeGlow)">
+            {/* R nodes */}
+            <circle cx="22" cy="30" r="4.5" fill="#38bdf8" className="node-1" />
+            <circle cx="44" cy="47" r="3.5" fill="#6366f1" className="node-2" />
+            <circle cx="22" cy="100" r="3.5" fill="#38bdf8" className="node-3" />
+            <circle cx="56" cy="100" r="3.5" fill="#818cf8" className="node-4" />
+            {/* W nodes */}
+            <circle cx="64" cy="30" r="4.5" fill="#38bdf8" className="node-5" />
+            <circle cx="74" cy="100" r="3" fill="#6366f1" opacity="0.8" className="node-6" />
+            <circle cx="89" cy="58" r="5" fill="#38bdf8" className="node-1" />
+            <circle cx="104" cy="100" r="3" fill="#6366f1" opacity="0.8" className="node-2" />
+            <circle cx="114" cy="30" r="4.5" fill="#38bdf8" className="node-3" />
+          </g>
+          {/* White cores — the brightest nodes (online machines) */}
+          <circle cx="22" cy="30" r="2" fill="#fff"/>
+          <circle cx="64" cy="30" r="2" fill="#fff"/>
+          <circle cx="89" cy="58" r="2.5" fill="#fff"/>
+          <circle cx="114" cy="30" r="2" fill="#fff"/>
         </svg>
       </div>
     </div>
