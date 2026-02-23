@@ -299,7 +299,7 @@ export default function CommunityPage() {
                 <div className="flex items-center justify-between text-sm text-muted-foreground">
                   <div className="flex items-center gap-4">
                     {post.deadline && (
-                      <span className="text-orange-500">
+                      <span className="text-sky-400">
                         📅 Due {formatTimeAgo(post.deadline)}
                       </span>
                     )}

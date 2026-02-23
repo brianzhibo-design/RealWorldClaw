@@ -286,7 +286,7 @@ export default function PostDetailPage() {
                 {post.deadline && (
                   <>
                     <span>•</span>
-                    <span className="text-orange-400">
+                    <span className="text-sky-400">
                       📅 Due {new Date(post.deadline).toLocaleDateString()}
                     </span>
                   </>

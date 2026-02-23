@@ -167,7 +167,7 @@ export default function DashboardPage() {
 
         <Card className="p-4 sm:p-6 hover:bg-accent/50 transition-colors cursor-pointer">
           <div className="flex items-center gap-3 sm:gap-4">
-            <div className="p-2 bg-orange-500/20 text-orange-400 rounded-lg">
+            <div className="p-2 bg-sky-500/20 text-sky-400 rounded-lg">
               <File className="h-4 w-4 sm:h-5 sm:w-5" />
             </div>
             <div>
@@ -237,7 +237,7 @@ export default function DashboardPage() {
           <Link href="/orders/new">
             <Card className="p-3 sm:p-4 hover:bg-accent/50 transition-colors cursor-pointer min-h-[120px] sm:min-h-[140px]">
               <div className="text-center">
-                <div className="w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-2 sm:mb-3 bg-orange-500/20 text-orange-400 rounded-lg flex items-center justify-center text-lg sm:text-xl">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-2 sm:mb-3 bg-sky-500/20 text-sky-400 rounded-lg flex items-center justify-center text-lg sm:text-xl">
                   📋
                 </div>
                 <h3 className="font-semibold mb-1 text-sm sm:text-base">Create Order</h3>

@@ -71,8 +71,8 @@ export default function VoteButtons({
         onClick={() => handleVote('up')}
         className={`${buttonSize} rounded-md border transition-all hover:scale-110 ${
           currentVote === 'up'
-            ? 'bg-orange-500/20 border-orange-500 text-orange-400'
-            : 'bg-slate-800 border-slate-600 text-slate-400 hover:border-orange-500 hover:text-orange-400'
+            ? 'bg-sky-500/20 border-sky-500 text-sky-400'
+            : 'bg-slate-800 border-slate-600 text-slate-400 hover:border-sky-500 hover:text-sky-400'
         }`}
         title="Upvote"
       >
@@ -81,7 +81,7 @@ export default function VoteButtons({
 
       {/* Vote Count */}
       <span className={`font-bold ${
-        voteCount > 0 ? 'text-orange-400' : 
+        voteCount > 0 ? 'text-sky-400' : 
         voteCount < 0 ? 'text-blue-400' : 
         'text-slate-400'
       } ${size === 'sm' ? 'text-xs' : 'text-sm'}`}>

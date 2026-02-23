@@ -39,14 +39,14 @@ export default function Header() {
       <div className="mx-auto flex h-14 md:h-16 max-w-6xl items-center justify-between px-4 md:px-6">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 shrink-0">
-          <div className="w-8 h-8 bg-gradient-to-br from-orange-500 to-red-500 rounded-lg flex items-center justify-center">
+          <div className="w-8 h-8 bg-gradient-to-br from-sky-400 to-blue-600 rounded-lg flex items-center justify-center">
             <svg viewBox="0 0 130 130" className="w-4 h-4 text-white">
               <path d="M 25 105 V 35 H 55 A 15 15 0 0 1 55 65 H 25 M 40 65 L 60 105" fill="none" stroke="currentColor" strokeWidth="8" strokeLinecap="round" strokeLinejoin="round"/>
               <path d="M 70 35 L 80 105 L 95 65 L 110 105 L 120 35" fill="none" stroke="currentColor" strokeWidth="8" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
           </div>
           <span className="font-bold text-sm md:text-base text-slate-800 hidden sm:inline">
-            RealWorld<span className="text-orange-600">Claw</span>
+            RealWorld<span className="text-sky-400">Claw</span>
           </span>
         </Link>
 
@@ -56,7 +56,7 @@ export default function Header() {
             <Link key={href} href={href}
               className={`flex items-center gap-1.5 rounded-xl px-3 md:px-4 py-2 text-sm font-medium transition-colors whitespace-nowrap ${
                 isActive(href)
-                  ? "bg-orange-100 text-orange-700"
+                  ? "bg-sky-500/10 text-sky-400"
                   : "text-slate-600 hover:text-slate-800 hover:bg-slate-100"
               }`}>
               <Icon size={16} className="shrink-0" />
@@ -83,7 +83,7 @@ export default function Header() {
               
               <DropdownMenu>
                 <DropdownMenuTrigger className="flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-medium text-slate-600 hover:text-slate-800 hover:bg-slate-100 transition-colors">
-                  <div className="w-6 h-6 bg-gradient-to-br from-orange-500 to-red-500 rounded-full flex items-center justify-center text-white text-xs font-semibold shrink-0">
+                  <div className="w-6 h-6 bg-gradient-to-br from-sky-400 to-blue-600 rounded-full flex items-center justify-center text-white text-xs font-semibold shrink-0">
                     {user.username.charAt(0).toUpperCase()}
                   </div>
                   <span className="hidden sm:inline">{user.username}</span>
@@ -114,7 +114,7 @@ export default function Header() {
               <Button asChild variant="ghost" size="sm" className="text-sm px-3 py-2">
                 <Link href="/auth/login">Sign In</Link>
               </Button>
-              <Button asChild size="sm" className="text-sm px-4 py-2 bg-orange-600 hover:bg-orange-700">
+              <Button asChild size="sm" className="text-sm px-4 py-2 bg-sky-600 hover:bg-sky-500">
                 <Link href="/auth/register">Register</Link>
               </Button>
             </div>
