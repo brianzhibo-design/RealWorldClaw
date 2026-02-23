@@ -74,27 +74,24 @@ export default function NewPostPage() {
     setError(null);
 
     try {
-      const postData: any = {
+      const tags = formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
+      const materials = (selectedType === "request" || selectedType === "task") && formData.materials
+        ? formData.materials.split(',').map(m => m.trim()).filter(m => m.length > 0)
+        : undefined;
+      const budget = selectedType === "task" && formData.budget ? parseFloat(formData.budget) : undefined;
+      const deadline = (selectedType === "request" || selectedType === "task") && formData.deadline
+        ? formData.deadline
+        : undefined;
+
+      const result = await createCommunityPost({
         title: formData.title.trim(),
         content: formData.content.trim(),
-        post_type: selectedType as any,
-        tags: formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0),
-      };
-
-      // Add type-specific fields
-      if ((selectedType === "request" || selectedType === "task") && formData.materials) {
-        postData.materials = formData.materials.split(',').map(m => m.trim()).filter(m => m.length > 0);
-      }
-      
-      if (selectedType === "task" && formData.budget) {
-        postData.budget = parseFloat(formData.budget);
-      }
-      
-      if ((selectedType === "request" || selectedType === "task") && formData.deadline) {
-        postData.deadline = formData.deadline;
-      }
-
-      const result = await createCommunityPost(postData);
+        post_type: selectedType as 'discussion' | 'request' | 'task' | 'showcase',
+        tags,
+        materials,
+        budget,
+        deadline,
+      });
       
       if (result.success) {
         router.push(`/community/${result.post_id}`);
@@ -139,7 +136,7 @@ export default function NewPostPage() {
             <Link href="/submit" className="text-slate-300 hover:text-white transition-colors">
               Submit
             </Link>
-            <Link href="/docs" className="text-slate-300 hover:text-white transition-colors">
+            <Link href="https://realworldclaw-api.fly.dev/docs" target="_blank" className="text-slate-300 hover:text-white transition-colors">
               Docs
             </Link>
           </div>

@@ -23,6 +23,24 @@ interface RecentPost {
   created_at: string;
   upvotes: number;
   comment_count: number;
+  author_id?: string;
+}
+
+interface PostsResponse {
+  posts?: RecentPost[];
+}
+
+interface OrdersResponse {
+  as_customer?: unknown[];
+  as_maker?: unknown[];
+}
+
+interface FilesResponse {
+  files?: unknown[];
+}
+
+interface NodeItem {
+  id: string;
 }
 
 export default function DashboardPage() {
@@ -46,25 +64,25 @@ export default function DashboardPage() {
     const fetchDashboardData = async () => {
       try {
         const [postsResponse, ordersResponse, filesResponse, nodesResponse] = await Promise.allSettled([
-          apiFetch<any[]>('/community/posts'),
-          apiFetch<any[]>('/orders'),
-          apiFetch<any[]>('/files/my'),
-          apiFetch<any[]>('/nodes/my-nodes'),
+          apiFetch<RecentPost[] | PostsResponse>('/community/posts'),
+          apiFetch<unknown[] | OrdersResponse>('/orders'),
+          apiFetch<unknown[] | FilesResponse>('/files/my'),
+          apiFetch<NodeItem[]>('/nodes/my-nodes'),
         ]);
 
         // Safely extract arrays from API responses (backends return various formats)
-        const postsRaw: any = postsResponse.status === 'fulfilled' ? postsResponse.value : {};
-        const allPosts = Array.isArray(postsRaw) ? postsRaw : (postsRaw?.posts ?? []);
-        const userPosts = allPosts.filter((post: any) => post.author_id === user?.id);
+        const postsRaw = postsResponse.status === 'fulfilled' ? postsResponse.value : {};
+        const allPosts: RecentPost[] = Array.isArray(postsRaw) ? postsRaw : ((postsRaw as PostsResponse)?.posts ?? []);
+        const userPosts = allPosts.filter((post) => post.author_id === user?.id);
         
-        const ordersRaw: any = ordersResponse.status === 'fulfilled' ? ordersResponse.value : {};
-        const orders = Array.isArray(ordersRaw) ? ordersRaw : [...(ordersRaw?.as_customer ?? []), ...(ordersRaw?.as_maker ?? [])];
+        const ordersRaw = ordersResponse.status === 'fulfilled' ? ordersResponse.value : {};
+        const orders: unknown[] = Array.isArray(ordersRaw) ? ordersRaw : [...((ordersRaw as OrdersResponse)?.as_customer ?? []), ...((ordersRaw as OrdersResponse)?.as_maker ?? [])];
         
-        const filesRaw: any = filesResponse.status === 'fulfilled' ? filesResponse.value : {};
-        const files = Array.isArray(filesRaw) ? filesRaw : (filesRaw?.files ?? []);
+        const filesRaw = filesResponse.status === 'fulfilled' ? filesResponse.value : {};
+        const files: unknown[] = Array.isArray(filesRaw) ? filesRaw : ((filesRaw as FilesResponse)?.files ?? []);
         
-        const nodesRaw: any = nodesResponse.status === 'fulfilled' ? nodesResponse.value : [];
-        const nodes = Array.isArray(nodesRaw) ? nodesRaw : [];
+        const nodesRaw = nodesResponse.status === 'fulfilled' ? nodesResponse.value : [];
+        const nodes: NodeItem[] = Array.isArray(nodesRaw) ? nodesRaw : [];
 
         setStats({
           myPosts: userPosts.length,
@@ -76,7 +94,7 @@ export default function DashboardPage() {
         // Set recent posts (latest 5)
         setRecentPosts(
           userPosts
-            .sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+            .sort((a: RecentPost, b: RecentPost) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
             .slice(0, 5)
         );
       } catch (error) {

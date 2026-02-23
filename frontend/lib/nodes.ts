@@ -3,7 +3,7 @@
  * All data comes from the real API — zero mock data.
  */
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+import { API_BASE } from "@/lib/api-client";
 
 export interface ManufacturingNode {
   id: string;
@@ -41,7 +41,7 @@ export const STATUS_COLORS: Record<string, string> = {
 /** Fetch all nodes for the world map (public, no auth needed) */
 export async function fetchMapNodes(): Promise<ManufacturingNode[]> {
   try {
-    const res = await fetch(`${API_URL}/nodes/map`, { cache: 'no-store' });
+    const res = await fetch(`${API_BASE}/nodes/map`, { cache: 'no-store' });
     if (!res.ok) return [];
     return await res.json();
   } catch {
@@ -57,7 +57,7 @@ export async function fetchNearbyNodes(
 ): Promise<{ nodes: ManufacturingNode[]; total_count: number }> {
   try {
     const res = await fetch(
-      `${API_URL}/nodes/nearby?lat=${lat}&lng=${lng}&radius=${radius}`,
+      `${API_BASE}/nodes/nearby?lat=${lat}&lng=${lng}&radius=${radius}`,
       { cache: 'no-store' }
     );
     if (!res.ok) return { nodes: [], total_count: 0 };

@@ -12,3 +12,5 @@ psutil>=5.9.0
 aiohttp>=3.9.0
 pyyaml>=6.0
 jsonschema>=4.20.0
+google-auth>=2.23.0
+requests>=2.31.0

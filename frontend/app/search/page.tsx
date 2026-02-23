@@ -3,8 +3,7 @@
 import { useState, useEffect, useCallback, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+import { API_BASE } from "@/lib/api-client";
 
 interface SearchResult {
   type: "post" | "node";
@@ -15,7 +14,7 @@ interface SearchResult {
   author_id?: string;
   tags?: string;
   created_at?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, string | number | boolean | null>;
 }
 
 interface SearchResponse {

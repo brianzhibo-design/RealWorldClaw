@@ -78,7 +78,7 @@ export default function MapPage() {
           <span className="text-slate-400 sm:hidden">
             {loading ? "..." : `${onlineCount}/${nodes.length}`}
           </span>
-          <Link href="/auth/signin" className="text-slate-300 hover:text-white transition-colors hidden sm:block">
+          <Link href="/auth/login" className="text-slate-300 hover:text-white transition-colors hidden sm:block">
             Sign In
           </Link>
           <Link

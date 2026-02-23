@@ -9,6 +9,8 @@ from datetime import datetime, timezone
 import httpx
 from fastapi import APIRouter, Depends, HTTPException
 from jose import jwt as jose_jwt
+from google.oauth2 import id_token as google_id_token
+from google.auth.transport import requests as google_auth_requests
 from pydantic import BaseModel, Field
 
 from ..database import get_db
@@ -274,18 +276,22 @@ class GoogleAuthRequest(BaseModel):
 
 @router.post("/google", response_model=AuthResponse)
 def google_auth(req: GoogleAuthRequest):
-    # Decode JWT without verification (MVP)
+    # Verify Google ID token signature and claims
     try:
-        payload = jose_jwt.get_unverified_claims(req.credential)
-    except Exception:
-        raise HTTPException(status_code=401, detail="Invalid Google ID token")
+        idinfo = google_id_token.verify_oauth2_token(
+            req.credential,
+            google_auth_requests.Request(),
+            os.environ.get("GOOGLE_CLIENT_ID"),
+        )
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid Google ID token")
 
-    email = payload.get("email")
+    email = idinfo.get("email")
     if not email:
         raise HTTPException(status_code=400, detail="No email in Google token")
 
-    name = payload.get("name", email.split("@")[0])
-    google_id = payload.get("sub", "")
+    name = idinfo.get("name", email.split("@")[0])
+    google_id = idinfo.get("sub", "")
 
     with get_db() as db:
         row = _oauth_find_or_create(

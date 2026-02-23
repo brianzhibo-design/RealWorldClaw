@@ -230,7 +230,7 @@ export default function PostDetailPage() {
             <Link href="/submit" className="text-slate-300 hover:text-white transition-colors">
               Submit
             </Link>
-            <Link href="/docs" className="text-slate-300 hover:text-white transition-colors">
+            <Link href="https://realworldclaw-api.fly.dev/docs" target="_blank" className="text-slate-300 hover:text-white transition-colors">
               Docs
             </Link>
           </div>
