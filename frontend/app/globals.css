@@ -50,6 +50,12 @@
 ::-webkit-scrollbar-thumb { background: hsl(240 4% 16%); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: hsl(199 89% 48%); }
 
+/* Accessible focus indicator */
+*:focus-visible {
+  outline: 2px solid hsl(199 89% 48%);
+  outline-offset: 2px;
+}
+
 /* Card hover lift */
 .card-hover {
   @apply transition-all duration-300;

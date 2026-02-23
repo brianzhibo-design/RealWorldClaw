@@ -218,7 +218,7 @@ export default function MakerOrdersPage() {
                   {/* Order header */}
                   <div className="flex items-start justify-between mb-4">
                     <h3 className="font-semibold text-white text-lg leading-tight">
-                      {order.title || order.description || `Order ${order.id.slice(0, 8)}`}
+                      {order.order_number || `Order ${order.id.slice(0, 8)}`}
                     </h3>
                     <span className="text-xs text-slate-400 whitespace-nowrap ml-2">
                       {formatTimeAgo(order.created_at)}
@@ -226,9 +226,9 @@ export default function MakerOrdersPage() {
                   </div>
 
                   {/* Description */}
-                  {order.description && order.description !== order.title && (
+                  {order.notes && (
                     <p className="text-slate-300 text-sm mb-4 line-clamp-2">
-                      {order.description}
+                      {order.notes}
                     </p>
                   )}
 

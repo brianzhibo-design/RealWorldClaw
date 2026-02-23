@@ -43,11 +43,14 @@ const TIMELINE_STEPS = [
 
 function getStepIndex(status: string): number {
   const map: Record<string, number> = {
-    pending: 0, submitted: 0,
+    pending: 0,
     accepted: 1,
-    printing: 2, manufacturing: 2,
-    completed: 3, shipped: 3,
+    printing: 2, assembling: 2,
+    quality_check: 3,
+    shipping: 3,
     delivered: 4,
+    completed: 5,
+    cancelled: -1,
   };
   return map[status.toLowerCase()] ?? 0;
 }
@@ -277,7 +280,7 @@ export default function OrderDetailPage() {
               )}
 
               {/* Buyer: confirm delivery */}
-              {isBuyer && (status === "completed" || status === "shipped") && (
+              {isBuyer && (status === "completed" || status === "delivered") && (
                 <button
                   onClick={() => doAction(`/orders/${order.id}/confirm`, "POST")}
                   disabled={actionLoading}

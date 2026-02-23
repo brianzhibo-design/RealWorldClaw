@@ -21,25 +21,25 @@ type TabType = 'all' | 'submitted' | 'in_progress' | 'completed';
 
 const statusMapping: Record<string, string> = {
   pending: 'submitted',
-  submitted: 'submitted', 
   accepted: 'in_progress',
   printing: 'in_progress',
-  manufacturing: 'in_progress',
-  shipped: 'in_progress',
-  completed: 'completed',
+  assembling: 'in_progress',
+  quality_check: 'in_progress',
+  shipping: 'in_progress',
   delivered: 'completed',
+  completed: 'completed',
   cancelled: 'cancelled'
 };
 
 const statusDisplayNames: Record<string, string> = {
-  pending: 'Submitted',
-  submitted: 'Submitted',
+  pending: 'Pending',
   accepted: 'Accepted',
   printing: 'Printing',
-  manufacturing: 'Manufacturing', 
-  shipped: 'Shipped',
-  completed: 'Completed',
+  assembling: 'Assembling',
+  quality_check: 'Quality Check',
+  shipping: 'Shipping',
   delivered: 'Delivered',
+  completed: 'Completed',
   cancelled: 'Cancelled'
 };
 
