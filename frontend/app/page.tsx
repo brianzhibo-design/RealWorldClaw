@@ -1,6 +1,301 @@
 "use client";
 
 import Link from "next/link";
+import { useState, useEffect, useRef, useMemo } from "react";
+
+// Typing Effect Component
+function TypingEffect() {
+  const phrases = useMemo(() => [
+    "Physical Object",
+    "Real Product", 
+    "Working Robot",
+    "Smart Device",
+    "Custom Part"
+  ], []);
+  
+  const [currentPhrase, setCurrentPhrase] = useState(0);
+  const [currentText, setCurrentText] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [showCursor, setShowCursor] = useState(true);
+
+  useEffect(() => {
+    const phrase = phrases[currentPhrase];
+    const speed = isDeleting ? 50 : 100;
+    
+    const timer = setTimeout(() => {
+      if (!isDeleting) {
+        if (currentText.length < phrase.length) {
+          setCurrentText(phrase.slice(0, currentText.length + 1));
+        } else {
+          setTimeout(() => setIsDeleting(true), 2000);
+        }
+      } else {
+        if (currentText.length > 0) {
+          setCurrentText(phrase.slice(0, currentText.length - 1));
+        } else {
+          setIsDeleting(false);
+          setCurrentPhrase((prev) => (prev + 1) % phrases.length);
+        }
+      }
+    }, speed);
+
+    return () => clearTimeout(timer);
+  }, [currentText, isDeleting, currentPhrase, phrases]);
+
+  // Cursor blinking
+  useEffect(() => {
+    const cursorTimer = setInterval(() => {
+      setShowCursor(prev => !prev);
+    }, 500);
+    return () => clearInterval(cursorTimer);
+  }, []);
+
+  return (
+    <span className="bg-gradient-to-r from-[#10b981] to-[#22d3ee] bg-clip-text text-transparent">
+      {currentText}
+      <span className={`${showCursor ? 'opacity-100' : 'opacity-0'} transition-opacity text-[#10b981]`}>
+        |
+      </span>
+    </span>
+  );
+}
+
+// Animated RWC Logo Component
+function AnimatedLogo() {
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  useEffect(() => {
+    setIsLoaded(true);
+  }, []);
+
+  return (
+    <div className="relative w-20 h-20 mx-auto mb-6">
+      <style jsx>{`
+        @keyframes strokeDraw {
+          from { 
+            stroke-dashoffset: 1000; 
+          }
+          to { 
+            stroke-dashoffset: 0; 
+          }
+        }
+        
+        @keyframes nodePulse {
+          0%, 100% { 
+            transform: scale(1); 
+            opacity: 0.7;
+            filter: drop-shadow(0 0 4px currentColor);
+          }
+          50% { 
+            transform: scale(1.3); 
+            opacity: 1;
+            filter: drop-shadow(0 0 8px currentColor);
+          }
+        }
+        
+        @keyframes breatheGlow {
+          0%, 100% { 
+            filter: drop-shadow(0 0 10px rgba(16, 185, 129, 0.3)); 
+          }
+          50% { 
+            filter: drop-shadow(0 0 20px rgba(16, 185, 129, 0.6)); 
+          }
+        }
+        
+        .logo-path {
+          stroke-dasharray: 1000;
+          stroke-dashoffset: 1000;
+          animation: strokeDraw 2s ease-out forwards;
+        }
+        
+        .logo-container {
+          animation: breatheGlow 3s ease-in-out infinite;
+        }
+        
+        .node-1 { animation: nodePulse 2s infinite 0.2s; }
+        .node-2 { animation: nodePulse 2s infinite 0.4s; }
+        .node-3 { animation: nodePulse 2s infinite 0.6s; }
+        .node-4 { animation: nodePulse 2s infinite 0.8s; }
+        .node-5 { animation: nodePulse 2s infinite 1.0s; }
+        .node-6 { animation: nodePulse 2s infinite 1.2s; }
+      `}</style>
+      
+      <div className="logo-container">
+        <svg width="80" height="80" viewBox="0 0 130 130" className="w-full h-full">
+          <rect width="130" height="130" rx="20" fill="#0f172a" />
+          <path 
+            d="M 25 105 V 35 H 55 A 15 15 0 0 1 55 65 H 25 M 40 65 L 60 105" 
+            fill="none" 
+            stroke="#38bdf8" 
+            strokeWidth="6" 
+            strokeLinecap="round" 
+            strokeLinejoin="round"
+            className={isLoaded ? "logo-path" : ""}
+            style={{ animationDelay: '0s' }}
+          />
+          <path 
+            d="M 70 35 L 80 105 L 95 65 L 110 105 L 120 35" 
+            fill="none" 
+            stroke="#38bdf8" 
+            strokeWidth="6" 
+            strokeLinecap="round" 
+            strokeLinejoin="round"
+            className={isLoaded ? "logo-path" : ""}
+            style={{ animationDelay: '0.5s' }}
+          />
+          <circle cx="25" cy="35" r="4" fill="#fff" className="node-1" />
+          <circle cx="55" cy="50" r="4" fill="#fff" className="node-2" />
+          <circle cx="60" cy="105" r="4" fill="#fff" className="node-3" />
+          <circle cx="70" cy="35" r="4" fill="#fff" className="node-4" />
+          <circle cx="95" cy="65" r="4" fill="#fff" className="node-5" />
+          <circle cx="120" cy="35" r="4" fill="#fff" className="node-6" />
+        </svg>
+      </div>
+    </div>
+  );
+}
+
+// Floating Dots Component for Map
+function FloatingDot({ 
+  initialX, 
+  initialY, 
+  color, 
+  size, 
+  delay 
+}: {
+  initialX: number;
+  initialY: number;
+  color: string;
+  size: number;
+  delay: number;
+}) {
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+
+  useEffect(() => {
+    const moveRandomly = () => {
+      const range = 6; // pixels
+      setPosition({
+        x: (Math.random() - 0.5) * range,
+        y: (Math.random() - 0.5) * range
+      });
+    };
+
+    const interval = setInterval(moveRandomly, 2000 + Math.random() * 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div 
+      className="absolute rounded-full animate-pulse transition-transform duration-1000 ease-in-out"
+      style={{
+        top: `${initialY}%`,
+        left: `${initialX}%`,
+        width: `${size * 0.75}rem`,
+        height: `${size * 0.75}rem`,
+        backgroundColor: color,
+        boxShadow: `0 0 20px ${color}`,
+        animationDelay: `${delay}s`,
+        transform: `translate(${position.x}px, ${position.y}px)`
+      }}
+    />
+  );
+}
+
+// Code Block Line Animation
+function AnimatedCodeBlock({ lines }: { lines: string[] }) {
+  const [visibleLines, setVisibleLines] = useState(0);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          let lineIndex = 0;
+          const showLine = () => {
+            if (lineIndex < lines.length) {
+              setVisibleLines(lineIndex + 1);
+              lineIndex++;
+              setTimeout(showLine, 300);
+            }
+          };
+          showLine();
+        }
+      },
+      { threshold: 0.5 }
+    );
+
+    if (ref.current) {
+      observer.observe(ref.current);
+    }
+
+    return () => observer.disconnect();
+  }, [lines.length]);
+
+  return (
+    <div ref={ref} className="bg-[#0a0a0f] border border-[#1f2937] rounded-lg p-4 font-mono text-xs text-[#22d3ee] overflow-hidden">
+      {lines.map((line, index) => (
+        <div
+          key={index}
+          className={`transition-all duration-300 ${
+            index < visibleLines ? 'opacity-100 transform translate-y-0' : 'opacity-0 transform translate-y-2'
+          }`}
+          dangerouslySetInnerHTML={{ __html: line }}
+        />
+      ))}
+    </div>
+  );
+}
+
+// Counter Animation Component
+function AnimatedCounter({ 
+  target, 
+  suffix = "", 
+  prefix = "" 
+}: {
+  target: number;
+  suffix?: string;
+  prefix?: string;
+}) {
+  const [count, setCount] = useState(0);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          let start = 0;
+          const duration = 2000;
+          const increment = target / (duration / 50);
+
+          const timer = setInterval(() => {
+            start += increment;
+            if (start >= target) {
+              setCount(target);
+              clearInterval(timer);
+            } else {
+              setCount(Math.floor(start));
+            }
+          }, 50);
+
+          return () => clearInterval(timer);
+        }
+      },
+      { threshold: 0.5 }
+    );
+
+    if (ref.current) {
+      observer.observe(ref.current);
+    }
+
+    return () => observer.disconnect();
+  }, [target]);
+
+  return (
+    <div ref={ref} className="text-3xl font-bold bg-gradient-to-r from-[#10b981] to-[#22d3ee] bg-clip-text text-transparent">
+      {prefix}{count}{suffix}
+    </div>
+  );
+}
 
 export default function Home() {
   const copySkillUrl = async () => {
@@ -42,11 +337,14 @@ export default function Home() {
             Alpha Platform — Real Hardware Connected
           </div>
 
-          {/* Main heading */}
+          {/* Animated Logo */}
+          <AnimatedLogo />
+
+          {/* Main heading with typing effect */}
           <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold leading-[1.05] tracking-tight mb-6">
             Turn Any Idea Into a{' '}
-            <span className="block bg-gradient-to-r from-[#10b981] to-[#22d3ee] bg-clip-text text-transparent">
-              Physical Object
+            <span className="block">
+              <TypingEffect />
             </span>
           </h1>
 
@@ -71,19 +369,19 @@ export default function Home() {
             </Link>
           </div>
 
-          {/* Stats */}
+          {/* Stats with counters */}
           <div className="flex flex-wrap gap-12 justify-center text-center">
             <div>
-              <div className="text-3xl font-bold bg-gradient-to-r from-[#10b981] to-[#22d3ee] bg-clip-text text-transparent">Open</div>
-              <div className="text-sm text-[#6b7280] font-mono">Source</div>
+              <AnimatedCounter target={28} suffix="+" />
+              <div className="text-sm text-[#6b7280] font-mono">Machines</div>
             </div>
             <div>
-              <div className="text-3xl font-bold bg-gradient-to-r from-[#10b981] to-[#22d3ee] bg-clip-text text-transparent">Global</div>
-              <div className="text-sm text-[#6b7280] font-mono">Network</div>
+              <AnimatedCounter target={12} />
+              <div className="text-sm text-[#6b7280] font-mono">Countries</div>
             </div>
             <div>
-              <div className="text-3xl font-bold bg-gradient-to-r from-[#10b981] to-[#22d3ee] bg-clip-text text-transparent">Alpha</div>
-              <div className="text-sm text-[#6b7280] font-mono">Stage</div>
+              <div className="text-3xl font-bold bg-gradient-to-r from-[#10b981] to-[#22d3ee] bg-clip-text text-transparent">v0.1</div>
+              <div className="text-sm text-[#6b7280] font-mono">Alpha</div>
             </div>
           </div>
         </div>
@@ -109,11 +407,11 @@ export default function Home() {
               <p className="text-[#9ca3af] text-sm leading-relaxed mb-4">
                 Share your STL, image, or description. AI analyzes feasibility and matches optimal manufacturing methods.
               </p>
-              <div className="bg-[#0a0a0f] border border-[#1f2937] rounded-lg p-4 font-mono text-xs text-[#22d3ee] overflow-hidden">
-                <span className="text-[#6b7280]"># Upload your design</span><br />
-                curl -X POST /api/designs<br />
-                <span className="text-[#10b981]">✓ Analysis complete</span>
-              </div>
+              <AnimatedCodeBlock lines={[
+                '<span class="text-[#6b7280]"># Upload your design</span>',
+                'curl -X POST /api/designs',
+                '<span class="text-[#10b981]">✓ Analysis complete</span>'
+              ]} />
             </div>
 
             <div className="bg-[#111827] border border-[#1f2937] rounded-2xl p-8 hover:border-[#10b981] hover:shadow-[0_0_40px_rgba(16,185,129,0.15)] transition-all duration-300 hover:-translate-y-1 relative overflow-hidden group">
@@ -124,12 +422,12 @@ export default function Home() {
               <p className="text-[#9ca3af] text-sm leading-relaxed mb-4">
                 Our network finds the perfect maker with the right machine, materials, and reputation for your project.
               </p>
-              <div className="bg-[#0a0a0f] border border-[#1f2937] rounded-lg p-4 font-mono text-xs text-[#22d3ee] overflow-hidden">
-                <span className="text-[#6b7280]"># Finding best match</span><br />
-                location: <span className="text-[#10b981]">nearby</span><br />
-                capability: <span className="text-[#10b981]">3D print</span><br />
-                <span className="text-[#10b981]">✓ Maker found</span>
-              </div>
+              <AnimatedCodeBlock lines={[
+                '<span class="text-[#6b7280]"># Finding best match</span>',
+                'location: <span class="text-[#10b981]">nearby</span>',
+                'capability: <span class="text-[#10b981]">3D print</span>',
+                '<span class="text-[#10b981]">✓ Maker found</span>'
+              ]} />
             </div>
 
             <div className="bg-[#111827] border border-[#1f2937] rounded-2xl p-8 hover:border-[#10b981] hover:shadow-[0_0_40px_rgba(16,185,129,0.15)] transition-all duration-300 hover:-translate-y-1 relative overflow-hidden group">
@@ -140,12 +438,12 @@ export default function Home() {
               <p className="text-[#9ca3af] text-sm leading-relaxed mb-4">
                 Track progress in real-time. Quality checked, packaged, and shipped directly to you.
               </p>
-              <div className="bg-[#0a0a0f] border border-[#1f2937] rounded-lg p-4 font-mono text-xs text-[#22d3ee] overflow-hidden">
-                <span className="text-[#6b7280]"># Production status</span><br />
-                printing: <span className="text-[#f97316]">85% done</span><br />
-                quality: <span className="text-[#10b981]">passed</span><br />
-                <span className="text-[#10b981]">✓ Ready to ship</span>
-              </div>
+              <AnimatedCodeBlock lines={[
+                '<span class="text-[#6b7280]"># Production status</span>',
+                'printing: <span class="text-[#f97316]">85% done</span>',
+                'quality: <span class="text-[#10b981]">passed</span>',
+                '<span class="text-[#10b981]">✓ Ready to ship</span>'
+              ]} />
             </div>
           </div>
         </div>
@@ -162,7 +460,7 @@ export default function Home() {
             Every dot is a real machine. 3D printers, CNC, laser cutters — connected and ready.
           </p>
 
-          {/* Map preview card */}
+          {/* Map preview card with floating dots */}
           <Link href="/map">
             <div className="relative h-[400px] border border-[#1f2937] rounded-2xl bg-gradient-to-br from-[rgba(15,23,42,0.8)] to-[rgba(31,41,55,0.6)] overflow-hidden mb-8 cursor-pointer hover:border-[#10b981] hover:shadow-[0_0_40px_rgba(16,185,129,0.15)] transition-all duration-300 group">
               {/* Background pattern */}
@@ -177,13 +475,13 @@ export default function Home() {
                 }}
               />
               
-              {/* Animated dots representing machines */}
-              <div className="absolute top-[30%] left-[25%] w-3 h-3 rounded-full bg-[#10b981] shadow-[0_0_20px_#10b981] animate-pulse" />
-              <div className="absolute top-[40%] left-[75%] w-3 h-3 rounded-full bg-[#22d3ee] shadow-[0_0_20px_#22d3ee] animate-pulse" style={{ animationDelay: '0.3s' }} />
-              <div className="absolute top-[70%] left-[50%] w-3 h-3 rounded-full bg-[#818cf8] shadow-[0_0_20px_#818cf8] animate-pulse" style={{ animationDelay: '0.5s' }} />
-              <div className="absolute top-[25%] left-[60%] w-2 h-2 rounded-full bg-[#f97316] shadow-[0_0_15px_#f97316] animate-pulse" style={{ animationDelay: '0.7s' }} />
-              <div className="absolute top-[55%] left-[30%] w-2 h-2 rounded-full bg-[#10b981] shadow-[0_0_15px_#10b981] animate-pulse" style={{ animationDelay: '0.9s' }} />
-              <div className="absolute top-[45%] left-[80%] w-2.5 h-2.5 rounded-full bg-[#22d3ee] shadow-[0_0_18px_#22d3ee] animate-pulse" style={{ animationDelay: '1.1s' }} />
+              {/* Floating animated dots */}
+              <FloatingDot initialX={25} initialY={30} color="#10b981" size={3} delay={0} />
+              <FloatingDot initialX={75} initialY={40} color="#22d3ee" size={3} delay={0.3} />
+              <FloatingDot initialX={50} initialY={70} color="#818cf8" size={3} delay={0.5} />
+              <FloatingDot initialX={60} initialY={25} color="#f97316" size={2} delay={0.7} />
+              <FloatingDot initialX={30} initialY={55} color="#10b981" size={2} delay={0.9} />
+              <FloatingDot initialX={80} initialY={45} color="#22d3ee" size={2.5} delay={1.1} />
               
               {/* Central content */}
               <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
