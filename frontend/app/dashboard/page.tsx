@@ -322,19 +322,11 @@ export default function DashboardPage() {
             ))}
           </div>
         ) : (
-          <Card className="p-8 text-center">
-            <div className="text-6xl mb-4">✨</div>
-            <h3 className="font-semibold mb-2">No posts yet</h3>
-            <p className="text-muted-foreground mb-4">
-              Start sharing your ideas with the community
-            </p>
-            <Button asChild>
-              <Link href="/community/new">
-                <Plus className="h-4 w-4 mr-2" />
-                Create Your First Post
-              </Link>
-            </Button>
-          </Card>
+          <EmptyState
+            icon="✨"
+            title="No posts yet"
+            description="Start sharing your ideas with the community"
+          />
         )}
       </div>
     </div>

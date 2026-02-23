@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { fetchCommunityPosts, CommunityPost } from "@/lib/api-client";
+import { EmptyState } from "@/components/EmptyState";
 
 // 预设Spaces定义
 const SPACES = [
@@ -167,6 +168,12 @@ export default function SpacesPage() {
               Try Again
             </button>
           </div>
+        ) : SPACES.length === 0 ? (
+          <EmptyState
+            icon="🏢"
+            title="No spaces available"
+            description="Browse community topics and discussions when they become available"
+          />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {SPACES.map((space) => (

@@ -1,6 +1,7 @@
 "use client";
 import { fetchAvailableOrders, fetchAcceptedOrders, acceptOrder } from "@/lib/api-client";
 import { useAuthStore } from "@/stores/authStore";
+import { EmptyState } from "@/components/EmptyState";
 
 import { useState, useEffect, useCallback } from "react";
 
@@ -195,37 +196,14 @@ export default function MakerOrdersPage() {
 
         {/* Empty state */}
         {!loading && currentOrders.length === 0 && (
-          <div className="text-center py-20">
-            {activeTab === "available" ? (
-              <>
-                <div className="text-6xl mb-4">📋</div>
-                <h2 className="text-xl font-bold mb-2">No available orders</h2>
-                <p className="text-slate-400 mb-4">
-                  Check back later for new manufacturing opportunities
-                </p>
-                <button
-                  onClick={fetchOrders}
-                  className="px-4 py-2 bg-slate-600 hover:bg-slate-500 rounded-md text-sm font-medium transition-colors"
-                >
-                  Refresh
-                </button>
-              </>
-            ) : (
-              <>
-                <div className="text-6xl mb-4">✨</div>
-                <h2 className="text-xl font-bold mb-2">No accepted orders</h2>
-                <p className="text-slate-400 mb-4">
-                  Accept some orders from the Available tab to get started
-                </p>
-                <button
-                  onClick={() => setActiveTab("available")}
-                  className="px-4 py-2 bg-sky-600 hover:bg-sky-500 rounded-md text-sm font-medium transition-colors"
-                >
-                  View Available Orders
-                </button>
-              </>
-            )}
-          </div>
+          <EmptyState
+            icon={activeTab === "available" ? "📋" : "✨"}
+            title={activeTab === "available" ? "No available orders" : "No accepted orders"}
+            description={activeTab === "available" 
+              ? "Check back later for new manufacturing opportunities"
+              : "Accept some orders from the Available tab to get started"
+            }
+          />
         )}
 
         {/* Orders grid */}
