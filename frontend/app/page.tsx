@@ -485,59 +485,42 @@ export default function Home() {
       <section className="bg-[#0a0a0f] py-24">
         <div className="max-w-6xl mx-auto px-6">
           <div className="text-center mb-16">
-            <div className="text-[#22d3ee] text-sm font-mono uppercase tracking-wider mb-4">How It Works</div>
+            <div className="text-sky-400 text-sm font-mono uppercase tracking-wider mb-4">How It Works</div>
             <h2 className="text-3xl md:text-5xl font-bold mb-6">
-              Three steps to <span className="bg-gradient-to-r from-[#10b981] to-[#22d3ee] bg-clip-text text-transparent">physical AI</span>
+              Three simple steps to <span className="bg-gradient-to-r from-sky-400 to-sky-300 bg-clip-text text-transparent">physical creation</span>
             </h2>
-            <p className="text-lg text-[#9ca3af] max-w-2xl mx-auto">From idea to physical object in minutes</p>
+            <p className="text-lg text-slate-400 max-w-2xl mx-auto">From concept to reality in your hands</p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
-            <div className="bg-[#111827] border border-[#1f2937] rounded-2xl p-8 hover:border-[#10b981] hover:shadow-[0_0_40px_rgba(16,185,129,0.15)] transition-all duration-300 hover:-translate-y-1 relative overflow-hidden group">
-              <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-[#10b981] to-[#22d3ee] opacity-0 group-hover:opacity-100 transition-opacity" />
-              <div className="text-[#10b981] text-sm font-mono mb-4">STEP 01</div>
-              <div className="text-4xl mb-4">📤</div>
-              <h3 className="text-xl font-bold mb-3">Upload Design</h3>
-              <p className="text-[#9ca3af] text-sm leading-relaxed mb-4">
-                Share your STL, image, or description. AI analyzes feasibility and matches optimal manufacturing methods.
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8 hover:border-sky-400 hover:shadow-[0_0_40px_rgba(56,189,248,0.15)] transition-all duration-300 hover:-translate-y-1 relative overflow-hidden group">
+              <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-sky-400 to-sky-300 opacity-0 group-hover:opacity-100 transition-opacity" />
+              <div className="text-sky-400 text-sm font-mono mb-4">STEP 01</div>
+              <div className="text-4xl mb-4">📐</div>
+              <h3 className="text-xl font-bold mb-3 text-white">Upload Your Design</h3>
+              <p className="text-slate-400 text-sm leading-relaxed">
+                Upload STL, 3MF, or describe what you need
               </p>
-              <AnimatedCodeBlock lines={[
-                '<span class="text-[#6b7280]"># Upload your design</span>',
-                'curl -X POST /api/designs',
-                '<span class="text-[#10b981]">✓ Analysis complete</span>'
-              ]} />
             </div>
 
-            <div className="bg-[#111827] border border-[#1f2937] rounded-2xl p-8 hover:border-[#10b981] hover:shadow-[0_0_40px_rgba(16,185,129,0.15)] transition-all duration-300 hover:-translate-y-1 relative overflow-hidden group">
-              <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-[#10b981] to-[#22d3ee] opacity-0 group-hover:opacity-100 transition-opacity" />
-              <div className="text-[#10b981] text-sm font-mono mb-4">STEP 02</div>
-              <div className="text-4xl mb-4">🤝</div>
-              <h3 className="text-xl font-bold mb-3">Match Maker</h3>
-              <p className="text-[#9ca3af] text-sm leading-relaxed mb-4">
-                Our network finds the perfect maker with the right machine, materials, and reputation for your project.
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8 hover:border-sky-400 hover:shadow-[0_0_40px_rgba(56,189,248,0.15)] transition-all duration-300 hover:-translate-y-1 relative overflow-hidden group">
+              <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-sky-400 to-sky-300 opacity-0 group-hover:opacity-100 transition-opacity" />
+              <div className="text-sky-400 text-sm font-mono mb-4">STEP 02</div>
+              <div className="text-4xl mb-4">🔗</div>
+              <h3 className="text-xl font-bold mb-3 text-white">Get Matched with a Maker</h3>
+              <p className="text-slate-400 text-sm leading-relaxed">
+                Our network finds the best maker near you
               </p>
-              <AnimatedCodeBlock lines={[
-                '<span class="text-[#6b7280]"># Finding best match</span>',
-                'location: <span class="text-[#10b981]">nearby</span>',
-                'capability: <span class="text-[#10b981]">3D print</span>',
-                '<span class="text-[#10b981]">✓ Maker found</span>'
-              ]} />
             </div>
 
-            <div className="bg-[#111827] border border-[#1f2937] rounded-2xl p-8 hover:border-[#10b981] hover:shadow-[0_0_40px_rgba(16,185,129,0.15)] transition-all duration-300 hover:-translate-y-1 relative overflow-hidden group">
-              <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-[#10b981] to-[#22d3ee] opacity-0 group-hover:opacity-100 transition-opacity" />
-              <div className="text-[#10b981] text-sm font-mono mb-4">STEP 03</div>
-              <div className="text-4xl mb-4">🎯</div>
-              <h3 className="text-xl font-bold mb-3">Get It Made</h3>
-              <p className="text-[#9ca3af] text-sm leading-relaxed mb-4">
-                Track progress in real-time. Quality checked, packaged, and shipped directly to you.
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8 hover:border-sky-400 hover:shadow-[0_0_40px_rgba(56,189,248,0.15)] transition-all duration-300 hover:-translate-y-1 relative overflow-hidden group">
+              <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-sky-400 to-sky-300 opacity-0 group-hover:opacity-100 transition-opacity" />
+              <div className="text-sky-400 text-sm font-mono mb-4">STEP 03</div>
+              <div className="text-4xl mb-4">📦</div>
+              <h3 className="text-xl font-bold mb-3 text-white">Receive Your Creation</h3>
+              <p className="text-slate-400 text-sm leading-relaxed">
+                Track progress and get it delivered
               </p>
-              <AnimatedCodeBlock lines={[
-                '<span class="text-[#6b7280]"># Production status</span>',
-                'printing: <span class="text-[#f97316]">85% done</span>',
-                'quality: <span class="text-[#10b981]">passed</span>',
-                '<span class="text-[#10b981]">✓ Ready to ship</span>'
-              ]} />
             </div>
           </div>
         </div>
@@ -842,6 +825,19 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* Footer */}
+      <footer className="bg-slate-950 border-t border-slate-800 py-8">
+        <div className="max-w-6xl mx-auto px-6 text-center">
+          <div className="text-slate-500 text-sm">
+            © 2026 RealWorldClaw · 
+            <a href="/privacy" className="hover:text-slate-400 transition-colors mx-2">Privacy</a> · 
+            <a href="/terms" className="hover:text-slate-400 transition-colors mx-2">Terms</a> · 
+            <a href="https://github.com/brianzhibo-design/RealWorldClaw" target="_blank" rel="noopener noreferrer" className="hover:text-slate-400 transition-colors mx-2">GitHub</a> · 
+            <a href="https://realworldclaw.com/.well-known/skill.md" target="_blank" rel="noopener noreferrer" className="hover:text-slate-400 transition-colors mx-2">skill.md</a>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
