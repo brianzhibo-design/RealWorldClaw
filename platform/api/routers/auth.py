@@ -2,11 +2,31 @@
 
 from __future__ import annotations
 
+import logging
 import os
+import time
 import uuid
+from collections import defaultdict
 from datetime import datetime, timezone
 
 import httpx
+
+logger = logging.getLogger(__name__)
+
+# Simple in-memory rate limiter (resets on restart — fine for SQLite scale)
+_rate_buckets: dict[str, list[float]] = defaultdict(list)
+
+
+def _rate_check(key: str, max_calls: int, window_sec: int) -> bool:
+    """Return True if request is allowed, False if rate-limited."""
+    now = time.monotonic()
+    bucket = _rate_buckets[key]
+    # Prune expired entries
+    _rate_buckets[key] = bucket = [t for t in bucket if now - t < window_sec]
+    if len(bucket) >= max_calls:
+        return False
+    bucket.append(now)
+    return True
 from fastapi import APIRouter, Depends, HTTPException
 from jose import jwt as jose_jwt
 from google.oauth2 import id_token as google_id_token
@@ -37,6 +57,8 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 
 @router.post("/register", response_model=AuthResponse, status_code=201)
 def register(req: UserRegisterRequest):
+    if not _rate_check(f"reg:{req.email}", max_calls=5, window_sec=3600):
+        raise HTTPException(status_code=429, detail="Too many registration attempts. Try again later.")
     now = datetime.now(timezone.utc).isoformat()
     user_id = f"usr_{uuid.uuid4().hex[:12]}"
     hashed = hash_password(req.password)
@@ -65,6 +87,10 @@ def register(req: UserRegisterRequest):
 
 @router.post("/login", response_model=AuthResponse)
 def login(req: UserLoginRequest):
+    login_key = f"login:{req.email or req.username}"
+    if not _rate_check(login_key, max_calls=20, window_sec=300):
+        raise HTTPException(status_code=429, detail="Too many login attempts. Try again in 5 minutes.")
+
     with get_db() as db:
         if req.email:
             row = db.execute("SELECT * FROM users WHERE email = ?", (req.email.lower().strip(),)).fetchone()
@@ -74,6 +100,8 @@ def login(req: UserLoginRequest):
             raise HTTPException(status_code=400, detail="Email or username required")
 
     if not row or not verify_password(req.password, row["hashed_password"]):
+        time.sleep(1)  # Brute-force delay
+        logger.warning("Failed login attempt for %s", req.email or req.username)
         raise HTTPException(status_code=401, detail="Invalid credentials")
     if not row["is_active"]:
         raise HTTPException(status_code=403, detail="Account deactivated")

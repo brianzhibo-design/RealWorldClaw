@@ -274,25 +274,39 @@ def accept_order(order_id: str, body: OrderAcceptRequest, identity: dict = Depen
     now = datetime.now(timezone.utc).isoformat()
 
     with get_db() as db:
-        row = db.execute("SELECT * FROM orders WHERE id = ?", (order_id,)).fetchone()
-        if not row:
-            raise HTTPException(status_code=404, detail="Order not found")
-        order = dict(row)
+        # Use IMMEDIATE transaction to prevent race condition
+        # (two makers accepting the same order simultaneously)
+        db.execute("BEGIN IMMEDIATE")
+        try:
+            row = db.execute("SELECT * FROM orders WHERE id = ?", (order_id,)).fetchone()
+            if not row:
+                db.execute("ROLLBACK")
+                raise HTTPException(status_code=404, detail="Order not found")
+            order = dict(row)
 
-        if order["status"] != "pending":
-            raise HTTPException(status_code=400, detail="Order is not pending")
-        if not order["maker_id"]:
-            raise HTTPException(status_code=400, detail="No maker assigned")
+            if order["status"] != "pending":
+                db.execute("ROLLBACK")
+                raise HTTPException(status_code=400, detail="Order is not pending")
+            if not order["maker_id"]:
+                db.execute("ROLLBACK")
+                raise HTTPException(status_code=400, detail="No maker assigned")
 
-        maker = db.execute("SELECT owner_id FROM makers WHERE id = ?", (order["maker_id"],)).fetchone()
-        if not maker or maker["owner_id"] != identity["identity_id"]:
-            raise HTTPException(status_code=403, detail="Not assigned to your maker profile")
+            maker = db.execute("SELECT owner_id FROM makers WHERE id = ?", (order["maker_id"],)).fetchone()
+            if not maker or maker["owner_id"] != identity["identity_id"]:
+                db.execute("ROLLBACK")
+                raise HTTPException(status_code=403, detail="Not assigned to your maker profile")
 
-        est = (datetime.now(timezone.utc) + timedelta(hours=body.estimated_hours)).isoformat()
-        db.execute(
-            "UPDATE orders SET status = 'accepted', estimated_completion = ?, updated_at = ? WHERE id = ?",
-            (est, now, order_id),
-        )
+            est = (datetime.now(timezone.utc) + timedelta(hours=body.estimated_hours)).isoformat()
+            db.execute(
+                "UPDATE orders SET status = 'accepted', estimated_completion = ?, updated_at = ? WHERE id = ?",
+                (est, now, order_id),
+            )
+            db.execute("COMMIT")
+        except HTTPException:
+            raise
+        except Exception:
+            db.execute("ROLLBACK")
+            raise
 
     return {"order_id": order_id, "status": "accepted", "estimated_completion": est}
 

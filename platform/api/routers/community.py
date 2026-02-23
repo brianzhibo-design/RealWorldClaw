@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import html
 import json
+import re
 import uuid
 from datetime import datetime, timezone
 
@@ -22,6 +24,14 @@ from ..models.community import (
     VoteRequest,
     VoteResponse,
 )
+
+# Lightweight HTML sanitizer (no extra dependency)
+_TAG_RE = re.compile(r"<[^>]+>")
+
+
+def _sanitize(text: str) -> str:
+    """Strip all HTML tags and escape remaining entities."""
+    return html.escape(_TAG_RE.sub("", text))
 
 router = APIRouter(prefix="/community", tags=["community"])
 
@@ -75,7 +85,10 @@ async def create_post(
     identity: dict = Depends(get_authenticated_identity)
 ):
     """Create a new community post."""
-    
+    # Sanitize user input
+    post.title = _sanitize(post.title)
+    post.content = _sanitize(post.content)
+
     # Validate file_id if provided
     if post.file_id:
         with get_db() as db:
@@ -195,7 +208,8 @@ async def create_comment(
     identity: dict = Depends(get_authenticated_identity)
 ):
     """Add a comment to a post."""
-    
+    comment.content = _sanitize(comment.content)
+
     # Verify post exists
     with get_db() as db:
         post_row = db.execute("""

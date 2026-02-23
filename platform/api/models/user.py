@@ -19,7 +19,7 @@ class UserRole(str, enum.Enum):
 
 class UserRegisterRequest(BaseModel):
     email: str = Field(..., min_length=5)
-    username: str = Field(..., min_length=3, max_length=32)
+    username: str = Field(..., min_length=3, max_length=32, pattern=r"^[a-zA-Z0-9_-]+$")
     password: str = Field(..., min_length=8)
 
     @field_validator("email")
