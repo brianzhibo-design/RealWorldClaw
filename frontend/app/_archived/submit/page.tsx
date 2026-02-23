@@ -1,5 +1,5 @@
 "use client";
-import { API_BASE as API_URL } from "@/lib/api-client";
+import { API_BASE as API_URL, apiFetch } from "@/lib/api-client";
 
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
@@ -161,12 +161,8 @@ export default function SubmitPage() {
     setError(null);
 
     try {
-      const response = await fetch(`${API_URL}/orders`, {
+      const order = await apiFetch('/orders', {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
         body: JSON.stringify({
           file_id: fileId,
           material: material.toLowerCase(),
@@ -177,13 +173,7 @@ export default function SubmitPage() {
         }),
       });
 
-      if (response.ok) {
-        const order = await response.json();
-        router.push(`/orders/${order.id}`);
-      } else {
-        const errorData = await response.json();
-        setError(errorData.detail || "Failed to create order");
-      }
+      router.push(`/orders/${order.id}`);
     } catch (err) {
       setError("Network error. Please try again.");
     } finally {

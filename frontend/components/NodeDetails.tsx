@@ -15,7 +15,7 @@ export function NodeDetails({ node, onClose }: NodeDetailsProps) {
           <span className="text-xl">{NODE_TYPE_INFO[node.node_type]?.icon || "⚙️"}</span>
           <h3 className="text-base font-semibold text-white">{node.name}</h3>
         </div>
-        <button onClick={onClose} className="text-slate-400 hover:text-white text-lg">×</button>
+        <button onClick={onClose} className="text-slate-400 hover:text-white text-lg" aria-label="Close">×</button>
       </div>
 
       <div className="space-y-3 text-sm">

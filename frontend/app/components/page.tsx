@@ -55,16 +55,7 @@ export default function ComponentsPage() {
   const fetchComponents = async (query?: string) => {
     try {
       const endpoint = query ? `/components/search?q=${encodeURIComponent(query)}` : '/components';
-      const response = await fetch(`${API_BASE}${endpoint}`);
-      
-      if (!response.ok) {
-        // If API returns error or is unavailable, show "coming soon" state
-        setComponents([]);
-        setError(null); // Don't show error, show coming soon instead
-        return;
-      }
-      
-      const data = await response.json();
+      const data = await apiFetch<Component[]>(endpoint);
       setComponents(Array.isArray(data) ? data : data.components || []);
       setError(null);
     } catch (err) {

@@ -49,9 +49,7 @@ function SearchContent() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`${API_BASE}/search?q=${encodeURIComponent(q)}&type=${type}&limit=50`);
-      if (!res.ok) throw new Error(`Search failed: ${res.status}`);
-      const data: SearchResponse = await res.json();
+      const data: SearchResponse = await apiFetch(`/search?q=${encodeURIComponent(q)}&type=${type}&limit=50`);
       setResults(data.results);
       setTotal(data.total);
     } catch (err) {

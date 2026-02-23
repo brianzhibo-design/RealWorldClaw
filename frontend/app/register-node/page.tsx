@@ -1,5 +1,5 @@
 "use client";
-import { API_BASE as API_URL } from "@/lib/api-client";
+import { API_BASE as API_URL, apiFetch } from "@/lib/api-client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -129,9 +129,8 @@ export default function RegisterNodePage() {
 
     setSubmitting(true);
     try {
-      const response = await fetch(`${API_URL}/nodes/register`, {
+      await apiFetch('/nodes/register', {
         method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({
           name: formData.name.trim(),
           node_type: formData.node_type,
@@ -146,15 +145,10 @@ export default function RegisterNodePage() {
         }),
       });
 
-      if (response.ok) {
-        setSuccess(true);
-        setTimeout(() => {
-          router.push("/map");
-        }, 3000);
-      } else {
-        const errorData = await response.json();
-        setError(errorData.detail || "Failed to register node");
-      }
+      setSuccess(true);
+      setTimeout(() => {
+        router.push("/map");
+      }, 3000);
     } catch { setError("Network error. Please try again."); }
     finally { setSubmitting(false); }
   };
