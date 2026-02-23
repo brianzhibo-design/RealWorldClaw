@@ -1,5 +1,6 @@
 "use client";
-import { API_BASE as API_URL } from "@/lib/api-client";
+import { fetchAvailableOrders, fetchAcceptedOrders, acceptOrder } from "@/lib/api-client";
+import { useAuthStore } from "@/stores/authStore";
 
 import { useState, useEffect, useCallback } from "react";
 
@@ -7,7 +8,7 @@ import { useState, useEffect, useCallback } from "react";
 interface Order {
   id: string;
   title: string;
-  description: string;
+  description?: string;
   material: string;
   quantity: number;
   created_at: string;
@@ -28,7 +29,7 @@ export default function MakerOrdersPage() {
   const [accepting, setAccepting] = useState<string | null>(null);
 
   // Check if user is authenticated
-  const token = typeof window !== "undefined" ? localStorage.getItem("auth_token") || localStorage.getItem("token") : null;
+  const { token, user } = useAuthStore();
 
   const fetchOrders = useCallback(async () => {
     if (!token) return;
@@ -38,25 +39,11 @@ export default function MakerOrdersPage() {
 
     try {
       if (activeTab === "available") {
-        const response = await fetch(`${API_URL}/orders/available`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (response.ok) {
-          const data = await response.json();
-          setAvailableOrders(Array.isArray(data) ? data : data.orders || []);
-        } else {
-          setAvailableOrders([]);
-        }
+        const data = await fetchAvailableOrders();
+        setAvailableOrders(data);
       } else {
-        const response = await fetch(`${API_URL}/orders?status=accepted`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (response.ok) {
-          const data = await response.json();
-          setMyOrders(Array.isArray(data) ? data : data.orders || []);
-        } else {
-          setMyOrders([]);
-        }
+        const data = await fetchAcceptedOrders();
+        setMyOrders(data);
       }
     } catch (err) {
       setError("Failed to load orders");
@@ -92,23 +79,15 @@ export default function MakerOrdersPage() {
     setError(null);
 
     try {
-      const response = await fetch(`${API_URL}/orders/${orderId}/accept`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ estimated_hours: 24 }),
-      });
+      const result = await acceptOrder(orderId, 24);
 
-      if (response.ok) {
+      if (result.success) {
         // Remove from available orders and refresh
         setAvailableOrders(prev => prev.filter(order => order.id !== orderId));
         // Show success message or redirect
         alert("Order accepted successfully!");
       } else {
-        const errorData = await response.json();
-        setError(errorData.detail || "Failed to accept order");
+        setError(result.error || "Failed to accept order");
       }
     } catch (err) {
       setError("Network error. Please try again.");

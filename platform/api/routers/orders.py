@@ -99,14 +99,22 @@ def _maker_view(row: dict) -> dict:
     }
 
 
-def _get_user_role_for_order(db, order: dict, agent_id: str) -> str | None:
+def _get_user_roles_for_order(db, order: dict, agent_id: str) -> list[str]:
+    """Return all roles a user has for an order (can be both customer and maker)."""
+    roles = []
     if order["customer_id"] == agent_id:
-        return "customer"
+        roles.append("customer")
     if order["maker_id"]:
         maker = db.execute("SELECT owner_id FROM makers WHERE id = ?", (order["maker_id"],)).fetchone()
         if maker and maker["owner_id"] == agent_id:
-            return "maker"
-    return None
+            roles.append("maker")
+    return roles
+
+
+def _get_user_role_for_order(db, order: dict, agent_id: str) -> str | None:
+    """Return user's primary role (customer first for viewing, use _get_user_roles_for_order for action checks)."""
+    roles = _get_user_roles_for_order(db, order, agent_id)
+    return roles[0] if roles else None
 
 
 # ─── Routes ──────────────────────────────────────────────
@@ -163,7 +171,7 @@ def create_order(body: OrderCreateRequest, identity: dict = Depends(get_authenti
             (
                 order_id, order_number, body.order_type.value if body.order_type else "print_only",
                 identity["identity_id"], maker_id,
-                body.component_id, body.quantity, body.material or body.material_preference,
+                body.component_id or "", body.quantity, body.material or body.material_preference,
                 body.delivery_province, body.delivery_city, body.delivery_district,
                 body.delivery_address,  # 仅存数据库，不给Maker看
                 body.urgency.value, "pending", body.notes,
@@ -295,10 +303,11 @@ def update_order_status(order_id: str, body: OrderStatusUpdate, identity: dict =
 
     valid_transitions = {
         "accepted": ["printing"],
-        "printing": ["assembling", "quality_check"],
-        "assembling": ["quality_check"],
-        "quality_check": ["shipping"],
-        "shipping": ["delivered"],
+        "printing": ["assembling", "quality_check", "completed", "shipping"],
+        "assembling": ["quality_check", "completed"],
+        "quality_check": ["shipping", "completed"],
+        "shipping": ["delivered", "completed"],
+        "delivered": ["completed"],
     }
 
     with get_db() as db:
@@ -307,8 +316,8 @@ def update_order_status(order_id: str, body: OrderStatusUpdate, identity: dict =
             raise HTTPException(status_code=404, detail="Order not found")
         order = dict(row)
 
-        role = _get_user_role_for_order(db, order, identity["identity_id"])
-        if role != "maker":
+        roles = _get_user_roles_for_order(db, order, identity["identity_id"])
+        if "maker" not in roles:
             raise HTTPException(status_code=403, detail="Only maker can update status")
 
         allowed = valid_transitions.get(order["status"], [])
@@ -330,8 +339,8 @@ def update_shipping(order_id: str, body: OrderShippingUpdate, identity: dict = D
             raise HTTPException(status_code=404, detail="Order not found")
         order = dict(row)
 
-        role = _get_user_role_for_order(db, order, identity["identity_id"])
-        if role != "maker":
+        roles = _get_user_roles_for_order(db, order, identity["identity_id"])
+        if "maker" not in roles:
             raise HTTPException(status_code=403, detail="Only maker can add shipping info")
 
         db.execute(

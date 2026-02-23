@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { fetchCommunityPosts, CommunityPost } from "@/lib/api-client";
+import { fetchCommunityPosts, CommunityPost, apiFetch } from "@/lib/api-client";
 import { useAuthStore } from "@/stores/authStore";
 
 export default function ProfilePage() {
@@ -13,8 +13,12 @@ export default function ProfilePage() {
   const isOwnProfile = currentUser?.id === userId;
 
   const [userPosts, setUserPosts] = useState<CommunityPost[]>([]);
+  const [userNodes, setUserNodes] = useState<any[]>([]);
+  const [userOrders, setUserOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [nodesLoading, setNodesLoading] = useState(false);
+  const [ordersLoading, setOrdersLoading] = useState(false);
 
   // Derive user info from their posts or current user
   const [profileName, setProfileName] = useState<string>("");
@@ -39,6 +43,33 @@ export default function ProfilePage() {
         // If we didn't have the name yet, try to get it from posts
         if (!profileName && filtered.length > 0) {
           setProfileName(filtered[0].author);
+        }
+
+        // Load nodes and orders only for current user
+        if (isOwnProfile) {
+          // Load nodes
+          try {
+            setNodesLoading(true);
+            const nodes = await apiFetch<any>('/nodes/my-nodes');
+            setUserNodes(Array.isArray(nodes) ? nodes : nodes.nodes || []);
+          } catch (err) {
+            console.error("Failed to load nodes:", err);
+            // Don't show error, just don't show nodes section
+          } finally {
+            setNodesLoading(false);
+          }
+
+          // Load orders
+          try {
+            setOrdersLoading(true);
+            const orders = await apiFetch<any>('/orders');
+            setUserOrders(Array.isArray(orders) ? orders : orders.orders || []);
+          } catch (err) {
+            console.error("Failed to load orders:", err);
+            // Don't show error, just don't show orders section
+          } finally {
+            setOrdersLoading(false);
+          }
         }
       } catch (err) {
         console.error("Failed to load profile:", err);
@@ -145,6 +176,109 @@ export default function ProfilePage() {
             </div>
           )}
         </div>
+
+        {/* Nodes Section (Only for current user) */}
+        {isOwnProfile && (
+          <div className="mt-8">
+            <h2 className="text-xl font-semibold mb-4">Nodes</h2>
+            {nodesLoading ? (
+              <div className="text-center py-8 bg-slate-900/50 border border-slate-800 rounded-xl">
+                <div className="text-slate-400">Loading nodes...</div>
+              </div>
+            ) : userNodes.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {userNodes.map((node: any) => (
+                  <div key={node.id} className="bg-slate-800 border border-slate-700 rounded-xl p-4">
+                    <div className="flex items-start justify-between mb-3">
+                      <h3 className="font-semibold">{node.device_brand} {node.device_model}</h3>
+                      <span className={`px-2 py-1 text-xs rounded-full ${
+                        node.status === 'online' ? 'bg-green-900/50 text-green-400 border border-green-700' : 
+                        node.status === 'busy' ? 'bg-yellow-900/50 text-yellow-400 border border-yellow-700' :
+                        'bg-red-900/50 text-red-400 border border-red-700'
+                      }`}>
+                        {node.status}
+                      </span>
+                    </div>
+                    <p className="text-sm text-slate-400 mb-2">{node.description || 'No description'}</p>
+                    <div className="text-xs text-slate-500">
+                      <div>Type: {node.device_type}</div>
+                      <div>Location: {node.location?.city}, {node.location?.country}</div>
+                      {node.build_volume && (
+                        <div>Build Volume: {node.build_volume.x}×{node.build_volume.y}×{node.build_volume.z}mm</div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12 bg-slate-900/50 border border-slate-800 rounded-xl">
+                <div className="text-4xl mb-3">🖨️</div>
+                <p className="text-slate-400 mb-4">No nodes registered yet</p>
+                <Link href="/register-node" className="px-4 py-2 bg-sky-600 hover:bg-sky-500 rounded-lg text-sm">
+                  Register Node
+                </Link>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Orders Section (Only for current user) */}
+        {isOwnProfile && (
+          <div className="mt-8">
+            <h2 className="text-xl font-semibold mb-4">Orders</h2>
+            {ordersLoading ? (
+              <div className="text-center py-8 bg-slate-900/50 border border-slate-800 rounded-xl">
+                <div className="text-slate-400">Loading orders...</div>
+              </div>
+            ) : userOrders.length > 0 ? (
+              <div className="space-y-4">
+                {userOrders.slice(0, 5).map((order: any) => (
+                  <Link 
+                    key={order.id} 
+                    href={`/orders/${order.id}`}
+                    className="block bg-slate-800 border border-slate-700 rounded-xl p-4 hover:border-slate-600 transition-all"
+                  >
+                    <div className="flex items-start justify-between mb-2">
+                      <h3 className="font-semibold">{order.title || `Order ${order.id.slice(0, 8)}`}</h3>
+                      <span className={`px-2 py-1 text-xs rounded-full ${
+                        order.status === 'delivered' ? 'bg-green-900/50 text-green-400 border border-green-700' :
+                        order.status === 'printing' ? 'bg-blue-900/50 text-blue-400 border border-blue-700' :
+                        order.status === 'shipped' ? 'bg-purple-900/50 text-purple-400 border border-purple-700' :
+                        order.status === 'accepted' ? 'bg-yellow-900/50 text-yellow-400 border border-yellow-700' :
+                        'bg-slate-900/50 text-slate-400 border border-slate-700'
+                      }`}>
+                        {order.status}
+                      </span>
+                    </div>
+                    <p className="text-sm text-slate-400 mb-2 line-clamp-1">
+                      {order.description || 'No description'}
+                    </p>
+                    <div className="flex items-center gap-4 text-xs text-slate-500">
+                      <span>{order.material}</span>
+                      <span>Qty: {order.quantity}</span>
+                      <span>{formatTimeAgo(order.created_at)}</span>
+                    </div>
+                  </Link>
+                ))}
+                {userOrders.length > 5 && (
+                  <div className="text-center">
+                    <Link href="/orders" className="text-sky-400 hover:text-sky-300 text-sm">
+                      View all {userOrders.length} orders →
+                    </Link>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="text-center py-12 bg-slate-900/50 border border-slate-800 rounded-xl">
+                <div className="text-4xl mb-3">📦</div>
+                <p className="text-slate-400 mb-4">No orders yet</p>
+                <Link href="/orders/new" className="px-4 py-2 bg-sky-600 hover:bg-sky-500 rounded-lg text-sm">
+                  Create Order
+                </Link>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

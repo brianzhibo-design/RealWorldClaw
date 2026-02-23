@@ -6,6 +6,7 @@ import { WorldMap } from "@/components/WorldMap";
 import { MapFilters } from "@/components/MapFilters";
 import { NodeDetails } from "@/components/NodeDetails";
 import { ManufacturingNode, fetchMapNodes } from "@/lib/nodes";
+import { useRouter } from "next/navigation";
 
 export default function MapPage() {
   const [nodes, setNodes] = useState<ManufacturingNode[]>([]);
@@ -16,6 +17,7 @@ export default function MapPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
     const loadNodes = async () => {
@@ -98,7 +100,7 @@ export default function MapPage() {
           selectedTypes={selectedTypes}
           selectedMaterials={selectedMaterials}
           searchQuery={searchQuery}
-          onNodeClick={setSelectedNode}
+          onNodeClick={(node) => router.push(`/nodes/${node.id}`)}
           hoveredNode={hoveredNode}
           onNodeHover={setHoveredNode}
         />

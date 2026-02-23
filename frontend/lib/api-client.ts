@@ -262,6 +262,45 @@ export async function fetchOrders(type: 'public' | 'my' = 'public'): Promise<Ord
   }
 }
 
+export async function fetchAvailableOrders(): Promise<Order[]> {
+  try {
+    const res = await fetch(`${API_BASE}/orders/available`, { headers: authHeaders() });
+    if (!res.ok) return [];
+    const data = await res.json();
+    return Array.isArray(data) ? data : data.orders || [];
+  } catch {
+    return [];
+  }
+}
+
+export async function fetchAcceptedOrders(): Promise<Order[]> {
+  try {
+    const res = await fetch(`${API_BASE}/orders?status=accepted`, { headers: authHeaders() });
+    if (!res.ok) return [];
+    const data = await res.json();
+    return Array.isArray(data) ? data : data.orders || [];
+  } catch {
+    return [];
+  }
+}
+
+export async function acceptOrder(orderId: string, estimatedHours: number = 24): Promise<{ success: boolean; error?: string }> {
+  try {
+    const res = await fetch(`${API_BASE}/orders/${orderId}/accept`, {
+      method: 'PUT',
+      headers: authHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify({ estimated_hours: estimatedHours }),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      return { success: false, error: err.detail || 'Failed to accept order' };
+    }
+    return { success: true };
+  } catch {
+    return { success: false, error: 'API unavailable' };
+  }
+}
+
 export async function fetchOrder(id: string): Promise<Order | null> {
   try {
     const res = await fetch(`${API_BASE}/orders/${id}`, { headers: authHeaders() });

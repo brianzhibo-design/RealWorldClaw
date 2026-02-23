@@ -93,10 +93,6 @@ export default function SpacesPage() {
     ).length;
   };
 
-  const getMemberCount = () => {
-    return 0; // TODO: fetch real member count from API
-  };
-
   return (
     <div className="bg-slate-950 min-h-screen text-white">
       {/* Navigation */}

@@ -94,7 +94,7 @@ export default function MakerRegisterPage() {
       if (response.ok) {
         setSuccess(true);
         setTimeout(() => {
-          router.push("/dashboard");
+          router.push("/maker-orders");
         }, 3000);
       } else {
         const errorData = await response.json();
@@ -125,7 +125,7 @@ export default function MakerRegisterPage() {
 
         {success && (
           <div className="mb-6 p-4 bg-green-900/50 border border-green-800 rounded-lg text-green-200">
-            Registration successful! Redirecting...
+            Maker registration successful! Redirecting to your orders...
           </div>
         )}
 

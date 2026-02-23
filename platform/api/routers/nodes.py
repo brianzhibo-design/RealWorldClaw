@@ -258,6 +258,90 @@ def get_nearby_nodes(
         )
 
 
+@router.get("")
+def list_nodes(
+    node_type: str = None,
+    material: str = None,
+    status: str = None,
+    page: int = Query(1, ge=1),
+    limit: int = Query(20, ge=1, le=100),
+):
+    """List all nodes with optional filtering and pagination."""
+    with get_db() as db:
+        query = "SELECT * FROM nodes WHERE 1=1"
+        params = []
+
+        if node_type:
+            query += " AND node_type = ?"
+            params.append(node_type)
+
+        if status:
+            query += " AND status = ?"
+            params.append(status)
+
+        if material:
+            # material is stored as JSON array, use LIKE for simple filtering
+            query += " AND materials LIKE ?"
+            params.append(f'%"{material}"%')
+
+        # Count total
+        count_query = query.replace("SELECT * FROM", "SELECT COUNT(*) as cnt FROM")
+        total = db.execute(count_query, params).fetchone()["cnt"]
+
+        query += " ORDER BY created_at DESC LIMIT ? OFFSET ?"
+        params.extend([limit, (page - 1) * limit])
+
+        rows = db.execute(query, params).fetchall()
+
+        return {
+            "nodes": [_row_to_node_response(dict(r)) for r in rows],
+            "total": total,
+            "page": page,
+            "limit": limit,
+        }
+
+
+@router.get("/match")
+def match_nodes_get(
+    material: str = None,
+    node_type: str = None,
+    lat: float = Query(None, ge=-90.0, le=90.0),
+    lng: float = Query(None, ge=-180.0, le=180.0),
+    radius: float = Query(100.0, gt=0, le=5000),
+):
+    """GET version of node matching — find nodes by material, type, and location."""
+    with get_db() as db:
+        query = "SELECT * FROM nodes WHERE 1=1"
+        params = []
+
+        if node_type:
+            query += " AND node_type = ?"
+            params.append(node_type)
+
+        if material:
+            query += " AND materials LIKE ?"
+            params.append(f'%"{material}"%')
+
+        rows = db.execute(query, params).fetchall()
+
+        results = []
+        for row in rows:
+            row_dict = dict(row)
+            distance = None
+            if lat is not None and lng is not None:
+                distance = _haversine_distance(lat, lng, row_dict["fuzzy_latitude"], row_dict["fuzzy_longitude"])
+                if distance > radius:
+                    continue
+            node_resp = _row_to_node_response(row_dict)
+            results.append({"node": node_resp, "distance_km": round(distance, 2) if distance is not None else None})
+
+        # Sort by distance if location provided
+        if lat is not None and lng is not None:
+            results.sort(key=lambda x: x["distance_km"] or 0)
+
+        return {"matches": results, "total": len(results)}
+
+
 @router.post("/match", response_model=NodeMatchResponse)
 def match_nodes(request: NodeMatchRequest):
     """Find nodes matching design requirements"""
@@ -337,19 +421,14 @@ def get_my_nodes(identity: dict = Depends(get_authenticated_identity)):
         return [_row_to_node_detail(dict(row)) for row in rows]
 
 
-@router.get("/{node_id}", response_model=NodeDetailResponse)
-def get_node_detail(node_id: str, identity: dict = Depends(get_authenticated_identity)):
-    """Get detailed node information (owner only)"""
+@router.get("/{node_id}")
+def get_node_detail(node_id: str):
+    """Get node information. Returns public info (fuzzy location)."""
     with get_db() as db:
-        row = db.execute(
-            "SELECT * FROM nodes WHERE id = ? AND owner_id = ?",
-            (node_id, identity["identity_id"])
-        ).fetchone()
-        
+        row = db.execute("SELECT * FROM nodes WHERE id = ?", (node_id,)).fetchone()
         if not row:
             raise HTTPException(status_code=404, detail="Node not found")
-        
-        return _row_to_node_detail(dict(row))
+        return _row_to_node_response(dict(row))
 
 
 @router.put("/{node_id}", response_model=NodeDetailResponse)

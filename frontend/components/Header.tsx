@@ -3,7 +3,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Globe, Package, Settings, PlusCircle, LogOut, MessageSquare, LayoutDashboard } from "lucide-react";
+import { Globe, Package, Settings, PlusCircle, LogOut, MessageSquare, LayoutDashboard, Bot } from "lucide-react";
 import { useAuthStore } from "@/stores/authStore";
 import { Button } from "@/components/ui/button";
 import {
@@ -19,6 +19,7 @@ const navItems = [
   { href: "/community", label: "Community", icon: MessageSquare },
   { href: "/map", label: "Map", icon: Globe },
   { href: "/orders", label: "Orders", icon: Package },
+  { href: "/agents", label: "Agents", icon: Bot },
 ];
 
 export default function Header() {
