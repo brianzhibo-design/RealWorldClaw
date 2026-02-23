@@ -312,7 +312,7 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0a0a0f] text-[#f9fafb]">
+    <div className="min-h-screen bg-[#0a0a0f] text-[#f9fafb] overflow-x-hidden">
       {/* Hero Section */}
       <section className="relative overflow-hidden min-h-[90vh] flex flex-col items-center justify-center text-center px-6 pt-16 pb-12">
         {/* Background grid */}
