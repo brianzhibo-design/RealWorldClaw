@@ -48,7 +48,7 @@
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: hsl(240 6% 3%); }
 ::-webkit-scrollbar-thumb { background: hsl(240 4% 16%); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: hsl(25 95% 53%); }
+::-webkit-scrollbar-thumb:hover { background: hsl(199 89% 48%); }
 
 /* Card hover lift */
 .card-hover {
