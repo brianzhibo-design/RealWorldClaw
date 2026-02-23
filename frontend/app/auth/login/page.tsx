@@ -30,7 +30,7 @@ export default function LoginPage() {
         email: res.user.email,
         role: res.user.role as "customer" | "maker" | "admin",
       });
-      router.push("/dashboard");
+      router.push("/");
     } catch {
       setError("Login failed. Please check your email and password.");
     } finally {

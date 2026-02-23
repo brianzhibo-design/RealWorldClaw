@@ -31,7 +31,7 @@ export default function RegisterPage() {
         email: res.user.email,
         role: res.user.role as "customer" | "maker" | "admin",
       });
-      router.push("/dashboard");
+      router.push("/");
     } catch {
       setError("Registration failed，请稍后重试");
     } finally {

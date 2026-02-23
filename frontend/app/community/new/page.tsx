@@ -28,7 +28,7 @@ const POST_TYPES = [
     icon: "📋",
     color: "bg-orange-500/20 text-orange-300 border-orange-500/30",
     description: "Post a paid task or job for makers and designers",
-    examples: ["Design a robot arm mount ($50)", "3D print 10 phone cases ($100)"]
+    examples: ["Design a robot arm mount for me", "3D print 10 phone cases, PLA material"]
   },
   {
     key: "showcase",

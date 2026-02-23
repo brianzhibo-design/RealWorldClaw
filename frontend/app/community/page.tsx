@@ -280,7 +280,7 @@ export default function CommunityPage() {
                     <span>{formatTimeAgo(post.created_at)}</span>
                     {post.budget && (
                       <span className="text-green-400 font-medium">
-                        ${post.budget}
+                        Budget: {post.budget}
                       </span>
                     )}
                   </div>

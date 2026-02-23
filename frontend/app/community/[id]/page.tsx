@@ -269,7 +269,7 @@ export default function PostDetailPage() {
                 </div>
                 {post.budget && (
                   <div className="px-3 py-1 bg-green-500/20 text-green-300 border border-green-500/30 rounded-full text-sm font-medium">
-                    ${post.budget}
+                    Budget: {post.budget}
                   </div>
                 )}
               </div>
