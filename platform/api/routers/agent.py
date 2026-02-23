@@ -123,6 +123,7 @@ def query_devices(req: QueryRequest, user: dict = Depends(get_current_user)):
             timestamp=datetime.now(timezone.utc).isoformat()
         )
     except Exception as e:
+        logger.exception("Unexpected error in process_query: %s", e)
         raise HTTPException(status_code=500, detail=f"查询处理失败: {str(e)}")
 
 
@@ -170,6 +171,7 @@ def create_automation_rule(req: CreateRuleRequest, user: dict = Depends(get_curr
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
+        logger.exception("Unexpected error in create_automation_rule: %s", e)
         raise HTTPException(status_code=500, detail=f"创建规则失败: {str(e)}")
 
 
@@ -197,6 +199,7 @@ def list_automation_rules(enabled_only: bool = True, user: dict = Depends(get_cu
         return ListRulesResponse(rules=rule_infos, total=len(rule_infos))
         
     except Exception as e:
+        logger.exception("Unexpected error in list_automation_rules: %s", e)
         raise HTTPException(status_code=500, detail=f"获取规则列表失败: {str(e)}")
 
 
@@ -222,6 +225,7 @@ def execute_manual_action(req: ExecuteActionRequest, user: dict = Depends(get_cu
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
+        logger.exception("Unexpected error in execute_manual_action: %s", e)
         raise HTTPException(status_code=500, detail=f"执行命令失败: {str(e)}")
 
 
@@ -251,6 +255,7 @@ def get_all_devices_status(device_id: Optional[str] = None, user: dict = Depends
             "total": len(devices)
         }
     except Exception as e:
+        logger.exception("Unexpected error in get_all_devices_status: %s", e)
         raise HTTPException(status_code=500, detail=f"获取设备状态失败: {str(e)}")
 
 
@@ -285,6 +290,7 @@ def get_latest_telemetry(
             "total": len(telemetry_data)
         }
     except Exception as e:
+        logger.exception("Unexpected error in get_latest_telemetry: %s", e)
         raise HTTPException(status_code=500, detail=f"获取遥测数据失败: {str(e)}")
 
 
@@ -300,4 +306,5 @@ def evaluate_automation_rules(user: dict = Depends(get_current_user)):
             "total_executed": len(results)
         }
     except Exception as e:
+        logger.exception("Unexpected error in evaluate_automation_rules: %s", e)
         raise HTTPException(status_code=500, detail=f"评估规则失败: {str(e)}")

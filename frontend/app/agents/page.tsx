@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { API_BASE, apiFetch } from "@/lib/api-client";
 import { EmptyState } from "@/components/EmptyState";
+import { ErrorState } from "@/components/ErrorState";
 
 interface AIAgent {
   id: string;
@@ -103,19 +104,7 @@ export default function AgentsPage() {
         </header>
 
         <div className="max-w-7xl mx-auto px-6 py-12">
-          <div className="flex items-center justify-center py-20">
-            <div className="text-center">
-              <div className="text-6xl mb-4">⚠️</div>
-              <h2 className="text-xl font-bold mb-2 text-red-400">Error Loading Agents</h2>
-              <p className="text-slate-400 mb-6">{error}</p>
-              <button 
-                onClick={fetchAgents}
-                className="px-6 py-3 bg-sky-600 hover:bg-sky-500 text-white rounded-lg font-medium transition-colors"
-              >
-                Try Again
-              </button>
-            </div>
-          </div>
+          <ErrorState message={error} />
         </div>
       </div>
     );

@@ -73,7 +73,8 @@ def _row_to_post_response(row: dict, db=None) -> PostResponse:
             user_row = db.execute("SELECT username FROM users WHERE id = ?", (row["author_id"],)).fetchone()
             if user_row:
                 author_name = user_row["username"]
-        except Exception:
+        except Exception as e:
+            logger.exception("Unexpected error in _row_to_post_response: %s", e)
             pass
     
     return PostResponse(
@@ -353,11 +354,13 @@ async def vote_post(
         # Ensure upvotes/downvotes columns exist on community_posts
         try:
             db.execute("ALTER TABLE community_posts ADD COLUMN upvotes INTEGER NOT NULL DEFAULT 0")
-        except Exception:
+        except Exception as e:
+            logger.exception("Unexpected error adding upvotes column: %s", e)
             pass
         try:
             db.execute("ALTER TABLE community_posts ADD COLUMN downvotes INTEGER NOT NULL DEFAULT 0")
-        except Exception:
+        except Exception as e:
+            logger.exception("Unexpected error adding downvotes column: %s", e)
             pass
         
         # Check post exists

@@ -2,6 +2,7 @@
 import { API_BASE as API_URL, apiFetch } from "@/lib/api-client";
 import { useAuthStore } from "@/stores/authStore";
 import { EmptyState } from "@/components/EmptyState";
+import { ErrorState } from "@/components/ErrorState";
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -74,7 +75,7 @@ export default function OrdersPage() {
           setOrders([...(data.as_customer || []), ...(data.as_maker || []), ...(data.orders || [])]);
         }
       } catch (err) {
-        setError('Network error. Please try again.');
+        setError(err.message || 'Failed to load');
       } finally {
         setLoading(false);
       }
@@ -154,11 +155,7 @@ export default function OrdersPage() {
       </header>
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
-        {error && (
-          <div className="mb-6 p-4 bg-red-900/50 border border-red-800 rounded-lg text-red-200">
-            {error}
-          </div>
-        )}
+        {error && <ErrorState message={error} />}
 
         {/* Tabs */}
         <div className="overflow-x-auto mb-6 sm:mb-8">

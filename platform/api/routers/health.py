@@ -31,7 +31,8 @@ def health_detailed():
     try:
         with get_db() as db:
             db.execute("SELECT 1")
-    except Exception:
+    except Exception as e:
+        logger.exception("Database health check failed: %s", e)
         db_ok = False
 
     # Disk
@@ -50,7 +51,8 @@ def health_detailed():
             "available_gb": round(mem.available / (1 << 30), 2),
             "used_percent": mem.percent,
         }
-    except Exception:
+    except Exception as e:
+        logger.exception("Memory info retrieval failed: %s", e)
         memory_info = {"note": "psutil not available"}
 
     uptime_s = round(time.time() - _START_TIME, 1)

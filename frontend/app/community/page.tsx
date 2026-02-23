@@ -5,6 +5,7 @@ import Link from "next/link";
 import { fetchCommunityPosts, CommunityPost, votePost } from "@/lib/api-client";
 import { useAuthStore } from "@/stores/authStore";
 import { EmptyState } from "@/components/EmptyState";
+import { ErrorState } from "@/components/ErrorState";
 
 const POST_TYPES = [
   { key: "", label: "All", icon: "🌟" },
@@ -39,7 +40,7 @@ export default function CommunityPage() {
       const data = await fetchCommunityPosts(activeType, 1, 50);
       setPosts(data);
     } catch (err) {
-      setError("Failed to load posts");
+      setError(err.message || 'Failed to load');
       setPosts([]);
     } finally {
       setLoading(false);
@@ -188,20 +189,7 @@ export default function CommunityPage() {
         )}
 
         {/* Error state */}
-        {error && (
-          <div className="text-center py-20">
-            <div className="text-5xl mb-4">⚠️</div>
-            <h2 className="text-lg font-semibold mb-2">Something went wrong</h2>
-            <p className="text-muted-foreground mb-4">{error}</p>
-            <button
-              onClick={fetchPosts}
-              aria-label="Retry loading posts"
-              className="px-4 py-2 bg-secondary hover:bg-secondary/80 rounded-md text-sm font-medium transition-colors"
-            >
-              Try Again
-            </button>
-          </div>
-        )}
+        {error && <ErrorState message={error} />}
 
         {/* Empty state */}
         {!loading && !error && sortedPosts.length === 0 && (

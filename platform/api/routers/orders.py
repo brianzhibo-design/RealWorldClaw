@@ -319,9 +319,10 @@ def accept_order(order_id: str, body: OrderAcceptRequest, identity: dict = Depen
             db.execute("COMMIT")
         except HTTPException:
             raise
-        except Exception:
+        except Exception as e:
+            logger.exception("Unexpected error in accept_order: %s", e)
             db.execute("ROLLBACK")
-            raise
+            raise HTTPException(500, "Internal error")
 
     logger.info("Order accepted: order=%s by=%s est=%s", order_id, identity["identity_id"], est)
     return {"order_id": order_id, "status": "accepted", "estimated_completion": est}
