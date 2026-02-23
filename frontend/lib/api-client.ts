@@ -112,10 +112,12 @@ export function useWebSocket(
     const token = useAuthStore.getState().token;
     if (!token) return;
 
-    const ws = new WebSocket(`${WS_BASE}?token=${token}`);
+    const ws = new WebSocket(WS_BASE);
     wsRef.current = ws;
 
     ws.onopen = () => {
+      // Authenticate via message instead of URL query (security)
+      ws.send(JSON.stringify({ action: "auth", token }));
       setConnected(true);
       reconnectRef.current = 0;
       // Subscribe to channels

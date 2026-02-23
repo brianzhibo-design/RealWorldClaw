@@ -1,9 +1,9 @@
 "use client";
+import { API_BASE as API_URL } from "@/lib/api";
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
 
 const MATERIALS = ["PLA", "PETG", "ABS", "TPU", "Resin"];
 const COLORS = ["Red", "Blue", "Green", "Yellow", "Orange", "Purple", "Black", "White", "Natural", "Transparent"];

@@ -2,36 +2,40 @@
 @tailwind components;
 @tailwind utilities;
 
+/* 导入更温暖的字体 */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
 @layer base {
   :root {
-    --background: 240 6% 3%;
-    --foreground: 0 0% 98%;
-    --card: 240 5% 7%;
-    --card-foreground: 0 0% 98%;
-    --popover: 240 5% 10%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 25 95% 53%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 240 4% 14%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 240 4% 14%;
-    --muted-foreground: 240 5% 65%;
-    --accent: 240 4% 14%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 240 4% 16%;
-    --input: 240 4% 16%;
-    --ring: 25 95% 53%;
-    --radius: 0.5rem;
-    --success: 142 71% 45%;
-    --warning: 48 96% 53%;
-    --info: 217 91% 60%;
-    --chart-1: 25 95% 53%;
-    --chart-2: 142 71% 45%;
-    --chart-3: 217 91% 60%;
-    --chart-4: 48 96% 53%;
-    --chart-5: 330 81% 60%;
+    /* 温暖的配色系统 */
+    --background: 248 250 252; /* slate-50 */
+    --foreground: 15 23 42; /* slate-800 */
+    --card: 255 255 255; /* white */
+    --card-foreground: 15 23 42;
+    --popover: 255 255 255;
+    --popover-foreground: 15 23 42;
+    --primary: 194 65% 14%; /* orange-600 */
+    --primary-foreground: 255 255 255;
+    --secondary: 241 245 249; /* slate-100 */
+    --secondary-foreground: 15 23 42;
+    --muted: 241 245 249;
+    --muted-foreground: 100 116 139; /* slate-500 */
+    --accent: 254 242 242; /* red-50 */
+    --accent-foreground: 15 23 42;
+    --destructive: 239 68% 68%;
+    --destructive-foreground: 255 255 255;
+    --border: 226 232 240; /* slate-200 */
+    --input: 241 245 249;
+    --ring: 194 65% 14%;
+    --radius: 0.75rem; /* 更圆润 */
+    --success: 34 197 94; /* green-500 */
+    --warning: 251 146 60; /* orange-400 */
+    --info: 59 130 246; /* blue-500 */
+    --chart-1: 194 65% 14%;
+    --chart-2: 34 197 94;
+    --chart-3: 59 130 246;
+    --chart-4: 251 146 60;
+    --chart-5: 236 72 153; /* pink-500 */
   }
 }
 
@@ -41,11 +45,14 @@
   }
   html {
     overflow-x: hidden;
+    font-size: 16px; /* 确保基准字体大小 */
   }
   body {
     @apply bg-background text-foreground antialiased;
     overflow-x: hidden;
     font-family: 'Inter', 'Noto Sans SC', system-ui, sans-serif;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11'; /* Inter字体优化 */
+    line-height: 1.6; /* 更舒适的行高 */
   }
 }
 

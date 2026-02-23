@@ -1,9 +1,9 @@
 "use client";
+import { API_BASE as API_URL } from "@/lib/api";
 
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
 
 const MATERIALS = ["PLA", "ABS", "PETG", "TPU", "Nylon", "Resin"];
 const SUPPORTED_FORMATS = [".stl", ".obj", ".step", ".3mf"];

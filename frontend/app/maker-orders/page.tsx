@@ -1,8 +1,8 @@
 "use client";
+import { API_BASE as API_URL } from "@/lib/api";
 
 import { useState, useEffect, useCallback } from "react";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
 
 interface Order {
   id: string;
