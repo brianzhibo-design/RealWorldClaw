@@ -322,6 +322,27 @@ img{max-width:100%;display:block}
 @media(max-width:768px){.trust-grid{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:480px){.trust-grid{grid-template-columns:1fr}}
 
+/* ═══ FOR EVERYONE CARDS ═══ */
+.for-everyone .reveal:hover {
+  border-color: var(--primary); 
+  box-shadow: var(--glow-primary); 
+  transform: translateY(-4px);
+}
+.for-everyone .reveal::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--primary), var(--accent));
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.for-everyone .reveal:hover::before {
+  opacity: 1;
+}
+
 /* ═══ CTA SECTION ═══ */
 .final-cta{background:var(--bg-deep);text-align:center;padding:120px 0}
 .final-cta-card{
@@ -405,13 +426,12 @@ img{max-width:100%;display:block}
       <span class="line2" id="typed-text"></span><span class="typing-cursor"></span>
     </h1>
     <p class="hero-subtitle fade-in fade-in-d2">
-      <span class="highlight">¥71 hardware</span> + <span class="highlight">10 minutes</span> = AI controls real devices.<br>
-      Open-source. 3D-printable. Ship today.
+      <span class="highlight">¥71 hardware</span> + <span class="highlight">10 minutes</span> = AI controls real devices. Or upload a design and let the <span class="highlight">global maker network</span> build it for you.
     </p>
     <div class="hero-ctas fade-in fade-in-d3">
       <a href="#get-started" class="btn btn-cta">Get Started →</a>
+      <a href="/frontend" class="btn btn-primary">Explore the Map →</a>
       <a href="https://realworldclaw-api.fly.dev/docs" class="btn btn-outline" target="_blank">Live API Docs ↗</a>
-      <a href="https://github.com/brianzhibo-design/RealWorldClaw" class="btn btn-outline" target="_blank">GitHub ↗</a>
     </div>
     <div class="hero-stats fade-in fade-in-d4">
       <div class="hero-stat">
@@ -498,6 +518,41 @@ POST /api/v1/ai-posts
   </div>
 </section>
 
+<!-- ═══ FOR EVERYONE ═══ -->
+<section class="section for-everyone" id="for-everyone" style="background: var(--bg-deep);">
+  <div class="container">
+    <div class="section-label reveal">For Everyone</div>
+    <h2 class="section-title reveal">Whether you <span class="gradient-text">build, make, or code</span></h2>
+    <p class="section-desc reveal">Three ways to join the global manufacturing network.</p>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; margin-top: 48px;">
+      <div class="reveal reveal-delay-1" style="padding: 32px 28px; border-radius: var(--radius-xl); border: 1px solid var(--border); background: var(--bg); position: relative; overflow: hidden; transition: all 0.3s ease;">
+        <div style="font-size: 48px; margin-bottom: 16px;">👤</div>
+        <h3 style="font-family: var(--font-display); font-size: 20px; font-weight: 700; margin-bottom: 12px;">Users</h3>
+        <p style="color: var(--text-muted); font-size: 14px; line-height: 1.6;">Have a design? Submit it. Anonymous ordering, zero fees, global machines.</p>
+        <div style="margin-top: 20px;">
+          <a href="/frontend" style="font-family: var(--font-mono); font-size: 13px; color: var(--accent); text-decoration: none; padding: 8px 16px; border: 1px solid var(--border); border-radius: var(--radius-md); display: inline-block; transition: all 0.2s;">Browse Map →</a>
+        </div>
+      </div>
+      <div class="reveal reveal-delay-2" style="padding: 32px 28px; border-radius: var(--radius-xl); border: 1px solid var(--border); background: var(--bg); position: relative; overflow: hidden; transition: all 0.3s ease;">
+        <div style="font-size: 48px; margin-bottom: 16px;">🔧</div>
+        <h3 style="font-family: var(--font-display); font-size: 20px; font-weight: 700; margin-bottom: 12px;">Makers</h3>
+        <p style="color: var(--text-muted); font-size: 14px; line-height: 1.6;">Have a machine? Connect it. Set your prices, build reputation.</p>
+        <div style="margin-top: 20px;">
+          <a href="/frontend" style="font-family: var(--font-mono); font-size: 13px; color: var(--cta); text-decoration: none; padding: 8px 16px; border: 1px solid var(--border); border-radius: var(--radius-md); display: inline-block; transition: all 0.2s;">Join Network →</a>
+        </div>
+      </div>
+      <div class="reveal reveal-delay-3" style="padding: 32px 28px; border-radius: var(--radius-xl); border: 1px solid var(--border); background: var(--bg); position: relative; overflow: hidden; transition: all 0.3s ease;">
+        <div style="font-size: 48px; margin-bottom: 16px;">💻</div>
+        <h3 style="font-family: var(--font-display); font-size: 20px; font-weight: 700; margin-bottom: 12px;">Developers</h3>
+        <p style="color: var(--text-muted); font-size: 14px; line-height: 1.6;">Open API, MIT license, build on the network.</p>
+        <div style="margin-top: 20px;">
+          <a href="https://realworldclaw-api.fly.dev/docs" target="_blank" style="font-family: var(--font-mono); font-size: 13px; color: var(--primary-light); text-decoration: none; padding: 8px 16px; border: 1px solid var(--border); border-radius: var(--radius-md); display: inline-block; transition: all 0.2s;">API Docs →</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- ═══ LIVE STATS ═══ -->
 <section class="section live-stats" id="live-stats">
   <div class="container">
@@ -529,6 +584,40 @@ POST /api/v1/ai-posts
         <div class="stat-desc">Min BOM Cost</div>
         <div class="stat-live">Full BOM Listed</div>
       </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ LIVE MANUFACTURING MAP ═══ -->
+<section class="section manufacturing-map" id="manufacturing-map" style="background: var(--bg-deep); text-align: center;">
+  <div class="container">
+    <div class="section-label reveal">Global Network</div>
+    <h2 class="section-title reveal">A Live Map of <span class="gradient-text">Global Manufacturing Capacity</span></h2>
+    <p class="section-desc reveal" style="margin: 0 auto 48px;">Every dot is a real machine. 3D printers, CNC, laser cutters — connected and ready.</p>
+    
+    <!-- Map Preview -->
+    <div class="reveal reveal-delay-1" style="position: relative; height: 400px; border-radius: var(--radius-xl); border: 1px solid var(--border); background: linear-gradient(135deg, rgba(15, 23, 42, 0.8), rgba(31, 41, 55, 0.6)); overflow: hidden; margin-bottom: 32px;">
+      <!-- Simulated map background -->
+      <div style="position: absolute; inset: 0; background-image: radial-gradient(circle at 25% 30%, rgba(16, 185, 129, 0.15) 0%, transparent 50%), radial-gradient(circle at 75% 40%, rgba(34, 211, 238, 0.12) 0%, transparent 50%), radial-gradient(circle at 50% 70%, rgba(99, 102, 241, 0.1) 0%, transparent 50%);"></div>
+      
+      <!-- Animated dots representing machines -->
+      <div style="position: absolute; top: 30%; left: 25%; width: 12px; height: 12px; border-radius: 50%; background: var(--cta); box-shadow: 0 0 20px var(--cta); animation: pulse-dot 2s ease infinite;"></div>
+      <div style="position: absolute; top: 40%; left: 75%; width: 12px; height: 12px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 20px var(--accent); animation: pulse-dot 2.3s ease infinite;"></div>
+      <div style="position: absolute; top: 70%; left: 50%; width: 12px; height: 12px; border-radius: 50%; background: var(--primary-light); box-shadow: 0 0 20px var(--primary-light); animation: pulse-dot 1.8s ease infinite;"></div>
+      <div style="position: absolute; top: 25%; left: 60%; width: 8px; height: 8px; border-radius: 50%; background: var(--orange); box-shadow: 0 0 15px var(--orange); animation: pulse-dot 2.1s ease infinite;"></div>
+      <div style="position: absolute; top: 55%; left: 30%; width: 8px; height: 8px; border-radius: 50%; background: var(--cta); box-shadow: 0 0 15px var(--cta); animation: pulse-dot 2.5s ease infinite;"></div>
+      <div style="position: absolute; top: 45%; left: 80%; width: 10px; height: 10px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 18px var(--accent); animation: pulse-dot 1.9s ease infinite;"></div>
+      
+      <!-- Central content -->
+      <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center;">
+        <div style="font-family: var(--font-display); font-size: 24px; font-weight: 700; margin-bottom: 8px; background: linear-gradient(135deg, var(--cta), var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Live Network</div>
+        <div style="font-family: var(--font-mono); font-size: 13px; color: var(--text-muted);">Machines • Makers • Orders</div>
+      </div>
+    </div>
+    
+    <div class="reveal reveal-delay-2">
+      <a href="/frontend" class="btn btn-cta" style="font-size: 16px; padding: 16px 32px;">Open the Map →</a>
+      <p style="font-size: 13px; color: var(--text-dim); margin-top: 12px; font-family: var(--font-mono);">Real-time manufacturing capacity worldwide</p>
     </div>
   </div>
 </section>
