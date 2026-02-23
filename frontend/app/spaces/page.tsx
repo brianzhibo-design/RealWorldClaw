@@ -67,12 +67,24 @@ const SPACES = [
 export default function SpacesPage() {
   const [posts, setPosts] = useState<CommunityPost[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchCommunityPosts().then(data => {
-      setPosts(data);
-      setLoading(false);
-    });
+    const loadPosts = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const data = await fetchCommunityPosts();
+        setPosts(data);
+      } catch (err) {
+        console.error('Failed to fetch community posts:', err);
+        setError('Failed to load community data. Please try again later.');
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    loadPosts();
   }, []);
 
   const getPostCountForSpace = (tags: string[]) => {
@@ -143,6 +155,18 @@ export default function SpacesPage() {
         {loading ? (
           <div className="text-center py-12">
             <div className="text-slate-400">Loading spaces...</div>
+          </div>
+        ) : error ? (
+          <div className="text-center py-12">
+            <div className="text-6xl mb-4">⚠️</div>
+            <h2 className="text-xl font-bold text-white mb-2">Error Loading Spaces</h2>
+            <p className="text-red-400 mb-4">{error}</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="px-5 py-2.5 bg-sky-600 hover:bg-sky-500 text-white rounded-lg transition-colors font-medium"
+            >
+              Try Again
+            </button>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

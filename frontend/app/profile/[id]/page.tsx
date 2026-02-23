@@ -70,35 +70,46 @@ export default function ProfilePage() {
   const [userPosts, setUserPosts] = useState<CommunityPost[]>([]);
   const [userComments, setUserComments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'posts' | 'comments' | 'designs' | 'orders'>('posts');
 
   useEffect(() => {
-    fetchCommunityPosts().then(data => {
-      setPosts(data);
-      // Filter posts by user (mock implementation)
-      const filtered = data.filter(post => post.author === user.username);
-      setUserPosts(filtered);
-      
-      // Mock comments data
-      setUserComments([
-        {
-          id: '1',
-          content: 'Great idea! I would love to help with the implementation.',
-          post_title: 'AI-controlled 3D printer network',
-          created_at: '2024-02-20T10:30:00Z',
-          upvotes: 5
-        },
-        {
-          id: '2', 
-          content: 'Have you considered using ESP32 for the wireless communication?',
-          post_title: 'Building a smart workshop',
-          created_at: '2024-02-18T15:45:00Z',
-          upvotes: 8
-        },
-      ]);
-      
-      setLoading(false);
-    });
+    const loadUserData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const data = await fetchCommunityPosts();
+        setPosts(data);
+        // Filter posts by user (mock implementation)
+        const filtered = data.filter(post => post.author === user.username);
+        setUserPosts(filtered);
+        
+        // Mock comments data
+        setUserComments([
+          {
+            id: '1',
+            content: 'Great idea! I would love to help with the implementation.',
+            post_title: 'AI-controlled 3D printer network',
+            created_at: '2024-02-20T10:30:00Z',
+            upvotes: 5
+          },
+          {
+            id: '2', 
+            content: 'Have you considered using ESP32 for the wireless communication?',
+            post_title: 'Building a smart workshop',
+            created_at: '2024-02-18T15:45:00Z',
+            upvotes: 8
+          },
+        ]);
+      } catch (err) {
+        console.error('Failed to fetch user data:', err);
+        setError('Failed to load profile data. Please try again later.');
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    loadUserData();
   }, [user.username]);
 
   const formatDate = (dateString: string) => {
@@ -242,6 +253,18 @@ export default function ProfilePage() {
             {loading ? (
               <div className="text-center py-12">
                 <div className="text-slate-400">Loading...</div>
+              </div>
+            ) : error ? (
+              <div className="text-center py-12">
+                <div className="text-6xl mb-4">⚠️</div>
+                <h2 className="text-xl font-bold text-white mb-2">Error Loading Profile</h2>
+                <p className="text-red-400 mb-4">{error}</p>
+                <button
+                  onClick={() => window.location.reload()}
+                  className="px-5 py-2.5 bg-sky-600 hover:bg-sky-500 text-white rounded-lg transition-colors font-medium"
+                >
+                  Try Again
+                </button>
               </div>
             ) : (
               <div>

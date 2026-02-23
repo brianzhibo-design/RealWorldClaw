@@ -50,12 +50,15 @@ export const swrFetcher = <T>(path: string) => apiFetch<T>(path);
 
 // ─── Auth API ─────────────────────────────────────────
 
-export async function loginAPI(email: string, password: string) {
+export async function loginAPI(email: string, password: string, username?: string) {
+  const body = username
+    ? { username, password }
+    : { email, password };
   return apiFetch<{ access_token: string; user: { id: string; username: string; email: string; role: string } }>(
     "/auth/login",
     {
       method: "POST",
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify(body),
     }
   );
 }

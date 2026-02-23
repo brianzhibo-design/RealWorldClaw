@@ -66,14 +66,26 @@ export default function SpacePage() {
   const [posts, setPosts] = useState<CommunityPost[]>([]);
   const [filteredPosts, setFilteredPosts] = useState<CommunityPost[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [sortType, setSortType] = useState<'hot' | 'new' | 'top'>('hot');
   const [isJoined, setIsJoined] = useState(false);
 
   useEffect(() => {
-    fetchCommunityPosts().then(data => {
-      setPosts(data);
-      setLoading(false);
-    });
+    const loadPosts = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const data = await fetchCommunityPosts();
+        setPosts(data);
+      } catch (err) {
+        console.error('Failed to fetch community posts:', err);
+        setError('Failed to load posts. Please try again later.');
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    loadPosts();
   }, []);
 
   useEffect(() => {
@@ -252,6 +264,18 @@ export default function SpacePage() {
             {loading ? (
               <div className="text-center py-12">
                 <div className="text-slate-400">Loading posts...</div>
+              </div>
+            ) : error ? (
+              <div className="text-center py-12">
+                <div className="text-6xl mb-4">⚠️</div>
+                <h2 className="text-xl font-bold text-white mb-2">Error Loading Posts</h2>
+                <p className="text-red-400 mb-4">{error}</p>
+                <button
+                  onClick={() => window.location.reload()}
+                  className="px-5 py-2.5 bg-sky-600 hover:bg-sky-500 text-white rounded-lg transition-colors font-medium"
+                >
+                  Try Again
+                </button>
               </div>
             ) : filteredPosts.length > 0 ? (
               <div className="space-y-6">

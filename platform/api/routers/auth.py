@@ -10,6 +10,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from ..database import get_db
 from ..deps import get_current_user
 from ..models.user import (
+    AuthResponse,
     RefreshRequest,
     TokenResponse,
     UserLoginRequest,
@@ -28,7 +29,7 @@ from ..security import (
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
-@router.post("/register", response_model=UserResponse, status_code=201)
+@router.post("/register", response_model=AuthResponse, status_code=201)
 def register(req: UserRegisterRequest):
     now = datetime.now(timezone.utc).isoformat()
     user_id = f"usr_{uuid.uuid4().hex[:12]}"
@@ -48,10 +49,15 @@ def register(req: UserRegisterRequest):
         )
         row = db.execute("SELECT * FROM users WHERE id = ?", (user_id,)).fetchone()
 
-    return _user_response(row)
+    token_data = {"sub": user_id, "role": "user"}
+    return AuthResponse(
+        access_token=create_access_token(token_data),
+        refresh_token=create_refresh_token(token_data),
+        user=_user_response(row),
+    )
 
 
-@router.post("/login", response_model=TokenResponse)
+@router.post("/login", response_model=AuthResponse)
 def login(req: UserLoginRequest):
     with get_db() as db:
         if req.email:
@@ -67,9 +73,10 @@ def login(req: UserLoginRequest):
         raise HTTPException(status_code=403, detail="Account deactivated")
 
     token_data = {"sub": row["id"], "role": row["role"]}
-    return TokenResponse(
+    return AuthResponse(
         access_token=create_access_token(token_data),
         refresh_token=create_refresh_token(token_data),
+        user=_user_response(row),
     )
 
 

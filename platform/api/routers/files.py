@@ -1,4 +1,4 @@
-"""File upload API for design files."""
+"""File upload API for design files and images."""
 
 from __future__ import annotations
 
@@ -17,7 +17,7 @@ router = APIRouter(prefix="/files", tags=["files"])
 
 # Constants
 MAX_FILE_SIZE = 50 * 1024 * 1024  # 50MB
-ALLOWED_EXTENSIONS = {".stl", ".obj", ".step", ".stp", ".3mf"}
+ALLOWED_EXTENSIONS = {".stl", ".obj", ".step", ".stp", ".3mf", ".png", ".jpg", ".jpeg"}
 UPLOAD_DIR = Path(__file__).parent.parent.parent / "uploads"
 
 # Ensure upload directory exists
@@ -43,6 +43,9 @@ def _get_mime_type(filename: str) -> str:
         ".step": "model/step",
         ".stp": "model/step",
         ".3mf": "model/3mf",
+        ".png": "image/png",
+        ".jpg": "image/jpeg",
+        ".jpeg": "image/jpeg",
     }
     return mime_types.get(ext, "application/octet-stream")
 
@@ -52,7 +55,7 @@ async def upload_file(
     file: UploadFile = File(...),
     identity: dict = Depends(get_authenticated_identity)
 ):
-    """Upload a design file (STL/OBJ/STEP/3MF)."""
+    """Upload a design file (STL/OBJ/STEP/3MF) or image (PNG/JPG)."""
     
     # Validate file
     if not file.filename:

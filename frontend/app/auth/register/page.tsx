@@ -35,7 +35,7 @@ export default function RegisterPage() {
       });
       router.push("/");
     } catch {
-      setError("Registration failed，请稍后重试");
+      setError("Registration failed. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -53,7 +53,7 @@ export default function RegisterPage() {
           <span className="text-3xl">🔧</span>
           <h1 className="text-xl font-semibold mt-3">Create Account</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            加入 RealWorldClaw 社区
+            Join the RealWorldClaw community
           </p>
         </div>
 
@@ -103,7 +103,7 @@ export default function RegisterPage() {
               <label className="text-sm font-medium">Password</label>
               <Input
                 type="password"
-                placeholder="至少 8 位"
+                placeholder="At least 8 characters"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
@@ -116,7 +116,7 @@ export default function RegisterPage() {
             )}
 
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Signing up..." : "注册"}
+              {loading ? "Signing up..." : "Sign Up"}
             </Button>
           </form>
         </Card>
@@ -124,7 +124,7 @@ export default function RegisterPage() {
         <p className="text-center text-sm text-muted-foreground mt-4">
           Already have an account?{" "}
           <Link href="/auth/login" className="text-primary hover:underline">
-            登录
+            Sign In
           </Link>
         </p>
       </motion.div>

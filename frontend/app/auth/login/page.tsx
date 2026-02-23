@@ -25,7 +25,11 @@ export default function LoginPage() {
     setError("");
     setLoading(true);
     try {
-      const res = await loginAPI(email, password);
+      // Support both email and username login
+      const isEmail = email.includes("@");
+      const res = isEmail
+        ? await loginAPI(email, password)
+        : await loginAPI("", password, email);
       login(res.access_token, {
         id: res.user.id,
         username: res.user.username,
@@ -81,10 +85,10 @@ export default function LoginPage() {
           {/* Email/Password Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium">Email</label>
+              <label className="text-sm font-medium">Email or Username</label>
               <Input
-                type="email"
-                placeholder="you@example.com"
+                type="text"
+                placeholder="you@example.com or username"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required

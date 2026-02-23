@@ -74,6 +74,14 @@ class TokenResponse(BaseModel):
     token_type: str = "bearer"
 
 
+class AuthResponse(BaseModel):
+    """Login/Register response with token + user info."""
+    access_token: str
+    refresh_token: str
+    token_type: str = "bearer"
+    user: "UserResponse"
+
+
 class RefreshRequest(BaseModel):
     refresh_token: str
 

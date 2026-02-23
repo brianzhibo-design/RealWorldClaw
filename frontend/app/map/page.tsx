@@ -15,15 +15,45 @@ export default function MapPage() {
   const [selectedMaterials, setSelectedMaterials] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchMapNodes().then((data) => {
-      setNodes(data);
-      setLoading(false);
-    });
+    const loadNodes = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const data = await fetchMapNodes();
+        setNodes(data);
+      } catch (err) {
+        console.error('Failed to fetch map nodes:', err);
+        setError('Failed to load manufacturing nodes. Please try again later.');
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    loadNodes();
   }, []);
 
   const onlineCount = nodes.filter((n) => n.status === "online" || n.status === "idle").length;
+
+  if (error) {
+    return (
+      <div className="relative w-full h-screen bg-slate-950 overflow-hidden flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-6xl mb-4">⚠️</div>
+          <h2 className="text-xl font-bold text-white mb-2">Error Loading Map</h2>
+          <p className="text-red-400 mb-4">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-5 py-2.5 bg-sky-600 hover:bg-sky-500 text-white rounded-lg transition-colors font-medium"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="relative w-full h-screen bg-slate-950 overflow-hidden">

@@ -12,6 +12,13 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '';
 
+  const content = (
+    <>
+      <Header />
+      <main>{children}</main>
+    </>
+  );
+
   return (
     <html lang="en">
       <head>
@@ -23,10 +30,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body className="min-h-screen bg-zinc-950 text-zinc-100 antialiased">
-        <GoogleOAuthProvider clientId={googleClientId}>
-          <Header />
-          <main>{children}</main>
-        </GoogleOAuthProvider>
+        {googleClientId ? (
+          <GoogleOAuthProvider clientId={googleClientId}>
+            {content}
+          </GoogleOAuthProvider>
+        ) : (
+          content
+        )}
       </body>
     </html>
   );

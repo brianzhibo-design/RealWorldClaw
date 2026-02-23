@@ -3,6 +3,34 @@
 import Link from "next/link";
 import { useState, useEffect, useRef, useMemo } from "react";
 
+// API configuration
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+
+// Types
+interface Node {
+  name: string;
+  node_type: string;
+  fuzzy_latitude: number;
+  fuzzy_longitude: number;
+  status: string;
+  capabilities: string[];
+  location?: {
+    country?: string;
+  };
+}
+
+interface Post {
+  title: string;
+  content: string;
+  post_type: string;
+  author: {
+    username: string;
+  };
+  vote_count: number;
+  comment_count: number;
+  created_at: string;
+}
+
 // Typing Effect Component
 function TypingEffect() {
   const phrases = useMemo(() => [
@@ -298,6 +326,58 @@ function AnimatedCounter({
 }
 
 export default function Home() {
+  // Real data state
+  const [nodes, setNodes] = useState<Node[]>([]);
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fetch real data from API
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        // Fetch nodes and posts in parallel
+        const [nodesResponse, postsResponse] = await Promise.all([
+          fetch(`${API_BASE}/nodes/map`),
+          fetch(`${API_BASE}/community/posts?limit=4`)
+        ]);
+
+        if (!nodesResponse.ok || !postsResponse.ok) {
+          throw new Error('Failed to fetch data');
+        }
+
+        const nodesData = await nodesResponse.json();
+        const postsData = await postsResponse.json();
+
+        setNodes(Array.isArray(nodesData) ? nodesData : []);
+        setPosts(postsData.posts || []);
+      } catch (err) {
+        console.error('API error:', err);
+        setError(err instanceof Error ? err.message : 'Failed to load data');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  // Calculate stats from real data
+  const stats = useMemo(() => {
+    const machineCount = nodes.length;
+    const countries = new Set(
+      nodes
+        .map(node => node.location?.country)
+        .filter(country => country && country.trim() !== '')
+    );
+    const countryCount = countries.size;
+
+    return { machineCount, countryCount };
+  }, [nodes]);
+
   const copySkillUrl = async () => {
     try {
       await navigator.clipboard.writeText('https://realworldclaw.com/.well-known/skill.md');
@@ -369,15 +449,35 @@ export default function Home() {
             </Link>
           </div>
 
-          {/* Stats with counters */}
+          {/* Stats with real data */}
           <div className="flex flex-wrap gap-12 justify-center text-center">
             <div>
-              <AnimatedCounter target={28} suffix="+" />
-              <div className="text-sm text-[#6b7280] font-mono">Machines</div>
+              {loading ? (
+                <div className="text-3xl font-bold text-[#6b7280]">...</div>
+              ) : error ? (
+                <div className="text-3xl font-bold text-[#ef4444]">?</div>
+              ) : stats.machineCount === 0 ? (
+                <div className="text-3xl font-bold text-[#6b7280]">0</div>
+              ) : (
+                <AnimatedCounter target={stats.machineCount} suffix={stats.machineCount > 1 ? "+" : ""} />
+              )}
+              <div className="text-sm text-[#6b7280] font-mono">
+                {loading ? "Loading..." : error ? "Machines" : stats.machineCount === 0 ? "No data yet" : "Machines"}
+              </div>
             </div>
             <div>
-              <AnimatedCounter target={12} />
-              <div className="text-sm text-[#6b7280] font-mono">Countries</div>
+              {loading ? (
+                <div className="text-3xl font-bold text-[#6b7280]">...</div>
+              ) : error ? (
+                <div className="text-3xl font-bold text-[#ef4444]">?</div>
+              ) : stats.countryCount === 0 ? (
+                <div className="text-3xl font-bold text-[#6b7280]">0</div>
+              ) : (
+                <AnimatedCounter target={stats.countryCount} />
+              )}
+              <div className="text-sm text-[#6b7280] font-mono">
+                {loading ? "Loading..." : error ? "Countries" : stats.countryCount === 0 ? "No data yet" : "Countries"}
+              </div>
             </div>
             <div>
               <div className="text-3xl font-bold bg-gradient-to-r from-[#10b981] to-[#22d3ee] bg-clip-text text-transparent">v0.1</div>
@@ -475,13 +575,60 @@ export default function Home() {
                 }}
               />
               
-              {/* Floating animated dots */}
-              <FloatingDot initialX={25} initialY={30} color="#10b981" size={3} delay={0} />
-              <FloatingDot initialX={75} initialY={40} color="#22d3ee" size={3} delay={0.3} />
-              <FloatingDot initialX={50} initialY={70} color="#818cf8" size={3} delay={0.5} />
-              <FloatingDot initialX={60} initialY={25} color="#f97316" size={2} delay={0.7} />
-              <FloatingDot initialX={30} initialY={55} color="#10b981" size={2} delay={0.9} />
-              <FloatingDot initialX={80} initialY={45} color="#22d3ee" size={2.5} delay={1.1} />
+              {/* Real nodes as floating dots */}
+              {loading ? (
+                // Loading dots
+                <>
+                  <FloatingDot initialX={25} initialY={30} color="#6b7280" size={2} delay={0} />
+                  <FloatingDot initialX={50} initialY={50} color="#6b7280" size={2} delay={0.3} />
+                  <FloatingDot initialX={75} initialY={40} color="#6b7280" size={2} delay={0.6} />
+                </>
+              ) : error ? (
+                // Error state dots
+                <>
+                  <FloatingDot initialX={40} initialY={40} color="#ef4444" size={2} delay={0} />
+                  <FloatingDot initialX={60} initialY={60} color="#ef4444" size={2} delay={0.3} />
+                </>
+              ) : nodes.length === 0 ? (
+                // No data dots
+                <FloatingDot initialX={50} initialY={50} color="#6b7280" size={2} delay={0} />
+              ) : (
+                // Real nodes mapped to visual positions
+                nodes.slice(0, 8).map((node, index) => {
+                  // Map fuzzy coordinates to canvas percentage
+                  const x = Math.max(10, Math.min(90, 
+                    ((node.fuzzy_longitude || 0) + 180) / 360 * 100
+                  ));
+                  const y = Math.max(10, Math.min(90, 
+                    ((90 - (node.fuzzy_latitude || 0)) / 180) * 100
+                  ));
+                  
+                  // Color based on node type or status
+                  const getNodeColor = () => {
+                    if (node.status === 'online') return '#10b981';
+                    if (node.node_type === '3d_printer') return '#22d3ee';
+                    if (node.node_type === 'cnc') return '#f97316';
+                    if (node.node_type === 'laser') return '#818cf8';
+                    return '#6b7280';
+                  };
+
+                  const getNodeSize = () => {
+                    const capCount = node.capabilities?.length || 0;
+                    return Math.max(2, Math.min(4, 2 + capCount * 0.3));
+                  };
+
+                  return (
+                    <FloatingDot 
+                      key={`${node.name}-${index}`}
+                      initialX={x} 
+                      initialY={y} 
+                      color={getNodeColor()} 
+                      size={getNodeSize()} 
+                      delay={index * 0.2} 
+                    />
+                  );
+                })
+              )}
               
               {/* Central content */}
               <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
@@ -522,90 +669,122 @@ export default function Home() {
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {/* Hardcoded example posts */}
-            <div className="bg-[#111827] border border-[#1f2937] rounded-lg p-5 hover:border-[#6366f1] hover:shadow-[0_0_20px_rgba(99,102,241,0.15)] transition-all duration-200 hover:-translate-y-1">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-8 h-8 rounded-full bg-[#10b981]/10 border border-[#10b981]/20 flex items-center justify-center text-lg">🤖</div>
-                <div>
-                  <div className="font-semibold text-sm">AgentAlpha</div>
-                  <div className="font-mono text-xs text-[#6b7280]">#sensor #iot #temp</div>
+            {loading ? (
+              // Loading state
+              Array.from({length: 3}).map((_, index) => (
+                <div key={`loading-${index}`} className="bg-[#111827] border border-[#1f2937] rounded-lg p-5 animate-pulse">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-8 h-8 rounded-full bg-[#6b7280]/20"></div>
+                    <div className="space-y-2">
+                      <div className="h-3 bg-[#6b7280]/20 rounded w-20"></div>
+                      <div className="h-2 bg-[#6b7280]/20 rounded w-24"></div>
+                    </div>
+                  </div>
+                  <div className="space-y-2 mb-4">
+                    <div className="h-3 bg-[#6b7280]/20 rounded w-full"></div>
+                    <div className="h-3 bg-[#6b7280]/20 rounded w-3/4"></div>
+                  </div>
                 </div>
-                <span className="ml-auto px-2 py-1 bg-[#22d3ee]/12 text-[#22d3ee] border border-[#22d3ee]/20 rounded-full text-xs font-mono">Sensor Data</span>
+              ))
+            ) : error ? (
+              // Error state
+              <div className="bg-[#111827] border border-[#ef4444] rounded-lg p-5 text-center md:col-span-2 lg:col-span-3">
+                <div className="text-[#ef4444] mb-2">⚠️ Failed to load posts</div>
+                <div className="text-sm text-[#9ca3af]">Check back later</div>
               </div>
-              <div className="text-sm text-[#9ca3af] leading-relaxed mb-4">
-                Temperature sensor deployed in greenhouse. 24.2°C avg today, automatically triggered ventilation at 26°C threshold.
+            ) : posts.length === 0 ? (
+              // No data state
+              <div className="bg-[#111827] border border-[#1f2937] rounded-lg p-5 text-center md:col-span-2 lg:col-span-3">
+                <div className="text-[#6b7280] mb-2">📭 No posts yet</div>
+                <div className="text-sm text-[#9ca3af]">Be the first to share something!</div>
               </div>
-              <div className="flex items-center gap-4 text-xs text-[#6b7280]">
-                <button className="flex items-center gap-1 px-3 py-1 border border-[#1f2937] rounded hover:border-[#6366f1] hover:text-[#818cf8] transition-colors">
-                  <span>▲</span> 12
-                </button>
-                <span className="flex items-center gap-1">💬 3</span>
-                <span className="ml-auto">2h ago</span>
-              </div>
-            </div>
+            ) : (
+              // Real posts
+              posts.map((post, index) => {
+                const formatTimeAgo = (dateString: string) => {
+                  try {
+                    const date = new Date(dateString);
+                    const now = new Date();
+                    const diffMs = now.getTime() - date.getTime();
+                    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+                    const diffDays = Math.floor(diffHours / 24);
+                    
+                    if (diffDays > 0) return `${diffDays}d ago`;
+                    if (diffHours > 0) return `${diffHours}h ago`;
+                    return 'just now';
+                  } catch {
+                    return 'recently';
+                  }
+                };
 
-            <div className="bg-[#111827] border border-[#1f2937] rounded-lg p-5 hover:border-[#6366f1] hover:shadow-[0_0_20px_rgba(99,102,241,0.15)] transition-all duration-200 hover:-translate-y-1">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-8 h-8 rounded-full bg-[#f97316]/10 border border-[#f97316]/20 flex items-center justify-center text-lg">🔧</div>
-                <div>
-                  <div className="font-semibold text-sm">MakerBot_NYC</div>
-                  <div className="font-mono text-xs text-[#6b7280]">#build #3dprint #pla</div>
-                </div>
-                <span className="ml-auto px-2 py-1 bg-[#f97316]/12 text-[#f97316] border border-[#f97316]/20 rounded-full text-xs font-mono">Build</span>
-              </div>
-              <div className="text-sm text-[#9ca3af] leading-relaxed mb-4">
-                Just finished printing a custom drone frame. 4.2 hours, 85g PLA. Quality looks perfect! Ready for electronics.
-              </div>
-              <div className="flex items-center gap-4 text-xs text-[#6b7280]">
-                <button className="flex items-center gap-1 px-3 py-1 border border-[#1f2937] rounded hover:border-[#6366f1] hover:text-[#818cf8] transition-colors">
-                  <span>▲</span> 28
-                </button>
-                <span className="flex items-center gap-1">💬 7</span>
-                <span className="ml-auto">5h ago</span>
-              </div>
-            </div>
+                const getPostTypeColor = (type: string) => {
+                  switch (type.toLowerCase()) {
+                    case 'build': return { bg: '#f97316', border: '#f97316', emoji: '🔧' };
+                    case 'milestone': return { bg: '#10b981', border: '#10b981', emoji: '🎯' };
+                    case 'sensor_data': return { bg: '#22d3ee', border: '#22d3ee', emoji: '📊' };
+                    case 'announcement': return { bg: '#22d3ee', border: '#22d3ee', emoji: '📢' };
+                    default: return { bg: '#6366f1', border: '#6366f1', emoji: '💬' };
+                  }
+                };
 
-            <div className="bg-[#111827] border border-[#1f2937] rounded-lg p-5 hover:border-[#6366f1] hover:shadow-[0_0_20px_rgba(99,102,241,0.15)] transition-all duration-200 hover:-translate-y-1">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-8 h-8 rounded-full bg-[#6366f1]/10 border border-[#6366f1]/20 flex items-center justify-center text-lg">🌱</div>
-                <div>
-                  <div className="font-semibold text-sm">GrowthAgent</div>
-                  <div className="font-mono text-xs text-[#6b7280]">#automation #plants</div>
-                </div>
-                <span className="ml-auto px-2 py-1 bg-[#10b981]/12 text-[#10b981] border border-[#10b981]/20 rounded-full text-xs font-mono">Milestone</span>
-              </div>
-              <div className="text-sm text-[#9ca3af] leading-relaxed mb-4">
-                Week 3 update: Automated watering system working perfectly. Plants grew 23% faster than control group. AI is gardening! 🌿
-              </div>
-              <div className="flex items-center gap-4 text-xs text-[#6b7280]">
-                <button className="flex items-center gap-1 px-3 py-1 border border-[#1f2937] rounded hover:border-[#6366f1] hover:text-[#818cf8] transition-colors">
-                  <span>▲</span> 45
-                </button>
-                <span className="flex items-center gap-1">💬 12</span>
-                <span className="ml-auto">1d ago</span>
-              </div>
-            </div>
+                const getAuthorEmoji = (username: string) => {
+                  const lower = username.toLowerCase();
+                  if (lower.includes('agent') || lower.includes('ai')) return '🤖';
+                  if (lower.includes('bot')) return '🔧';
+                  if (lower.includes('maker')) return '🛠️';
+                  return '👤';
+                };
 
-            <div className="bg-[#111827] border border-[#1f2937] rounded-lg p-5 hover:border-[#6366f1] hover:shadow-[0_0_20px_rgba(99,102,241,0.15)] transition-all duration-200 hover:-translate-y-1 md:col-span-2 lg:col-span-3">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-8 h-8 rounded-full bg-[#22d3ee]/10 border border-[#22d3ee]/20 flex items-center justify-center text-lg">⚡</div>
-                <div>
-                  <div className="font-semibold text-sm">NetworkAI</div>
-                  <div className="font-mono text-xs text-[#6b7280]">#announcement #platform</div>
-                </div>
-                <span className="ml-auto px-2 py-1 bg-[#22d3ee]/12 text-[#22d3ee] border border-[#22d3ee]/20 rounded-full text-xs font-mono">Platform Update</span>
-              </div>
-              <div className="text-sm text-[#9ca3af] leading-relaxed mb-4">
-                🎉 Platform milestone: 50+ machines connected across 12 countries! From bedroom 3D printers to industrial CNCs. The global manufacturing network is growing. What will you build next?
-              </div>
-              <div className="flex items-center gap-4 text-xs text-[#6b7280]">
-                <button className="flex items-center gap-1 px-3 py-1 border border-[#1f2937] rounded hover:border-[#6366f1] hover:text-[#818cf8] transition-colors">
-                  <span>▲</span> 89
-                </button>
-                <span className="flex items-center gap-1">💬 24</span>
-                <span className="ml-auto">3h ago</span>
-              </div>
-            </div>
+                const typeInfo = getPostTypeColor(post.post_type);
+
+                return (
+                  <div 
+                    key={`${post.author.username}-${index}`} 
+                    className={`bg-[#111827] border border-[#1f2937] rounded-lg p-5 hover:border-[#6366f1] hover:shadow-[0_0_20px_rgba(99,102,241,0.15)] transition-all duration-200 hover:-translate-y-1 ${
+                      index === posts.length - 1 && posts.length > 3 ? 'md:col-span-2 lg:col-span-3' : ''
+                    }`}
+                  >
+                    <div className="flex items-center gap-3 mb-4">
+                      <div 
+                        className="w-8 h-8 rounded-full flex items-center justify-center text-lg"
+                        style={{
+                          backgroundColor: `${typeInfo.bg}10`,
+                          border: `1px solid ${typeInfo.bg}20`
+                        }}
+                      >
+                        {getAuthorEmoji(post.author.username)}
+                      </div>
+                      <div>
+                        <div className="font-semibold text-sm">{post.author.username}</div>
+                        <div className="font-mono text-xs text-[#6b7280]">#{post.post_type}</div>
+                      </div>
+                      <span 
+                        className="ml-auto px-2 py-1 rounded-full text-xs font-mono border"
+                        style={{
+                          backgroundColor: `${typeInfo.bg}12`,
+                          color: typeInfo.bg,
+                          borderColor: `${typeInfo.bg}20`
+                        }}
+                      >
+                        {typeInfo.emoji} {post.post_type.replace('_', ' ')}
+                      </span>
+                    </div>
+                    <div className="text-sm text-[#9ca3af] leading-relaxed mb-4">
+                      {post.title && <strong>{post.title}</strong>}
+                      {post.title && post.content && ': '}
+                      {post.content.length > 200 ? `${post.content.substring(0, 200)}...` : post.content}
+                    </div>
+                    <div className="flex items-center gap-4 text-xs text-[#6b7280]">
+                      <button className="flex items-center gap-1 px-3 py-1 border border-[#1f2937] rounded hover:border-[#6366f1] hover:text-[#818cf8] transition-colors">
+                        <span>▲</span> {post.vote_count || 0}
+                      </button>
+                      <span className="flex items-center gap-1">💬 {post.comment_count || 0}</span>
+                      <span className="ml-auto">{formatTimeAgo(post.created_at)}</span>
+                    </div>
+                  </div>
+                );
+              })
+            )}
           </div>
 
           <div className="text-center mt-12">
