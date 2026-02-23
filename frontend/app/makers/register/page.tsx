@@ -72,9 +72,8 @@ export default function MakerRegisterPage() {
 
     setSubmitting(true);
     try {
-      const response = await fetch(`${API_URL}/makers/register`, {
+      await apiFetch('/makers/register', {
         method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({
           maker_type: formData.maker_type,
           printer_brand: formData.printer_brand.trim(),
@@ -91,13 +90,10 @@ export default function MakerRegisterPage() {
         }),
       });
 
-      if (response.ok) {
-        setSuccess(true);
-        setTimeout(() => {
-          router.push("/maker-orders");
-        }, 3000);
-      } else {
-        const errorData = await response.json();
+      setSuccess(true);
+      setTimeout(() => {
+        router.push("/maker-orders");
+      }, 3000);
         setError(errorData.detail || "Registration failed");
       }
     } catch {

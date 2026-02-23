@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { API_BASE } from "@/lib/api-client";
+import { API_BASE, apiFetch } from "@/lib/api-client";
 
 interface SearchResult {
   type: "post" | "node";

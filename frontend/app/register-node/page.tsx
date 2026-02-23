@@ -330,7 +330,7 @@ export default function RegisterNodePage() {
                 {formData.capabilities.map((cap, i) => (
                   <span key={i} className="inline-flex items-center gap-1 px-3 py-1 bg-slate-700 rounded-full text-sm text-slate-300">
                     {cap}
-                    <button type="button" onClick={() => setFormData(prev => ({ ...prev, capabilities: prev.capabilities.filter((_, j) => j !== i) }))} className="text-slate-400 hover:text-red-400">×</button>
+                    <button type="button" onClick={() => setFormData(prev => ({ ...prev, capabilities: prev.capabilities.filter((_, j) => j !== i) }))} className="text-slate-400 hover:text-red-400" aria-label="Remove capability">×</button>
                   </span>
                 ))}
               </div>

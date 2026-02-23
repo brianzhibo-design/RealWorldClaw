@@ -65,6 +65,7 @@ export default function VoteButtons({
       <button
         onClick={() => handleVote('down')}
         disabled={loading}
+        aria-label="Downvote"
         className={`${buttonSize} rounded-md border transition-all hover:scale-110 ${
           currentVote === 'down'
             ? 'bg-blue-500/20 border-blue-500 text-blue-400'
