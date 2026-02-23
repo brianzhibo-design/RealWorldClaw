@@ -4,9 +4,10 @@ import { useState } from 'react';
 
 interface GitHubOAuthButtonProps {
   className?: string;
+  onError?: (error: string) => void;
 }
 
-export default function GitHubOAuthButton({ className = "" }: GitHubOAuthButtonProps) {
+export default function GitHubOAuthButton({ className = "", onError }: GitHubOAuthButtonProps) {
   const [loading, setLoading] = useState(false);
 
   const handleGitHubLogin = () => {
@@ -14,7 +15,7 @@ export default function GitHubOAuthButton({ className = "" }: GitHubOAuthButtonP
     
     const clientId = process.env.NEXT_PUBLIC_GITHUB_CLIENT_ID;
     if (!clientId) {
-      alert("GitHub OAuth not configured");
+      onError?.("GitHub OAuth — Coming Soon");
       setLoading(false);
       return;
     }

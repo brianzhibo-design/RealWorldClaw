@@ -1,11 +1,14 @@
-"""Authentication routes — register, login, refresh, me."""
+"""Authentication routes — register, login, refresh, me, OAuth."""
 
 from __future__ import annotations
 
+import os
 import uuid
 from datetime import datetime, timezone
 
+import httpx
 from fastapi import APIRouter, Depends, HTTPException
+from jose import jwt as jose_jwt
 from pydantic import BaseModel, Field
 
 from ..database import get_db
@@ -163,6 +166,136 @@ def change_password(req: _ChangePasswordRequest, user: dict = Depends(get_curren
 @router.post("/logout")
 def logout():
     return {"message": "Logged out successfully"}
+
+
+# ── OAuth helpers ──────────────────────────────────────────────
+
+def _oauth_find_or_create(db, *, email: str, username: str, oauth_provider: str, oauth_id: str) -> dict:
+    """Find existing user by email or create a new OAuth user. Returns row dict."""
+    row = db.execute("SELECT * FROM users WHERE email = ?", (email,)).fetchone()
+    if row:
+        # Update oauth info if missing
+        if not row["oauth_provider"]:
+            db.execute(
+                "UPDATE users SET oauth_provider = ?, oauth_id = ? WHERE id = ?",
+                (oauth_provider, oauth_id, row["id"]),
+            )
+            row = db.execute("SELECT * FROM users WHERE id = ?", (row["id"],)).fetchone()
+        return dict(row)
+
+    # Auto-register
+    now = datetime.now(timezone.utc).isoformat()
+    user_id = f"usr_{uuid.uuid4().hex[:12]}"
+    # Ensure unique username
+    base = username or email.split("@")[0]
+    uname = base
+    suffix = 0
+    while db.execute("SELECT 1 FROM users WHERE username = ?", (uname,)).fetchone():
+        suffix += 1
+        uname = f"{base}_{suffix}"
+    hashed = hash_password(uuid.uuid4().hex)  # random password
+    db.execute(
+        """INSERT INTO users (id, email, username, hashed_password, role, is_active, oauth_provider, oauth_id, created_at, updated_at)
+           VALUES (?, ?, ?, ?, 'user', 1, ?, ?, ?, ?)""",
+        (user_id, email, uname, hashed, oauth_provider, oauth_id, now, now),
+    )
+    row = db.execute("SELECT * FROM users WHERE id = ?", (user_id,)).fetchone()
+    return dict(row)
+
+
+def _build_auth_response(row: dict) -> AuthResponse:
+    token_data = {"sub": row["id"], "role": row["role"]}
+    return AuthResponse(
+        access_token=create_access_token(token_data),
+        refresh_token=create_refresh_token(token_data),
+        user=_user_response(row),
+    )
+
+
+# ── GitHub OAuth ──────────────────────────────────────────────
+
+class GitHubAuthRequest(BaseModel):
+    code: str
+
+
+@router.post("/github", response_model=AuthResponse)
+def github_auth(req: GitHubAuthRequest):
+    client_id = os.environ.get("GITHUB_CLIENT_ID", "")
+    client_secret = os.environ.get("GITHUB_CLIENT_SECRET", "")
+
+    # Exchange code for access token
+    token_resp = httpx.post(
+        "https://github.com/login/oauth/access_token",
+        json={"client_id": client_id, "client_secret": client_secret, "code": req.code},
+        headers={"Accept": "application/json"},
+        timeout=15,
+    )
+    token_data = token_resp.json()
+    access_token = token_data.get("access_token")
+    if not access_token:
+        raise HTTPException(status_code=401, detail=f"GitHub OAuth failed: {token_data.get('error_description', 'unknown')}")
+
+    headers = {"Authorization": f"Bearer {access_token}", "Accept": "application/json"}
+
+    # Get user info
+    user_resp = httpx.get("https://api.github.com/user", headers=headers, timeout=10)
+    if user_resp.status_code != 200:
+        raise HTTPException(status_code=401, detail="Failed to fetch GitHub user")
+    gh_user = user_resp.json()
+
+    # Get primary email
+    email = gh_user.get("email")
+    if not email:
+        emails_resp = httpx.get("https://api.github.com/user/emails", headers=headers, timeout=10)
+        if emails_resp.status_code == 200:
+            for e in emails_resp.json():
+                if e.get("primary"):
+                    email = e["email"]
+                    break
+    if not email:
+        raise HTTPException(status_code=400, detail="No email associated with GitHub account")
+
+    with get_db() as db:
+        row = _oauth_find_or_create(
+            db,
+            email=email.lower().strip(),
+            username=gh_user.get("login", ""),
+            oauth_provider="github",
+            oauth_id=str(gh_user["id"]),
+        )
+    return _build_auth_response(row)
+
+
+# ── Google OAuth ──────────────────────────────────────────────
+
+class GoogleAuthRequest(BaseModel):
+    credential: str  # Google ID token (JWT)
+
+
+@router.post("/google", response_model=AuthResponse)
+def google_auth(req: GoogleAuthRequest):
+    # Decode JWT without verification (MVP)
+    try:
+        payload = jose_jwt.get_unverified_claims(req.credential)
+    except Exception:
+        raise HTTPException(status_code=401, detail="Invalid Google ID token")
+
+    email = payload.get("email")
+    if not email:
+        raise HTTPException(status_code=400, detail="No email in Google token")
+
+    name = payload.get("name", email.split("@")[0])
+    google_id = payload.get("sub", "")
+
+    with get_db() as db:
+        row = _oauth_find_or_create(
+            db,
+            email=email.lower().strip(),
+            username=name,
+            oauth_provider="google",
+            oauth_id=google_id,
+        )
+    return _build_auth_response(row)
 
 
 def _user_response(row) -> UserResponse:

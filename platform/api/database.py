@@ -366,6 +366,16 @@ def init_db():
             pass
         
         # Add new columns to existing orders table if they don't exist
+        # OAuth columns
+        try:
+            db.execute("ALTER TABLE users ADD COLUMN oauth_provider TEXT")
+        except Exception:
+            pass
+        try:
+            db.execute("ALTER TABLE users ADD COLUMN oauth_id TEXT")
+        except Exception:
+            pass
+
         try:
             db.execute("ALTER TABLE orders ADD COLUMN file_id TEXT")
         except Exception:
