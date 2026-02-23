@@ -216,7 +216,7 @@ class TestOrderAccept:
 
 class TestOrderMessages:
     def test_message_sender_display(self):
-        """消息中sender显示为"客户"/"制造商"而非真名"""
+        """消息中sender显示为"Customer"/"Maker"而非真名"""
         _seed_world()
         order = _create_order()
         oid = order["order_id"]
@@ -229,7 +229,7 @@ class TestOrderMessages:
         )
         assert resp.status_code == 201
         msg = resp.json()
-        assert msg["sender_display"] == "客户"
+        assert msg["sender_display"] == "Customer"
         assert msg["sender_role"] == "customer"
 
         # 制造者发消息
@@ -242,7 +242,7 @@ class TestOrderMessages:
         )
         assert resp.status_code == 201
         msg = resp.json()
-        assert msg["sender_display"] == "制造商"
+        assert msg["sender_display"] == "Maker"
         assert msg["sender_role"] == "maker"
 
     def test_get_messages_anonymized(self):
@@ -260,7 +260,7 @@ class TestOrderMessages:
         assert len(msgs) >= 1
         for m in msgs:
             assert "sender_id" not in m
-            assert m["sender_display"] in ("客户", "制造商", "平台")
+            assert m["sender_display"] in ("Customer", "Maker", "平台")
 
     def test_stranger_cannot_message(self):
         _seed_world()

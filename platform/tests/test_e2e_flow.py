@@ -283,7 +283,7 @@ def test_full_order_lifecycle():
     assert r.status_code == 201, f"买家发消息失败: {r.text}"
     msg_a = r.json()
     assert msg_a["sender_role"] == "customer"
-    assert msg_a["sender_display"] == "客户", f"买家显示名应为'客户': {msg_a['sender_display']}"
+    assert msg_a["sender_display"] == "Customer", f"买家显示名应为'客户': {msg_a['sender_display']}"
 
     # Agent B（Maker）回复
     r = client.post(f"{API}/orders/{order_id}/messages", headers=auth(key_b), json={
@@ -292,7 +292,7 @@ def test_full_order_lifecycle():
     assert r.status_code == 201, f"Maker发消息失败: {r.text}"
     msg_b = r.json()
     assert msg_b["sender_role"] == "maker"
-    assert msg_b["sender_display"] == "制造商", f"Maker显示名应为'制造商': {msg_b['sender_display']}"
+    assert msg_b["sender_display"] == "Maker", f"Maker显示名应为'制造商': {msg_b['sender_display']}"
 
     # 双方查看消息列表
     for key, role_name in [(key_a, "买家"), (key_b, "Maker")]:
@@ -305,7 +305,7 @@ def test_full_order_lifecycle():
         for m in msgs:
             assert "Alice" not in m["sender_display"], "消息不应暴露Alice真名"
             assert "Bob" not in m["sender_display"], "消息不应暴露Bob真名"
-            assert m["sender_display"] in ("客户", "制造商"), \
+            assert m["sender_display"] in ("Customer", "Maker"), \
                 f"sender_display应为'客户'或'制造商': {m['sender_display']}"
 
     # ══════════════════════════════════════════════════════

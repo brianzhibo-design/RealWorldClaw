@@ -363,7 +363,7 @@ class TestNodeManagement:
         
         node = nodes[0]
         assert node["name"] == SAMPLE_NODE_DATA["name"]
-        assert "latitude" in node  # Owner should see precise location
+        assert "fuzzy_latitude" in node  # Location is always fuzzed
         assert "longitude" in node
     
     def test_get_node_detail(self, mock_agent):
@@ -378,7 +378,7 @@ class TestNodeManagement:
         assert response.status_code == 200
         node = response.json()
         assert node["id"] == node_id
-        assert "latitude" in node  # Owner should see precise location
+        assert "fuzzy_latitude" in node  # Location is always fuzzed
     
     def test_update_node(self, mock_agent):
         """Test updating node configuration."""
