@@ -1,9 +1,10 @@
 /** Header — RealWorldClaw navigation */
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Globe, Package, Settings, PlusCircle, User, LogOut, MessageSquare, LayoutDashboard } from "lucide-react";
+import { Globe, Package, Settings, PlusCircle, User, LogOut, MessageSquare, LayoutDashboard, Menu, X } from "lucide-react";
 import { useAuthStore } from "@/stores/authStore";
 import { Button } from "@/components/ui/button";
 import {
@@ -25,6 +26,7 @@ export default function Header() {
   const pathname = usePathname();
   const router = useRouter();
   const { user, isAuthenticated, logout } = useAuthStore();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   
   const isActive = (href: string) =>
     href === "/" ? pathname === "/" : pathname.startsWith(href);
@@ -49,8 +51,8 @@ export default function Header() {
           </span>
         </Link>
 
-        {/* Navigation */}
-        <nav className="flex items-center gap-1">
+        {/* Desktop Navigation */}
+        <nav className="hidden md:flex items-center gap-1">
           {navItems.map(({ href, label, icon: Icon }) => (
             <Link key={href} href={href}
               className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
@@ -64,8 +66,17 @@ export default function Header() {
           ))}
         </nav>
 
+        {/* Mobile hamburger */}
+        <button
+          className="md:hidden p-2 text-slate-400 hover:text-white min-h-[44px] min-w-[44px] flex items-center justify-center"
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          aria-label="Toggle menu"
+        >
+          {mobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
+        </button>
+
         {/* User Menu */}
-        <div className="flex items-center gap-2">
+        <div className="hidden md:flex items-center gap-2">
           {isAuthenticated && user ? (
             <>
               <Button
@@ -120,6 +131,54 @@ export default function Header() {
           )}
         </div>
       </div>
+
+      {/* Mobile menu panel */}
+      {mobileMenuOpen && (
+        <div className="md:hidden border-t border-slate-800 bg-slate-950/95 backdrop-blur-md">
+          <nav className="flex flex-col p-4 gap-1">
+            {navItems.map(({ href, label, icon: Icon }) => (
+              <Link key={href} href={href}
+                onClick={() => setMobileMenuOpen(false)}
+                className={`flex items-center gap-3 rounded-lg px-4 py-3 text-base font-medium transition-colors min-h-[44px] ${
+                  isActive(href)
+                    ? "bg-sky-500/10 text-sky-400"
+                    : "text-slate-400 hover:text-white hover:bg-slate-800"
+                }`}>
+                <Icon size={18} />
+                {label}
+              </Link>
+            ))}
+            <hr className="border-slate-800 my-2" />
+            {isAuthenticated && user ? (
+              <>
+                <Link href="/dashboard" onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center gap-3 rounded-lg px-4 py-3 text-base text-slate-400 hover:text-white hover:bg-slate-800 min-h-[44px]">
+                  <LayoutDashboard size={18} /> Dashboard
+                </Link>
+                <Link href="/settings" onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center gap-3 rounded-lg px-4 py-3 text-base text-slate-400 hover:text-white hover:bg-slate-800 min-h-[44px]">
+                  <Settings size={18} /> Settings
+                </Link>
+                <button onClick={() => { handleLogout(); setMobileMenuOpen(false); }}
+                  className="flex items-center gap-3 rounded-lg px-4 py-3 text-base text-red-400 hover:bg-slate-800 min-h-[44px] w-full text-left">
+                  <LogOut size={18} /> Logout
+                </button>
+              </>
+            ) : (
+              <>
+                <Link href="/auth/login" onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center justify-center rounded-lg px-4 py-3 text-base font-medium text-slate-300 border border-slate-700 hover:bg-slate-800 min-h-[44px]">
+                  Sign In
+                </Link>
+                <Link href="/auth/register" onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center justify-center rounded-lg px-4 py-3 text-base font-medium text-white bg-sky-600 hover:bg-sky-500 min-h-[44px]">
+                  Register
+                </Link>
+              </>
+            )}
+          </nav>
+        </div>
+      )}
     </header>
   );
 }

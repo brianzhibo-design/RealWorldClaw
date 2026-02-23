@@ -1,6 +1,7 @@
 /** Root layout */
 import type { Metadata } from "next";
 import Header from "@/components/Header";
+import BottomNav from "@/components/BottomNav";
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import "./globals.css";
 
@@ -25,7 +26,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="min-h-screen bg-zinc-950 text-zinc-100 antialiased">
         <GoogleOAuthProvider clientId={googleClientId}>
           <Header />
-          <main className="pb-16 sm:pb-0">{children}</main>
+          <main className="pb-16 md:pb-0">{children}</main>
+          <BottomNav />
         </GoogleOAuthProvider>
       </body>
     </html>
