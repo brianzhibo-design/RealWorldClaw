@@ -124,69 +124,69 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-6 py-8 space-y-8">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6 sm:space-y-8">
       {/* Greeting */}
       <div>
-        <h1 className="text-3xl font-bold mb-2">
+        <h1 className="text-2xl sm:text-3xl font-bold mb-2">
           {getGreeting()}, {user?.username} 👋
         </h1>
-        <p className="text-muted-foreground">
+        <p className="text-muted-foreground text-sm sm:text-base">
           Welcome to your RealWorldClaw dashboard
         </p>
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="p-6 hover:bg-accent/50 transition-colors cursor-pointer">
-          <div className="flex items-center gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+        <Card className="p-4 sm:p-6 hover:bg-accent/50 transition-colors cursor-pointer">
+          <div className="flex items-center gap-3 sm:gap-4">
             <div className="p-2 bg-blue-500/20 text-blue-400 rounded-lg">
-              <MessageSquare className="h-5 w-5" />
+              <MessageSquare className="h-4 w-4 sm:h-5 sm:w-5" />
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">My Posts</p>
-              <p className="text-2xl font-bold">
+              <p className="text-xs sm:text-sm text-muted-foreground">My Posts</p>
+              <p className="text-xl sm:text-2xl font-bold">
                 {loading ? "—" : stats?.myPosts ?? 0}
               </p>
             </div>
           </div>
         </Card>
 
-        <Card className="p-6 hover:bg-accent/50 transition-colors cursor-pointer">
-          <div className="flex items-center gap-4">
+        <Card className="p-4 sm:p-6 hover:bg-accent/50 transition-colors cursor-pointer">
+          <div className="flex items-center gap-3 sm:gap-4">
             <div className="p-2 bg-green-500/20 text-green-400 rounded-lg">
-              <Package className="h-5 w-5" />
+              <Package className="h-4 w-4 sm:h-5 sm:w-5" />
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">My Orders</p>
-              <p className="text-2xl font-bold">
+              <p className="text-xs sm:text-sm text-muted-foreground">My Orders</p>
+              <p className="text-xl sm:text-2xl font-bold">
                 {loading ? "—" : stats?.myOrders ?? 0}
               </p>
             </div>
           </div>
         </Card>
 
-        <Card className="p-6 hover:bg-accent/50 transition-colors cursor-pointer">
-          <div className="flex items-center gap-4">
+        <Card className="p-4 sm:p-6 hover:bg-accent/50 transition-colors cursor-pointer">
+          <div className="flex items-center gap-3 sm:gap-4">
             <div className="p-2 bg-orange-500/20 text-orange-400 rounded-lg">
-              <File className="h-5 w-5" />
+              <File className="h-4 w-4 sm:h-5 sm:w-5" />
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">My Files</p>
-              <p className="text-2xl font-bold">
+              <p className="text-xs sm:text-sm text-muted-foreground">My Files</p>
+              <p className="text-xl sm:text-2xl font-bold">
                 {loading ? "—" : stats?.myFiles ?? 0}
               </p>
             </div>
           </div>
         </Card>
 
-        <Card className="p-6 hover:bg-accent/50 transition-colors cursor-pointer">
-          <div className="flex items-center gap-4">
+        <Card className="p-4 sm:p-6 hover:bg-accent/50 transition-colors cursor-pointer">
+          <div className="flex items-center gap-3 sm:gap-4">
             <div className="p-2 bg-purple-500/20 text-purple-400 rounded-lg">
-              <Printer className="h-5 w-5" />
+              <Printer className="h-4 w-4 sm:h-5 sm:w-5" />
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">My Nodes</p>
-              <p className="text-2xl font-bold">
+              <p className="text-xs sm:text-sm text-muted-foreground">My Nodes</p>
+              <p className="text-xl sm:text-2xl font-bold">
                 {loading ? "—" : stats?.myNodes ?? 0}
               </p>
             </div>
@@ -196,52 +196,52 @@ export default function DashboardPage() {
 
       {/* Quick Actions */}
       <div>
-        <h2 className="text-xl font-semibold mb-4">Quick Actions</h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <h2 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4">Quick Actions</h2>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
           <Link href="/community/new">
-            <Card className="p-4 hover:bg-accent/50 transition-colors cursor-pointer">
+            <Card className="p-3 sm:p-4 hover:bg-accent/50 transition-colors cursor-pointer min-h-[120px] sm:min-h-[140px]">
               <div className="text-center">
-                <div className="w-12 h-12 mx-auto mb-3 bg-blue-500/20 text-blue-400 rounded-lg flex items-center justify-center">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-2 sm:mb-3 bg-blue-500/20 text-blue-400 rounded-lg flex items-center justify-center text-lg sm:text-xl">
                   💬
                 </div>
-                <h3 className="font-semibold mb-1">New Post</h3>
-                <p className="text-sm text-muted-foreground">Share with community</p>
+                <h3 className="font-semibold mb-1 text-sm sm:text-base">New Post</h3>
+                <p className="text-xs sm:text-sm text-muted-foreground">Share with community</p>
               </div>
             </Card>
           </Link>
 
           <Link href="/submit">
-            <Card className="p-4 hover:bg-accent/50 transition-colors cursor-pointer">
+            <Card className="p-3 sm:p-4 hover:bg-accent/50 transition-colors cursor-pointer min-h-[120px] sm:min-h-[140px]">
               <div className="text-center">
-                <div className="w-12 h-12 mx-auto mb-3 bg-green-500/20 text-green-400 rounded-lg flex items-center justify-center">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-2 sm:mb-3 bg-green-500/20 text-green-400 rounded-lg flex items-center justify-center text-lg sm:text-xl">
                   📤
                 </div>
-                <h3 className="font-semibold mb-1">Submit Design</h3>
-                <p className="text-sm text-muted-foreground">Upload your files</p>
+                <h3 className="font-semibold mb-1 text-sm sm:text-base">Submit Design</h3>
+                <p className="text-xs sm:text-sm text-muted-foreground">Upload your files</p>
               </div>
             </Card>
           </Link>
 
           <Link href="/register-node">
-            <Card className="p-4 hover:bg-accent/50 transition-colors cursor-pointer">
+            <Card className="p-3 sm:p-4 hover:bg-accent/50 transition-colors cursor-pointer min-h-[120px] sm:min-h-[140px]">
               <div className="text-center">
-                <div className="w-12 h-12 mx-auto mb-3 bg-purple-500/20 text-purple-400 rounded-lg flex items-center justify-center">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-2 sm:mb-3 bg-purple-500/20 text-purple-400 rounded-lg flex items-center justify-center text-lg sm:text-xl">
                   🤖
                 </div>
-                <h3 className="font-semibold mb-1">Register Node</h3>
-                <p className="text-sm text-muted-foreground">Add your machine</p>
+                <h3 className="font-semibold mb-1 text-sm sm:text-base">Register Node</h3>
+                <p className="text-xs sm:text-sm text-muted-foreground">Add your machine</p>
               </div>
             </Card>
           </Link>
 
           <Link href="/orders/new">
-            <Card className="p-4 hover:bg-accent/50 transition-colors cursor-pointer">
+            <Card className="p-3 sm:p-4 hover:bg-accent/50 transition-colors cursor-pointer min-h-[120px] sm:min-h-[140px]">
               <div className="text-center">
-                <div className="w-12 h-12 mx-auto mb-3 bg-orange-500/20 text-orange-400 rounded-lg flex items-center justify-center">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-2 sm:mb-3 bg-orange-500/20 text-orange-400 rounded-lg flex items-center justify-center text-lg sm:text-xl">
                   📋
                 </div>
-                <h3 className="font-semibold mb-1">Create Order</h3>
-                <p className="text-sm text-muted-foreground">Start manufacturing</p>
+                <h3 className="font-semibold mb-1 text-sm sm:text-base">Create Order</h3>
+                <p className="text-xs sm:text-sm text-muted-foreground">Start manufacturing</p>
               </div>
             </Card>
           </Link>
@@ -250,10 +250,12 @@ export default function DashboardPage() {
 
       {/* Recent Posts */}
       <div>
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-semibold">My Recent Posts</h2>
-          <Link href="/community" className="text-primary hover:text-primary/80 text-sm font-medium">
-            View All Posts <ArrowRight className="h-4 w-4 ml-1 inline" />
+        <div className="flex items-center justify-between mb-3 sm:mb-4">
+          <h2 className="text-lg sm:text-xl font-semibold">My Recent Posts</h2>
+          <Link href="/community" className="text-primary hover:text-primary/80 text-xs sm:text-sm font-medium">
+            <span className="hidden sm:inline">View All Posts</span>
+            <span className="sm:hidden">View All</span>
+            <ArrowRight className="h-3 w-3 sm:h-4 sm:w-4 ml-1 inline" />
           </Link>
         </div>
 

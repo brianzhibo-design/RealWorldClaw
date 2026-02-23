@@ -227,28 +227,28 @@ export default function SubmitPage() {
     <div className="min-h-screen bg-slate-950 text-white">
       {/* Header */}
       <header className="border-b border-slate-800">
-        <div className="max-w-4xl mx-auto px-6 py-4">
-          <h1 className="text-2xl font-bold flex items-center gap-2">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-4">
+          <h1 className="text-xl sm:text-2xl font-bold flex items-center gap-2">
             <span>🚀</span> Submit Design
           </h1>
-          <p className="text-slate-400 text-sm mt-1">
+          <p className="text-slate-400 text-xs sm:text-sm mt-1">
             Upload your design file and we&apos;ll find the perfect maker
           </p>
         </div>
       </header>
 
-      <div className="max-w-4xl mx-auto px-6 py-8">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         {/* Progress indicator */}
-        <div className="flex items-center mb-8">
+        <div className="flex items-center mb-6 sm:mb-8">
           {[1, 2, 3].map((num) => (
             <div key={num} className="flex items-center">
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium ${
+              <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-xs sm:text-sm font-medium ${
                 step >= num ? "bg-sky-600 text-white" : "bg-slate-800 text-slate-400"
               }`}>
                 {num}
               </div>
               {num < 3 && (
-                <div className={`w-16 h-0.5 ${step > num ? "bg-sky-600" : "bg-slate-800"}`} />
+                <div className={`w-12 sm:w-16 h-0.5 ${step > num ? "bg-sky-600" : "bg-slate-800"}`} />
               )}
             </div>
           ))}
@@ -264,10 +264,10 @@ export default function SubmitPage() {
         {/* Step 1: File Upload */}
         {step === 1 && (
           <div>
-            <h2 className="text-xl font-bold mb-4">Step 1: Upload Your Design File</h2>
+            <h2 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4">Step 1: Upload Your Design File</h2>
             
             <div
-              className={`border-2 border-dashed rounded-lg p-12 text-center transition-colors ${
+              className={`border-2 border-dashed rounded-lg p-6 sm:p-12 text-center transition-colors ${
                 dragOver
                   ? "border-sky-500 bg-sky-500/10"
                   : "border-slate-600 hover:border-slate-500"
@@ -330,16 +330,17 @@ export default function SubmitPage() {
                 </div>
               ) : (
                 <div>
-                  <div className="text-6xl mb-4">📁</div>
-                  <div className="text-lg font-medium mb-2">
-                    Drop your design file here, or click to browse
+                  <div className="text-4xl sm:text-6xl mb-3 sm:mb-4">📁</div>
+                  <div className="text-sm sm:text-lg font-medium mb-2">
+                    <span className="hidden sm:inline">Drop your design file here, or click to browse</span>
+                    <span className="sm:hidden">Tap to select your design file</span>
                   </div>
-                  <div className="text-sm text-slate-400 mb-4">
-                    Supported formats: {SUPPORTED_FORMATS.join(", ")} (max 100MB)
+                  <div className="text-xs sm:text-sm text-slate-400 mb-4">
+                    Formats: {SUPPORTED_FORMATS.join(", ")} (max 100MB)
                   </div>
                   <button
                     onClick={() => fileInputRef.current?.click()}
-                    className="px-4 py-2 bg-sky-600 hover:bg-sky-500 rounded-md text-sm font-medium transition-colors"
+                    className="px-4 py-3 bg-sky-600 hover:bg-sky-500 rounded-md text-sm font-medium transition-colors min-h-[44px]"
                   >
                     Browse Files
                   </button>
@@ -360,15 +361,15 @@ export default function SubmitPage() {
         {/* Step 2: Parameters */}
         {step === 2 && (
           <div>
-            <h2 className="text-xl font-bold mb-4">Step 2: Manufacturing Parameters</h2>
+            <h2 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4">Step 2: Manufacturing Parameters</h2>
             
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               <div>
                 <label className="block text-sm font-medium mb-2">Material *</label>
                 <select
                   value={material}
                   onChange={(e) => setMaterial(e.target.value)}
-                  className="w-full px-4 py-3 bg-slate-900 border border-slate-800 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent"
+                  className="w-full px-4 py-4 bg-slate-900 border border-slate-800 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent min-h-[44px]"
                 >
                   {MATERIALS.map((mat) => (
                     <option key={mat} value={mat}>{mat}</option>
@@ -384,7 +385,7 @@ export default function SubmitPage() {
                   max="100"
                   value={quantity}
                   onChange={(e) => setQuantity(parseInt(e.target.value) || 1)}
-                  className="w-full px-4 py-3 bg-slate-900 border border-slate-800 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent"
+                  className="w-full px-4 py-4 bg-slate-900 border border-slate-800 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent min-h-[44px]"
                 />
               </div>
 
@@ -395,7 +396,7 @@ export default function SubmitPage() {
                   placeholder="e.g., Red, Blue, Natural"
                   value={color}
                   onChange={(e) => setColor(e.target.value)}
-                  className="w-full px-4 py-3 bg-slate-900 border border-slate-800 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent"
+                  className="w-full px-4 py-4 bg-slate-900 border border-slate-800 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent min-h-[44px]"
                 />
               </div>
 
@@ -406,7 +407,7 @@ export default function SubmitPage() {
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   rows={4}
-                  className="w-full px-4 py-3 bg-slate-900 border border-slate-800 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent resize-none"
+                  className="w-full px-4 py-4 bg-slate-900 border border-slate-800 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent resize-none min-h-[100px]"
                 />
               </div>
             </div>
@@ -416,7 +417,7 @@ export default function SubmitPage() {
         {/* Step 3: Confirmation */}
         {step === 3 && (
           <div>
-            <h2 className="text-xl font-bold mb-4">Step 3: Confirm & Submit</h2>
+            <h2 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4">Step 3: Confirm & Submit</h2>
             
             <div className="bg-slate-900 border border-slate-800 rounded-lg p-6 mb-6">
               <h3 className="font-medium mb-4">Order Summary</h3>
@@ -461,11 +462,11 @@ export default function SubmitPage() {
         )}
 
         {/* Navigation buttons */}
-        <div className="flex justify-between mt-8">
+        <div className="flex justify-between gap-3 mt-6 sm:mt-8">
           <button
             onClick={() => setStep(Math.max(1, step - 1))}
             disabled={step === 1}
-            className="px-4 py-2 border border-slate-600 text-slate-300 rounded-md hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="px-4 py-3 border border-slate-600 text-slate-300 rounded-md hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors min-h-[44px]"
           >
             Back
           </button>
@@ -473,7 +474,7 @@ export default function SubmitPage() {
           <button
             onClick={handleNext}
             disabled={uploading || submitting || (step === 1 && (!file || !uploadedFileId))}
-            className="px-6 py-2 bg-sky-600 hover:bg-sky-500 disabled:bg-slate-700 disabled:text-slate-500 text-white rounded-md font-medium transition-colors"
+            className="px-6 py-3 bg-sky-600 hover:bg-sky-500 disabled:bg-slate-700 disabled:text-slate-500 text-white rounded-md font-medium transition-colors min-h-[44px] flex-1 sm:flex-initial"
           >
             {step === 1 
               ? (uploading ? `Uploading... ${uploadProgress}%` : uploadedFileId ? "Continue →" : "Upload & Continue")

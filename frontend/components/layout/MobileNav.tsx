@@ -3,20 +3,18 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  Map,
+  MessageSquare,
   LayoutDashboard,
-  Printer,
-  ShoppingBag,
-  Package,
-  PenTool,
+  User,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const items = [
-  { href: "/dashboard", label: "首页", icon: LayoutDashboard },
-  { href: "/devices", label: "设备", icon: Printer },
-  { href: "/marketplace", label: "商城", icon: ShoppingBag },
-  { href: "/orders", label: "订单", icon: Package },
-  { href: "/studio", label: "工作台", icon: PenTool },
+  { href: "/map", label: "Map", icon: Map },
+  { href: "/community", label: "Community", icon: MessageSquare },
+  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/auth/login", label: "Login", icon: User },
 ];
 
 export function MobileNav() {

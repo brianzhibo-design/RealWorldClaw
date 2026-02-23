@@ -193,40 +193,42 @@ export default function SettingsPage() {
     <div className="min-h-screen bg-slate-950 text-white">
       {/* Header */}
       <header className="border-b border-slate-800">
-        <div className="max-w-6xl mx-auto px-6 py-4">
-          <h1 className="text-2xl font-bold flex items-center gap-2">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4">
+          <h1 className="text-xl sm:text-2xl font-bold flex items-center gap-2">
             <span>⚙️</span> Settings
           </h1>
-          <p className="text-slate-400 text-sm mt-1">
+          <p className="text-slate-400 text-xs sm:text-sm mt-1">
             Manage your account and preferences
           </p>
         </div>
       </header>
 
-      <div className="max-w-6xl mx-auto px-6 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          {/* Sidebar */}
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 lg:gap-8">
+          {/* Sidebar - Mobile horizontal scroll */}
           <div className="lg:col-span-1">
-            <nav className="space-y-1">
-              {tabs.map((tab) => (
-                <button
-                  key={tab.key}
-                  onClick={() => {
-                    setActiveTab(tab.key as any);
-                    setError(null);
-                    setSuccess(null);
-                  }}
-                  className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
-                    activeTab === tab.key
-                      ? 'bg-sky-900/50 text-sky-400 border border-sky-800'
-                      : 'text-slate-400 hover:text-slate-300 hover:bg-slate-900/50'
-                  }`}
-                >
-                  <span className="text-lg">{tab.icon}</span>
-                  {tab.label}
-                </button>
-              ))}
-            </nav>
+            <div className="overflow-x-auto lg:overflow-x-visible">
+              <nav className="flex lg:flex-col gap-2 lg:gap-1 lg:space-y-1 min-w-max lg:min-w-0">
+                {tabs.map((tab) => (
+                  <button
+                    key={tab.key}
+                    onClick={() => {
+                      setActiveTab(tab.key as any);
+                      setError(null);
+                      setSuccess(null);
+                    }}
+                    className={`flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-3 text-xs sm:text-sm font-medium rounded-lg transition-colors whitespace-nowrap min-h-[44px] ${
+                      activeTab === tab.key
+                        ? 'bg-sky-900/50 text-sky-400 border border-sky-800'
+                        : 'text-slate-400 hover:text-slate-300 hover:bg-slate-900/50'
+                    }`}
+                  >
+                    <span className="text-base sm:text-lg">{tab.icon}</span>
+                    <span className="lg:block">{tab.label}</span>
+                  </button>
+                ))}
+              </nav>
+            </div>
           </div>
 
           {/* Main Content */}
@@ -246,20 +248,20 @@ export default function SettingsPage() {
 
             {/* Profile Tab */}
             {activeTab === "profile" && (
-              <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-6">
-                <div className="flex items-center gap-4 mb-8">
-                  <div className="w-16 h-16 bg-slate-800 rounded-full flex items-center justify-center text-2xl">
+              <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-4 sm:p-6">
+                <div className="flex items-center gap-3 sm:gap-4 mb-6 sm:mb-8">
+                  <div className="w-12 h-12 sm:w-16 sm:h-16 bg-slate-800 rounded-full flex items-center justify-center text-xl sm:text-2xl">
                     👤
                   </div>
                   <div>
-                    <h2 className="text-xl font-semibold">Personal Information</h2>
-                    <p className="text-slate-400 text-sm">
+                    <h2 className="text-lg sm:text-xl font-semibold">Personal Information</h2>
+                    <p className="text-slate-400 text-xs sm:text-sm">
                       Update your account details
                     </p>
                   </div>
                 </div>
 
-                <form onSubmit={handleProfileSave} className="space-y-6">
+                <form onSubmit={handleProfileSave} className="space-y-4 sm:space-y-6">
                   <div>
                     <label className="block text-sm font-medium text-slate-300 mb-2">
                       Username
@@ -268,7 +270,7 @@ export default function SettingsPage() {
                       type="text"
                       value={profileChanges.username}
                       onChange={(e) => setProfileChanges(prev => ({ ...prev, username: e.target.value }))}
-                      className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent"
+                      className="w-full px-4 py-4 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent min-h-[44px]"
                     />
                   </div>
 
@@ -280,7 +282,7 @@ export default function SettingsPage() {
                       type="email"
                       value={profileChanges.email}
                       onChange={(e) => setProfileChanges(prev => ({ ...prev, email: e.target.value }))}
-                      className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent"
+                      className="w-full px-4 py-4 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent min-h-[44px]"
                     />
                   </div>
 
@@ -292,14 +294,14 @@ export default function SettingsPage() {
                       type="text"
                       value={profile.created_at ? new Date(profile.created_at).toLocaleDateString() : "N/A"}
                       disabled
-                      className="w-full px-4 py-3 bg-slate-700 border border-slate-600 rounded-lg text-slate-400"
+                      className="w-full px-4 py-4 bg-slate-700 border border-slate-600 rounded-lg text-slate-400 min-h-[44px]"
                     />
                   </div>
 
                   <button
                     type="submit"
                     disabled={saving}
-                    className="px-6 py-3 bg-sky-600 hover:bg-sky-500 disabled:bg-slate-700 disabled:text-slate-400 text-white rounded-lg font-medium transition-colors"
+                    className="px-6 py-3 bg-sky-600 hover:bg-sky-500 disabled:bg-slate-700 disabled:text-slate-400 text-white rounded-lg font-medium transition-colors min-h-[44px]"
                   >
                     {saving ? 'Saving...' : 'Save Changes'}
                   </button>
@@ -309,20 +311,20 @@ export default function SettingsPage() {
 
             {/* Password Tab */}
             {activeTab === "password" && (
-              <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-6">
-                <div className="flex items-center gap-4 mb-8">
-                  <div className="w-16 h-16 bg-slate-800 rounded-full flex items-center justify-center text-2xl">
+              <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-4 sm:p-6">
+                <div className="flex items-center gap-3 sm:gap-4 mb-6 sm:mb-8">
+                  <div className="w-12 h-12 sm:w-16 sm:h-16 bg-slate-800 rounded-full flex items-center justify-center text-xl sm:text-2xl">
                     🔐
                   </div>
                   <div>
-                    <h2 className="text-xl font-semibold">Change Password</h2>
-                    <p className="text-slate-400 text-sm">
+                    <h2 className="text-lg sm:text-xl font-semibold">Change Password</h2>
+                    <p className="text-slate-400 text-xs sm:text-sm">
                       Update your account password
                     </p>
                   </div>
                 </div>
 
-                <form onSubmit={handlePasswordChange} className="space-y-6">
+                <form onSubmit={handlePasswordChange} className="space-y-4 sm:space-y-6">
                   <div>
                     <label className="block text-sm font-medium text-slate-300 mb-2">
                       Current Password
@@ -332,7 +334,7 @@ export default function SettingsPage() {
                       value={passwordData.current_password}
                       onChange={(e) => setPasswordData(prev => ({ ...prev, current_password: e.target.value }))}
                       required
-                      className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent"
+                      className="w-full px-4 py-4 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent min-h-[44px]"
                     />
                   </div>
 
@@ -346,7 +348,7 @@ export default function SettingsPage() {
                       onChange={(e) => setPasswordData(prev => ({ ...prev, new_password: e.target.value }))}
                       required
                       minLength={8}
-                      className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent"
+                      className="w-full px-4 py-4 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent min-h-[44px]"
                     />
                   </div>
 
@@ -360,14 +362,14 @@ export default function SettingsPage() {
                       onChange={(e) => setPasswordData(prev => ({ ...prev, confirm_password: e.target.value }))}
                       required
                       minLength={8}
-                      className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent"
+                      className="w-full px-4 py-4 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent min-h-[44px]"
                     />
                   </div>
 
                   <button
                     type="submit"
                     disabled={saving}
-                    className="px-6 py-3 bg-sky-600 hover:bg-sky-500 disabled:bg-slate-700 disabled:text-slate-400 text-white rounded-lg font-medium transition-colors"
+                    className="px-6 py-3 bg-sky-600 hover:bg-sky-500 disabled:bg-slate-700 disabled:text-slate-400 text-white rounded-lg font-medium transition-colors min-h-[44px]"
                   >
                     {saving ? 'Updating...' : 'Update Password'}
                   </button>

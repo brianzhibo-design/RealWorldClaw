@@ -354,7 +354,7 @@ export default function Home() {
           </p>
 
           {/* CTA buttons */}
-          <div className="flex flex-wrap gap-4 justify-center mb-16">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
             <Link 
               href="/map"
               className="inline-flex items-center gap-2 px-7 py-4 bg-[#10b981] hover:bg-[#34d399] text-white font-semibold rounded-lg transition-all duration-200 hover:-translate-y-0.5 shadow-[0_0_20px_rgba(16,185,129,0.25)]"
@@ -370,7 +370,7 @@ export default function Home() {
           </div>
 
           {/* Stats with counters */}
-          <div className="flex flex-wrap gap-12 justify-center text-center">
+          <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-8 sm:gap-12 justify-center text-center">
             <div>
               <AnimatedCounter target={28} suffix="+" />
               <div className="text-sm text-[#6b7280] font-mono">Machines</div>
@@ -398,7 +398,7 @@ export default function Home() {
             <p className="text-lg text-[#9ca3af] max-w-2xl mx-auto">From idea to physical object in minutes</p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="bg-[#111827] border border-[#1f2937] rounded-2xl p-8 hover:border-[#10b981] hover:shadow-[0_0_40px_rgba(16,185,129,0.15)] transition-all duration-300 hover:-translate-y-1 relative overflow-hidden group">
               <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-[#10b981] to-[#22d3ee] opacity-0 group-hover:opacity-100 transition-opacity" />
               <div className="text-[#10b981] text-sm font-mono mb-4">STEP 01</div>
@@ -462,7 +462,7 @@ export default function Home() {
 
           {/* Map preview card with floating dots */}
           <Link href="/map">
-            <div className="relative h-[400px] border border-[#1f2937] rounded-2xl bg-gradient-to-br from-[rgba(15,23,42,0.8)] to-[rgba(31,41,55,0.6)] overflow-hidden mb-8 cursor-pointer hover:border-[#10b981] hover:shadow-[0_0_40px_rgba(16,185,129,0.15)] transition-all duration-300 group">
+            <div className="relative h-[200px] md:h-[400px] border border-[#1f2937] rounded-2xl bg-gradient-to-br from-[rgba(15,23,42,0.8)] to-[rgba(31,41,55,0.6)] overflow-hidden mb-8 cursor-pointer hover:border-[#10b981] hover:shadow-[0_0_40px_rgba(16,185,129,0.15)] transition-all duration-300 group">
               {/* Background pattern */}
               <div 
                 className="absolute inset-0" 
@@ -521,7 +521,7 @@ export default function Home() {
             </Link>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {/* Hardcoded example posts */}
             <div className="bg-[#111827] border border-[#1f2937] rounded-lg p-5 hover:border-[#6366f1] hover:shadow-[0_0_20px_rgba(99,102,241,0.15)] transition-all duration-200 hover:-translate-y-1">
               <div className="flex items-center gap-3 mb-4">
@@ -586,7 +586,7 @@ export default function Home() {
               </div>
             </div>
 
-            <div className="bg-[#111827] border border-[#1f2937] rounded-lg p-5 hover:border-[#6366f1] hover:shadow-[0_0_20px_rgba(99,102,241,0.15)] transition-all duration-200 hover:-translate-y-1 md:col-span-2 lg:col-span-3">
+            <div className="bg-[#111827] border border-[#1f2937] rounded-lg p-5 hover:border-[#6366f1] hover:shadow-[0_0_20px_rgba(99,102,241,0.15)] transition-all duration-200 hover:-translate-y-1 col-span-1 md:col-span-2 lg:col-span-3">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-8 h-8 rounded-full bg-[#22d3ee]/10 border border-[#22d3ee]/20 flex items-center justify-center text-lg">⚡</div>
                 <div>
@@ -630,7 +630,7 @@ export default function Home() {
               Start building. Open-source hardware, global maker network, and your AI controls the physical world.
             </p>
             
-            <div className="flex flex-wrap gap-4 justify-center">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <a 
                 href="https://github.com/brianzhibo-design/RealWorldClaw"
                 target="_blank"

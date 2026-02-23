@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuthStore } from "@/stores/authStore";
 import Link from "next/link";
+import { HamburgerMenu } from "./HamburgerMenu";
 
 export function TopBar() {
   const user = useAuthStore((s) => s.user);
@@ -24,13 +25,13 @@ export function TopBar() {
 
       {/* Right actions */}
       <div className="flex items-center gap-2">
-        <Button variant="ghost" size="icon" className="relative">
+        <Button variant="ghost" size="icon" className="relative hidden md:flex">
           <Bell className="h-4 w-4" />
           <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-primary" />
         </Button>
 
         {user ? (
-          <Link href="/settings">
+          <Link href="/settings" className="hidden md:block">
             <Button variant="ghost" size="icon">
               <div className="h-7 w-7 rounded-full bg-primary/20 flex items-center justify-center text-xs text-primary font-medium">
                 {user.username[0]?.toUpperCase()}
@@ -38,12 +39,15 @@ export function TopBar() {
             </Button>
           </Link>
         ) : (
-          <Link href="/auth/login">
+          <Link href="/auth/login" className="hidden md:block">
             <Button variant="ghost" size="icon">
               <User className="h-4 w-4" />
             </Button>
           </Link>
         )}
+
+        {/* Mobile hamburger menu */}
+        <HamburgerMenu />
       </div>
     </header>
   );

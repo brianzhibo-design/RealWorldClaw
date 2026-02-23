@@ -102,13 +102,13 @@ export default function CommunityPage() {
     <div className="min-h-screen bg-background text-foreground">
       {/* Header */}
       <header className="border-b bg-background/80 backdrop-blur-sm">
-        <div className="max-w-6xl mx-auto px-6 py-8">
-          <div className="flex items-center justify-between">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-bold flex items-center gap-3 mb-2">
+              <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-3 mb-2">
                 <span>🌟</span> Community
               </h1>
-              <p className="text-muted-foreground max-w-2xl">
+              <p className="text-muted-foreground max-w-2xl text-sm sm:text-base">
                 Where AI agents and humans collaborate on discussions, requests, tasks, and showcases. 
                 Turn ideas into reality through our global manufacturing network.
               </p>
@@ -116,7 +116,7 @@ export default function CommunityPage() {
             {isAuthenticated && (
               <Link
                 href="/community/new"
-                className="px-6 py-3 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg font-medium transition-colors flex items-center gap-2 shadow-lg"
+                className="px-6 py-3 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg font-medium transition-colors flex items-center justify-center gap-2 shadow-lg w-full sm:w-auto min-h-[44px]"
               >
                 <span>✨</span>
                 New Post
@@ -126,17 +126,17 @@ export default function CommunityPage() {
         </div>
       </header>
 
-      <div className="max-w-6xl mx-auto px-6 py-8">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         {/* Filters */}
-        <div className="flex flex-col sm:flex-row gap-4 mb-8">
+        <div className="flex flex-col gap-4 mb-6 sm:mb-8">
           {/* Post Type Tabs */}
-          <div className="flex-1">
-            <div className="flex flex-wrap gap-2 bg-muted rounded-lg p-2">
+          <div className="overflow-x-auto">
+            <div className="flex gap-2 bg-muted rounded-lg p-2 min-w-max">
               {POST_TYPES.map((type) => (
                 <button
                   key={type.key}
                   onClick={() => setActiveType(type.key)}
-                  className={`px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2 ${
+                  className={`px-3 sm:px-4 py-2 rounded-md text-xs sm:text-sm font-medium transition-colors flex items-center gap-1 sm:gap-2 whitespace-nowrap min-h-[44px] ${
                     activeType === type.key
                       ? "bg-primary text-primary-foreground shadow-sm"
                       : "text-muted-foreground hover:text-foreground hover:bg-accent"
@@ -155,12 +155,12 @@ export default function CommunityPage() {
           </div>
 
           {/* Sort Options */}
-          <div className="flex gap-2">
+          <div className="flex gap-2 justify-center sm:justify-start">
             {SORT_OPTIONS.map((option) => (
               <button
                 key={option.key}
                 onClick={() => setSortBy(option.key)}
-                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                className={`px-3 sm:px-4 py-2 rounded-md text-xs sm:text-sm font-medium transition-colors min-h-[44px] ${
                   sortBy === option.key
                     ? "bg-secondary text-foreground"
                     : "text-muted-foreground hover:text-foreground hover:bg-accent"
@@ -236,16 +236,16 @@ export default function CommunityPage() {
             {sortedPosts.map((post) => (
               <div
                 key={post.id}
-                className="bg-card border rounded-xl p-6 hover:bg-accent/50 transition-all"
+                className="bg-card border rounded-xl p-4 sm:p-6 hover:bg-accent/50 transition-all"
               >
                 {/* Post header */}
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <div className={`px-3 py-1 rounded-full text-sm font-medium border ${getTypeColor(post.post_type)}`}>
+                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 sm:gap-0 mb-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+                    <div className={`px-3 py-1 rounded-full text-xs sm:text-sm font-medium border ${getTypeColor(post.post_type)} w-fit`}>
                       <span className="mr-1">{POST_TYPES.find(t => t.key === post.post_type)?.icon}</span>
                       {post.post_type.charAt(0).toUpperCase() + post.post_type.slice(1)}
                     </div>
-                    <span className="text-sm text-muted-foreground">
+                    <span className="text-xs sm:text-sm text-muted-foreground">
                       by {post.author}
                     </span>
                     {post.materials && post.materials.length > 0 && (
@@ -259,7 +259,7 @@ export default function CommunityPage() {
                       </div>
                     )}
                   </div>
-                  <div className="text-muted-foreground text-sm flex items-center gap-3">
+                  <div className="text-muted-foreground text-xs sm:text-sm flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
                     <span>{formatTimeAgo(post.created_at)}</span>
                     {post.budget && (
                       <span className="text-green-600 font-medium">
