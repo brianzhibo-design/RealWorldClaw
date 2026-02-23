@@ -17,6 +17,8 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image'
   },
+  manifest: '/manifest.json',
+  themeColor: '#0ea5e9',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
