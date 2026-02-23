@@ -1,5 +1,6 @@
 "use client";
 import { API_BASE as API_URL } from "@/lib/api-client";
+import { EmptyState } from "@/components/EmptyState";
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -197,33 +198,19 @@ export default function OrdersPage() {
           </div>
         </div>
 
-        {filteredOrders.length === 0 ? (
-          <div className="text-center py-20">
-            <div className="text-6xl mb-4">
-              {activeTab === 'all' ? '📦' : 
-               activeTab === 'submitted' ? '📤' :
-               activeTab === 'in_progress' ? '⚙️' : '✅'}
-            </div>
-            <h2 className="text-xl font-bold mb-2">
-              {activeTab === 'all' ? 'No orders yet' :
-               activeTab === 'submitted' ? 'No submitted orders' :
-               activeTab === 'in_progress' ? 'No orders in progress' : 
-               'No completed orders'}
-            </h2>
-            <p className="text-slate-400 mb-6">
-              {activeTab === 'all' 
-                ? "Submit a design file to start manufacturing"
-                : `Switch to other tabs to view orders, or submit a new design`
-              }
-            </p>
-            <a
-              href="/orders/new"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-sky-600 hover:bg-sky-500 text-white rounded-lg font-medium transition-colors"
-            >
-              <span>🚀</span>
-              Submit Your First Design
-            </a>
-          </div>
+        {!loading && filteredOrders.length === 0 ? (
+          <EmptyState 
+            icon={activeTab === 'all' ? '📦' : 
+                  activeTab === 'submitted' ? '📤' :
+                  activeTab === 'in_progress' ? '⚙️' : '✅'}
+            title={activeTab === 'all' ? 'No orders yet' :
+                   activeTab === 'submitted' ? 'No submitted orders' :
+                   activeTab === 'in_progress' ? 'No orders in progress' : 
+                   'No completed orders'}
+            description={activeTab === 'all' 
+              ? "Submit a design file to start manufacturing"
+              : "Switch to other tabs to view orders, or submit a new design"}
+          />
         ) : (
           <div className="grid gap-3 sm:gap-4">
             {filteredOrders.map((order) => (
