@@ -40,20 +40,9 @@ export default function Header() {
         {/* Logo */}
         <Link href="/" className="flex items-center gap-1.5 shrink-0">
           <svg viewBox="0 0 130 130" className="w-5 h-5 md:w-6 md:h-6">
-            <defs>
-              <linearGradient id="hdrGrad" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0%" stopColor="#38bdf8"/>
-                <stop offset="100%" stopColor="#818cf8"/>
-              </linearGradient>
-            </defs>
-            {/* Network routes forming RW */}
-            <path d="M 22 100 V 30 H 44 A 17.5 17.5 0 0 1 44 65 H 22 M 38 65 L 56 100" fill="none" stroke="url(#hdrGrad)" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round"/>
-            <path d="M 64 30 L 74 100 L 89 58 L 104 100 L 114 30" fill="none" stroke="url(#hdrGrad)" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round"/>
-            {/* Manufacturing nodes */}
-            <circle cx="22" cy="30" r="5" fill="#38bdf8"/><circle cx="22" cy="30" r="2.5" fill="#fff"/>
-            <circle cx="89" cy="58" r="5" fill="#38bdf8"/><circle cx="89" cy="58" r="2.5" fill="#fff"/>
-            <circle cx="64" cy="30" r="4" fill="#6366f1"/><circle cx="64" cy="30" r="2" fill="#fff"/>
-            <circle cx="114" cy="30" r="4" fill="#6366f1"/><circle cx="114" cy="30" r="2" fill="#fff"/>
+            <path d="M 25 105 V 35 H 55 A 15 15 0 0 1 55 65 H 25 M 40 65 L 60 105" fill="none" stroke="#38bdf8" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M 70 35 L 80 105 L 95 65 L 110 105 L 120 35" fill="none" stroke="#38bdf8" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round"/>
+            <circle cx="25" cy="35" r="4" fill="#fff"/><circle cx="95" cy="65" r="4" fill="#fff"/>
           </svg>
           <span className="font-bold text-xs md:text-sm text-white hidden sm:inline">
             RealWorld<span className="text-sky-400">Claw</span>
