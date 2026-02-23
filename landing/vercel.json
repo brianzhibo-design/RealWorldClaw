@@ -1,13 +1,5 @@
 {
-  "rewrites": [
-    { "source": "/.well-known/skill.md", "destination": "/skill.md" }
-  ],
-  "headers": [
-    {
-      "source": "/.well-known/(.*)",
-      "headers": [
-        { "key": "Content-Type", "value": "text/plain; charset=utf-8" }
-      ]
-    }
+  "redirects": [
+    { "source": "/(.*)", "destination": "https://realworldclaw.com/$1", "permanent": true }
   ]
 }
