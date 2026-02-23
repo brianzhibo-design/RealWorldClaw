@@ -330,3 +330,52 @@ export async function createComment(
     return { success: false, error: 'API unavailable' };
   }
 }
+
+// Vote API functions
+export async function votePost(
+  postId: string,
+  voteType: 'up' | 'down'
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const token = localStorage.getItem('auth_token');
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (token) headers.Authorization = `Bearer ${token}`;
+
+    const res = await fetch(`${API_BASE}/community/posts/${postId}/vote`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ vote_type: voteType }),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      return { success: false, error: err.detail || 'Vote failed' };
+    }
+    return { success: true };
+  } catch {
+    return { success: false, error: 'API unavailable' };
+  }
+}
+
+export async function voteComment(
+  commentId: string,
+  voteType: 'up' | 'down'
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const token = localStorage.getItem('auth_token');
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (token) headers.Authorization = `Bearer ${token}`;
+
+    const res = await fetch(`${API_BASE}/community/comments/${commentId}/vote`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ vote_type: voteType }),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      return { success: false, error: err.detail || 'Vote failed' };
+    }
+    return { success: true };
+  } catch {
+    return { success: false, error: 'API unavailable' };
+  }
+}
