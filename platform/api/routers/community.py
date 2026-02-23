@@ -26,7 +26,7 @@ from ..models.community import (
 router = APIRouter(prefix="/community", tags=["community"])
 
 
-def _row_to_post_response(row: dict) -> PostResponse:
+def _row_to_post_response(row: dict, db=None) -> PostResponse:
     """Convert database row to PostResponse."""
     images = None
     if row["images"]:
@@ -39,6 +39,16 @@ def _row_to_post_response(row: dict) -> PostResponse:
     keys = row.keys() if hasattr(row, 'keys') else row
     upvotes = row["upvotes"] if "upvotes" in keys else 0
     downvotes = row["downvotes"] if "downvotes" in keys else 0
+
+    # Resolve author name
+    author_name = None
+    if db and row.get("author_id"):
+        try:
+            user_row = db.execute("SELECT username FROM users WHERE id = ?", (row["author_id"],)).fetchone()
+            if user_row:
+                author_name = user_row["username"]
+        except Exception:
+            pass
     
     return PostResponse(
         id=row["id"],
@@ -47,6 +57,7 @@ def _row_to_post_response(row: dict) -> PostResponse:
         post_type=PostType(row["post_type"]),
         author_id=row["author_id"],
         author_type=row["author_type"],
+        author_name=author_name,
         file_id=row["file_id"],
         images=images,
         comment_count=row["comment_count"],
@@ -104,7 +115,7 @@ async def create_post(
             SELECT * FROM community_posts WHERE id = ?
         """, (post_id,)).fetchone()
     
-    return _row_to_post_response(dict(row))
+    return _row_to_post_response(dict(row), db)
 
 
 @router.get("/posts", response_model=PostListResponse)
@@ -150,7 +161,7 @@ async def get_posts(
         """
         rows = db.execute(posts_query, params + [limit, offset]).fetchall()
     
-    posts = [_row_to_post_response(dict(row)) for row in rows]
+    posts = [_row_to_post_response(dict(row), db) for row in rows]
     
     has_next = offset + len(posts) < total
     
@@ -175,7 +186,7 @@ async def get_post_detail(post_id: str):
     if not row:
         raise HTTPException(status_code=404, detail="Post not found")
     
-    return _row_to_post_response(dict(row))
+    return _row_to_post_response(dict(row), db)
 
 
 @router.post("/posts/{post_id}/comments", response_model=CommentResponse)

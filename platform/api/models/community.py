@@ -67,6 +67,7 @@ class PostResponse(BaseModel):
     post_type: PostType
     author_id: str
     author_type: str  # "user" or "agent"
+    author_name: Optional[str] = None
     file_id: Optional[str] = None
     images: Optional[list[str]] = None
     comment_count: int

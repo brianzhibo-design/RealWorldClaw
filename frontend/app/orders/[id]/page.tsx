@@ -69,8 +69,8 @@ export default function OrderDetailPage() {
     if (!token) { router.push("/auth/login"); return; }
     if (!params.id) return;
 
-    apiFetch<Order>(`/orders/${params.id}`)
-      .then(setOrder)
+    apiFetch<{ role: string; order: Order } | Order>(`/orders/${params.id}`)
+      .then((res: any) => setOrder(res.order || res))
       .catch((err) => {
         if (err.message?.includes("401")) router.push("/auth/login");
         else setError("Failed to load order");
@@ -90,7 +90,8 @@ export default function OrderDetailPage() {
       if (body) opts.body = JSON.stringify(body);
       await apiFetch(url, opts);
       // Refresh order
-      const updated = await apiFetch<Order>(`/orders/${params.id}`);
+      const raw = await apiFetch<{ role: string; order: Order } | Order>(`/orders/${params.id}`);
+      const updated = (raw as any).order || raw;
       setOrder(updated);
     } catch (err) {
       alert((err as Error).message || "Action failed");
@@ -267,7 +268,7 @@ export default function OrderDetailPage() {
               {/* Buyer: cancel pending */}
               {isBuyer && status === "pending" && (
                 <button
-                  onClick={() => doAction(`/orders/${order.id}/status`, "PUT", { status: "cancelled" })}
+                  onClick={() => doAction(`/orders/${order.id}/cancel`, "POST", {})}
                   disabled={actionLoading}
                   className="w-full py-3 bg-red-900 hover:bg-red-800 disabled:opacity-50 text-red-200 rounded-lg font-medium transition-colors"
                 >

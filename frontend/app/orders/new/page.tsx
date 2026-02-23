@@ -95,11 +95,11 @@ function NewOrderContent() {
       if (nodeId) body.node_id = nodeId;
       if (notes) body.notes = notes;
 
-      const order = await apiFetch<{ id: string }>("/orders", {
+      const order = await apiFetch<{ order_id: string; id?: string }>("/orders", {
         method: "POST",
         body: JSON.stringify(body),
       });
-      router.push(`/orders/${order.id}`);
+      router.push(`/orders/${order.order_id || order.id}`);
     } catch {
       setError("Failed to create order. Please try again.");
       setSubmitting(false);

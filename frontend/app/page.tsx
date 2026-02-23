@@ -737,7 +737,7 @@ export default function Home() {
                 };
 
                 const typeInfo = getPostTypeColor(post.post_type);
-                const authorName = post.author?.username || post.author_id?.slice(0, 8) || 'Anonymous';
+                const authorName = post.author?.username || (post as any).author_name || post.author_id?.slice(0, 8) || 'Anonymous';
 
                 return (
                   <div 

@@ -227,7 +227,7 @@ class ReplyResponse(BaseModel):
 
 
 class VoteRequest(BaseModel):
-    direction: VoteDirection
+    vote_type: VoteDirection
 
 
 # ─── Match Models ────────────────────────────────────────
