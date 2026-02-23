@@ -9,6 +9,8 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { useAuthStore } from "@/stores/authStore";
 import { registerAPI } from "@/lib/api-client";
+import GoogleOAuthButton from "@/components/oauth/GoogleOAuthButton";
+import GitHubOAuthButton from "@/components/oauth/GitHubOAuthButton";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -56,6 +58,25 @@ export default function RegisterPage() {
         </div>
 
         <Card className="p-6 border-border/50">
+          {/* OAuth Buttons */}
+          <div className="space-y-3 mb-6">
+            <GoogleOAuthButton onError={setError} />
+            <GitHubOAuthButton />
+          </div>
+
+          {/* Divider */}
+          <div className="relative my-6">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t border-border" />
+            </div>
+            <div className="relative flex justify-center text-xs">
+              <span className="bg-background px-3 text-muted-foreground">
+                or continue with email
+              </span>
+            </div>
+          </div>
+
+          {/* Registration Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <label className="text-sm font-medium">Username</label>

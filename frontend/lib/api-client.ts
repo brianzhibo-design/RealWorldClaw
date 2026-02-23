@@ -76,6 +76,26 @@ export async function getMeAPI() {
   );
 }
 
+export async function googleAuthAPI(credential: string) {
+  return apiFetch<{ access_token: string; user: { id: string; username: string; email: string; role: string } }>(
+    "/auth/google",
+    {
+      method: "POST",
+      body: JSON.stringify({ credential }),
+    }
+  );
+}
+
+export async function githubAuthAPI(code: string) {
+  return apiFetch<{ access_token: string; user: { id: string; username: string; email: string; role: string } }>(
+    "/auth/github",
+    {
+      method: "POST",
+      body: JSON.stringify({ code }),
+    }
+  );
+}
+
 // ─── WebSocket hook ───────────────────────────────────
 
 type WSMessage = { channel: string; event: string; data: unknown };
