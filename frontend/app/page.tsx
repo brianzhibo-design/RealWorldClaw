@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState, useEffect, useRef, useMemo } from "react";
-import { API_BASE } from "@/lib/api-client";
+import { API_BASE, apiFetch } from "@/lib/api-client";
 
 // Types
 interface Node {
@@ -341,17 +341,10 @@ export default function Home() {
         setError(null);
 
         // Fetch nodes and posts in parallel
-        const [nodesResponse, postsResponse] = await Promise.all([
-          fetch(`${API_BASE}/nodes/map`),
-          fetch(`${API_BASE}/community/posts?limit=4`)
+        const [nodesData, postsData] = await Promise.all([
+          apiFetch<Node[]>('/nodes/map'),
+          apiFetch<{posts: Post[]}>('/community/posts?limit=4')
         ]);
-
-        if (!nodesResponse.ok || !postsResponse.ok) {
-          throw new Error('Failed to fetch data');
-        }
-
-        const nodesData = await nodesResponse.json();
-        const postsData = await postsResponse.json();
 
         setNodes(Array.isArray(nodesData) ? nodesData : []);
         setPosts(postsData.posts || []);

@@ -3,8 +3,7 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://realworldclaw-api.fly.dev/api/v1";
+import { apiFetch } from "@/lib/api-client";
 
 export default function ClaimAgentPage({ params }: { params: { id: string } }) {
   const searchParams = useSearchParams();
@@ -27,18 +26,11 @@ export default function ClaimAgentPage({ params }: { params: { id: string } }) {
     }
     setStatus("loading");
     try {
-      const res = await fetch(`${API_URL}/agents/claim?claim_token=${token}&human_email=${encodeURIComponent(email)}`, {
+      const data = await apiFetch<{message?: string}>(`/agents/claim?claim_token=${token}&human_email=${encodeURIComponent(email)}`, {
         method: "POST",
       });
-      const data = await res.json();
-      if (res.ok) {
-        setStatus("success");
-        setMessage(data.message || "Agent activated successfully!");
-      } else {
-        setStatus("error");
-        const detail = typeof data.detail === "string" ? data.detail : data.detail?.message || JSON.stringify(data.detail);
-        setMessage(detail);
-      }
+      setStatus("success");
+      setMessage(data.message || "Agent activated successfully!");
     } catch {
       setStatus("error");
       setMessage("Network error. Please try again.");

@@ -1,5 +1,6 @@
 "use client";
 import { API_BASE as API_URL, apiFetch } from "@/lib/api-client";
+import { useAuthStore } from "@/stores/authStore";
 
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
@@ -28,7 +29,7 @@ export default function SubmitPage() {
   const [uploadedFileInfo, setUploadedFileInfo] = useState<any>(null);
 
   // Check if user is authenticated
-  const token = typeof window !== "undefined" ? localStorage.getItem("auth_token") || localStorage.getItem("token") : null;
+  const token = useAuthStore((state) => state.token);
   
   if (!token) {
     return (

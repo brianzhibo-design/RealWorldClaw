@@ -1,5 +1,5 @@
 "use client";
-import { API_BASE as API_URL } from "@/lib/api-client";
+import { API_BASE as API_URL, apiFetch } from "@/lib/api-client";
 import { EmptyState } from "@/components/EmptyState";
 
 import { useState, useEffect } from "react";
@@ -65,23 +65,12 @@ export default function OrdersPage() {
 
     const fetchOrders = async () => {
       try {
-        const response = await fetch(`${API_URL}/orders`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        
-        if (response.ok) {
-          const data = await response.json();
-          // Backend returns {as_customer: [], as_maker: []}
-          if (Array.isArray(data)) {
-            setOrders(data);
-          } else {
-            setOrders([...(data.as_customer || []), ...(data.as_maker || []), ...(data.orders || [])]);
-          }
-        } else if (response.status === 401) {
-          localStorage.removeItem('token');
-          router.push('/auth/login');
+        const data = await apiFetch<Order[] | {as_customer?: Order[], as_maker?: Order[], orders?: Order[]}>('/orders');
+        // Backend returns {as_customer: [], as_maker: []}
+        if (Array.isArray(data)) {
+          setOrders(data);
         } else {
-          setError('Failed to load orders');
+          setOrders([...(data.as_customer || []), ...(data.as_maker || []), ...(data.orders || [])]);
         }
       } catch (err) {
         setError('Network error. Please try again.');

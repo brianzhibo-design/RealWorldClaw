@@ -1,5 +1,6 @@
 "use client";
 import { API_BASE as API_URL, apiFetch } from "@/lib/api-client";
+import { useAuthStore } from "@/stores/authStore";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -29,7 +30,7 @@ export default function MakerRegisterPage() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
-  const token = typeof window !== "undefined" ? localStorage.getItem("auth_token") || localStorage.getItem("token") : null;
+  const token = useAuthStore((state) => state.token);
 
   if (!token) {
     return (

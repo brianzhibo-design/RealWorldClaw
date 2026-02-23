@@ -50,13 +50,10 @@ function NewOrderContent() {
       try {
         const formData = new FormData();
         formData.append("file", file);
-        const res = await fetch(`${API_BASE}/files/upload`, {
+        const data = await apiFetch<{id?: string, file_id?: string}>('/files/upload', {
           method: "POST",
-          headers: { Authorization: `Bearer ${token}` },
           body: formData,
         });
-        if (!res.ok) throw new Error("Upload failed");
-        const data = await res.json();
         setFileId(data.id || data.file_id);
         setFileName(file.name);
       } catch {

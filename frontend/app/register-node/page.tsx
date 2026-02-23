@@ -1,5 +1,6 @@
 "use client";
 import { API_BASE as API_URL, apiFetch } from "@/lib/api-client";
+import { useAuthStore } from "@/stores/authStore";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -51,7 +52,7 @@ export default function RegisterNodePage() {
   const [selectedCity, setSelectedCity] = useState<string>(""); // Empty for custom coordinates
   const [locationMode, setLocationMode] = useState<"city" | "custom">("city");
 
-  const token = typeof window !== "undefined" ? localStorage.getItem("auth_token") || localStorage.getItem("token") : null;
+  const token = useAuthStore((state) => state.token);
 
   if (!token) {
     return (

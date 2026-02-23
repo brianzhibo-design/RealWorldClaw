@@ -1,5 +1,6 @@
 "use client";
 import { API_BASE as API_URL, apiFetch } from "@/lib/api-client";
+import { useAuthStore } from "@/stores/authStore";
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -43,7 +44,7 @@ export default function SettingsPage() {
   
   // AI Settings and Notifications - coming soon
 
-  const token = typeof window !== "undefined" ? localStorage.getItem("auth_token") || localStorage.getItem("token") : null;
+  const token = useAuthStore((state) => state.token);
 
   // Fetch user profile
   useEffect(() => {
