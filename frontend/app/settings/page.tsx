@@ -309,56 +309,7 @@ export default function SettingsPage() {
                   </div>
                 </div>
 
-                <form onSubmit={handlePasswordChange} className="space-y-4 sm:space-y-6">
-                  <div>
-                    <label className="block text-sm font-medium text-slate-300 mb-2">
-                      Current Password
-                    </label>
-                    <input
-                      type="password"
-                      value={passwordData.current_password}
-                      onChange={(e) => setPasswordData(prev => ({ ...prev, current_password: e.target.value }))}
-                      required
-                      className="w-full px-4 py-4 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent min-h-[44px]"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-slate-300 mb-2">
-                      New Password
-                    </label>
-                    <input
-                      type="password"
-                      value={passwordData.new_password}
-                      onChange={(e) => setPasswordData(prev => ({ ...prev, new_password: e.target.value }))}
-                      required
-                      minLength={8}
-                      className="w-full px-4 py-4 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent min-h-[44px]"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-slate-300 mb-2">
-                      Confirm New Password
-                    </label>
-                    <input
-                      type="password"
-                      value={passwordData.confirm_password}
-                      onChange={(e) => setPasswordData(prev => ({ ...prev, confirm_password: e.target.value }))}
-                      required
-                      minLength={8}
-                      className="w-full px-4 py-4 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent min-h-[44px]"
-                    />
-                  </div>
-
-                  <button
-                    type="submit"
-                    disabled={saving}
-                    className="px-6 py-3 bg-sky-600 hover:bg-sky-500 disabled:bg-slate-700 disabled:text-slate-400 text-white rounded-lg font-medium transition-colors min-h-[44px]"
-                  >
-                    {saving ? 'Updating...' : 'Update Password'}
-                  </button>
-                </form>
+                <p className="text-slate-500 text-sm">🚧 Coming Soon — Password change is under development.</p>
               </div>
             )}
 

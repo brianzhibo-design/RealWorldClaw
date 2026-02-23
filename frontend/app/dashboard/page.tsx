@@ -52,13 +52,19 @@ export default function DashboardPage() {
           apiFetch<any[]>('/nodes/my-nodes'),
         ]);
 
-        // Filter posts by current user
-        const allPosts = postsResponse.status === 'fulfilled' ? postsResponse.value : [];
+        // Safely extract arrays from API responses (backends return various formats)
+        const postsRaw: any = postsResponse.status === 'fulfilled' ? postsResponse.value : {};
+        const allPosts = Array.isArray(postsRaw) ? postsRaw : (postsRaw?.posts ?? []);
         const userPosts = allPosts.filter((post: any) => post.author_id === user?.id);
         
-        const orders = ordersResponse.status === 'fulfilled' ? ordersResponse.value : [];
-        const files = filesResponse.status === 'fulfilled' ? filesResponse.value : [];
-        const nodes = nodesResponse.status === 'fulfilled' ? nodesResponse.value : [];
+        const ordersRaw: any = ordersResponse.status === 'fulfilled' ? ordersResponse.value : {};
+        const orders = Array.isArray(ordersRaw) ? ordersRaw : [...(ordersRaw?.as_customer ?? []), ...(ordersRaw?.as_maker ?? [])];
+        
+        const filesRaw: any = filesResponse.status === 'fulfilled' ? filesResponse.value : {};
+        const files = Array.isArray(filesRaw) ? filesRaw : (filesRaw?.files ?? []);
+        
+        const nodesRaw: any = nodesResponse.status === 'fulfilled' ? nodesResponse.value : [];
+        const nodes = Array.isArray(nodesRaw) ? nodesRaw : [];
 
         setStats({
           myPosts: userPosts.length,

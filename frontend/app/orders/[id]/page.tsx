@@ -66,7 +66,7 @@ export default function OrderDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
 
-  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+  const token = typeof window !== "undefined" ? localStorage.getItem("auth_token") || localStorage.getItem("token") : null;
 
   useEffect(() => {
     if (!token) {
@@ -133,9 +133,10 @@ export default function OrderDetailPage() {
 
     setActionLoading(true);
     try {
-      const response = await fetch(`${API_URL}/orders/${order.id}/cancel`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}` }
+      const response = await fetch(`${API_URL}/orders/${order.id}/status`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ status: 'cancelled' })
       });
 
       if (response.ok) {
@@ -156,9 +157,9 @@ export default function OrderDetailPage() {
 
     setActionLoading(true);
     try {
-      const response = await fetch(`${API_URL}/orders/${order.id}/confirm-delivery`, {
+      const response = await fetch(`${API_URL}/orders/${order.id}/confirm`, {
         method: 'POST',
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }
       });
 
       if (response.ok) {

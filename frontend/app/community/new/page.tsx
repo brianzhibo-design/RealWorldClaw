@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createCommunityPost } from "@/lib/api";
+import { useAuthStore } from "@/stores/authStore";
 
 const POST_TYPES = [
   {
@@ -42,6 +43,14 @@ const POST_TYPES = [
 
 export default function NewPostPage() {
   const router = useRouter();
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      router.push("/auth/login");
+    }
+  }, [isAuthenticated, router]);
+
   const [selectedType, setSelectedType] = useState<string>("");
   const [formData, setFormData] = useState({
     title: "",

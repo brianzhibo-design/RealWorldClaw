@@ -80,7 +80,7 @@ export default function ProfilePage() {
         setError(null);
         const data = await fetchCommunityPosts();
         setPosts(data);
-        // Filter posts by user (mock implementation)
+        // Filter posts by this user
         const filtered = data.filter(post => post.author === user.username);
         setUserPosts(filtered);
         

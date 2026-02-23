@@ -37,7 +37,7 @@ export default function NewOrderPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+  const token = typeof window !== "undefined" ? localStorage.getItem("auth_token") || localStorage.getItem("token") : null;
 
   useEffect(() => {
     if (!token) { router.push("/auth/login"); return; }

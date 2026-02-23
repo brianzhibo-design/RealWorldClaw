@@ -28,7 +28,7 @@ export default function MakerOrdersPage() {
   const [accepting, setAccepting] = useState<string | null>(null);
 
   // Check if user is authenticated
-  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+  const token = typeof window !== "undefined" ? localStorage.getItem("auth_token") || localStorage.getItem("token") : null;
 
   const fetchOrders = useCallback(async () => {
     if (!token) return;
@@ -92,11 +92,13 @@ export default function MakerOrdersPage() {
     setError(null);
 
     try {
-      const response = await fetch(`${API_URL}/orders/${orderId}/claim`, {
-        method: "POST",
+      const response = await fetch(`${API_URL}/orders/${orderId}/accept`, {
+        method: "PUT",
         headers: {
+          "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
+        body: JSON.stringify({ estimated_hours: 24 }),
       });
 
       if (response.ok) {

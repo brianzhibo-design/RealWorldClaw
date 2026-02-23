@@ -49,8 +49,8 @@ export default function OrdersPage() {
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<TabType>('all');
 
-  // Check auth
-  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+  // Check auth — try multiple token sources for compatibility
+  const token = typeof window !== "undefined" ? (localStorage.getItem("auth_token") || localStorage.getItem("token")) : null;
 
   useEffect(() => {
     if (!token) {
@@ -66,7 +66,12 @@ export default function OrdersPage() {
         
         if (response.ok) {
           const data = await response.json();
-          setOrders(Array.isArray(data) ? data : data.orders || []);
+          // Backend returns {as_customer: [], as_maker: []}
+          if (Array.isArray(data)) {
+            setOrders(data);
+          } else {
+            setOrders([...(data.as_customer || []), ...(data.as_maker || []), ...(data.orders || [])]);
+          }
         } else if (response.status === 401) {
           localStorage.removeItem('token');
           router.push('/auth/login');

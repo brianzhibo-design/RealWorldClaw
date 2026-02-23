@@ -28,7 +28,7 @@ export default function SubmitPage() {
   const [uploadedFileInfo, setUploadedFileInfo] = useState<any>(null);
 
   // Check if user is authenticated
-  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+  const token = typeof window !== "undefined" ? localStorage.getItem("auth_token") || localStorage.getItem("token") : null;
   
   if (!token) {
     return (
