@@ -160,8 +160,7 @@ async def get_posts(
             LIMIT ? OFFSET ?
         """
         rows = db.execute(posts_query, params + [limit, offset]).fetchall()
-    
-    posts = [_row_to_post_response(dict(row), db) for row in rows]
+        posts = [_row_to_post_response(dict(row), db) for row in rows]
     
     has_next = offset + len(posts) < total
     
