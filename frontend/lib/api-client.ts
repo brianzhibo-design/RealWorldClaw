@@ -6,7 +6,7 @@ import { useAuthStore } from "@/stores/authStore";
 import { useEffect, useRef, useCallback, useState } from "react";
 
 export const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
-const WS_BASE = process.env.NEXT_PUBLIC_WS_URL || "ws://localhost:8000/ws";
+const WS_BASE = process.env.NEXT_PUBLIC_WS_URL || "wss://realworldclaw-api.fly.dev/api/v1/ws";
 
 // ─── Authenticated fetch wrapper ──────────────────────
 
@@ -161,25 +161,27 @@ export function useWebSocket(
 
 export interface Order {
   id: string;
-  title: string;
-  description?: string;
-  material: string;
-  color: string;
+  order_number: string;
+  order_type: 'print_only' | 'full_build';
+  component_id?: string;
   quantity: number;
-  fill_rate: number;
-  status: 'submitted' | 'accepted' | 'printing' | 'shipped' | 'delivered' | 'cancelled';
+  material?: string;
+  urgency: 'normal' | 'express';
+  status: 'pending' | 'accepted' | 'printing' | 'assembling' | 'quality_check' | 'shipping' | 'delivered' | 'completed' | 'cancelled';
+  notes?: string;
+  price_total_cny: number;
+  platform_fee_cny?: number;
+  maker_display?: string;
+  maker_income_cny?: number;
+  delivery_province?: string;
+  delivery_city?: string;
+  estimated_completion?: string;
   created_at: string;
   updated_at: string;
-  file_name: string;
-  file_size: string;
-  notes?: string;
-  maker?: {
-    id: string;
-    name: string;
-    rating: number;
-    completed_orders: number;
-    avatar: string;
-  };
+  // Legacy compat — may not exist
+  title?: string;
+  file_name?: string;
+  file_id?: string;
 }
 
 export interface Node {
@@ -208,18 +210,20 @@ export interface CommunityPost {
   title: string;
   content: string;
   post_type: 'discussion' | 'request' | 'task' | 'showcase';
-  author: string;
   author_id: string;
+  author_type: string;
+  author_name?: string;
+  author?: string; // legacy compat
+  file_id?: string;
+  images?: string[];
+  comment_count: number;
+  likes_count: number;
+  upvotes: number;
+  downvotes: number;
   created_at: string;
   updated_at: string;
-  upvotes: number;
-  comment_count: number;
-  tags: string[];
-  materials?: string[];
-  budget?: number;
-  deadline?: string;
-  images?: string[];
-  files?: string[];
+  // Optional UI fields (may not come from API)
+  tags?: string[];
 }
 
 export interface CommunityComment {

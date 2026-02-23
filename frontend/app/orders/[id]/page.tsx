@@ -143,7 +143,7 @@ export default function OrderDetailPage() {
           </button>
           <div className="flex items-start justify-between flex-wrap gap-4">
             <div>
-              <h1 className="text-3xl font-bold">{order.title || `Order #${order.id.slice(0, 8)}`}</h1>
+              <h1 className="text-3xl font-bold">{order.order_number || `Order #${order.id.slice(0, 8)}`}</h1>
               <div className="flex items-center gap-3 mt-2">
                 <span className={`px-3 py-1 rounded-full text-sm font-medium border ${
                   isCancelled
@@ -182,10 +182,10 @@ export default function OrderDetailPage() {
                   </div>
                 </div>
               )}
-              {order.color && (
+              {(order as any).color && (
                 <div>
                   <div className="text-sm text-slate-400">Color</div>
-                  <div className="font-medium">{order.color}</div>
+                  <div className="font-medium">{(order as any).color}</div>
                 </div>
               )}
             </div>

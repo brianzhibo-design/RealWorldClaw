@@ -236,7 +236,7 @@ export default function OrdersPage() {
                   <div className="flex-1 min-w-0">
                     <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-2">
                       <h3 className="font-semibold text-base sm:text-lg text-white truncate order-2 sm:order-1">
-                        {order.title || order.description || `Order ${order.id.slice(0, 8)}`}
+                        {order.order_number || `Order ${order.id.slice(0, 8)}`}
                       </h3>
                       <span className={`px-3 py-1 rounded-full text-xs font-medium border self-start order-1 sm:order-2 ${getStatusColor(order.status)}`}>
                         {statusDisplayNames[order.status.toLowerCase()] || order.status}

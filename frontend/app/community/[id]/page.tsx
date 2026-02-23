@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { fetchCommunityPost, fetchPostComments, createComment, CommunityPost, CommunityComment } from "@/lib/api-client";
+import VoteButtons from "@/components/VoteButtons";
 
 export default function PostDetailPage() {
   const params = useParams();
@@ -267,9 +268,9 @@ export default function PostDetailPage() {
                   <span className="mr-1">{getTypeIcon(post.post_type)}</span>
                   {post.post_type.charAt(0).toUpperCase() + post.post_type.slice(1)}
                 </div>
-                {post.budget && (
+                {(post as any).budget && (
                   <div className="px-3 py-1 bg-green-500/20 text-green-300 border border-green-500/30 rounded-full text-sm font-medium">
-                    Budget: {post.budget}
+                    Budget: {(post as any).budget}
                   </div>
                 )}
               </div>
@@ -283,11 +284,11 @@ export default function PostDetailPage() {
                 </div>
                 <span>•</span>
                 <span>{formatTimeAgo(post.created_at)}</span>
-                {post.deadline && (
+                {(post as any).deadline && (
                   <>
                     <span>•</span>
                     <span className="text-sky-400">
-                      📅 Due {new Date(post.deadline).toLocaleDateString()}
+                      📅 Due {new Date((post as any).deadline).toLocaleDateString()}
                     </span>
                   </>
                 )}
@@ -297,10 +298,7 @@ export default function PostDetailPage() {
               <div className="flex items-center gap-4 mb-8">
                 {getActionButton()}
                 <div className="flex items-center gap-4 text-sm">
-                  <div className="flex items-center gap-1">
-                    <span>👍</span>
-                    <span>{post.upvotes}</span>
-                  </div>
+                  <VoteButtons postId={post.id} upvotes={post.upvotes} downvotes={post.downvotes} size="sm" />
                   <div className="flex items-center gap-1">
                     <span>💬</span>
                     <span>{comments.length}</span>
@@ -400,11 +398,11 @@ export default function PostDetailPage() {
                     <span className="text-slate-400">Created</span>
                     <span className="text-white">{new Date(post.created_at).toLocaleDateString()}</span>
                   </div>
-                  {post.materials && post.materials.length > 0 && (
+                  {(post as any).materials && (post as any).materials.length > 0 && (
                     <div>
                       <span className="text-slate-400 block mb-2">Materials</span>
                       <div className="flex flex-wrap gap-1">
-                        {post.materials.map((material, i) => (
+                        {(post as any).materials.map((material: string, i: number) => (
                           <span key={i} className="px-2 py-1 bg-slate-700 rounded text-xs">
                             {material}
                           </span>
