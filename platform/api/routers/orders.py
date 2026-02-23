@@ -250,7 +250,7 @@ def get_available_orders(identity: dict = Depends(get_authenticated_identity)):
         for order in available_orders:
             result.append(_maker_view(dict(order)))
     
-    return {"available_orders": result, "total": len(result)}
+    return {"orders": result, "available_orders": result, "total": len(result)}
 
 
 @router.get("/{order_id}")
