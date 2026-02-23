@@ -8,6 +8,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useAuthStore } from "@/stores/authStore";
 import { apiFetch } from "@/lib/api-client";
+import { EmptyState } from "@/components/EmptyState";
 
 interface DashboardStats {
   myPosts: number;
@@ -44,6 +45,10 @@ interface NodeItem {
 }
 
 export default function DashboardPage() {
+  useEffect(() => {
+    document.title = "Dashboard — RealWorldClaw";
+  }, []);
+
   const router = useRouter();
   const { user, isAuthenticated } = useAuthStore();
   const [stats, setStats] = useState<DashboardStats | null>(null);

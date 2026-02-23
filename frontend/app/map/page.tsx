@@ -7,8 +7,12 @@ import { MapFilters } from "@/components/MapFilters";
 import { NodeDetails } from "@/components/NodeDetails";
 import { ManufacturingNode, fetchMapNodes } from "@/lib/nodes";
 import { useRouter } from "next/navigation";
+import { EmptyState } from "@/components/EmptyState";
 
 export default function MapPage() {
+  useEffect(() => {
+    document.title = "Manufacturing Map — RealWorldClaw";
+  }, []);
   const [nodes, setNodes] = useState<ManufacturingNode[]>([]);
   const [selectedNode, setSelectedNode] = useState<ManufacturingNode | null>(null);
   const [hoveredNode, setHoveredNode] = useState<ManufacturingNode | null>(null);
@@ -127,21 +131,12 @@ export default function MapPage() {
 
       {/* Empty state */}
       {!loading && nodes.length === 0 && (
-        <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
-          <div className="text-center pointer-events-auto">
-            <div className="text-6xl mb-4">🌍</div>
-            <h2 className="text-xl font-bold text-white mb-2">The map is waiting</h2>
-            <p className="text-slate-400 mb-4 max-w-md">
-              No manufacturing nodes online yet. Be the first to register your machine
-              and light up the map.
-            </p>
-            <Link
-              href="/register-node"
-              className="inline-block px-5 py-2.5 bg-sky-600 hover:bg-sky-500 text-white rounded-lg transition-colors font-medium"
-            >
-              Register Your Machine →
-            </Link>
-          </div>
+        <div className="absolute inset-0 flex items-center justify-center z-10">
+          <EmptyState
+            icon="🌍"
+            title="The map is waiting"
+            description="No manufacturing nodes online yet. Be the first to register your machine and light up the map."
+          />
         </div>
       )}
     </div>

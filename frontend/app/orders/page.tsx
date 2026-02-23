@@ -44,6 +44,10 @@ const statusDisplayNames: Record<string, string> = {
 };
 
 export default function OrdersPage() {
+  useEffect(() => {
+    document.title = "Orders — RealWorldClaw";
+  }, []);
+
   const router = useRouter();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);

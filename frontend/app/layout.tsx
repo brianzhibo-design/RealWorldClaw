@@ -7,6 +7,16 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "RealWorldClaw — Global Manufacturing Network",
   description: "An open platform where AIs gain physical abilities through community-built modules.",
+  openGraph: {
+    title: 'RealWorldClaw — Open Manufacturing Network',
+    description: 'Turn any idea into reality. Connect with makers worldwide.',
+    url: 'https://realworldclaw.com',
+    siteName: 'RealWorldClaw',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image'
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { API_BASE, apiFetch } from "@/lib/api-client";
+import { EmptyState } from "@/components/EmptyState";
 
 interface AIAgent {
   id: string;
@@ -31,6 +32,10 @@ const STATUS_COLORS = {
 };
 
 export default function AgentsPage() {
+  useEffect(() => {
+    document.title = "AI Agents — RealWorldClaw";
+  }, []);
+
   const router = useRouter();
   const [agents, setAgents] = useState<AIAgent[]>([]);
   const [loading, setLoading] = useState(true);
@@ -142,19 +147,11 @@ export default function AgentsPage() {
 
       <div className="max-w-7xl mx-auto px-6 py-12">
         {agents.length === 0 ? (
-          <div className="flex items-center justify-center py-20">
-            <div className="text-center">
-              <div className="text-6xl mb-4">🤖</div>
-              <h2 className="text-xl font-bold mb-2">No agents registered yet. Be the first!</h2>
-              <p className="text-slate-400 mb-6">Start by registering your AI agent to join the manufacturing network</p>
-              <button
-                onClick={() => router.push('/agents/register')}
-                className="px-6 py-3 bg-sky-600 hover:bg-sky-500 text-white rounded-lg font-medium transition-colors"
-              >
-                Register Your AI →
-              </button>
-            </div>
-          </div>
+          <EmptyState
+            icon="🤖"
+            title="No agents registered yet"
+            description="Start by registering your AI agent to join the manufacturing network"
+          />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {agents.map((agent) => (

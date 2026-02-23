@@ -65,6 +65,10 @@ const SPACES = [
 ];
 
 export default function SpacesPage() {
+  useEffect(() => {
+    document.title = "Design Spaces — RealWorldClaw";
+  }, []);
+
   const [posts, setPosts] = useState<CommunityPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

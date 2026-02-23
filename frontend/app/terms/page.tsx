@@ -1,3 +1,7 @@
+export const metadata = {
+  title: "Terms of Service — RealWorldClaw",
+};
+
 export default function TermsOfService() {
   return (
     <div className="min-h-screen bg-slate-950 text-slate-300 px-6 py-12">

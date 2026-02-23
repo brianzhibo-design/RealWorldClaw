@@ -1,3 +1,7 @@
+export const metadata = {
+  title: "Privacy Policy — RealWorldClaw",
+};
+
 export default function PrivacyPolicy() {
   return (
     <div className="min-h-screen bg-slate-950 text-slate-300 px-6 py-12">

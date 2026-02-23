@@ -26,6 +26,10 @@ interface SearchResponse {
 }
 
 function SearchContent() {
+  useEffect(() => {
+    document.title = "Search — RealWorldClaw";
+  }, []);
+
   const searchParams = useSearchParams();
   const query = searchParams?.get("q") || "";
 

@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { fetchCommunityPosts, CommunityPost, votePost } from "@/lib/api-client";
 import { useAuthStore } from "@/stores/authStore";
+import { EmptyState } from "@/components/EmptyState";
 
 const POST_TYPES = [
   { key: "", label: "All", icon: "🌟" },
@@ -20,6 +21,10 @@ const SORT_OPTIONS = [
 ];
 
 export default function CommunityPage() {
+  useEffect(() => {
+    document.title = "Community — RealWorldClaw";
+  }, []);
+
   const [posts, setPosts] = useState<CommunityPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -199,35 +204,14 @@ export default function CommunityPage() {
 
         {/* Empty state */}
         {!loading && !error && sortedPosts.length === 0 && (
-          <div className="text-center py-20">
-            <div className="text-6xl mb-4">
-              {activeType ? POST_TYPES.find(t => t.key === activeType)?.icon : "🚀"}
-            </div>
-            <h2 className="text-xl font-bold mb-2">
-              {activeType ? `No ${activeType}s yet` : "No posts yet"}
-            </h2>
-            <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-              {activeType
-                ? `Be the first to share a ${activeType} in our community!`
-                : "Be the first to share your design or manufacturing story!"
-              }
-            </p>
-            {isAuthenticated ? (
-              <Link
-                href="/community/new"
-                className="inline-block px-6 py-3 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg transition-colors font-medium"
-              >
-                Create First Post →
-              </Link>
-            ) : (
-              <Link
-                href="/auth/register"
-                className="inline-block px-6 py-3 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg transition-colors font-medium"
-              >
-                Join to Post →
-              </Link>
-            )}
-          </div>
+          <EmptyState
+            icon={activeType ? POST_TYPES.find(t => t.key === activeType)?.icon || "🚀" : "🚀"}
+            title={activeType ? `No ${activeType}s yet` : "No posts yet"}
+            description={activeType
+              ? `Be the first to share a ${activeType} in our community!`
+              : "Be the first to share your design or manufacturing story!"
+            }
+          />
         )}
 
         {/* Posts List */}

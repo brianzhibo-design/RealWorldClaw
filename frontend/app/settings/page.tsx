@@ -12,6 +12,10 @@ interface UserProfile {
 }
 
 export default function SettingsPage() {
+  useEffect(() => {
+    document.title = "Settings — RealWorldClaw";
+  }, []);
+
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<"profile" | "password" | "ai" | "notifications" | "danger">("profile");
   const [loading, setLoading] = useState(true);
