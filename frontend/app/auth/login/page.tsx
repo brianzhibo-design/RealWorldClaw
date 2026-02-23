@@ -58,23 +58,25 @@ export default function LoginPage() {
         </div>
 
         <Card className="p-6 border-border/50">
-          {/* OAuth Buttons */}
-          <div className="space-y-3 mb-6">
-            <GoogleOAuthButton onError={setError} />
-            <GitHubOAuthButton />
-          </div>
-
-          {/* Divider */}
-          <div className="relative my-6">
-            <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t border-border" />
-            </div>
-            <div className="relative flex justify-center text-xs">
-              <span className="bg-background px-3 text-muted-foreground">
-                or continue with email
-              </span>
-            </div>
-          </div>
+          {/* OAuth Buttons — only show when configured */}
+          {(process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || process.env.NEXT_PUBLIC_GITHUB_CLIENT_ID) && (
+            <>
+              <div className="space-y-3 mb-6">
+                {process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID && <GoogleOAuthButton onError={setError} />}
+                {process.env.NEXT_PUBLIC_GITHUB_CLIENT_ID && <GitHubOAuthButton />}
+              </div>
+              <div className="relative my-6">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t border-border" />
+                </div>
+                <div className="relative flex justify-center text-xs">
+                  <span className="bg-background px-3 text-muted-foreground">
+                    or continue with email
+                  </span>
+                </div>
+              </div>
+            </>
+          )}
 
           {/* Email/Password Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
