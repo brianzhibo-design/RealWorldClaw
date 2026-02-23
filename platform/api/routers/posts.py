@@ -1,4 +1,9 @@
-"""帖子CRUD + 投票 + 回复"""
+"""帖子CRUD + 投票 + 回复
+
+⚠️ DEPRECATED: This router (/api/v1/posts) is the legacy post system.
+The frontend uses /api/v1/community/posts instead (see api/routers/community.py).
+Kept for backward compatibility but no new features should be added here.
+"""
 
 from __future__ import annotations
 

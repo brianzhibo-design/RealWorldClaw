@@ -4,46 +4,30 @@ import { API_BASE as API_URL } from "@/lib/api";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-
-const EQUIPMENT_TYPES = [
-  { id: "3d_printer", name: "3D Printer", icon: "🖨️" },
-  { id: "cnc", name: "CNC Machine", icon: "⚒️" },
-  { id: "laser_cutter", name: "Laser Cutter", icon: "⚡" },
-  { id: "injection_molding", name: "Injection Molding", icon: "🏭" },
-  { id: "other", name: "Other", icon: "🔧" }
-];
-
 const MATERIALS = [
-  "PLA", "PETG", "ABS", "TPU", "Resin", "Wood", "Metal", "Acrylic", "Carbon Fiber"
-];
-
-const COUNTRIES = [
-  "United States", "China", "Germany", "Japan", "United Kingdom", "France", 
-  "Canada", "Australia", "Netherlands", "Italy", "Other"
+  "PLA", "PETG", "ABS", "TPU", "Nylon", "Resin", "ASA", "PC", "Carbon Fiber"
 ];
 
 export default function MakerRegisterPage() {
   const router = useRouter();
   const [formData, setFormData] = useState({
-    makerName: "",
+    maker_type: "maker" as "maker" | "builder",
+    printer_brand: "",
+    printer_model: "",
+    build_volume_x: "",
+    build_volume_y: "",
+    build_volume_z: "",
+    materials: [] as string[],
+    location_province: "",
+    location_city: "",
+    location_district: "",
+    pricing_per_hour_cny: "",
     description: "",
-    equipmentTypes: [] as string[],
-    availableMaterials: [] as string[],
-    city: "",
-    country: "United States",
-    contactEmail: "",
-    contactPhone: "",
-    website: "",
-    experience: "",
-    minOrderQuantity: 1,
-    maxOrderQuantity: 100,
-    specialties: ""
   });
-  
+
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Check auth
   const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
 
   if (!token) {
@@ -53,10 +37,7 @@ export default function MakerRegisterPage() {
           <div className="text-6xl mb-4">🔐</div>
           <h2 className="text-xl font-bold mb-2">Authentication Required</h2>
           <p className="text-slate-400 mb-6">Please sign in to register as a maker</p>
-          <a
-            href="/auth/login"
-            className="inline-block px-6 py-3 bg-sky-600 hover:bg-sky-500 text-white rounded-lg font-medium transition-colors"
-          >
+          <a href="/auth/login" className="inline-block px-6 py-3 bg-sky-600 hover:bg-sky-500 text-white rounded-lg font-medium transition-colors">
             Sign In →
           </a>
         </div>
@@ -64,371 +45,173 @@ export default function MakerRegisterPage() {
     );
   }
 
-  const handleEquipmentToggle = (equipmentId: string) => {
-    setFormData(prev => ({
-      ...prev,
-      equipmentTypes: prev.equipmentTypes.includes(equipmentId)
-        ? prev.equipmentTypes.filter(t => t !== equipmentId)
-        : [...prev.equipmentTypes, equipmentId]
-    }));
-  };
-
   const handleMaterialToggle = (material: string) => {
     setFormData(prev => ({
       ...prev,
-      availableMaterials: prev.availableMaterials.includes(material)
-        ? prev.availableMaterials.filter(m => m !== material)
-        : [...prev.availableMaterials, material]
+      materials: prev.materials.includes(material)
+        ? prev.materials.filter(m => m !== material)
+        : [...prev.materials, material],
     }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!formData.makerName.trim()) {
-      setError("Please enter your maker name");
-      return;
-    }
-
-    if (formData.equipmentTypes.length === 0) {
-      setError("Please select at least one equipment type");
-      return;
-    }
-
-    if (formData.availableMaterials.length === 0) {
-      setError("Please select at least one available material");
-      return;
-    }
-
-    if (!formData.city.trim()) {
-      setError("Please enter your city");
-      return;
-    }
-
-    setSubmitting(true);
     setError(null);
 
-    try {
-      const registrationData = {
-        name: formData.makerName.trim(),
-        description: formData.description.trim() || undefined,
-        equipment_types: formData.equipmentTypes,
-        available_materials: formData.availableMaterials.map(m => m.toLowerCase()),
-        location: {
-          city: formData.city.trim(),
-          country: formData.country
-        },
-        contact_info: {
-          email: formData.contactEmail.trim() || undefined,
-          phone: formData.contactPhone.trim() || undefined,
-          website: formData.website.trim() || undefined
-        },
-        experience: formData.experience.trim() || undefined,
-        min_order_quantity: formData.minOrderQuantity,
-        max_order_quantity: formData.maxOrderQuantity,
-        specialties: formData.specialties.trim() || undefined
-      };
+    if (!formData.printer_brand.trim()) { setError("Printer Brand is required"); return; }
+    if (!formData.printer_model.trim()) { setError("Printer Model is required"); return; }
+    if (!formData.build_volume_x || parseFloat(formData.build_volume_x) <= 0) { setError("Build Volume X must be > 0"); return; }
+    if (!formData.build_volume_y || parseFloat(formData.build_volume_y) <= 0) { setError("Build Volume Y must be > 0"); return; }
+    if (!formData.build_volume_z || parseFloat(formData.build_volume_z) <= 0) { setError("Build Volume Z must be > 0"); return; }
+    if (formData.materials.length === 0) { setError("Select at least one material"); return; }
+    if (!formData.location_province.trim()) { setError("Province is required"); return; }
+    if (!formData.location_city.trim()) { setError("City is required"); return; }
+    if (!formData.location_district.trim()) { setError("District is required"); return; }
+    if (!formData.pricing_per_hour_cny || parseFloat(formData.pricing_per_hour_cny) <= 0) { setError("Pricing must be > 0"); return; }
 
+    setSubmitting(true);
+    try {
       const response = await fetch(`${API_URL}/makers/register`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify(registrationData)
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          maker_type: formData.maker_type,
+          printer_brand: formData.printer_brand.trim(),
+          printer_model: formData.printer_model.trim(),
+          build_volume_x: parseFloat(formData.build_volume_x),
+          build_volume_y: parseFloat(formData.build_volume_y),
+          build_volume_z: parseFloat(formData.build_volume_z),
+          materials: formData.materials,
+          location_province: formData.location_province.trim(),
+          location_city: formData.location_city.trim(),
+          location_district: formData.location_district.trim(),
+          pricing_per_hour_cny: parseFloat(formData.pricing_per_hour_cny),
+          description: formData.description.trim() || undefined,
+        }),
       });
 
       if (response.ok) {
-        const result = await response.json();
-        // Success! Redirect to dashboard
-        router.push('/dashboard');
+        router.push("/dashboard");
       } else {
         const errorData = await response.json();
-        setError(errorData.detail || 'Registration failed');
+        setError(errorData.detail || "Registration failed");
       }
-    } catch (err) {
-      setError('Network error. Please try again.');
+    } catch {
+      setError("Network error. Please try again.");
     } finally {
       setSubmitting(false);
     }
   };
 
+  const inputCls = "w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent";
+
   return (
     <div className="min-h-screen bg-slate-950 text-white">
-      {/* Header */}
       <header className="border-b border-slate-800">
         <div className="max-w-4xl mx-auto px-6 py-4">
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            <span>👨‍🔧</span> Register as a Maker
-          </h1>
-          <p className="text-slate-400 text-sm mt-1">
-            Join our network of manufacturing professionals
-          </p>
+          <h1 className="text-2xl font-bold flex items-center gap-2">👨‍🔧 Register as a Maker</h1>
+          <p className="text-slate-400 text-sm mt-1">Join our network of manufacturing professionals</p>
         </div>
       </header>
 
       <div className="max-w-4xl mx-auto px-6 py-8">
         {error && (
-          <div className="mb-6 p-4 bg-red-900/50 border border-red-800 rounded-lg text-red-200">
-            {error}
-          </div>
+          <div className="mb-6 p-4 bg-red-900/50 border border-red-800 rounded-lg text-red-200">{error}</div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-8">
-          {/* Basic Information */}
+          {/* Maker Type */}
           <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-6">
-            <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
-              <span>📝</span> Basic Information
-            </h2>
-            <div className="space-y-6">
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">
-                  Maker Name *
-                </label>
-                <input
-                  type="text"
-                  value={formData.makerName}
-                  onChange={(e) => setFormData(prev => ({ ...prev, makerName: e.target.value }))}
-                  placeholder="Your business or professional name"
-                  required
-                  className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent"
-                />
-              </div>
+            <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">📝 Maker Type</h2>
+            <div className="flex gap-4">
+              {(["maker", "builder"] as const).map(t => (
+                <button key={t} type="button" onClick={() => setFormData(prev => ({ ...prev, maker_type: t }))}
+                  className={`flex-1 p-4 rounded-lg border text-center capitalize transition-colors ${formData.maker_type === t ? "border-sky-500 bg-sky-900/20 text-sky-400" : "border-slate-700 hover:border-slate-600 text-slate-300"}`}>
+                  {t === "maker" ? "🖨️" : "🔧"} {t}
+                </button>
+              ))}
+            </div>
+          </div>
 
+          {/* Printer Info */}
+          <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-6">
+            <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">🖨️ Printer Information</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">
-                  Description
-                </label>
-                <textarea
-                  value={formData.description}
-                  onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                  placeholder="Tell potential customers about your services, quality, and experience..."
-                  rows={4}
-                  className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent resize-none"
-                />
+                <label className="block text-sm font-medium text-slate-300 mb-2">Printer Brand *</label>
+                <input type="text" value={formData.printer_brand} onChange={e => setFormData(prev => ({ ...prev, printer_brand: e.target.value }))} placeholder="e.g. Bambu Lab" required className={inputCls} />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-2">Printer Model *</label>
+                <input type="text" value={formData.printer_model} onChange={e => setFormData(prev => ({ ...prev, printer_model: e.target.value }))} placeholder="e.g. P1S" required className={inputCls} />
               </div>
             </div>
           </div>
 
-          {/* Equipment & Capabilities */}
+          {/* Build Volume */}
           <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-6">
-            <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
-              <span>🔧</span> Equipment & Capabilities
-            </h2>
-            
-            <div className="space-y-6">
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-3">
-                  Equipment Types *
-                </label>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                  {EQUIPMENT_TYPES.map((equipment) => (
-                    <label
-                      key={equipment.id}
-                      className={`flex items-center p-4 rounded-lg border cursor-pointer transition-colors ${
-                        formData.equipmentTypes.includes(equipment.id)
-                          ? 'border-sky-500 bg-sky-900/20'
-                          : 'border-slate-700 hover:border-slate-600 hover:bg-slate-800/50'
-                      }`}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={formData.equipmentTypes.includes(equipment.id)}
-                        onChange={() => handleEquipmentToggle(equipment.id)}
-                        className="sr-only"
-                      />
-                      <div className="text-2xl mr-3">{equipment.icon}</div>
-                      <div className="font-medium">{equipment.name}</div>
-                    </label>
-                  ))}
+            <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">📐 Build Volume (mm)</h2>
+            <div className="grid grid-cols-3 gap-4">
+              {(["x", "y", "z"] as const).map(axis => (
+                <div key={axis}>
+                  <label className="block text-xs text-slate-400 mb-1">{axis.toUpperCase()}</label>
+                  <input type="number" min="0.1" step="any" value={formData[`build_volume_${axis}`]} onChange={e => setFormData(prev => ({ ...prev, [`build_volume_${axis}`]: e.target.value }))} placeholder="256" required className={inputCls} />
                 </div>
-              </div>
+              ))}
+            </div>
+          </div>
 
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-3">
-                  Available Materials *
-                </label>
-                <div className="flex flex-wrap gap-2">
-                  {MATERIALS.map((material) => (
-                    <button
-                      key={material}
-                      type="button"
-                      onClick={() => handleMaterialToggle(material)}
-                      className={`px-3 py-2 text-sm rounded-full transition-colors ${
-                        formData.availableMaterials.includes(material)
-                          ? 'bg-sky-600 text-white'
-                          : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
-                      }`}
-                    >
-                      {formData.availableMaterials.includes(material) && "✓ "}
-                      {material}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">
-                    Min Order Quantity
-                  </label>
-                  <input
-                    type="number"
-                    min="1"
-                    value={formData.minOrderQuantity}
-                    onChange={(e) => setFormData(prev => ({ ...prev, minOrderQuantity: parseInt(e.target.value) || 1 }))}
-                    className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">
-                    Max Order Quantity
-                  </label>
-                  <input
-                    type="number"
-                    min="1"
-                    value={formData.maxOrderQuantity}
-                    onChange={(e) => setFormData(prev => ({ ...prev, maxOrderQuantity: parseInt(e.target.value) || 100 }))}
-                    className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent"
-                  />
-                </div>
-              </div>
+          {/* Materials */}
+          <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-6">
+            <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">🧪 Supported Materials *</h2>
+            <div className="flex flex-wrap gap-2">
+              {MATERIALS.map(m => (
+                <button key={m} type="button" onClick={() => handleMaterialToggle(m)}
+                  className={`px-3 py-2 text-sm rounded-full transition-colors ${formData.materials.includes(m) ? "bg-sky-600 text-white" : "bg-slate-700 text-slate-300 hover:bg-slate-600"}`}>
+                  {formData.materials.includes(m) && "✓ "}{m}
+                </button>
+              ))}
             </div>
           </div>
 
           {/* Location */}
           <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-6">
-            <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
-              <span>📍</span> Location
-            </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">📍 Location</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">
-                  City *
-                </label>
-                <input
-                  type="text"
-                  value={formData.city}
-                  onChange={(e) => setFormData(prev => ({ ...prev, city: e.target.value }))}
-                  placeholder="New York"
-                  required
-                  className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent"
-                />
+                <label className="block text-sm font-medium text-slate-300 mb-2">Province *</label>
+                <input type="text" value={formData.location_province} onChange={e => setFormData(prev => ({ ...prev, location_province: e.target.value }))} placeholder="e.g. Guangdong" required className={inputCls} />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">
-                  Country *
-                </label>
-                <select
-                  value={formData.country}
-                  onChange={(e) => setFormData(prev => ({ ...prev, country: e.target.value }))}
-                  className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent"
-                >
-                  {COUNTRIES.map(country => (
-                    <option key={country} value={country}>{country}</option>
-                  ))}
-                </select>
+                <label className="block text-sm font-medium text-slate-300 mb-2">City *</label>
+                <input type="text" value={formData.location_city} onChange={e => setFormData(prev => ({ ...prev, location_city: e.target.value }))} placeholder="e.g. Shenzhen" required className={inputCls} />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-2">District *</label>
+                <input type="text" value={formData.location_district} onChange={e => setFormData(prev => ({ ...prev, location_district: e.target.value }))} placeholder="e.g. Nanshan" required className={inputCls} />
               </div>
             </div>
           </div>
 
-          {/* Contact Information */}
+          {/* Pricing */}
           <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-6">
-            <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
-              <span>📞</span> Contact Information
-            </h2>
-            <div className="space-y-6">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">
-                    Email
-                  </label>
-                  <input
-                    type="email"
-                    value={formData.contactEmail}
-                    onChange={(e) => setFormData(prev => ({ ...prev, contactEmail: e.target.value }))}
-                    placeholder="your@email.com"
-                    className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">
-                    Phone
-                  </label>
-                  <input
-                    type="tel"
-                    value={formData.contactPhone}
-                    onChange={(e) => setFormData(prev => ({ ...prev, contactPhone: e.target.value }))}
-                    placeholder="+1 (555) 123-4567"
-                    className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent"
-                  />
-                </div>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">
-                  Website
-                </label>
-                <input
-                  type="url"
-                  value={formData.website}
-                  onChange={(e) => setFormData(prev => ({ ...prev, website: e.target.value }))}
-                  placeholder="https://your-website.com"
-                  className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent"
-                />
-              </div>
+            <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">💰 Pricing</h2>
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-2">Pricing per Hour (CNY) *</label>
+              <input type="number" min="0.01" step="any" value={formData.pricing_per_hour_cny} onChange={e => setFormData(prev => ({ ...prev, pricing_per_hour_cny: e.target.value }))} placeholder="e.g. 15.00" required className={inputCls} />
             </div>
           </div>
 
-          {/* Additional Information */}
+          {/* Description */}
           <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-6">
-            <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
-              <span>💡</span> Additional Information
-            </h2>
-            <div className="space-y-6">
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">
-                  Experience
-                </label>
-                <textarea
-                  value={formData.experience}
-                  onChange={(e) => setFormData(prev => ({ ...prev, experience: e.target.value }))}
-                  placeholder="Describe your experience, certifications, or notable projects..."
-                  rows={3}
-                  className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent resize-none"
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">
-                  Specialties
-                </label>
-                <textarea
-                  value={formData.specialties}
-                  onChange={(e) => setFormData(prev => ({ ...prev, specialties: e.target.value }))}
-                  placeholder="Any special techniques, finishing options, or unique capabilities..."
-                  rows={3}
-                  className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent resize-none"
-                />
-              </div>
-            </div>
+            <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">💡 Description</h2>
+            <textarea value={formData.description} onChange={e => setFormData(prev => ({ ...prev, description: e.target.value }))} placeholder="Tell customers about your services, quality, and experience..." rows={4} className={`${inputCls} resize-none`} />
           </div>
 
           {/* Submit */}
           <div className="flex items-center justify-between">
-            <button
-              type="button"
-              onClick={() => router.back()}
-              className="px-4 py-2 text-slate-400 hover:text-slate-300 transition-colors"
-            >
-              ← Cancel
-            </button>
-            
-            <button
-              type="submit"
-              disabled={submitting || formData.equipmentTypes.length === 0 || formData.availableMaterials.length === 0}
-              className="px-8 py-3 bg-sky-600 hover:bg-sky-500 disabled:bg-slate-700 disabled:text-slate-500 text-white rounded-lg font-medium transition-colors"
-            >
+            <button type="button" onClick={() => router.back()} className="px-4 py-2 text-slate-400 hover:text-slate-300 transition-colors">← Cancel</button>
+            <button type="submit" disabled={submitting} className="px-8 py-3 bg-sky-600 hover:bg-sky-500 disabled:bg-slate-700 disabled:text-slate-500 text-white rounded-lg font-medium transition-colors">
               {submitting ? "Registering..." : "Register as Maker →"}
             </button>
           </div>

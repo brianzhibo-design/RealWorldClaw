@@ -29,7 +29,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           rel="stylesheet"
         />
       </head>
-      <body className="min-h-screen bg-zinc-950 text-zinc-100 antialiased">
+      <body className="min-h-screen bg-slate-950 text-zinc-100 antialiased">
         {googleClientId ? (
           <GoogleOAuthProvider clientId={googleClientId}>
             {content}

@@ -99,9 +99,9 @@ export default function CommunityPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen bg-slate-950 text-foreground">
       {/* Header */}
-      <header className="border-b bg-background/80 backdrop-blur-sm">
+      <header className="border-b bg-slate-950/80 backdrop-blur-sm">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
@@ -145,7 +145,7 @@ export default function CommunityPage() {
                   <span>{type.icon}</span>
                   {type.label}
                   {type.key && (
-                    <span className="ml-1 px-2 py-0.5 bg-background rounded-full text-xs">
+                    <span className="ml-1 px-2 py-0.5 bg-slate-950 rounded-full text-xs">
                       {filteredPosts.length}
                     </span>
                   )}

@@ -131,7 +131,7 @@ export default function PostDetailPage() {
         return (
           <Link
             href={`/submit?fork=${post.id}`}
-            className="px-6 py-3 bg-purple-600 hover:bg-purple-500 rounded-lg font-medium transition-colors flex items-center gap-2 shadow-lg"
+            className="px-6 py-3 bg-sky-600 hover:bg-sky-500 rounded-lg font-medium transition-colors flex items-center gap-2 shadow-lg"
           >
             <span>🔧</span>
             Fork This Design

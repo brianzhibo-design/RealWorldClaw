@@ -19,6 +19,8 @@ from ..models.community import (
     PostResponse,
     PostSortType,
     PostType,
+    VoteRequest,
+    VoteResponse,
 )
 
 router = APIRouter(prefix="/community", tags=["community"])
@@ -33,6 +35,11 @@ def _row_to_post_response(row: dict) -> PostResponse:
         except json.JSONDecodeError:
             images = None
     
+    # Handle upvotes/downvotes columns that may not exist yet
+    keys = row.keys() if hasattr(row, 'keys') else row
+    upvotes = row["upvotes"] if "upvotes" in keys else 0
+    downvotes = row["downvotes"] if "downvotes" in keys else 0
+    
     return PostResponse(
         id=row["id"],
         title=row["title"],
@@ -44,6 +51,8 @@ def _row_to_post_response(row: dict) -> PostResponse:
         images=images,
         comment_count=row["comment_count"],
         likes_count=row["likes_count"],
+        upvotes=upvotes,
+        downvotes=downvotes,
         created_at=row["created_at"],
         updated_at=row["updated_at"]
     )
@@ -264,3 +273,92 @@ async def get_post_comments(
         )
         for row in rows
     ]
+
+
+@router.post("/posts/{post_id}/vote", response_model=VoteResponse)
+async def vote_post(
+    post_id: str,
+    vote: VoteRequest,
+    identity: dict = Depends(get_authenticated_identity)
+):
+    """Vote on a community post. Toggle: same direction again removes the vote."""
+    
+    user_id = identity["identity_id"]
+    direction = vote.vote_type
+    now = datetime.now(timezone.utc).isoformat()
+    
+    with get_db() as db:
+        # Ensure community_votes table and columns exist
+        db.execute("""
+            CREATE TABLE IF NOT EXISTS community_votes (
+                id TEXT PRIMARY KEY,
+                post_id TEXT NOT NULL,
+                user_id TEXT NOT NULL,
+                direction TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                UNIQUE(post_id, user_id)
+            )
+        """)
+        # Ensure upvotes/downvotes columns exist on community_posts
+        try:
+            db.execute("ALTER TABLE community_posts ADD COLUMN upvotes INTEGER NOT NULL DEFAULT 0")
+        except Exception:
+            pass
+        try:
+            db.execute("ALTER TABLE community_posts ADD COLUMN downvotes INTEGER NOT NULL DEFAULT 0")
+        except Exception:
+            pass
+        
+        # Check post exists
+        post_row = db.execute(
+            "SELECT id FROM community_posts WHERE id = ?", (post_id,)
+        ).fetchone()
+        if not post_row:
+            raise HTTPException(status_code=404, detail="Post not found")
+        
+        # Check existing vote
+        existing = db.execute(
+            "SELECT id, direction FROM community_votes WHERE post_id = ? AND user_id = ?",
+            (post_id, user_id)
+        ).fetchone()
+        
+        if existing:
+            old_dir = existing["direction"]
+            if old_dir == direction:
+                # Same direction → remove vote
+                db.execute("DELETE FROM community_votes WHERE id = ?", (existing["id"],))
+                col = "upvotes" if direction == "up" else "downvotes"
+                db.execute(f"UPDATE community_posts SET {col} = MAX(0, {col} - 1) WHERE id = ?", (post_id,))
+                user_vote = None
+            else:
+                # Different direction → switch
+                db.execute(
+                    "UPDATE community_votes SET direction = ?, created_at = ? WHERE id = ?",
+                    (direction, now, existing["id"])
+                )
+                if direction == "up":
+                    db.execute("UPDATE community_posts SET upvotes = upvotes + 1, downvotes = MAX(0, downvotes - 1) WHERE id = ?", (post_id,))
+                else:
+                    db.execute("UPDATE community_posts SET downvotes = downvotes + 1, upvotes = MAX(0, upvotes - 1) WHERE id = ?", (post_id,))
+                user_vote = direction
+        else:
+            # New vote
+            vote_id = str(uuid.uuid4())
+            db.execute(
+                "INSERT INTO community_votes (id, post_id, user_id, direction, created_at) VALUES (?, ?, ?, ?, ?)",
+                (vote_id, post_id, user_id, direction, now)
+            )
+            col = "upvotes" if direction == "up" else "downvotes"
+            db.execute(f"UPDATE community_posts SET {col} = {col} + 1 WHERE id = ?", (post_id,))
+            user_vote = direction
+        
+        # Get updated counts
+        row = db.execute(
+            "SELECT upvotes, downvotes FROM community_posts WHERE id = ?", (post_id,)
+        ).fetchone()
+    
+    return VoteResponse(
+        upvotes=row["upvotes"],
+        downvotes=row["downvotes"],
+        user_vote=user_vote
+    )

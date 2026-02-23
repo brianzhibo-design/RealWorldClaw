@@ -37,17 +37,7 @@ export default function SettingsPage() {
     confirm_password: ""
   });
   
-  // AI Settings (mock)
-  const [apiKey, setApiKey] = useState("sk-proj-••••••••••••••••••••••••••••••••••••••••");
-  const [showApiKey, setShowApiKey] = useState(false);
-  
-  // Notifications (mock)
-  const [notifications, setNotifications] = useState({
-    order_updates: true,
-    maker_messages: true,
-    marketing: false,
-    system_updates: true
-  });
+  // AI Settings and Notifications - coming soon
 
   const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
 
@@ -166,12 +156,7 @@ export default function SettingsPage() {
     }
   };
 
-  const handleNotificationToggle = (key: keyof typeof notifications) => {
-    setNotifications(prev => ({
-      ...prev,
-      [key]: !prev[key]
-    }));
-  };
+  // notification toggle removed - coming soon
 
   if (loading) {
     return (
@@ -380,7 +365,7 @@ export default function SettingsPage() {
             {/* AI Connection Tab */}
             {activeTab === "ai" && (
               <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-6">
-                <div className="flex items-center gap-4 mb-8">
+                <div className="flex items-center gap-4 mb-6">
                   <div className="w-16 h-16 bg-slate-800 rounded-full flex items-center justify-center text-2xl">
                     🤖
                   </div>
@@ -391,49 +376,14 @@ export default function SettingsPage() {
                     </p>
                   </div>
                 </div>
-
-                <div className="space-y-6">
-                  <div>
-                    <label className="block text-sm font-medium text-slate-300 mb-2">
-                      OpenAI API Key
-                    </label>
-                    <div className="flex gap-3">
-                      <input
-                        type={showApiKey ? "text" : "password"}
-                        value={apiKey}
-                        onChange={(e) => setApiKey(e.target.value)}
-                        className="flex-1 px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowApiKey(!showApiKey)}
-                        className="px-4 py-3 bg-slate-700 hover:bg-slate-600 text-white rounded-lg transition-colors"
-                      >
-                        {showApiKey ? "👁️" : "👁️‍🗨️"}
-                      </button>
-                    </div>
-                    <p className="text-xs text-slate-500 mt-2">
-                      This is a mock setting. Your actual API key would be stored securely.
-                    </p>
-                  </div>
-
-                  <div className="bg-yellow-900/20 border border-yellow-800 rounded-lg p-4">
-                    <div className="flex items-center gap-2 text-yellow-400 mb-2">
-                      <span>⚠️</span>
-                      <span className="font-medium">Development Mode</span>
-                    </div>
-                    <p className="text-sm text-yellow-300">
-                      AI integrations are currently in development. This section shows mock data for preview purposes.
-                    </p>
-                  </div>
-                </div>
+                <p className="text-slate-500 text-sm">🚧 Coming Soon — AI integrations are under development.</p>
               </div>
             )}
 
             {/* Notifications Tab */}
             {activeTab === "notifications" && (
               <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-6">
-                <div className="flex items-center gap-4 mb-8">
+                <div className="flex items-center gap-4 mb-6">
                   <div className="w-16 h-16 bg-slate-800 rounded-full flex items-center justify-center text-2xl">
                     🔔
                   </div>
@@ -444,44 +394,7 @@ export default function SettingsPage() {
                     </p>
                   </div>
                 </div>
-
-                <div className="space-y-6">
-                  {[
-                    { key: "order_updates", label: "Order Updates", description: "Get notified when your order status changes" },
-                    { key: "maker_messages", label: "Maker Messages", description: "Messages from makers working on your orders" },
-                    { key: "system_updates", label: "System Updates", description: "Important platform updates and maintenance notices" },
-                    { key: "marketing", label: "Marketing", description: "Tips, feature updates, and platform news" }
-                  ].map((item) => (
-                    <div key={item.key} className="flex items-center justify-between p-4 bg-slate-800/50 rounded-lg border border-slate-700">
-                      <div>
-                        <div className="font-medium text-white">{item.label}</div>
-                        <div className="text-sm text-slate-400">{item.description}</div>
-                      </div>
-                      <button
-                        onClick={() => handleNotificationToggle(item.key as keyof typeof notifications)}
-                        className={`relative w-12 h-6 rounded-full transition-colors ${
-                          notifications[item.key as keyof typeof notifications] ? 'bg-sky-600' : 'bg-slate-600'
-                        }`}
-                      >
-                        <span
-                          className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform ${
-                            notifications[item.key as keyof typeof notifications] ? 'translate-x-6' : 'translate-x-0'
-                          }`}
-                        />
-                      </button>
-                    </div>
-                  ))}
-
-                  <div className="bg-blue-900/20 border border-blue-800 rounded-lg p-4">
-                    <div className="flex items-center gap-2 text-blue-400 mb-2">
-                      <span>ℹ️</span>
-                      <span className="font-medium">Note</span>
-                    </div>
-                    <p className="text-sm text-blue-300">
-                      These are mock notification settings for preview purposes. In production, changes would be saved automatically.
-                    </p>
-                  </div>
-                </div>
+                <p className="text-slate-500 text-sm">🚧 Coming Soon — Notification preferences are under development.</p>
               </div>
             )}
 

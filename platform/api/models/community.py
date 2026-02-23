@@ -50,6 +50,16 @@ class CommentResponse(BaseModel):
     updated_at: str
 
 
+class VoteRequest(BaseModel):
+    vote_type: str = Field(..., pattern="^(up|down)$")
+
+
+class VoteResponse(BaseModel):
+    upvotes: int
+    downvotes: int
+    user_vote: Optional[str] = None  # "up", "down", or null
+
+
 class PostResponse(BaseModel):
     id: str
     title: str
@@ -61,6 +71,8 @@ class PostResponse(BaseModel):
     images: Optional[list[str]] = None
     comment_count: int
     likes_count: int
+    upvotes: int = 0
+    downvotes: int = 0
     created_at: str
     updated_at: str
 
@@ -111,4 +123,17 @@ CREATE INDEX IF NOT EXISTS idx_community_posts_type ON community_posts(post_type
 CREATE INDEX IF NOT EXISTS idx_community_posts_created_at ON community_posts(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_community_comments_post_id ON community_comments(post_id);
 CREATE INDEX IF NOT EXISTS idx_community_comments_author ON community_comments(author_id, author_type);
+
+CREATE TABLE IF NOT EXISTS community_votes (
+    id TEXT PRIMARY KEY,
+    post_id TEXT NOT NULL,
+    user_id TEXT NOT NULL,
+    direction TEXT NOT NULL,  -- 'up' or 'down'
+    created_at TEXT NOT NULL,
+    UNIQUE(post_id, user_id),
+    FOREIGN KEY (post_id) REFERENCES community_posts (id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_community_votes_post ON community_votes(post_id);
+CREATE INDEX IF NOT EXISTS idx_community_votes_user ON community_votes(user_id);
 """

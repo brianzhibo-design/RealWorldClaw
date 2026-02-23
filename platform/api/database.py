@@ -355,6 +355,16 @@ def init_db():
         db.executescript(FILES_TABLE_SQL)
         db.executescript(COMMUNITY_TABLES_SQL)
         
+        # Migrate community_posts: add upvotes/downvotes if missing
+        try:
+            db.execute("ALTER TABLE community_posts ADD COLUMN upvotes INTEGER NOT NULL DEFAULT 0")
+        except Exception:
+            pass
+        try:
+            db.execute("ALTER TABLE community_posts ADD COLUMN downvotes INTEGER NOT NULL DEFAULT 0")
+        except Exception:
+            pass
+        
         # Add new columns to existing orders table if they don't exist
         try:
             db.execute("ALTER TABLE orders ADD COLUMN file_id TEXT")
