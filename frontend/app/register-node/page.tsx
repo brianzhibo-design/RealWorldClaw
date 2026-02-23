@@ -110,7 +110,7 @@ export default function RegisterNodePage() {
           latitude: lat,
           longitude: lng,
           capabilities: formData.capabilities.length > 0 ? formData.capabilities : undefined,
-          materials: formData.materials.length > 0 ? formData.materials.map(n => ({ name: n })) : undefined,
+          materials: formData.materials.length > 0 ? formData.materials.map(n => n.toLowerCase()) : undefined,
           build_volume_x: bvx,
           build_volume_y: bvy,
           build_volume_z: bvz,
