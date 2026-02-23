@@ -127,7 +127,7 @@ export function HamburgerMenu() {
                 {/* Additional Actions */}
                 <div className="mt-8 pt-6 border-t border-border space-y-2">
                   <Link
-                    href="/submit"
+                    href="/orders/new"
                     onClick={closeMenu}
                     className="flex items-center gap-3 px-4 py-3 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
                   >

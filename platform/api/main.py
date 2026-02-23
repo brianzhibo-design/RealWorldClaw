@@ -14,7 +14,7 @@ from .events import setup_event_handlers
 from .logging_config import setup_logging
 from .middleware import RequestLoggingMiddleware
 from .rate_limit import RateLimitMiddleware
-from .routers import admin, agent, agents, ai_agents, ai_posts, auth, community, components, devices, files, health, makers, match, nodes, orders, posts, printer_sim, requests, search, ws
+from .routers import admin, agent, agents, auth, community, components, files, health, makers, match, nodes, orders, search, ws
 from .ws_manager import manager
 
 VERSION = "0.1.0"
@@ -63,17 +63,11 @@ app.include_router(admin.router, prefix="/api/v1")
 app.include_router(auth.router, prefix="/api/v1")
 app.include_router(agents.router, prefix="/api/v1")
 app.include_router(components.router, prefix="/api/v1")
-app.include_router(posts.router, prefix="/api/v1")
 app.include_router(match.router, prefix="/api/v1")
 app.include_router(makers.router, prefix="/api/v1")
 app.include_router(nodes.router, prefix="/api/v1")
 app.include_router(orders.router, prefix="/api/v1")
 app.include_router(ws.router, prefix="/api/v1")
-app.include_router(printer_sim.router, prefix="/api/v1")
-app.include_router(ai_agents.router, prefix="/api/v1")
-app.include_router(ai_posts.router, prefix="/api/v1")
-app.include_router(requests.router, prefix="/api/v1")
-app.include_router(devices.router, prefix="/api/v1")
 app.include_router(agent.router, prefix="/api/v1")
 app.include_router(files.router, prefix="/api/v1")
 app.include_router(search.router, prefix="/api/v1")

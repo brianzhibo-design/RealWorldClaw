@@ -227,7 +227,7 @@ export default function PostDetailPage() {
             <Link href="/community" className="text-white font-medium">
               Community
             </Link>
-            <Link href="/submit" className="text-slate-300 hover:text-white transition-colors">
+            <Link href="/orders/new" className="text-slate-300 hover:text-white transition-colors">
               Submit
             </Link>
             <Link href="https://realworldclaw-api.fly.dev/docs" target="_blank" className="text-slate-300 hover:text-white transition-colors">
@@ -444,7 +444,7 @@ export default function PostDetailPage() {
                     💬 New Post
                   </Link>
                   <Link
-                    href="/submit"
+                    href="/orders/new"
                     className="block w-full px-4 py-2 bg-green-600 hover:bg-green-500 rounded-lg text-center text-sm font-medium transition-colors"
                   >
                     📤 Submit Design

@@ -149,7 +149,7 @@ export default function OrdersPage() {
               </p>
             </div>
             <a
-              href="/submit"
+              href="/orders/new"
               className="px-4 py-3 bg-sky-600 hover:bg-sky-500 rounded-lg text-sm font-medium transition-colors text-center min-h-[44px] flex items-center justify-center"
             >
               + Submit Design
@@ -217,7 +217,7 @@ export default function OrdersPage() {
               }
             </p>
             <a
-              href="/submit"
+              href="/orders/new"
               className="inline-flex items-center gap-2 px-6 py-3 bg-sky-600 hover:bg-sky-500 text-white rounded-lg font-medium transition-colors"
             >
               <span>🚀</span>

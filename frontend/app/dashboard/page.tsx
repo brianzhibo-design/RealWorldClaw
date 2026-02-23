@@ -234,7 +234,7 @@ export default function DashboardPage() {
             </Card>
           </Link>
 
-          <Link href="/submit">
+          <Link href="/orders/new">
             <Card className="p-3 sm:p-4 hover:bg-accent/50 transition-colors cursor-pointer min-h-[120px] sm:min-h-[140px]">
               <div className="text-center">
                 <div className="w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-2 sm:mb-3 bg-green-500/20 text-green-400 rounded-lg flex items-center justify-center text-lg sm:text-xl">

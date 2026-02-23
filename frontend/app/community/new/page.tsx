@@ -133,7 +133,7 @@ export default function NewPostPage() {
             <Link href="/community" className="text-slate-300 hover:text-white transition-colors">
               Community
             </Link>
-            <Link href="/submit" className="text-slate-300 hover:text-white transition-colors">
+            <Link href="/orders/new" className="text-slate-300 hover:text-white transition-colors">
               Submit
             </Link>
             <Link href="https://realworldclaw-api.fly.dev/docs" target="_blank" className="text-slate-300 hover:text-white transition-colors">
