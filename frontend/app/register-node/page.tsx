@@ -23,11 +23,14 @@ export default function RegisterNodePage() {
   // Form state
   const [deviceType, setDeviceType] = useState("3d_printer");
   const [deviceName, setDeviceName] = useState("");
+  const [deviceBrand, setDeviceBrand] = useState("");
+  const [deviceModel, setDeviceModel] = useState("");
   const [buildVolumeX, setBuildVolumeX] = useState("");
   const [buildVolumeY, setBuildVolumeY] = useState("");
   const [buildVolumeZ, setBuildVolumeZ] = useState("");
   const [selectedMaterials, setSelectedMaterials] = useState<string[]>(["PLA"]);
-  const [location, setLocation] = useState("");
+  const [city, setCity] = useState("");
+  const [country, setCountry] = useState("United States");
   const [description, setDescription] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -81,8 +84,8 @@ export default function RegisterNodePage() {
       return;
     }
 
-    if (!location.trim()) {
-      setError("Location is required");
+    if (!city.trim()) {
+      setError("City is required");
       return;
     }
 
@@ -96,15 +99,20 @@ export default function RegisterNodePage() {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          device_type: deviceType,
           device_name: deviceName.trim(),
+          device_type: deviceType,
+          device_brand: deviceBrand.trim() || undefined,
+          device_model: deviceModel.trim() || undefined,
           build_volume: {
             x: parseInt(buildVolumeX),
             y: parseInt(buildVolumeY),
             z: parseInt(buildVolumeZ),
           },
-          supported_materials: selectedMaterials,
-          location: location.trim(),
+          supported_materials: selectedMaterials.map(m => m.toLowerCase()),
+          location: {
+            city: city.trim(),
+            country: country
+          },
           description: description.trim() || undefined,
         }),
       });
@@ -184,17 +192,42 @@ export default function RegisterNodePage() {
             </div>
           </div>
 
-          {/* Device Name */}
-          <div>
-            <label className="block text-sm font-medium mb-2">Device Name *</label>
-            <input
-              type="text"
-              value={deviceName}
-              onChange={(e) => setDeviceName(e.target.value)}
-              placeholder="e.g., My Bambu Lab X1 Carbon"
-              className="w-full px-4 py-3 bg-slate-900 border border-slate-800 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent"
-              required
-            />
+          {/* Device Information */}
+          <div className="space-y-6">
+            <div>
+              <label className="block text-sm font-medium mb-2">Device Name *</label>
+              <input
+                type="text"
+                value={deviceName}
+                onChange={(e) => setDeviceName(e.target.value)}
+                placeholder="e.g., My Main 3D Printer"
+                className="w-full px-4 py-3 bg-slate-900 border border-slate-800 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent"
+                required
+              />
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium mb-2">Brand</label>
+                <input
+                  type="text"
+                  value={deviceBrand}
+                  onChange={(e) => setDeviceBrand(e.target.value)}
+                  placeholder="e.g., Bambu Lab, Prusa, Ultimaker"
+                  className="w-full px-4 py-3 bg-slate-900 border border-slate-800 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">Model</label>
+                <input
+                  type="text"
+                  value={deviceModel}
+                  onChange={(e) => setDeviceModel(e.target.value)}
+                  placeholder="e.g., X1 Carbon, MK4, S3"
+                  className="w-full px-4 py-3 bg-slate-900 border border-slate-800 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent"
+                />
+              </div>
+            </div>
           </div>
 
           {/* Build Volume */}
@@ -270,17 +303,40 @@ export default function RegisterNodePage() {
 
           {/* Location */}
           <div>
-            <label className="block text-sm font-medium mb-2">Location *</label>
-            <input
-              type="text"
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
-              placeholder="e.g., San Francisco, CA or 37.7749,-122.4194"
-              className="w-full px-4 py-3 bg-slate-900 border border-slate-800 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent"
-              required
-            />
-            <div className="text-xs text-slate-400 mt-1">
-              City name or coordinates. This will be automatically blurred for privacy.
+            <label className="block text-sm font-medium mb-4">Location *</label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs text-slate-400 mb-1">City</label>
+                <input
+                  type="text"
+                  value={city}
+                  onChange={(e) => setCity(e.target.value)}
+                  placeholder="San Francisco"
+                  className="w-full px-4 py-3 bg-slate-900 border border-slate-800 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-slate-400 mb-1">Country</label>
+                <select
+                  value={country}
+                  onChange={(e) => setCountry(e.target.value)}
+                  className="w-full px-4 py-3 bg-slate-900 border border-slate-800 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent"
+                >
+                  <option value="United States">United States</option>
+                  <option value="China">China</option>
+                  <option value="Germany">Germany</option>
+                  <option value="Japan">Japan</option>
+                  <option value="United Kingdom">United Kingdom</option>
+                  <option value="France">France</option>
+                  <option value="Canada">Canada</option>
+                  <option value="Australia">Australia</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+            </div>
+            <div className="text-xs text-slate-400 mt-2">
+              Your exact location will be automatically blurred for privacy protection.
             </div>
           </div>
 
@@ -309,6 +365,16 @@ export default function RegisterNodePage() {
               <div>
                 <span className="text-slate-400">Type:</span> {selectedDeviceType?.label}
               </div>
+              {deviceBrand && (
+                <div>
+                  <span className="text-slate-400">Brand:</span> {deviceBrand}
+                </div>
+              )}
+              {deviceModel && (
+                <div>
+                  <span className="text-slate-400">Model:</span> {deviceModel}
+                </div>
+              )}
               <div>
                 <span className="text-slate-400">Build Volume:</span> {buildVolumeX}×{buildVolumeY}×{buildVolumeZ} mm
               </div>
@@ -316,7 +382,7 @@ export default function RegisterNodePage() {
                 <span className="text-slate-400">Materials:</span> {selectedMaterials.join(", ") || "None selected"}
               </div>
               <div>
-                <span className="text-slate-400">Location:</span> {location || "Not specified"}
+                <span className="text-slate-400">Location:</span> {city && country ? `${city}, ${country}` : "Not specified"}
               </div>
             </div>
           </div>

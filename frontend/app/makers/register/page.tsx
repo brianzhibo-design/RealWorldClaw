@@ -1,334 +1,439 @@
 "use client";
 
 import { useState } from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { useRouter } from "next/navigation";
-import { API_BASE } from "@/lib/api";
 
-const deviceTypes = [
-  { id: "3d_printer", name: "3D打印机", icon: "🖨️" },
-  { id: "cnc", name: "CNC加工中心", icon: "⚒️" },
-  { id: "laser_cutter", name: "激光切割机", icon: "⚡" },
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+
+const EQUIPMENT_TYPES = [
+  { id: "3d_printer", name: "3D Printer", icon: "🖨️" },
+  { id: "cnc", name: "CNC Machine", icon: "⚒️" },
+  { id: "laser_cutter", name: "Laser Cutter", icon: "⚡" },
+  { id: "injection_molding", name: "Injection Molding", icon: "🏭" },
+  { id: "other", name: "Other", icon: "🔧" }
 ];
 
-const materials = [
-  { id: "PLA", name: "PLA", color: "green" },
-  { id: "PETG", name: "PETG", color: "blue" },
-  { id: "ABS", name: "ABS", color: "orange" },
-  { id: "TPU", name: "TPU", color: "purple" },
-  { id: "WOOD", name: "木质材料", color: "amber" },
-  { id: "METAL", name: "金属材料", color: "gray" },
-  { id: "ACRYLIC", name: "亚克力", color: "cyan" },
-  { id: "CARBON_FIBER", name: "碳纤维", color: "slate" },
+const MATERIALS = [
+  "PLA", "PETG", "ABS", "TPU", "Resin", "Wood", "Metal", "Acrylic", "Carbon Fiber"
 ];
 
-const countries = [
-  "中国", "美国", "日本", "德国", "英国", "法国", "加拿大", "澳大利亚", "其他"
+const COUNTRIES = [
+  "United States", "China", "Germany", "Japan", "United Kingdom", "France", 
+  "Canada", "Australia", "Netherlands", "Italy", "Other"
 ];
 
-export default function NodeRegisterPage() {
+export default function MakerRegisterPage() {
+  const router = useRouter();
   const [formData, setFormData] = useState({
-    // Device info
-    deviceType: "",
-    deviceBrand: "",
-    deviceModel: "",
-    
-    // Capabilities
-    buildVolumeX: "",
-    buildVolumeY: "",
-    buildVolumeZ: "",
-    supportedMaterials: [] as string[],
-    
-    // Location
-    city: "",
-    country: "中国",
-    
-    // Description
+    makerName: "",
     description: "",
-    
-    // Contact (optional)
-    contactInfo: "",
+    equipmentTypes: [] as string[],
+    availableMaterials: [] as string[],
+    city: "",
+    country: "United States",
+    contactEmail: "",
+    contactPhone: "",
+    website: "",
+    experience: "",
+    minOrderQuantity: 1,
+    maxOrderQuantity: 100,
+    specialties: ""
   });
   
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const router = useRouter();
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleMaterialToggle = (materialId: string) => {
+  // Check auth
+  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+
+  if (!token) {
+    return (
+      <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-6xl mb-4">🔐</div>
+          <h2 className="text-xl font-bold mb-2">Authentication Required</h2>
+          <p className="text-slate-400 mb-6">Please sign in to register as a maker</p>
+          <a
+            href="/auth/login"
+            className="inline-block px-6 py-3 bg-sky-600 hover:bg-sky-500 text-white rounded-lg font-medium transition-colors"
+          >
+            Sign In →
+          </a>
+        </div>
+      </div>
+    );
+  }
+
+  const handleEquipmentToggle = (equipmentId: string) => {
     setFormData(prev => ({
       ...prev,
-      supportedMaterials: prev.supportedMaterials.includes(materialId)
-        ? prev.supportedMaterials.filter(m => m !== materialId)
-        : [...prev.supportedMaterials, materialId]
+      equipmentTypes: prev.equipmentTypes.includes(equipmentId)
+        ? prev.equipmentTypes.filter(t => t !== equipmentId)
+        : [...prev.equipmentTypes, equipmentId]
+    }));
+  };
+
+  const handleMaterialToggle = (material: string) => {
+    setFormData(prev => ({
+      ...prev,
+      availableMaterials: prev.availableMaterials.includes(material)
+        ? prev.availableMaterials.filter(m => m !== material)
+        : [...prev.availableMaterials, material]
     }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (formData.supportedMaterials.length === 0) {
-      alert("请至少选择一种支持的材料");
+    
+    if (!formData.makerName.trim()) {
+      setError("Please enter your maker name");
       return;
     }
 
-    setIsSubmitting(true);
+    if (formData.equipmentTypes.length === 0) {
+      setError("Please select at least one equipment type");
+      return;
+    }
+
+    if (formData.availableMaterials.length === 0) {
+      setError("Please select at least one available material");
+      return;
+    }
+
+    if (!formData.city.trim()) {
+      setError("Please enter your city");
+      return;
+    }
+
+    setSubmitting(true);
+    setError(null);
 
     try {
-      const token = localStorage.getItem('auth_token');
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json'
-      };
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-      }
-
       const registrationData = {
-        device_type: formData.deviceType,
-        device_brand: formData.deviceBrand,
-        device_model: formData.deviceModel,
-        build_volume: {
-          x: parseInt(formData.buildVolumeX),
-          y: parseInt(formData.buildVolumeY),
-          z: parseInt(formData.buildVolumeZ),
-        },
-        supported_materials: formData.supportedMaterials,
+        name: formData.makerName.trim(),
+        description: formData.description.trim() || undefined,
+        equipment_types: formData.equipmentTypes,
+        available_materials: formData.availableMaterials.map(m => m.toLowerCase()),
         location: {
-          city: formData.city,
-          country: formData.country,
+          city: formData.city.trim(),
+          country: formData.country
         },
-        description: formData.description,
-        contact_info: formData.contactInfo,
+        contact_info: {
+          email: formData.contactEmail.trim() || undefined,
+          phone: formData.contactPhone.trim() || undefined,
+          website: formData.website.trim() || undefined
+        },
+        experience: formData.experience.trim() || undefined,
+        min_order_quantity: formData.minOrderQuantity,
+        max_order_quantity: formData.maxOrderQuantity,
+        specialties: formData.specialties.trim() || undefined
       };
 
-      const response = await fetch(`${API_BASE}/nodes/register`, {
+      const response = await fetch(`${API_URL}/makers/register`, {
         method: 'POST',
-        headers,
-        body: JSON.stringify(registrationData),
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify(registrationData)
       });
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.detail || 'Registration failed');
+      if (response.ok) {
+        const result = await response.json();
+        // Success! Redirect to dashboard
+        router.push('/dashboard');
+      } else {
+        const errorData = await response.json();
+        setError(errorData.detail || 'Registration failed');
       }
-
-      const result = await response.json();
-      alert(`节点注册成功！节点ID: ${result.node_id || result.id}`);
-      router.push("/nodes");
-    } catch (error) {
-      console.error("Failed to register node:", error);
-      alert(`注册失败：${error instanceof Error ? error.message : '未知错误'}`);
+    } catch (err) {
+      setError('Network error. Please try again.');
     } finally {
-      setIsSubmitting(false);
+      setSubmitting(false);
     }
   };
 
-  const selectedDeviceType = deviceTypes.find(dt => dt.id === formData.deviceType);
-
   return (
-    <div className="mx-auto max-w-4xl px-4 py-16">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold">
-          <span className="bg-gradient-to-r from-orange-500 to-amber-400 bg-clip-text text-transparent">
-            注册制造节点
-          </span>
-        </h1>
-        <p className="text-zinc-400 mt-2">将你的制造设备接入RealWorldClaw网络，为全球用户提供制造服务</p>
-      </div>
+    <div className="min-h-screen bg-slate-950 text-white">
+      {/* Header */}
+      <header className="border-b border-slate-800">
+        <div className="max-w-4xl mx-auto px-6 py-4">
+          <h1 className="text-2xl font-bold flex items-center gap-2">
+            <span>👨‍🔧</span> Register as a Maker
+          </h1>
+          <p className="text-slate-400 text-sm mt-1">
+            Join our network of manufacturing professionals
+          </p>
+        </div>
+      </header>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Device Type */}
-        <Card className="bg-zinc-900/60 border-zinc-800">
-          <CardContent className="p-6">
-            <h3 className="text-lg font-medium mb-4">🔧 设备类型</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              {deviceTypes.map((type) => (
-                <div
-                  key={type.id}
-                  className={`cursor-pointer p-4 rounded-lg border-2 transition-colors text-center ${
-                    formData.deviceType === type.id
-                      ? "border-orange-500 bg-orange-500/10"
-                      : "border-zinc-700 bg-zinc-800/50 hover:border-zinc-600"
-                  }`}
-                  onClick={() => setFormData(prev => ({ ...prev, deviceType: type.id }))}
-                >
-                  <div className="text-3xl mb-2">{type.icon}</div>
-                  <div className="font-medium">{type.name}</div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+      <div className="max-w-4xl mx-auto px-6 py-8">
+        {error && (
+          <div className="mb-6 p-4 bg-red-900/50 border border-red-800 rounded-lg text-red-200">
+            {error}
+          </div>
+        )}
 
-        {/* Device Information */}
-        <Card className="bg-zinc-900/60 border-zinc-800">
-          <CardContent className="p-6">
-            <h3 className="text-lg font-medium mb-4">
-              {selectedDeviceType?.icon || "🖨️"} 设备信息
-            </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <form onSubmit={handleSubmit} className="space-y-8">
+          {/* Basic Information */}
+          <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-6">
+            <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
+              <span>📝</span> Basic Information
+            </h2>
+            <div className="space-y-6">
               <div>
-                <label className="block text-sm text-zinc-300 mb-2">品牌 *</label>
-                <Input
-                  value={formData.deviceBrand}
-                  onChange={(e) => setFormData(prev => ({ ...prev, deviceBrand: e.target.value }))}
-                  placeholder="例如：Bambu Lab, Prusa, Ultimaker"
-                  className="bg-zinc-800/50 border-zinc-700 focus:border-orange-500"
+                <label className="block text-sm font-medium text-slate-300 mb-2">
+                  Maker Name *
+                </label>
+                <input
+                  type="text"
+                  value={formData.makerName}
+                  onChange={(e) => setFormData(prev => ({ ...prev, makerName: e.target.value }))}
+                  placeholder="Your business or professional name"
                   required
+                  className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent"
                 />
               </div>
+
               <div>
-                <label className="block text-sm text-zinc-300 mb-2">型号 *</label>
-                <Input
-                  value={formData.deviceModel}
-                  onChange={(e) => setFormData(prev => ({ ...prev, deviceModel: e.target.value }))}
-                  placeholder="例如：P2S Pro, MK4, S3"
-                  className="bg-zinc-800/50 border-zinc-700 focus:border-orange-500"
-                  required
+                <label className="block text-sm font-medium text-slate-300 mb-2">
+                  Description
+                </label>
+                <textarea
+                  value={formData.description}
+                  onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                  placeholder="Tell potential customers about your services, quality, and experience..."
+                  rows={4}
+                  className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent resize-none"
                 />
               </div>
             </div>
+          </div>
+
+          {/* Equipment & Capabilities */}
+          <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-6">
+            <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
+              <span>🔧</span> Equipment & Capabilities
+            </h2>
             
-            <div className="mt-4">
-              <label className="block text-sm text-zinc-300 mb-2">构建体积 (mm) *</label>
-              <div className="grid grid-cols-3 gap-2">
-                <Input
-                  type="number"
-                  value={formData.buildVolumeX}
-                  onChange={(e) => setFormData(prev => ({ ...prev, buildVolumeX: e.target.value }))}
-                  placeholder="长 (X)"
-                  className="bg-zinc-800/50 border-zinc-700 focus:border-orange-500"
-                  required
-                />
-                <Input
-                  type="number"
-                  value={formData.buildVolumeY}
-                  onChange={(e) => setFormData(prev => ({ ...prev, buildVolumeY: e.target.value }))}
-                  placeholder="宽 (Y)"
-                  className="bg-zinc-800/50 border-zinc-700 focus:border-orange-500"
-                  required
-                />
-                <Input
-                  type="number"
-                  value={formData.buildVolumeZ}
-                  onChange={(e) => setFormData(prev => ({ ...prev, buildVolumeZ: e.target.value }))}
-                  placeholder="高 (Z)"
-                  className="bg-zinc-800/50 border-zinc-700 focus:border-orange-500"
-                  required
-                />
-              </div>
-              <p className="text-xs text-zinc-500 mt-1">例如：220×220×250</p>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Supported Materials */}
-        <Card className="bg-zinc-900/60 border-zinc-800">
-          <CardContent className="p-6">
-            <h3 className="text-lg font-medium mb-4">🧪 支持材料</h3>
-            <p className="text-sm text-zinc-500 mb-4">选择你的设备可以处理的材料类型</p>
-            <div className="flex flex-wrap gap-2">
-              {materials.map((material) => (
-                <Badge
-                  key={material.id}
-                  variant="outline"
-                  className={`cursor-pointer transition-colors ${
-                    formData.supportedMaterials.includes(material.id)
-                      ? `bg-${material.color}-500/20 text-${material.color}-400 border-${material.color}-500/40`
-                      : "border-zinc-600 text-zinc-400 hover:border-zinc-500"
-                  }`}
-                  onClick={() => handleMaterialToggle(material.id)}
-                >
-                  {formData.supportedMaterials.includes(material.id) && "✓ "}
-                  {material.name}
-                </Badge>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Location */}
-        <Card className="bg-zinc-900/60 border-zinc-800">
-          <CardContent className="p-6">
-            <h3 className="text-lg font-medium mb-4">📍 大致位置</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-6">
               <div>
-                <label className="block text-sm text-zinc-300 mb-2">城市 *</label>
-                <Input
+                <label className="block text-sm font-medium text-slate-300 mb-3">
+                  Equipment Types *
+                </label>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  {EQUIPMENT_TYPES.map((equipment) => (
+                    <label
+                      key={equipment.id}
+                      className={`flex items-center p-4 rounded-lg border cursor-pointer transition-colors ${
+                        formData.equipmentTypes.includes(equipment.id)
+                          ? 'border-sky-500 bg-sky-900/20'
+                          : 'border-slate-700 hover:border-slate-600 hover:bg-slate-800/50'
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={formData.equipmentTypes.includes(equipment.id)}
+                        onChange={() => handleEquipmentToggle(equipment.id)}
+                        className="sr-only"
+                      />
+                      <div className="text-2xl mr-3">{equipment.icon}</div>
+                      <div className="font-medium">{equipment.name}</div>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-3">
+                  Available Materials *
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {MATERIALS.map((material) => (
+                    <button
+                      key={material}
+                      type="button"
+                      onClick={() => handleMaterialToggle(material)}
+                      className={`px-3 py-2 text-sm rounded-full transition-colors ${
+                        formData.availableMaterials.includes(material)
+                          ? 'bg-sky-600 text-white'
+                          : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                      }`}
+                    >
+                      {formData.availableMaterials.includes(material) && "✓ "}
+                      {material}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">
+                    Min Order Quantity
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    value={formData.minOrderQuantity}
+                    onChange={(e) => setFormData(prev => ({ ...prev, minOrderQuantity: parseInt(e.target.value) || 1 }))}
+                    className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">
+                    Max Order Quantity
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    value={formData.maxOrderQuantity}
+                    onChange={(e) => setFormData(prev => ({ ...prev, maxOrderQuantity: parseInt(e.target.value) || 100 }))}
+                    className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Location */}
+          <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-6">
+            <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
+              <span>📍</span> Location
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-2">
+                  City *
+                </label>
+                <input
+                  type="text"
                   value={formData.city}
                   onChange={(e) => setFormData(prev => ({ ...prev, city: e.target.value }))}
-                  placeholder="上海市"
-                  className="bg-zinc-800/50 border-zinc-700 focus:border-orange-500"
+                  placeholder="New York"
                   required
+                  className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent"
                 />
               </div>
               <div>
-                <label className="block text-sm text-zinc-300 mb-2">国家 *</label>
+                <label className="block text-sm font-medium text-slate-300 mb-2">
+                  Country *
+                </label>
                 <select
                   value={formData.country}
                   onChange={(e) => setFormData(prev => ({ ...prev, country: e.target.value }))}
-                  className="w-full rounded-md bg-zinc-800/50 border border-zinc-700 px-3 py-2 text-sm focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500"
+                  className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent"
                 >
-                  {countries.map(country => (
+                  {COUNTRIES.map(country => (
                     <option key={country} value={country}>{country}</option>
                   ))}
                 </select>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
 
-        {/* Description & Contact */}
-        <Card className="bg-zinc-900/60 border-zinc-800">
-          <CardContent className="p-6">
-            <h3 className="text-lg font-medium mb-4">📝 描述信息</h3>
-            <div className="space-y-4">
+          {/* Contact Information */}
+          <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-6">
+            <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
+              <span>📞</span> Contact Information
+            </h2>
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">
+                    Email
+                  </label>
+                  <input
+                    type="email"
+                    value={formData.contactEmail}
+                    onChange={(e) => setFormData(prev => ({ ...prev, contactEmail: e.target.value }))}
+                    placeholder="your@email.com"
+                    className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">
+                    Phone
+                  </label>
+                  <input
+                    type="tel"
+                    value={formData.contactPhone}
+                    onChange={(e) => setFormData(prev => ({ ...prev, contactPhone: e.target.value }))}
+                    placeholder="+1 (555) 123-4567"
+                    className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent"
+                  />
+                </div>
+              </div>
+              
               <div>
-                <label className="block text-sm text-zinc-300 mb-2">设备描述</label>
+                <label className="block text-sm font-medium text-slate-300 mb-2">
+                  Website
+                </label>
+                <input
+                  type="url"
+                  value={formData.website}
+                  onChange={(e) => setFormData(prev => ({ ...prev, website: e.target.value }))}
+                  placeholder="https://your-website.com"
+                  className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Additional Information */}
+          <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-6">
+            <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
+              <span>💡</span> Additional Information
+            </h2>
+            <div className="space-y-6">
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-2">
+                  Experience
+                </label>
                 <textarea
-                  value={formData.description}
-                  onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                  placeholder="介绍你的设备特色、质量要求、特殊能力等..."
-                  rows={4}
-                  className="w-full rounded-md bg-zinc-800/50 border border-zinc-700 px-3 py-2 text-sm placeholder:text-zinc-600 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500 resize-none"
+                  value={formData.experience}
+                  onChange={(e) => setFormData(prev => ({ ...prev, experience: e.target.value }))}
+                  placeholder="Describe your experience, certifications, or notable projects..."
+                  rows={3}
+                  className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent resize-none"
                 />
               </div>
               
               <div>
-                <label className="block text-sm text-zinc-300 mb-2">联系方式 (可选)</label>
-                <Input
-                  value={formData.contactInfo}
-                  onChange={(e) => setFormData(prev => ({ ...prev, contactInfo: e.target.value }))}
-                  placeholder="微信、邮箱等联系方式"
-                  className="bg-zinc-800/50 border-zinc-700 focus:border-orange-500"
+                <label className="block text-sm font-medium text-slate-300 mb-2">
+                  Specialties
+                </label>
+                <textarea
+                  value={formData.specialties}
+                  onChange={(e) => setFormData(prev => ({ ...prev, specialties: e.target.value }))}
+                  placeholder="Any special techniques, finishing options, or unique capabilities..."
+                  rows={3}
+                  className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent resize-none"
                 />
-                <p className="text-xs text-zinc-500 mt-1">
-                  用于订单沟通，不会公开显示
-                </p>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
 
-        {/* Submit */}
-        <div className="flex justify-end gap-3">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => router.back()}
-            className="border-zinc-700 hover:bg-zinc-800"
-          >
-            取消
-          </Button>
-          <Button
-            type="submit"
-            disabled={isSubmitting || formData.supportedMaterials.length === 0 || !formData.deviceType}
-            className="bg-orange-500 hover:bg-orange-600 text-white"
-          >
-            {isSubmitting ? "注册中..." : "注册节点"}
-          </Button>
-        </div>
-      </form>
+          {/* Submit */}
+          <div className="flex items-center justify-between">
+            <button
+              type="button"
+              onClick={() => router.back()}
+              className="px-4 py-2 text-slate-400 hover:text-slate-300 transition-colors"
+            >
+              ← Cancel
+            </button>
+            
+            <button
+              type="submit"
+              disabled={submitting || formData.equipmentTypes.length === 0 || formData.availableMaterials.length === 0}
+              className="px-8 py-3 bg-sky-600 hover:bg-sky-500 disabled:bg-slate-700 disabled:text-slate-500 text-white rounded-lg font-medium transition-colors"
+            >
+              {submitting ? "Registering..." : "Register as Maker →"}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }

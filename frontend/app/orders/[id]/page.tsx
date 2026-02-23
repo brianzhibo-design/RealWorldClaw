@@ -1,101 +1,62 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { useParams, useRouter } from "next/navigation";
-import { API_BASE } from "@/lib/api";
 
-// API interfaces
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+
 interface Order {
   id: string;
-  title: string;
+  title?: string;
   description?: string;
   material: string;
-  color: string;
   quantity: number;
-  fill_rate: number;
+  color?: string;
+  notes?: string;
   status: string;
   created_at: string;
-  updated_at: string;
-  file_name: string;
-  file_size: string;
-  notes?: string;
+  updated_at?: string;
+  file_id?: string;
+  file_name?: string;
   maker?: {
     id: string;
     name: string;
-    rating: number;
-    completed_orders: number;
-    avatar: string;
+    rating?: number;
+    avatar?: string;
   };
 }
 
-const statusConfig: Record<string, { label: string; className: string; color: string }> = {
-  submitted: { label: "已提交", className: "bg-gray-500/10 text-gray-400 border-gray-500/20", color: "gray" },
-  accepted: { label: "已接单", className: "bg-blue-500/10 text-blue-400 border-blue-500/20", color: "blue" },
-  printing: { label: "制造中", className: "bg-orange-500/10 text-orange-400 border-orange-500/20", color: "orange" },
-  shipped: { label: "已发货", className: "bg-purple-500/10 text-purple-400 border-purple-500/20", color: "purple" },
-  delivered: { label: "已完成", className: "bg-green-500/10 text-green-400 border-green-500/20", color: "green" },
+const statusDisplayNames: Record<string, string> = {
+  pending: 'Submitted',
+  submitted: 'Submitted',
+  accepted: 'Accepted',
+  printing: 'Printing',
+  manufacturing: 'Manufacturing',
+  shipped: 'Shipped',
+  completed: 'Completed',
+  delivered: 'Delivered',
+  cancelled: 'Cancelled'
 };
 
-function ProgressTimeline({ status }: { status: string }) {
-  const statuses = [
-    { key: "submitted", label: "已提交" },
-    { key: "accepted", label: "已接单" },
-    { key: "printing", label: "制造中" },
-    { key: "shipped", label: "已发货" },
-    { key: "delivered", label: "已完成" },
-  ];
+const statusColors: Record<string, string> = {
+  pending: 'bg-yellow-900/50 text-yellow-400 border-yellow-800',
+  submitted: 'bg-yellow-900/50 text-yellow-400 border-yellow-800',
+  accepted: 'bg-blue-900/50 text-blue-400 border-blue-800',
+  printing: 'bg-orange-900/50 text-orange-400 border-orange-800',
+  manufacturing: 'bg-orange-900/50 text-orange-400 border-orange-800',
+  shipped: 'bg-purple-900/50 text-purple-400 border-purple-800',
+  completed: 'bg-green-900/50 text-green-400 border-green-800',
+  delivered: 'bg-green-900/50 text-green-400 border-green-800',
+  cancelled: 'bg-red-900/50 text-red-400 border-red-800'
+};
 
-  const currentIndex = statuses.findIndex(s => s.key === status);
-
-  return (
-    <div className="space-y-4">
-      {statuses.map((item, index) => (
-        <div key={item.key} className="flex items-center gap-4">
-          <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center text-xs font-bold ${
-            index <= currentIndex
-              ? "bg-green-500 border-green-500 text-white" 
-              : index === currentIndex + 1
-              ? "bg-orange-500 border-orange-500 text-white animate-pulse"
-              : "bg-zinc-700 border-zinc-600 text-zinc-400"
-          }`}>
-            {index + 1}
-          </div>
-          <div className="flex-1">
-            <div className={`font-medium ${index <= currentIndex ? "text-white" : "text-zinc-400"}`}>
-              {item.label}
-            </div>
-          </div>
-          {index <= currentIndex && (
-            <div className="text-green-400">
-              ✅
-            </div>
-          )}
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function STLPreview({ fileName }: { fileName: string }) {
-  return (
-    <div className="bg-zinc-800/50 border border-zinc-700 rounded-lg p-6 text-center">
-      <div className="text-6xl mb-4">🎯</div>
-      <h4 className="font-medium mb-2">3D 文件预览</h4>
-      <p className="text-sm text-zinc-400 mb-4">{fileName}</p>
-      <p className="text-xs text-zinc-500">
-        STL 在线预览功能开发中...
-        <br />
-        可下载文件到本地查看
-      </p>
-      <Button variant="outline" size="sm" className="mt-4 border-zinc-600 hover:bg-zinc-700">
-        下载文件
-      </Button>
-    </div>
-  );
-}
+const timelineSteps = [
+  { key: 'submitted', label: 'Submitted', icon: '📤' },
+  { key: 'accepted', label: 'Accepted', icon: '✅' },
+  { key: 'printing', label: 'Printing', icon: '🖨️' },
+  { key: 'shipped', label: 'Shipped', icon: '📦' },
+  { key: 'delivered', label: 'Delivered', icon: '🎉' }
+];
 
 export default function OrderDetailPage() {
   const params = useParams();
@@ -103,29 +64,35 @@ export default function OrderDetailPage() {
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isUpdating, setIsUpdating] = useState(false);
+  const [actionLoading, setActionLoading] = useState(false);
+
+  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
 
   useEffect(() => {
+    if (!token) {
+      router.push('/auth/login');
+      return;
+    }
+
     const fetchOrder = async () => {
       try {
-        setLoading(true);
-        const token = localStorage.getItem('auth_token');
-        const headers: Record<string, string> = {
-          'Content-Type': 'application/json'
-        };
-        if (token) {
-          headers['Authorization'] = `Bearer ${token}`;
-        }
+        const response = await fetch(`${API_URL}/orders/${params.id}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
 
-        const response = await fetch(`${API_BASE}/orders/${params.id}`, { headers });
-        if (!response.ok) {
-          throw new Error(`Failed to fetch order: ${response.status}`);
+        if (response.ok) {
+          const data = await response.json();
+          setOrder(data);
+        } else if (response.status === 401) {
+          localStorage.removeItem('token');
+          router.push('/auth/login');
+        } else if (response.status === 404) {
+          setError('Order not found');
+        } else {
+          setError('Failed to load order');
         }
-        const orderData = await response.json();
-        setOrder(orderData);
       } catch (err) {
-        console.error('Failed to fetch order:', err);
-        setError(err instanceof Error ? err.message : 'Failed to load order');
+        setError('Network error. Please try again.');
       } finally {
         setLoading(false);
       }
@@ -134,228 +101,308 @@ export default function OrderDetailPage() {
     if (params.id) {
       fetchOrder();
     }
-  }, [params.id]);
+  }, [params.id, token, router]);
 
-  const handleStatusUpdate = async (newStatus: string) => {
-    if (!order) return;
+  const getStatusIndex = (status: string) => {
+    const mapping: Record<string, number> = {
+      pending: 0,
+      submitted: 0,
+      accepted: 1,
+      printing: 2,
+      manufacturing: 2,
+      shipped: 3,
+      completed: 4,
+      delivered: 4
+    };
+    return mapping[status.toLowerCase()] ?? 0;
+  };
 
-    setIsUpdating(true);
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  const handleCancelOrder = async () => {
+    if (!order || !confirm('Are you sure you want to cancel this order?')) return;
+
+    setActionLoading(true);
     try {
-      const token = localStorage.getItem('auth_token');
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json'
-      };
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-      }
-
-      const response = await fetch(`${API_BASE}/orders/${order.id}/status`, {
-        method: 'PUT',
-        headers,
-        body: JSON.stringify({ status: newStatus }),
+      const response = await fetch(`${API_URL}/orders/${order.id}/cancel`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` }
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to update status');
+      if (response.ok) {
+        setOrder(prev => prev ? { ...prev, status: 'cancelled' } : null);
+      } else {
+        const errorData = await response.json();
+        alert(errorData.detail || 'Failed to cancel order');
       }
-
-      // Refresh order data
-      setOrder(prev => prev ? { ...prev, status: newStatus } : null);
-    } catch (error) {
-      console.error("Failed to update status:", error);
-      alert("更新失败，请重试");
+    } catch (err) {
+      alert('Network error. Please try again.');
     } finally {
-      setIsUpdating(false);
+      setActionLoading(false);
     }
   };
 
-  const canUpdateStatus = () => {
-    return order && order.maker && order.status !== "delivered";
-  };
+  const handleConfirmDelivery = async () => {
+    if (!order || !confirm('Confirm that you have received this order?')) return;
 
-  const getNextStatus = () => {
-    const statusOrder = ["submitted", "accepted", "printing", "shipped", "delivered"];
-    const currentIndex = statusOrder.indexOf(order?.status || '');
-    return currentIndex < statusOrder.length - 1 ? statusOrder[currentIndex + 1] : null;
+    setActionLoading(true);
+    try {
+      const response = await fetch(`${API_URL}/orders/${order.id}/confirm-delivery`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (response.ok) {
+        setOrder(prev => prev ? { ...prev, status: 'delivered' } : null);
+      } else {
+        const errorData = await response.json();
+        alert(errorData.detail || 'Failed to confirm delivery');
+      }
+    } catch (err) {
+      alert('Network error. Please try again.');
+    } finally {
+      setActionLoading(false);
+    }
   };
 
   if (loading) {
     return (
-      <div className="mx-auto max-w-6xl px-4 py-16">
-        <div className="flex justify-center items-center h-64">
-          <div className="text-zinc-400">加载中...</div>
-        </div>
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sky-500"></div>
       </div>
     );
   }
 
-  if (error || !order) {
+  if (error) {
     return (
-      <div className="mx-auto max-w-6xl px-4 py-16">
+      <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center">
         <div className="text-center">
-          <div className="text-red-400 mb-4">
-            {error || '订单未找到'}
-          </div>
-          <Button 
-            variant="outline" 
+          <div className="text-6xl mb-4">😔</div>
+          <h2 className="text-xl font-bold mb-2">Order Not Found</h2>
+          <p className="text-slate-400 mb-6">{error}</p>
+          <button
             onClick={() => router.push('/orders')}
-            className="border-zinc-700 hover:bg-zinc-800"
+            className="px-6 py-3 bg-sky-600 hover:bg-sky-500 text-white rounded-lg font-medium transition-colors"
           >
-            返回订单列表
-          </Button>
+            ← Back to Orders
+          </button>
         </div>
       </div>
     );
   }
 
-  const status = statusConfig[order.status] || { label: order.status, className: "bg-gray-500/10 text-gray-400 border-gray-500/20", color: "gray" };
-  const nextStatus = getNextStatus();
+  if (!order) return null;
+
+  const currentStepIndex = getStatusIndex(order.status);
+  const displayStatus = statusDisplayNames[order.status.toLowerCase()] || order.status;
+  const statusColorClass = statusColors[order.status.toLowerCase()] || 'bg-slate-800 text-slate-400 border-slate-700';
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-16">
+    <div className="min-h-screen bg-slate-950 text-white">
       {/* Header */}
-      <div className="mb-8">
-        <Button 
-          variant="outline" 
-          onClick={() => router.back()}
-          className="mb-4 border-zinc-700 hover:bg-zinc-800"
-        >
-          ← 返回
-        </Button>
-        
-        <div className="flex items-start justify-between">
-          <div>
-            <h1 className="text-3xl font-bold mb-2">{order.title}</h1>
-            <div className="flex items-center gap-3">
-              <Badge variant="outline" className={status.className}>
-                {status.label}
-              </Badge>
-              <span className="text-sm text-zinc-500">
-                订单号：{order.id}
-              </span>
-              <span className="text-sm text-zinc-500">
-                创建于 {new Date(order.created_at).toLocaleDateString('zh-CN')}
-              </span>
+      <header className="border-b border-slate-800">
+        <div className="max-w-6xl mx-auto px-6 py-4">
+          <button
+            onClick={() => router.back()}
+            className="text-slate-400 hover:text-slate-300 mb-3 flex items-center gap-2 transition-colors"
+          >
+            <span>←</span> Back to Orders
+          </button>
+          <div className="flex items-start justify-between">
+            <div>
+              <h1 className="text-3xl font-bold mb-2">
+                {order.title || `Order ${order.id.slice(0, 8)}`}
+              </h1>
+              <div className="flex items-center gap-4">
+                <span className={`px-3 py-1 rounded-full text-sm font-medium border ${statusColorClass}`}>
+                  {displayStatus}
+                </span>
+                <span className="text-slate-400 text-sm">
+                  Order #{order.id.slice(0, 8)}
+                </span>
+                <span className="text-slate-400 text-sm">
+                  Created {formatDate(order.created_at)}
+                </span>
+              </div>
             </div>
           </div>
-          
-          <div className="text-right">
-            {canUpdateStatus() && nextStatus && (
-              <Button
-                onClick={() => handleStatusUpdate(nextStatus)}
-                disabled={isUpdating}
-                className="bg-orange-500 hover:bg-orange-600 text-white"
-                size="sm"
-              >
-                {isUpdating ? "更新中..." : `标记为${statusConfig[nextStatus].label}`}
-              </Button>
-            )}
-          </div>
         </div>
-      </div>
+      </header>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Main Content */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Order Info */}
-          <Card className="bg-zinc-900/60 border-zinc-800">
-            <CardContent className="p-6">
-              <h3 className="text-lg font-medium mb-4">📋 订单信息</h3>
+      <div className="max-w-6xl mx-auto px-6 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Main Content */}
+          <div className="lg:col-span-2 space-y-8">
+            {/* Order Details */}
+            <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-6">
+              <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
+                <span>📋</span> Order Details
+              </h2>
               
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-6 mb-6">
                 <div>
-                  <div className="text-sm text-zinc-500">材料</div>
-                  <div className="font-medium">{order.material}</div>
+                  <div className="text-sm text-slate-400 mb-1">Material</div>
+                  <div className="font-medium text-white">{order.material?.toUpperCase()}</div>
                 </div>
                 <div>
-                  <div className="text-sm text-zinc-500">颜色</div>
-                  <div className="font-medium">{order.color}</div>
+                  <div className="text-sm text-slate-400 mb-1">Quantity</div>
+                  <div className="font-medium text-white">×{order.quantity}</div>
                 </div>
-                <div>
-                  <div className="text-sm text-zinc-500">数量</div>
-                  <div className="font-medium">×{order.quantity}</div>
-                </div>
-                <div>
-                  <div className="text-sm text-zinc-500">填充率</div>
-                  <div className="font-medium">{order.fill_rate}%</div>
-                </div>
+                {order.color && (
+                  <div>
+                    <div className="text-sm text-slate-400 mb-1">Color</div>
+                    <div className="font-medium text-white">{order.color}</div>
+                  </div>
+                )}
               </div>
 
               {order.description && (
                 <div className="mb-6">
-                  <div className="text-sm text-zinc-500 mb-2">描述</div>
-                  <p className="text-sm text-zinc-300">{order.description}</p>
+                  <div className="text-sm text-slate-400 mb-2">Description</div>
+                  <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700">
+                    <p className="text-slate-300">{order.description}</p>
+                  </div>
                 </div>
               )}
 
               {order.notes && (
                 <div>
-                  <div className="text-sm text-zinc-500 mb-2">备注</div>
-                  <p className="text-sm text-zinc-300 bg-zinc-800/50 rounded-lg p-3 border border-zinc-700">
-                    {order.notes}
-                  </p>
+                  <div className="text-sm text-slate-400 mb-2">Special Instructions</div>
+                  <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700">
+                    <p className="text-slate-300">{order.notes}</p>
+                  </div>
                 </div>
               )}
-            </CardContent>
-          </Card>
+            </div>
 
-          {/* 3D Preview */}
-          <Card className="bg-zinc-900/60 border-zinc-800">
-            <CardContent className="p-6">
-              <h3 className="text-lg font-medium mb-4">🎯 文件信息</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <STLPreview fileName={order.file_name} />
-                <div className="space-y-4">
-                  <div>
-                    <div className="text-sm text-zinc-500">文件名</div>
-                    <div className="font-medium">{order.file_name}</div>
-                  </div>
-                  <div>
-                    <div className="text-sm text-zinc-500">文件大小</div>
-                    <div className="font-medium">{order.file_size}</div>
-                  </div>
-                  <div>
-                    <div className="text-sm text-zinc-500">上传时间</div>
-                    <div className="font-medium">{new Date(order.created_at).toLocaleString('zh-CN')}</div>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Maker Info */}
-          {order.maker && (
-            <Card className="bg-zinc-900/60 border-zinc-800">
-              <CardContent className="p-6">
-                <h3 className="text-lg font-medium mb-4">👨‍🔧 制造者信息</h3>
+            {/* Maker Information */}
+            {order.maker && (
+              <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-6">
+                <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
+                  <span>👨‍🔧</span> Maker
+                </h2>
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-zinc-800 rounded-full flex items-center justify-center text-2xl">
-                    {order.maker.avatar}
+                  <div className="w-12 h-12 bg-slate-800 rounded-full flex items-center justify-center text-2xl">
+                    {order.maker.avatar || '👤'}
                   </div>
                   <div className="flex-1">
-                    <div className="font-medium">{order.maker.name}</div>
-                    <div className="text-sm text-zinc-500">
-                      ⭐ {order.maker.rating} · 完成 {order.maker.completed_orders} 单
+                    <div className="font-semibold text-white">{order.maker.name}</div>
+                    {order.maker.rating && (
+                      <div className="text-sm text-slate-400">
+                        ⭐ {order.maker.rating}/5.0
+                      </div>
+                    )}
+                  </div>
+                  <button className="px-4 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white rounded-lg transition-colors">
+                    Contact Maker
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* File Information */}
+            {order.file_name && (
+              <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-6">
+                <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
+                  <span>📄</span> Design File
+                </h2>
+                <div className="flex items-center justify-between p-4 bg-slate-800/50 rounded-lg border border-slate-700">
+                  <div className="flex items-center gap-3">
+                    <div className="text-2xl">📄</div>
+                    <div>
+                      <div className="font-medium text-white">{order.file_name}</div>
+                      <div className="text-sm text-slate-400">Design file</div>
                     </div>
                   </div>
-                  <Button variant="outline" size="sm" className="border-zinc-600 hover:bg-zinc-700">
-                    联系制造者
-                  </Button>
+                  <button className="px-3 py-1 text-sm bg-slate-700 hover:bg-slate-600 text-white rounded transition-colors">
+                    Download
+                  </button>
                 </div>
-              </CardContent>
-            </Card>
-          )}
-        </div>
+              </div>
+            )}
+          </div>
 
-        {/* Sidebar */}
-        <div className="space-y-6">
-          {/* Progress Timeline */}
-          <Card className="bg-zinc-900/60 border-zinc-800">
-            <CardContent className="p-6">
-              <h3 className="text-lg font-medium mb-4">📈 订单进度</h3>
-              <ProgressTimeline status={order.status} />
-            </CardContent>
-          </Card>
+          {/* Sidebar */}
+          <div className="space-y-8">
+            {/* Status Timeline */}
+            <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-6">
+              <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
+                <span>📈</span> Progress
+              </h2>
+              <div className="space-y-4">
+                {timelineSteps.map((step, index) => (
+                  <div key={step.key} className="flex items-center gap-4">
+                    <div className={`w-10 h-10 rounded-full border-2 flex items-center justify-center text-sm font-bold transition-colors ${
+                      index <= currentStepIndex
+                        ? 'bg-sky-600 border-sky-500 text-white'
+                        : index === currentStepIndex + 1
+                        ? 'bg-yellow-600 border-yellow-500 text-white animate-pulse'
+                        : 'bg-slate-800 border-slate-700 text-slate-400'
+                    }`}>
+                      {step.icon}
+                    </div>
+                    <div className="flex-1">
+                      <div className={`font-medium ${
+                        index <= currentStepIndex ? 'text-white' : 'text-slate-400'
+                      }`}>
+                        {step.label}
+                      </div>
+                      {index === currentStepIndex && (
+                        <div className="text-xs text-sky-400 mt-1">Current step</div>
+                      )}
+                    </div>
+                    {index <= currentStepIndex && (
+                      <div className="text-sky-400">✓</div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-6">
+              <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
+                <span>⚡</span> Actions
+              </h2>
+              <div className="space-y-3">
+                {order.status === 'shipped' && (
+                  <button
+                    onClick={handleConfirmDelivery}
+                    disabled={actionLoading}
+                    className="w-full px-4 py-3 bg-green-600 hover:bg-green-500 disabled:bg-slate-700 disabled:text-slate-400 text-white rounded-lg font-medium transition-colors"
+                  >
+                    {actionLoading ? 'Processing...' : '✅ Confirm Delivery'}
+                  </button>
+                )}
+                
+                {!['completed', 'delivered', 'cancelled'].includes(order.status.toLowerCase()) && (
+                  <button
+                    onClick={handleCancelOrder}
+                    disabled={actionLoading}
+                    className="w-full px-4 py-3 bg-red-900 hover:bg-red-800 disabled:bg-slate-700 disabled:text-slate-400 text-red-200 rounded-lg font-medium transition-colors"
+                  >
+                    {actionLoading ? 'Processing...' : '❌ Cancel Order'}
+                  </button>
+                )}
+
+                <button
+                  onClick={() => router.push('/orders')}
+                  className="w-full px-4 py-3 bg-slate-800 hover:bg-slate-700 text-white rounded-lg font-medium transition-colors"
+                >
+                  ← Back to Orders
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

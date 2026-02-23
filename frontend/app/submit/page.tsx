@@ -20,9 +20,12 @@ export default function SubmitPage() {
   const [color, setColor] = useState("");
   const [notes, setNotes] = useState("");
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState(false);
+  const [uploadedFileId, setUploadedFileId] = useState<string | null>(null);
+  const [uploadedFileInfo, setUploadedFileInfo] = useState<any>(null);
 
   // Check if user is authenticated
   const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
@@ -91,34 +94,66 @@ export default function SubmitPage() {
     if (!file) return null;
 
     setUploading(true);
+    setUploadProgress(0);
     setError(null);
 
-    try {
+    return new Promise((resolve) => {
+      const xhr = new XMLHttpRequest();
       const formData = new FormData();
       formData.append("file", file);
 
-      const response = await fetch(`${API_URL}/files/upload`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        body: formData,
-      });
+      // Upload progress
+      xhr.upload.onprogress = (event) => {
+        if (event.lengthComputable) {
+          const progress = Math.round((event.loaded * 100) / event.total);
+          setUploadProgress(progress);
+        }
+      };
 
-      if (response.ok) {
-        const data = await response.json();
-        return data.file_id || data.id;
-      } else {
-        const errorData = await response.json();
-        setError(errorData.detail || "Failed to upload file");
-        return null;
-      }
-    } catch (err) {
-      setError("Network error. Please try again.");
-      return null;
-    } finally {
-      setUploading(false);
-    }
+      // Upload complete
+      xhr.onload = () => {
+        setUploading(false);
+        if (xhr.status === 200) {
+          try {
+            const data = JSON.parse(xhr.responseText);
+            const fileId = data.file_id || data.id;
+            setUploadedFileId(fileId);
+            setUploadedFileInfo(data);
+            resolve(fileId);
+          } catch (err) {
+            setError("Invalid response from server");
+            resolve(null);
+          }
+        } else {
+          try {
+            const errorData = JSON.parse(xhr.responseText);
+            setError(errorData.detail || "Failed to upload file");
+          } catch {
+            setError("Upload failed");
+          }
+          resolve(null);
+        }
+      };
+
+      // Upload error
+      xhr.onerror = () => {
+        setUploading(false);
+        setError("Network error. Please try again.");
+        resolve(null);
+      };
+
+      // Upload timeout
+      xhr.ontimeout = () => {
+        setUploading(false);
+        setError("Upload timed out. Please try again.");
+        resolve(null);
+      };
+
+      xhr.timeout = 5 * 60 * 1000; // 5 minutes
+      xhr.open("POST", `${API_URL}/files/upload`);
+      xhr.setRequestHeader("Authorization", `Bearer ${token}`);
+      xhr.send(formData);
+    });
   };
 
   const submitOrder = async (fileId: string) => {
@@ -162,7 +197,11 @@ export default function SubmitPage() {
         setError("Please select a file");
         return;
       }
-      setStep(2);
+      // Upload file immediately after selection
+      const fileId = await uploadFile();
+      if (fileId) {
+        setStep(2);
+      }
     } else if (step === 2) {
       if (!material || quantity < 1) {
         setError("Please fill in all required fields");
@@ -170,10 +209,9 @@ export default function SubmitPage() {
       }
       setStep(3);
     } else if (step === 3) {
-      // Upload file and create order
-      const fileId = await uploadFile();
-      if (fileId) {
-        await submitOrder(fileId);
+      // Create order with uploaded file
+      if (uploadedFileId) {
+        await submitOrder(uploadedFileId);
       }
     }
   };
@@ -245,15 +283,50 @@ export default function SubmitPage() {
                   <div className="text-sm text-slate-400 mb-4">
                     {formatFileSize(file.size)}
                   </div>
-                  <button
-                    onClick={() => {
-                      setFile(null);
-                      if (fileInputRef.current) fileInputRef.current.value = "";
-                    }}
-                    className="text-sky-400 hover:text-sky-300 text-sm"
-                  >
-                    Choose different file
-                  </button>
+                  
+                  {/* Upload Progress */}
+                  {uploading && (
+                    <div className="mb-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm text-slate-300">Uploading...</span>
+                        <span className="text-sm text-slate-300">{uploadProgress}%</span>
+                      </div>
+                      <div className="w-full bg-slate-800 rounded-full h-2">
+                        <div 
+                          className="bg-sky-600 h-2 rounded-full transition-all duration-300"
+                          style={{ width: `${uploadProgress}%` }}
+                        />
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Upload Success */}
+                  {uploadedFileInfo && !uploading && (
+                    <div className="mb-4 p-3 bg-green-900/30 border border-green-800 rounded-lg text-green-200">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span>✅</span>
+                        <span className="text-sm font-medium">Upload successful!</span>
+                      </div>
+                      <div className="text-xs text-green-300">
+                        File ID: {uploadedFileInfo.id || uploadedFileInfo.file_id}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {!uploading && !uploadedFileInfo && (
+                    <button
+                      onClick={() => {
+                        setFile(null);
+                        setUploadedFileId(null);
+                        setUploadedFileInfo(null);
+                        setUploadProgress(0);
+                        if (fileInputRef.current) fileInputRef.current.value = "";
+                      }}
+                      className="text-sky-400 hover:text-sky-300 text-sm"
+                    >
+                      Choose different file
+                    </button>
+                  )}
                 </div>
               ) : (
                 <div>
@@ -399,12 +472,14 @@ export default function SubmitPage() {
           
           <button
             onClick={handleNext}
-            disabled={uploading || submitting || (step === 1 && !file)}
+            disabled={uploading || submitting || (step === 1 && (!file || !uploadedFileId))}
             className="px-6 py-2 bg-sky-600 hover:bg-sky-500 disabled:bg-slate-700 disabled:text-slate-500 text-white rounded-md font-medium transition-colors"
           >
-            {step === 3 
-              ? (uploading ? "Uploading..." : submitting ? "Creating Order..." : "Find a Maker →")
-              : "Next"
+            {step === 1 
+              ? (uploading ? `Uploading... ${uploadProgress}%` : uploadedFileId ? "Continue →" : "Upload & Continue")
+              : step === 3 
+                ? (submitting ? "Creating Order..." : "Create Order →")
+                : "Next"
             }
           </button>
         </div>
