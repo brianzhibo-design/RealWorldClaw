@@ -95,10 +95,10 @@ function AnimatedLogo() {
         
         @keyframes breatheGlow {
           0%, 100% { 
-            filter: drop-shadow(0 0 10px rgba(16, 185, 129, 0.3)); 
+            filter: drop-shadow(0 0 10px rgba(56, 189, 248, 0.3)); 
           }
           50% { 
-            filter: drop-shadow(0 0 20px rgba(16, 185, 129, 0.6)); 
+            filter: drop-shadow(0 0 20px rgba(99, 102, 241, 0.5)); 
           }
         }
         
@@ -122,33 +122,49 @@ function AnimatedLogo() {
       
       <div className="logo-container">
         <svg width="80" height="80" viewBox="0 0 130 130" className="w-full h-full">
-          <rect width="130" height="130" rx="20" fill="#0f172a" />
-          <path 
-            d="M 25 105 V 35 H 55 A 15 15 0 0 1 55 65 H 25 M 40 65 L 60 105" 
-            fill="none" 
-            stroke="#38bdf8" 
-            strokeWidth="6" 
-            strokeLinecap="round" 
-            strokeLinejoin="round"
-            className={isLoaded ? "logo-path" : ""}
-            style={{ animationDelay: '0s' }}
-          />
-          <path 
-            d="M 70 35 L 80 105 L 95 65 L 110 105 L 120 35" 
-            fill="none" 
-            stroke="#38bdf8" 
-            strokeWidth="6" 
-            strokeLinecap="round" 
-            strokeLinejoin="round"
-            className={isLoaded ? "logo-path" : ""}
-            style={{ animationDelay: '0.5s' }}
-          />
-          <circle cx="25" cy="35" r="4" fill="#fff" className="node-1" />
-          <circle cx="55" cy="50" r="4" fill="#fff" className="node-2" />
-          <circle cx="60" cy="105" r="4" fill="#fff" className="node-3" />
-          <circle cx="70" cy="35" r="4" fill="#fff" className="node-4" />
-          <circle cx="95" cy="65" r="4" fill="#fff" className="node-5" />
-          <circle cx="120" cy="35" r="4" fill="#fff" className="node-6" />
+          <defs>
+            <linearGradient id="logoGrad" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stopColor="#38bdf8"/>
+              <stop offset="50%" stopColor="#6366f1"/>
+              <stop offset="100%" stopColor="#38bdf8"/>
+            </linearGradient>
+            <filter id="logoGlow">
+              <feGaussianBlur stdDeviation="2" result="blur"/>
+              <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+          </defs>
+          <rect width="130" height="130" rx="26" fill="#0c1222" stroke="#1e3a5f" strokeWidth="1"/>
+          <g filter="url(#logoGlow)">
+            {/* R: vertical + arc + leg */}
+            <path 
+              d="M 22 100 V 30 H 44 A 17.5 17.5 0 0 1 44 65 H 22 M 38 65 L 56 100" 
+              fill="none" 
+              stroke="url(#logoGrad)" 
+              strokeWidth="5" 
+              strokeLinecap="round" 
+              strokeLinejoin="round"
+              className={isLoaded ? "logo-path" : ""}
+              style={{ animationDelay: '0s' }}
+            />
+            {/* W */}
+            <path 
+              d="M 64 30 L 74 100 L 89 58 L 104 100 L 114 30" 
+              fill="none" 
+              stroke="url(#logoGrad)" 
+              strokeWidth="5" 
+              strokeLinecap="round" 
+              strokeLinejoin="round"
+              className={isLoaded ? "logo-path" : ""}
+              style={{ animationDelay: '0.5s' }}
+            />
+          </g>
+          {/* Key nodes at letter joints */}
+          <circle cx="22" cy="30" r="3" fill="#fff" className="node-1" />
+          <circle cx="22" cy="100" r="2.5" fill="#38bdf8" opacity="0.7" className="node-2" />
+          <circle cx="56" cy="100" r="2.5" fill="#38bdf8" opacity="0.7" className="node-3" />
+          <circle cx="64" cy="30" r="3" fill="#fff" className="node-4" />
+          <circle cx="89" cy="58" r="3" fill="#fff" className="node-5" />
+          <circle cx="114" cy="30" r="3" fill="#fff" className="node-6" />
         </svg>
       </div>
     </div>
