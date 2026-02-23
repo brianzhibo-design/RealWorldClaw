@@ -18,6 +18,7 @@ export default function RegisterPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -134,7 +135,18 @@ export default function RegisterPage() {
                 <p className="text-sm text-sky-400 bg-sky-400/10 border border-sky-400/20 rounded-lg px-3 py-2">{error}</p>
               )}
 
-              <Button type="submit" className="w-full bg-sky-500 hover:bg-sky-600 text-white" disabled={loading}>
+              <label className="flex items-center gap-2 text-sm text-slate-400">
+                <input 
+                  type="checkbox" 
+                  required 
+                  checked={agreedToTerms}
+                  onChange={(e) => setAgreedToTerms(e.target.checked)}
+                  className="w-4 h-4 rounded border-slate-600 bg-slate-800 text-sky-500 focus:ring-sky-500 focus:ring-offset-0"
+                />
+                <span>I agree to the <Link href="/privacy" className="text-sky-400 hover:underline">Privacy Policy</Link> and <Link href="/terms" className="text-sky-400 hover:underline">Terms of Service</Link></span>
+              </label>
+
+              <Button type="submit" className="w-full bg-sky-500 hover:bg-sky-600 text-white" disabled={loading || !agreedToTerms}>
                 {loading ? "Creating account..." : "Create Account"}
               </Button>
             </form>
