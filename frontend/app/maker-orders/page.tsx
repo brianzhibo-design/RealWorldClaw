@@ -92,7 +92,7 @@ export default function MakerOrdersPage() {
     setError(null);
 
     try {
-      const response = await fetch(`${API_URL}/orders/${orderId}/accept`, {
+      const response = await fetch(`${API_URL}/orders/${orderId}/claim`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,

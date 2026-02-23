@@ -92,7 +92,6 @@ class TestUserBuyerJourney:
             "urgency": "normal",
             "auto_match": True,
             "notes": "E2E test order",
-            "auto_match": True,
         })
         assert r.status_code == 201
         order_id = r.json()["order_id"]

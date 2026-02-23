@@ -358,15 +358,15 @@ def init_db():
         # Add new columns to existing orders table if they don't exist
         try:
             db.execute("ALTER TABLE orders ADD COLUMN file_id TEXT")
-        except:
+        except Exception:
             pass  # Column already exists
         try:
             db.execute("ALTER TABLE orders ADD COLUMN color TEXT")
-        except:
+        except Exception:
             pass  # Column already exists
         try:
             db.execute("ALTER TABLE orders ADD COLUMN auto_match INTEGER NOT NULL DEFAULT 0")
-        except:
+        except Exception:
             pass  # Column already exists
 
 
