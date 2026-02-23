@@ -20,14 +20,37 @@ interface AuthState {
 
 export const useAuthStore = create<AuthState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       token: null,
       user: null,
       isAuthenticated: false,
-      login: (token, user) => set({ token, user, isAuthenticated: true }),
-      logout: () => set({ token: null, user: null, isAuthenticated: false }),
+      login: (token, user) => {
+        // Store in localStorage with the correct key
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('auth_token', token);
+        }
+        set({ token, user, isAuthenticated: true });
+      },
+      logout: () => {
+        // Remove from localStorage
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('auth_token');
+        }
+        set({ token: null, user: null, isAuthenticated: false });
+      },
       setUser: (user) => set({ user }),
     }),
-    { name: "rwc-auth" }
+    { 
+      name: "rwc-auth",
+      // Also keep the token in localStorage for legacy API compatibility
+      onRehydrateStorage: () => (state) => {
+        if (state && typeof window !== 'undefined') {
+          const token = state.token;
+          if (token) {
+            localStorage.setItem('auth_token', token);
+          }
+        }
+      }
+    }
   )
 );

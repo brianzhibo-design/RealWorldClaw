@@ -52,7 +52,7 @@ export const swrFetcher = <T>(path: string) => apiFetch<T>(path);
 
 export async function loginAPI(email: string, password: string) {
   return apiFetch<{ access_token: string; user: { id: string; username: string; email: string; role: string } }>(
-    "/api/v1/auth/login",
+    "/auth/login",
     {
       method: "POST",
       body: JSON.stringify({ email, password }),
@@ -62,11 +62,17 @@ export async function loginAPI(email: string, password: string) {
 
 export async function registerAPI(username: string, email: string, password: string) {
   return apiFetch<{ access_token: string; user: { id: string; username: string; email: string; role: string } }>(
-    "/api/v1/auth/register",
+    "/auth/register",
     {
       method: "POST",
       body: JSON.stringify({ username, email, password }),
     }
+  );
+}
+
+export async function getMeAPI() {
+  return apiFetch<{ id: string; username: string; email: string; role: string; avatar_url?: string }>(
+    "/auth/me"
   );
 }
 

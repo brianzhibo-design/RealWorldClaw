@@ -2,217 +2,310 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { motion } from "framer-motion";
-import { Printer, Package, Plus, ArrowRight, Loader2 } from "lucide-react";
+import Link from "next/link";
+import { Package, MessageSquare, File, Printer, Plus, ArrowRight, Loader2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { StatCard } from "@/components/shared/StatCard";
 import { useAuthStore } from "@/stores/authStore";
-import { API_BASE } from "@/lib/api";
+import { apiFetch } from "@/lib/api-client";
 
-const container = {
-  hidden: {},
-  show: { transition: { staggerChildren: 0.06 } },
-};
-const item = {
-  hidden: { opacity: 0, y: 12 },
-  show: { opacity: 1, y: 0, transition: { type: "spring" as const, stiffness: 300, damping: 24 } },
-};
-
-interface Stats {
-  myNodes?: number;
-  myOrders?: number;
-  activeOrders?: number;
-  pendingOrders?: number;
+interface DashboardStats {
+  myPosts: number;
+  myOrders: number;
+  myFiles: number;
+  myNodes: number;
 }
 
-interface RecentActivity {
+interface RecentPost {
   id: string;
-  text: string;
-  time: string;
-  type: "order" | "node" | "default";
+  title: string;
+  post_type: string;
+  created_at: string;
+  upvotes: number;
+  comment_count: number;
 }
 
 export default function DashboardPage() {
   const router = useRouter();
-  const user = useAuthStore((s) => s.user);
-  const token = useAuthStore((s) => s.token);
-  const greeting = getGreeting();
+  const { user, isAuthenticated } = useAuthStore();
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [recentPosts, setRecentPosts] = useState<RecentPost[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const [stats, setStats] = useState<Stats | null>(null);
-  const [activities, setActivities] = useState<RecentActivity[]>([]);
-  const [loadingStats, setLoadingStats] = useState(true);
-  const [loadingActivity, setLoadingActivity] = useState(true);
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!isAuthenticated) {
+      router.push('/auth/login');
+      return;
+    }
+  }, [isAuthenticated, router]);
 
   useEffect(() => {
-    const fetchStats = async () => {
+    if (!isAuthenticated) return;
+    
+    const fetchDashboardData = async () => {
       try {
-        const headers: Record<string, string> = {};
-        if (token) headers.Authorization = `Bearer ${token}`;
+        const [postsResponse, ordersResponse, filesResponse, nodesResponse] = await Promise.allSettled([
+          apiFetch<any[]>('/community/posts'),
+          apiFetch<any[]>('/orders'),
+          apiFetch<any[]>('/files/my'),
+          apiFetch<any[]>('/nodes/my-nodes'),
+        ]);
 
-        // 获取我的节点数量
-        const nodesResponse = await fetch(`${API_BASE}/nodes`, { headers });
-        const nodesData = nodesResponse.ok ? await nodesResponse.json() : null;
-        const myNodes = nodesData?.nodes?.length || 0;
-
-        // 获取我的订单数量
-        const ordersResponse = await fetch(`${API_BASE}/orders?type=my`, { headers });
-        const ordersData = ordersResponse.ok ? await ordersResponse.json() : null;
-        const orders = ordersData?.orders || [];
-        const myOrders = orders.length;
-        const activeOrders = orders.filter((o: any) => !['delivered', 'cancelled'].includes(o.status)).length;
+        // Filter posts by current user
+        const allPosts = postsResponse.status === 'fulfilled' ? postsResponse.value : [];
+        const userPosts = allPosts.filter((post: any) => post.author_id === user?.id);
+        
+        const orders = ordersResponse.status === 'fulfilled' ? ordersResponse.value : [];
+        const files = filesResponse.status === 'fulfilled' ? filesResponse.value : [];
+        const nodes = nodesResponse.status === 'fulfilled' ? nodesResponse.value : [];
 
         setStats({
-          myNodes,
-          myOrders,
-          activeOrders,
-          pendingOrders: orders.filter((o: any) => o.status === 'submitted').length,
+          myPosts: userPosts.length,
+          myOrders: Array.isArray(orders) ? orders.length : 0,
+          myFiles: Array.isArray(files) ? files.length : 0,
+          myNodes: Array.isArray(nodes) ? nodes.length : 0,
         });
+
+        // Set recent posts (latest 5)
+        setRecentPosts(
+          userPosts
+            .sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+            .slice(0, 5)
+        );
       } catch (error) {
-        console.error('Failed to fetch stats:', error);
-        // 设置默认值
-        setStats({ myNodes: 0, myOrders: 0, activeOrders: 0, pendingOrders: 0 });
+        console.error('Failed to fetch dashboard data:', error);
+        setStats({
+          myPosts: 0,
+          myOrders: 0,
+          myFiles: 0,
+          myNodes: 0,
+        });
       } finally {
-        setLoadingStats(false);
+        setLoading(false);
       }
     };
 
-    const fetchActivities = async () => {
-      try {
-        const headers: Record<string, string> = {};
-        if (token) headers.Authorization = `Bearer ${token}`;
+    fetchDashboardData();
+  }, [isAuthenticated, user?.id]);
 
-        // 获取最近活动 - 可以是最近的订单或节点状态变化
-        const response = await fetch(`${API_BASE}/orders?type=my&limit=5`, { headers });
-        if (response.ok) {
-          const data = await response.json();
-          const orders = data.orders || [];
-          
-          const recentActivities: RecentActivity[] = orders.map((order: any) => ({
-            id: order.id,
-            text: `订单"${order.title}"状态更新为${getStatusLabel(order.status)}`,
-            time: new Date(order.updated_at).toLocaleDateString('zh-CN'),
-            type: 'order' as const,
-          }));
-
-          setActivities(recentActivities);
-        }
-      } catch (error) {
-        console.error('Failed to fetch activities:', error);
-      } finally {
-        setLoadingActivity(false);
-      }
-    };
-
-    fetchStats();
-    fetchActivities();
-  }, [token]);
-
-  const getStatusLabel = (status: string) => {
-    const labels: Record<string, string> = {
-      submitted: '已提交',
-      accepted: '已接单',
-      printing: '制造中',
-      shipped: '已发货',
-      delivered: '已完成',
-      cancelled: '已取消',
-    };
-    return labels[status] || status;
+  const getGreeting = () => {
+    const h = new Date().getHours();
+    if (h < 6) return "Good evening";
+    if (h < 12) return "Good morning";
+    if (h < 18) return "Good afternoon";
+    return "Good evening";
   };
 
+  const getTypeIcon = (type: string) => {
+    switch (type) {
+      case "discussion": return "💬";
+      case "request": return "🙋";
+      case "task": return "📋";
+      case "showcase": return "🏆";
+      default: return "📝";
+    }
+  };
+
+  const formatTimeAgo = (dateString: string) => {
+    const now = new Date();
+    const date = new Date(dateString);
+    const diff = now.getTime() - date.getTime();
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const days = Math.floor(hours / 24);
+    
+    if (days > 0) return `${days}d ago`;
+    if (hours > 0) return `${hours}h ago`;
+    return "Just now";
+  };
+
+  if (!isAuthenticated) {
+    return null; // Will redirect
+  }
+
   return (
-    <motion.div
-      variants={container}
-      initial="hidden"
-      animate="show"
-      className="space-y-8 max-w-6xl"
-    >
+    <div className="max-w-6xl mx-auto px-6 py-8 space-y-8">
       {/* Greeting */}
-      <motion.div variants={item}>
-        <h1 className="text-2xl font-semibold tracking-tight">
-          {greeting}，{user?.username || "用户"} 👋
+      <div>
+        <h1 className="text-3xl font-bold mb-2">
+          {getGreeting()}, {user?.username} 👋
         </h1>
-        <p className="text-muted-foreground mt-1">欢迎来到RealWorldClaw制造网络</p>
-      </motion.div>
+        <p className="text-muted-foreground">
+          Welcome to your RealWorldClaw dashboard
+        </p>
+      </div>
 
-      {/* Stats */}
-      <motion.div variants={item} className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard
-          title="我的节点"
-          value={loadingStats ? "—" : stats?.myNodes ?? 0}
-          subtitle={stats?.myNodes ? `${stats.myNodes} 个制造节点` : "还未注册节点"}
-          icon={Printer}
-          onClick={() => router.push("/nodes")}
-        />
-        <StatCard
-          title="我的订单"
-          value={loadingStats ? "—" : stats?.myOrders ?? 0}
-          subtitle={stats?.activeOrders ? `${stats.activeOrders} 个进行中` : undefined}
-          icon={Package}
-          onClick={() => router.push("/orders")}
-        />
-      </motion.div>
+      {/* Stats Grid */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card className="p-6 hover:bg-accent/50 transition-colors cursor-pointer">
+          <div className="flex items-center gap-4">
+            <div className="p-2 bg-blue-500/20 text-blue-400 rounded-lg">
+              <MessageSquare className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">My Posts</p>
+              <p className="text-2xl font-bold">
+                {loading ? "—" : stats?.myPosts ?? 0}
+              </p>
+            </div>
+          </div>
+        </Card>
 
-      {/* Quick actions */}
-      <motion.div variants={item} className="flex flex-wrap gap-3">
-        <Button size="sm" onClick={() => router.push("/orders/new")}>
-          <Plus className="h-4 w-4 mr-1" /> 提交订单
-        </Button>
-        <Button size="sm" variant="outline" onClick={() => router.push("/nodes/register")}>
-          <Plus className="h-4 w-4 mr-1" /> 注册节点
-        </Button>
-      </motion.div>
+        <Card className="p-6 hover:bg-accent/50 transition-colors cursor-pointer">
+          <div className="flex items-center gap-4">
+            <div className="p-2 bg-green-500/20 text-green-400 rounded-lg">
+              <Package className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">My Orders</p>
+              <p className="text-2xl font-bold">
+                {loading ? "—" : stats?.myOrders ?? 0}
+              </p>
+            </div>
+          </div>
+        </Card>
 
-      {/* Recent activity */}
-      <motion.div variants={item}>
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-medium">最近活动</h2>
-          <Button variant="ghost" size="sm" className="text-muted-foreground" onClick={() => router.push("/orders")}>
-            查看全部 <ArrowRight className="h-3 w-3 ml-1" />
-          </Button>
+        <Card className="p-6 hover:bg-accent/50 transition-colors cursor-pointer">
+          <div className="flex items-center gap-4">
+            <div className="p-2 bg-orange-500/20 text-orange-400 rounded-lg">
+              <File className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">My Files</p>
+              <p className="text-2xl font-bold">
+                {loading ? "—" : stats?.myFiles ?? 0}
+              </p>
+            </div>
+          </div>
+        </Card>
+
+        <Card className="p-6 hover:bg-accent/50 transition-colors cursor-pointer">
+          <div className="flex items-center gap-4">
+            <div className="p-2 bg-purple-500/20 text-purple-400 rounded-lg">
+              <Printer className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">My Nodes</p>
+              <p className="text-2xl font-bold">
+                {loading ? "—" : stats?.myNodes ?? 0}
+              </p>
+            </div>
+          </div>
+        </Card>
+      </div>
+
+      {/* Quick Actions */}
+      <div>
+        <h2 className="text-xl font-semibold mb-4">Quick Actions</h2>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <Link href="/community/new">
+            <Card className="p-4 hover:bg-accent/50 transition-colors cursor-pointer">
+              <div className="text-center">
+                <div className="w-12 h-12 mx-auto mb-3 bg-blue-500/20 text-blue-400 rounded-lg flex items-center justify-center">
+                  💬
+                </div>
+                <h3 className="font-semibold mb-1">New Post</h3>
+                <p className="text-sm text-muted-foreground">Share with community</p>
+              </div>
+            </Card>
+          </Link>
+
+          <Link href="/submit">
+            <Card className="p-4 hover:bg-accent/50 transition-colors cursor-pointer">
+              <div className="text-center">
+                <div className="w-12 h-12 mx-auto mb-3 bg-green-500/20 text-green-400 rounded-lg flex items-center justify-center">
+                  📤
+                </div>
+                <h3 className="font-semibold mb-1">Submit Design</h3>
+                <p className="text-sm text-muted-foreground">Upload your files</p>
+              </div>
+            </Card>
+          </Link>
+
+          <Link href="/register-node">
+            <Card className="p-4 hover:bg-accent/50 transition-colors cursor-pointer">
+              <div className="text-center">
+                <div className="w-12 h-12 mx-auto mb-3 bg-purple-500/20 text-purple-400 rounded-lg flex items-center justify-center">
+                  🤖
+                </div>
+                <h3 className="font-semibold mb-1">Register Node</h3>
+                <p className="text-sm text-muted-foreground">Add your machine</p>
+              </div>
+            </Card>
+          </Link>
+
+          <Link href="/orders/new">
+            <Card className="p-4 hover:bg-accent/50 transition-colors cursor-pointer">
+              <div className="text-center">
+                <div className="w-12 h-12 mx-auto mb-3 bg-orange-500/20 text-orange-400 rounded-lg flex items-center justify-center">
+                  📋
+                </div>
+                <h3 className="font-semibold mb-1">Create Order</h3>
+                <p className="text-sm text-muted-foreground">Start manufacturing</p>
+              </div>
+            </Card>
+          </Link>
         </div>
-        {loadingActivity ? (
-          <div className="flex justify-center py-12">
+      </div>
+
+      {/* Recent Posts */}
+      <div>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-semibold">My Recent Posts</h2>
+          <Link href="/community" className="text-primary hover:text-primary/80 text-sm font-medium">
+            View All Posts <ArrowRight className="h-4 w-4 ml-1 inline" />
+          </Link>
+        </div>
+
+        {loading ? (
+          <div className="flex justify-center py-8">
             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
           </div>
-        ) : activities.length > 0 ? (
-          <Card className="divide-y divide-border border-border/50">
-            {activities.map((activity) => (
-              <div key={activity.id} className="flex items-center justify-between p-4 hover:bg-accent/50 transition-colors">
-                <div className="flex items-center gap-3">
-                  <div className="text-lg">
-                    {activity.type === 'order' ? '📦' : '🖨️'}
+        ) : recentPosts.length > 0 ? (
+          <div className="space-y-4">
+            {recentPosts.map((post) => (
+              <Link key={post.id} href={`/community/${post.id}`}>
+                <Card className="p-4 hover:bg-accent/50 transition-colors">
+                  <div className="flex items-center gap-3 mb-2">
+                    <span className="text-lg">{getTypeIcon(post.post_type)}</span>
+                    <span className="text-sm text-muted-foreground capitalize">
+                      {post.post_type}
+                    </span>
+                    <span className="text-sm text-muted-foreground">
+                      {formatTimeAgo(post.created_at)}
+                    </span>
                   </div>
-                  <span className="text-sm">{activity.text}</span>
-                </div>
-                <span className="text-xs text-muted-foreground whitespace-nowrap">{activity.time}</span>
-              </div>
+                  <h3 className="font-semibold mb-2 hover:text-primary transition-colors">
+                    {post.title}
+                  </h3>
+                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                    <span className="flex items-center gap-1">
+                      👍 {post.upvotes}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      💬 {post.comment_count}
+                    </span>
+                  </div>
+                </Card>
+              </Link>
             ))}
-          </Card>
+          </div>
         ) : (
-          <Card className="p-8 text-center text-muted-foreground">
-            <div className="text-6xl mb-4">🚀</div>
-            <h3 className="font-medium mb-2">开始你的制造之旅</h3>
-            <p className="text-sm mb-4">提交你的第一个订单，或注册成为制造节点</p>
-            <div className="flex gap-2 justify-center">
-              <Button size="sm" onClick={() => router.push("/orders/new")}>
-                提交订单
-              </Button>
-              <Button size="sm" variant="outline" onClick={() => router.push("/nodes/register")}>
-                注册节点
-              </Button>
-            </div>
+          <Card className="p-8 text-center">
+            <div className="text-6xl mb-4">✨</div>
+            <h3 className="font-semibold mb-2">No posts yet</h3>
+            <p className="text-muted-foreground mb-4">
+              Start sharing your ideas with the community
+            </p>
+            <Button asChild>
+              <Link href="/community/new">
+                <Plus className="h-4 w-4 mr-2" />
+                Create Your First Post
+              </Link>
+            </Button>
           </Card>
         )}
-      </motion.div>
-    </motion.div>
+      </div>
+    </div>
   );
-}
-
-function getGreeting() {
-  const h = new Date().getHours();
-  if (h < 6) return "夜深了";
-  if (h < 12) return "早上好";
-  if (h < 18) return "下午好";
-  return "晚上好";
 }
