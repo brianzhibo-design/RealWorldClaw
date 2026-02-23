@@ -34,7 +34,7 @@ export default function LoginPage() {
         id: res.user.id,
         username: res.user.username,
         email: res.user.email,
-        role: res.user.role as "customer" | "maker" | "admin",
+        role: res.user.role,
       });
       router.push("/");
     } catch {

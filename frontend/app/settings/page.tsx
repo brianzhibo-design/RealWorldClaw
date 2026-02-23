@@ -39,7 +39,7 @@ export default function SettingsPage() {
   
   // AI Settings and Notifications - coming soon
 
-  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+  const token = typeof window !== "undefined" ? localStorage.getItem("auth_token") || localStorage.getItem("token") : null;
 
   // Fetch user profile
   useEffect(() => {

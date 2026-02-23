@@ -51,7 +51,7 @@ export default function RegisterNodePage() {
   const [selectedCity, setSelectedCity] = useState<string>(""); // Empty for custom coordinates
   const [locationMode, setLocationMode] = useState<"city" | "custom">("city");
 
-  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+  const token = typeof window !== "undefined" ? localStorage.getItem("auth_token") || localStorage.getItem("token") : null;
 
   if (!token) {
     return (
