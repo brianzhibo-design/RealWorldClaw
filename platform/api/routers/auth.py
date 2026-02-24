@@ -321,20 +321,52 @@ def github_auth(req: GitHubAuthRequest):
 # ── Google OAuth ──────────────────────────────────────────────
 
 class GoogleAuthRequest(BaseModel):
-    credential: str  # Google ID token (JWT)
+    credential: str  # Google authorization code or ID token (JWT)
 
 
 @router.post("/google", response_model=AuthResponse)
 def google_auth(req: GoogleAuthRequest):
-    # Verify Google ID token signature and claims
-    try:
-        idinfo = google_id_token.verify_oauth2_token(
-            req.credential,
-            google_auth_requests.Request(),
-            os.environ.get("GOOGLE_CLIENT_ID"),
-        )
-    except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid Google ID token")
+    client_id = os.environ.get("GOOGLE_CLIENT_ID", "")
+    client_secret = os.environ.get("GOOGLE_CLIENT_SECRET", "")
+
+    # Try as authorization code first (from OAuth redirect flow)
+    idinfo = None
+    if not req.credential.startswith("eyJ"):  # Not a JWT → treat as auth code
+        try:
+            token_resp = httpx.post(
+                "https://oauth2.googleapis.com/token",
+                data={
+                    "code": req.credential,
+                    "client_id": client_id,
+                    "client_secret": client_secret,
+                    "redirect_uri": os.environ.get("GOOGLE_REDIRECT_URI", "https://realworldclaw.com/auth/callback/google"),
+                    "grant_type": "authorization_code",
+                },
+                timeout=15,
+            )
+            token_data = token_resp.json()
+            id_token_str = token_data.get("id_token")
+            if not id_token_str:
+                raise HTTPException(status_code=401, detail=f"Google OAuth failed: {token_data.get('error_description', token_data.get('error', 'unknown'))}")
+            # Verify the id_token
+            idinfo = google_id_token.verify_oauth2_token(
+                id_token_str, google_auth_requests.Request(), client_id
+            )
+        except HTTPException:
+            raise
+        except Exception as e:
+            raise HTTPException(status_code=401, detail=f"Google OAuth code exchange failed: {str(e)}")
+    else:
+        # Direct ID token (from Google Sign-In button)
+        try:
+            idinfo = google_id_token.verify_oauth2_token(
+                req.credential, google_auth_requests.Request(), client_id
+            )
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid Google ID token")
+
+    if not idinfo:
+        raise HTTPException(status_code=400, detail="Could not verify Google identity")
 
     email = idinfo.get("email")
     if not email:
