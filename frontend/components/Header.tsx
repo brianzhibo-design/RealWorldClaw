@@ -3,7 +3,8 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Globe, Package, Settings, PlusCircle, LogOut, MessageSquare, LayoutDashboard, Bot, ChevronDown, Compass } from "lucide-react";
+import { useState, useEffect, useRef, useCallback } from "react";
+import { Globe, Package, Settings, PlusCircle, LogOut, MessageSquare, LayoutDashboard, Bot, ChevronDown, Compass, Bell } from "lucide-react";
 import { useAuthStore } from "@/stores/authStore";
 import { Button } from "@/components/ui/button";
 import {
@@ -26,6 +27,120 @@ const exploreItems = [
   { href: "/agents", label: "Agents", icon: Bot },
   { href: "/search", label: "Search", icon: Compass },
 ];
+
+interface Notification {
+  id: string;
+  message: string;
+  created_at: string;
+  read: boolean;
+}
+
+function NotificationBell({ userId, token }: { userId: string; token: string }) {
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [open, setOpen] = useState(false);
+  const wsRef = useRef<WebSocket | null>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const unreadCount = notifications.filter((n) => !n.read).length;
+
+  useEffect(() => {
+    if (!userId || !token) return;
+
+    const wsUrl = `wss://realworldclaw-api.fly.dev/api/v1/ws/notifications/${userId}?token=${token}`;
+    try {
+      const ws = new WebSocket(wsUrl);
+      wsRef.current = ws;
+
+      ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          const notif: Notification = {
+            id: data.id || crypto.randomUUID(),
+            message: data.message || data.text || JSON.stringify(data),
+            created_at: data.created_at || new Date().toISOString(),
+            read: false,
+          };
+          setNotifications((prev) => [notif, ...prev].slice(0, 50));
+        } catch {
+          // ignore malformed messages
+        }
+      };
+
+      ws.onerror = () => {
+        // graceful degradation — bell still shows
+      };
+
+      ws.onclose = () => {
+        wsRef.current = null;
+      };
+
+      return () => {
+        ws.close();
+      };
+    } catch {
+      // WebSocket not available — graceful degradation
+    }
+  }, [userId, token]);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const markAllRead = useCallback(() => {
+    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+  }, []);
+
+  return (
+    <div className="relative" ref={dropdownRef}>
+      <button
+        onClick={() => { setOpen(!open); if (!open) markAllRead(); }}
+        className="relative p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+        aria-label="Notifications"
+      >
+        <Bell size={16} />
+        {unreadCount > 0 && (
+          <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500 rounded-full text-[10px] font-bold text-white flex items-center justify-center">
+            {unreadCount > 9 ? "9+" : unreadCount}
+          </span>
+        )}
+      </button>
+
+      {open && (
+        <div className="absolute right-0 mt-2 w-72 bg-slate-900 border border-slate-700 rounded-lg shadow-xl z-50 overflow-hidden">
+          <div className="px-4 py-2.5 border-b border-slate-700 flex items-center justify-between">
+            <span className="text-sm font-semibold text-white">Notifications</span>
+            {notifications.length > 0 && (
+              <button onClick={markAllRead} className="text-xs text-sky-400 hover:text-sky-300">
+                Mark all read
+              </button>
+            )}
+          </div>
+          <div className="max-h-64 overflow-y-auto">
+            {notifications.length === 0 ? (
+              <div className="px-4 py-6 text-center text-slate-500 text-sm">
+                No notifications yet
+              </div>
+            ) : (
+              notifications.map((n) => (
+                <div key={n.id} className={`px-4 py-2.5 border-b border-slate-800 text-sm ${n.read ? "text-slate-400" : "text-slate-200 bg-slate-800/50"}`}>
+                  <p className="line-clamp-2">{n.message}</p>
+                  <p className="text-xs text-slate-500 mt-1">{new Date(n.created_at).toLocaleString()}</p>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function Header() {
   const pathname = usePathname();
@@ -110,6 +225,8 @@ export default function Header() {
                 </Link>
               </Button>
               
+              <NotificationBell userId={user.id} token={useAuthStore.getState().token || ""} />
+
               <DropdownMenu>
                 <DropdownMenuTrigger 
                   className="flex items-center gap-1.5 rounded-lg px-2 md:px-3 py-1.5 text-xs md:text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition-colors"

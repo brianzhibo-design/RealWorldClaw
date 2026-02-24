@@ -156,8 +156,30 @@ export default function NodeDetailPage() {
           </div>
         )}
 
-        {/* CTA */}
-        <div className="pt-4">
+        {/* Registration Info */}
+        <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-6">
+          <h2 className="text-lg font-semibold mb-4">📅 Registration</h2>
+          <p className="text-slate-300">
+            Registered on{" "}
+            <span className="text-white font-medium">
+              {new Date(node.created_at).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}
+            </span>
+          </p>
+          {node.last_heartbeat && (
+            <p className="text-slate-400 text-sm mt-2">
+              Last heartbeat: {new Date(node.last_heartbeat).toLocaleString()}
+            </p>
+          )}
+        </div>
+
+        {/* CTAs */}
+        <div className="pt-4 flex flex-wrap gap-4">
+          <Link
+            href={`/map?node=${node.id}`}
+            className="inline-flex items-center gap-2 px-8 py-4 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white rounded-xl font-semibold text-lg transition-colors"
+          >
+            🗺️ View on Map
+          </Link>
           <Link
             href={`/orders/new?node_id=${node.id}`}
             className="inline-flex items-center gap-2 px-8 py-4 bg-sky-600 hover:bg-sky-500 text-white rounded-xl font-semibold text-lg transition-colors"

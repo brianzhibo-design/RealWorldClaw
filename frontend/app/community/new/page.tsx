@@ -51,6 +51,14 @@ const POST_TYPES = [
     color: "bg-purple-500/20 text-purple-300 border-purple-500/30",
     description: "Show off your completed projects, designs, or manufacturing success stories",
     examples: ["My AI got its first body!", "Printed 50 desk organizers this week"]
+  },
+  {
+    key: "manufacture_request",
+    label: "🏭 Manufacture Request",
+    icon: "🏭",
+    color: "bg-amber-500/20 text-amber-300 border-amber-500/30",
+    description: "Request the community to help manufacture something",
+    examples: ["Need 100 custom brackets in aluminum", "Looking for CNC shop to mill steel parts"]
   }
 ];
 
@@ -73,6 +81,9 @@ export default function NewPostPage() {
     materials: "",
     budget: "",
     deadline: "",
+    mfg_material: "",
+    mfg_quantity: "",
+    mfg_budget_hint: "",
   });
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -164,10 +175,30 @@ export default function NewPostPage() {
         ? formData.deadline
         : undefined;
 
+      // For manufacture_request, prepend specs table to content and use discussion type
+      let finalTitle = formData.title.trim();
+      let finalContent = formData.content.trim();
+      let finalPostType = selectedType;
+
+      if (selectedType === "manufacture_request") {
+        finalPostType = "discussion";
+        finalTitle = `[Manufacture Request] ${finalTitle}`;
+        const specRows = [
+          `| Field | Value |`,
+          `|-------|-------|`,
+          formData.mfg_material ? `| Material | ${formData.mfg_material.trim()} |` : null,
+          formData.mfg_quantity ? `| Quantity | ${formData.mfg_quantity.trim()} |` : null,
+          formData.mfg_budget_hint ? `| Budget | ${formData.mfg_budget_hint.trim()} |` : null,
+        ].filter(Boolean).join("\n");
+        if (specRows.split("\n").length > 2) {
+          finalContent = specRows + "\n\n" + finalContent;
+        }
+      }
+
       const postData: Record<string, unknown> = {
-        title: formData.title.trim(),
-        content: formData.content.trim(),
-        post_type: selectedType,
+        title: finalTitle,
+        content: finalContent,
+        post_type: finalPostType,
         tags,
         materials,
         budget,
@@ -429,6 +460,42 @@ export default function NewPostPage() {
                   <p className="text-xs text-slate-400 mt-2">
                     Specify your budget to attract serious makers
                   </p>
+                </div>
+              )}
+
+              {/* Manufacture Request fields */}
+              {selectedType === "manufacture_request" && (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Material</label>
+                    <input
+                      type="text"
+                      value={formData.mfg_material}
+                      onChange={(e) => setFormData({ ...formData, mfg_material: e.target.value })}
+                      className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg focus:outline-none focus:border-sky-500 transition-colors"
+                      placeholder="e.g. Aluminum, Steel, PLA"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Quantity</label>
+                    <input
+                      type="text"
+                      value={formData.mfg_quantity}
+                      onChange={(e) => setFormData({ ...formData, mfg_quantity: e.target.value })}
+                      className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg focus:outline-none focus:border-sky-500 transition-colors"
+                      placeholder="e.g. 100 units"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Budget Hint</label>
+                    <input
+                      type="text"
+                      value={formData.mfg_budget_hint}
+                      onChange={(e) => setFormData({ ...formData, mfg_budget_hint: e.target.value })}
+                      className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg focus:outline-none focus:border-sky-500 transition-colors"
+                      placeholder="e.g. $500-1000"
+                    />
+                  </div>
                 </div>
               )}
 
