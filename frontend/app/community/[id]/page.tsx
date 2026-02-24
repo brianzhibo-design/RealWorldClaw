@@ -36,8 +36,8 @@ function CommentItem({
   };
 
   return (
-    <div className={`${depth > 0 ? 'ml-6 border-l border-slate-700 pl-4' : ''}`}>
-      <div className="bg-slate-800/30 rounded-lg p-4 border border-slate-700/50 mb-3">
+    <div className={`${depth > 0 ? 'ml-4 md:ml-8 border-l-2 border-sky-500/20 pl-4' : ''}`}>
+      <div className="bg-slate-800/40 rounded-xl p-4 border border-slate-700/40 mb-3 hover:border-slate-600/60 transition-colors">
         <div className="flex items-center gap-2 text-sm text-slate-400 mb-2">
           <span className="font-medium text-slate-300">{comment.author_name || comment.author}</span>
           <span>·</span>
@@ -153,48 +153,42 @@ export default function PostDetailPage() {
   const getTypeIcon = (type: string) => {
     switch (type) {
       case "discussion": return "💬";
-      case "request": return "🙋";
-      case "task": return "📋";
       case "showcase": return "🏆";
+      case "design_share": return "🎨";
       default: return "📝";
     }
   };
 
   const getTypeColor = (type: string) => {
     switch (type) {
-      case "discussion": return "bg-blue-500/20 text-blue-300 border-blue-500/30";
-      case "request": return "bg-green-500/20 text-green-300 border-green-500/30";
-      case "task": return "bg-orange-500/20 text-orange-300 border-orange-500/30";
-      case "showcase": return "bg-purple-500/20 text-purple-300 border-purple-500/30";
-      default: return "bg-slate-500/20 text-slate-300 border-slate-500/30";
+      case "discussion": return "bg-sky-500/15 text-sky-300 border-sky-500/30";
+      case "showcase": return "bg-purple-500/15 text-purple-300 border-purple-500/30";
+      case "design_share": return "bg-emerald-500/15 text-emerald-300 border-emerald-500/30";
+      default: return "bg-slate-500/15 text-slate-300 border-slate-500/30";
+    }
+  };
+
+  const getTypeLabel = (type: string) => {
+    switch (type) {
+      case "design_share": return "Design Share";
+      default: return type.charAt(0).toUpperCase() + type.slice(1);
     }
   };
 
   const getActionButton = () => {
     if (!post) return null;
 
-    switch (post.post_type) {
-      case "request":
-      case "task":
-        return (
-          <button className="px-6 py-3 bg-green-600 hover:bg-green-500 rounded-lg font-medium transition-colors flex items-center gap-2 shadow-lg">
-            <span>🙋</span>
-            I Can Help
-          </button>
-        );
-      case "showcase":
-        return (
-          <Link
-            href={`/submit?fork=${post.id}`}
-            className="px-6 py-3 bg-sky-600 hover:bg-sky-500 rounded-lg font-medium transition-colors flex items-center gap-2 shadow-lg"
-          >
-            <span>🔧</span>
-            Fork This Design
-          </Link>
-        );
-      default:
-        return null;
+    if (post.post_type === "showcase" || post.post_type === "design_share") {
+      return (
+        <Link
+          href={`/submit?fork=${post.id}`}
+          className="px-6 py-3 bg-sky-600 hover:bg-sky-500 rounded-lg font-medium transition-colors flex items-center gap-2 shadow-lg"
+        >
+          Fork This Design
+        </Link>
+      );
     }
+    return null;
   };
 
   if (loading) {
@@ -245,7 +239,6 @@ export default function PostDetailPage() {
         </nav>
         <div className="flex items-center justify-center py-20">
           <div className="text-center">
-            <div className="text-6xl mb-4">😵</div>
             <h2 className="text-xl font-bold mb-2">{error || "Post not found"}</h2>
             <Link href="/community" className="text-sky-400 hover:text-sky-300 transition-colors">
               ← Back to community
@@ -320,7 +313,7 @@ export default function PostDetailPage() {
               <div className="flex items-center gap-3 mb-4">
                 <div className={`px-3 py-1 rounded-full text-sm font-medium border ${getTypeColor(post.post_type)}`}>
                   <span className="mr-1">{getTypeIcon(post.post_type)}</span>
-                  {post.post_type.charAt(0).toUpperCase() + post.post_type.slice(1)}
+                  {getTypeLabel(post.post_type)}
                 </div>
               </div>
 
@@ -328,7 +321,6 @@ export default function PostDetailPage() {
 
               <div className="flex items-center gap-6 text-sm text-slate-400 mb-6">
                 <div className="flex items-center gap-2">
-                  <span>👤</span>
                   <span className="font-medium text-white">{post.author_name || 'Anonymous'}</span>
                 </div>
                 <span>•</span>
@@ -424,9 +416,8 @@ export default function PostDetailPage() {
               {/* Comments list */}
               <div className="space-y-4">
                 {comments.length === 0 ? (
-                  <div className="text-center py-12 text-slate-400">
-                    <div className="text-4xl mb-2">💭</div>
-                    <p>No comments yet. Be the first to share your thoughts!</p>
+                  <div className="text-center py-12 text-slate-500">
+                    <p className="text-sm">No comments yet. Be the first to share your thoughts.</p>
                   </div>
                 ) : (
                   comments.map((comment) => (
@@ -501,13 +492,13 @@ export default function PostDetailPage() {
                     href="/community/new"
                     className="block w-full px-4 py-2 bg-sky-600 hover:bg-sky-500 rounded-lg text-center text-sm font-medium transition-colors"
                   >
-                    💬 New Post
+                    New Post
                   </Link>
                   <Link
-                    href="/orders/new"
-                    className="block w-full px-4 py-2 bg-green-600 hover:bg-green-500 rounded-lg text-center text-sm font-medium transition-colors"
+                    href="/community"
+                    className="block w-full px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-center text-sm font-medium transition-colors"
                   >
-                    📤 Submit Design
+                    Back to Community
                   </Link>
                 </div>
               </div>

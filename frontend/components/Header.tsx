@@ -3,7 +3,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Globe, Package, Settings, PlusCircle, LogOut, MessageSquare, LayoutDashboard, Bot } from "lucide-react";
+import { Globe, Package, Settings, PlusCircle, LogOut, MessageSquare, LayoutDashboard, Bot, ChevronDown, Cpu, Users, Compass } from "lucide-react";
 import { useAuthStore } from "@/stores/authStore";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,9 +17,15 @@ import {
 const navItems = [
   { href: "/", label: "Home", icon: Globe },
   { href: "/community", label: "Community", icon: MessageSquare },
+  { href: "/spaces", label: "Spaces", icon: LayoutDashboard },
   { href: "/map", label: "Map", icon: Globe },
+];
+
+const exploreItems = [
   { href: "/orders", label: "Orders", icon: Package },
   { href: "/agents", label: "Agents", icon: Bot },
+  { href: "/devices", label: "Devices", icon: Cpu },
+  { href: "/makers", label: "Makers", icon: Users },
 ];
 
 export default function Header() {
@@ -63,6 +69,30 @@ export default function Header() {
               {label}
             </Link>
           ))}
+          {/* Explore dropdown */}
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              className={`flex items-center gap-1 md:gap-1.5 rounded-lg px-2 md:px-3 py-1.5 text-xs md:text-sm font-medium transition-colors whitespace-nowrap ${
+                ["/orders", "/agents", "/devices", "/makers"].some(p => pathname.startsWith(p))
+                  ? "bg-sky-500/10 text-sky-400"
+                  : "text-slate-400 hover:text-white hover:bg-slate-800"
+              }`}
+            >
+              <Compass size={14} className="shrink-0" />
+              Explore
+              <ChevronDown size={12} />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-40">
+              {exploreItems.map(({ href, label, icon: Icon }) => (
+                <DropdownMenuItem key={href} asChild>
+                  <Link href={href} className="flex items-center gap-2">
+                    <Icon size={14} />
+                    {label}
+                  </Link>
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </nav>
 
         {/* User Menu */}

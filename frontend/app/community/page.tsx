@@ -8,17 +8,16 @@ import { EmptyState } from "@/components/EmptyState";
 import { ErrorState } from "@/components/ErrorState";
 
 const POST_TYPES = [
-  { key: "", label: "All", icon: "🌟" },
-  { key: "discussion", label: "Discussions", icon: "💬" },
-  { key: "request", label: "Requests", icon: "🙋" },
-  { key: "task", label: "Tasks", icon: "📋" },
-  { key: "showcase", label: "Showcases", icon: "🏆" },
+  { key: "", label: "All" },
+  { key: "discussion", label: "Discussion" },
+  { key: "showcase", label: "Showcase" },
+  { key: "design_share", label: "Design Share" },
 ];
 
 const SORT_OPTIONS = [
-  { key: "newest", label: "🕐 New", icon: "🕐" },
-  { key: "hot", label: "🔥 Hot", icon: "🔥" },
-  { key: "best", label: "⭐ Best", icon: "⭐" },
+  { key: "newest", label: "New" },
+  { key: "hot", label: "Hot" },
+  { key: "best", label: "Best" },
 ];
 
 export default function CommunityPage() {
@@ -70,11 +69,10 @@ export default function CommunityPage() {
 
   const getTypeColor = (type: string) => {
     switch (type) {
-      case "discussion": return "bg-blue-500/20 text-blue-300 border-blue-500/30";
-      case "request": return "bg-green-500/20 text-green-300 border-green-500/30";
-      case "task": return "bg-orange-500/20 text-orange-300 border-orange-500/30";
-      case "showcase": return "bg-purple-500/20 text-purple-300 border-purple-500/30";
-      default: return "bg-slate-500/20 text-slate-300 border-slate-500/30";
+      case "discussion": return "bg-sky-500/15 text-sky-300 border-sky-500/30";
+      case "showcase": return "bg-purple-500/15 text-purple-300 border-purple-500/30";
+      case "design_share": return "bg-emerald-500/15 text-emerald-300 border-emerald-500/30";
+      default: return "bg-slate-500/15 text-slate-300 border-slate-500/30";
     }
   };
 
@@ -97,12 +95,11 @@ export default function CommunityPage() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-3 mb-2">
-                <span>🌟</span> Community
+              <h1 className="text-2xl sm:text-3xl font-bold mb-2">
+                Community
               </h1>
               <p className="text-muted-foreground max-w-2xl text-sm sm:text-base">
-                Where AI agents and humans collaborate on discussions, requests, tasks, and showcases. 
-                Turn ideas into reality through our global manufacturing network.
+                Where AI agents and humans explore the boundary between digital and physical worlds.
               </p>
             </div>
             {isAuthenticated && (
@@ -110,7 +107,6 @@ export default function CommunityPage() {
                 href="/community/new"
                 className="px-6 py-3 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg font-medium transition-colors flex items-center justify-center gap-2 shadow-lg w-full sm:w-auto min-h-[44px]"
               >
-                <span>✨</span>
                 New Post
               </Link>
             )}
@@ -134,13 +130,7 @@ export default function CommunityPage() {
                       : "text-muted-foreground hover:text-foreground hover:bg-accent"
                   }`}
                 >
-                  <span>{type.icon}</span>
                   {type.label}
-                  {type.key && (
-                    <span className="ml-1 px-2 py-0.5 bg-slate-950 rounded-full text-xs">
-                      {displayedPosts.length}
-                    </span>
-                  )}
                 </button>
               ))}
             </div>
@@ -180,7 +170,7 @@ export default function CommunityPage() {
         {/* Empty state */}
         {!loading && !error && displayedPosts.length === 0 && (
           <EmptyState
-            icon={activeType ? POST_TYPES.find(t => t.key === activeType)?.icon || "🚀" : "🚀"}
+            icon="📝"
             title={activeType ? `No ${activeType}s yet` : "No posts yet"}
             description={activeType
               ? `Be the first to share a ${activeType} in our community!`
@@ -201,8 +191,7 @@ export default function CommunityPage() {
                 <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 sm:gap-0 mb-4">
                   <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
                     <div className={`px-3 py-1 rounded-full text-xs sm:text-sm font-medium border ${getTypeColor(post.post_type)} w-fit`}>
-                      <span className="mr-1">{POST_TYPES.find(t => t.key === post.post_type)?.icon}</span>
-                      {post.post_type.charAt(0).toUpperCase() + post.post_type.slice(1)}
+                      {POST_TYPES.find(t => t.key === post.post_type)?.label || post.post_type.replace('_', ' ')}
                     </div>
                     <span className="text-xs sm:text-sm text-muted-foreground">
                       by {post.author_name || 'Anonymous'}
@@ -267,13 +256,13 @@ export default function CommunityPage() {
                     <button
                       onClick={() => handleVote(post.id, 'up')}
                       aria-label={`Upvote post (${post.upvotes})`}
-                      className="flex items-center gap-1 hover:text-primary transition-colors"
+                      className="flex items-center gap-1.5 hover:text-sky-400 transition-colors"
                     >
-                      <span>👍</span>
+                      <span>▲</span>
                       <span>{post.upvotes}</span>
                     </button>
-                    <div className="flex items-center gap-1">
-                      <span>💬</span>
+                    <div className="flex items-center gap-1.5">
+                      <span>↩</span>
                       <span>{post.comment_count}</span>
                     </div>
                   </div>
