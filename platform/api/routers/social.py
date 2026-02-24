@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import uuid
 from datetime import datetime, timezone
@@ -10,6 +11,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 
 from ..database import get_db
 from ..deps import get_authenticated_identity
+from ..notifications import send_notification
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/v1/social", tags=["social"])
@@ -41,6 +43,19 @@ def follow_user(user_id: str, identity: dict = Depends(get_authenticated_identit
             )
         except Exception:
             raise HTTPException(409, "Already following")
+
+        target_user = db.execute("SELECT email, username FROM users WHERE id = ?", (user_id,)).fetchone()
+
+    if target_user:
+        follower_name = identity.get("username") or follower_id
+        asyncio.run(
+            send_notification(
+                target_user["email"],
+                "You have a new follower",
+                f"{follower_name} started following you.",
+                notification_type="follow",
+            )
+        )
 
     logger.info("Follow: %s → %s", follower_id, user_id)
     return {"message": "Followed", "following_id": user_id}

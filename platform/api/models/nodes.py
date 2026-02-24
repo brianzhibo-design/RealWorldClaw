@@ -104,6 +104,7 @@ class NodeResponse(BaseModel):
     build_volume_z: Optional[float]
     description: Optional[str]
     status: NodeStatus
+    online_status: str = "offline"
     last_heartbeat: Optional[str]
     created_at: str
 
@@ -147,3 +148,10 @@ class NodeMatchResponse(BaseModel):
     matches: List[NodeResponse]
     total_count: int
     criteria: NodeMatchRequest
+
+
+class NodeHeartbeatStatusResponse(BaseModel):
+    node_id: str
+    last_heartbeat: Optional[str]
+    online_status: str
+    status: NodeStatus

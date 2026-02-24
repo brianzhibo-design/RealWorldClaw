@@ -17,6 +17,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 
 from ..database import get_db
 from ..deps import get_authenticated_identity
+from ..notifications import send_notification
 from ..models.community import (
     CommentCreateRequest,
     CommentResponse,
@@ -306,16 +307,25 @@ async def create_comment(
     # Verify post exists
     with get_db() as db:
         post_row = db.execute("""
-            SELECT id FROM community_posts WHERE id = ?
+            SELECT id, author_id FROM community_posts WHERE id = ?
         """, (post_id,)).fetchone()
-        
+
         if not post_row:
             raise HTTPException(status_code=404, detail="Post not found")
-        
+
+        parent_row = None
+        if comment.parent_id:
+            parent_row = db.execute(
+                "SELECT id, author_id FROM community_comments WHERE id = ? AND post_id = ?",
+                (comment.parent_id, post_id),
+            ).fetchone()
+            if not parent_row:
+                raise HTTPException(status_code=404, detail="Parent comment not found")
+
         # Create comment
         comment_id = str(uuid.uuid4())
         now = datetime.now(timezone.utc).isoformat()
-        
+
         db.execute("""
             INSERT INTO community_comments (
                 id, post_id, content, author_id, author_type, parent_id, created_at, updated_at
@@ -330,23 +340,55 @@ async def create_comment(
             now,
             now
         ))
-        
+
         # Update comment count on post
         db.execute("""
-            UPDATE community_posts 
+            UPDATE community_posts
             SET comment_count = comment_count + 1, updated_at = ?
             WHERE id = ?
         """, (now, post_id))
-        
+
         # Get the created comment
         comment_row = db.execute("""
             SELECT * FROM community_comments WHERE id = ?
         """, (comment_id,)).fetchone()
-        
+
         comment_author_type = _resolve_author_type(comment_row["author_id"], db)
-    
+
+        # Notification targets
+        commenter_id = identity["identity_id"]
+        post_author = None
+        reply_author = None
+        if post_row["author_id"] != commenter_id:
+            post_author = db.execute(
+                "SELECT email FROM users WHERE id = ?",
+                (post_row["author_id"],),
+            ).fetchone()
+
+        if parent_row and parent_row["author_id"] != commenter_id and parent_row["author_id"] != post_row["author_id"]:
+            reply_author = db.execute(
+                "SELECT email FROM users WHERE id = ?",
+                (parent_row["author_id"],),
+            ).fetchone()
+
+    if post_author:
+        await send_notification(
+            post_author["email"],
+            "New comment on your post",
+            f"{identity.get('username') or identity['identity_id']} commented on your post.",
+            notification_type="comment",
+        )
+
+    if reply_author:
+        await send_notification(
+            reply_author["email"],
+            "New reply to your comment",
+            f"{identity.get('username') or identity['identity_id']} replied to your comment.",
+            notification_type="reply",
+        )
+
     logger.info("Comment created: post=%s by=%s", post_id, identity["identity_id"])
-    
+
     return CommentResponse(
         id=comment_row["id"],
         post_id=comment_row["post_id"],

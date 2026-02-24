@@ -154,6 +154,9 @@ def init_db():
                 "CREATE TABLE IF NOT EXISTS follows (id TEXT PRIMARY KEY, follower_id TEXT NOT NULL, following_id TEXT NOT NULL, created_at TEXT NOT NULL, UNIQUE(follower_id, following_id))",
                 "CREATE TABLE IF NOT EXISTS spaces (id TEXT PRIMARY KEY, name TEXT UNIQUE NOT NULL, display_name TEXT NOT NULL, description TEXT DEFAULT '', icon TEXT DEFAULT '🏭', creator_id TEXT NOT NULL, member_count INTEGER DEFAULT 0, post_count INTEGER DEFAULT 0, created_at TEXT NOT NULL)",
                 "CREATE TABLE IF NOT EXISTS space_members (space_id TEXT NOT NULL, user_id TEXT NOT NULL, role TEXT DEFAULT 'member', joined_at TEXT NOT NULL, PRIMARY KEY(space_id, user_id))",
+                "CREATE TABLE IF NOT EXISTS direct_messages (id TEXT PRIMARY KEY, sender_id TEXT NOT NULL, recipient_id TEXT NOT NULL, content TEXT NOT NULL, read INTEGER NOT NULL DEFAULT 0, created_at TEXT NOT NULL)",
+                "CREATE INDEX IF NOT EXISTS idx_dm_sender_recipient ON direct_messages(sender_id, recipient_id)",
+                "CREATE INDEX IF NOT EXISTS idx_dm_created_at ON direct_messages(created_at)",
             ]:
                 try:
                     db.execute(sql)
@@ -556,6 +559,20 @@ def init_db():
                 UNIQUE(follower_id, following_id)
             )
         """)
+
+        # ── Direct messages ───────────────────────────────────────
+        db.execute("""
+            CREATE TABLE IF NOT EXISTS direct_messages (
+                id TEXT PRIMARY KEY,
+                sender_id TEXT NOT NULL,
+                recipient_id TEXT NOT NULL,
+                content TEXT NOT NULL,
+                read INTEGER NOT NULL DEFAULT 0,
+                created_at TEXT NOT NULL
+            )
+        """)
+        db.execute("CREATE INDEX IF NOT EXISTS idx_dm_sender_recipient ON direct_messages(sender_id, recipient_id)")
+        db.execute("CREATE INDEX IF NOT EXISTS idx_dm_created_at ON direct_messages(created_at)")
 
         # ── Spaces (submolt-like communities) ─────────────────────
         db.execute("""

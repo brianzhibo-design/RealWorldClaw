@@ -28,6 +28,7 @@ from ..models.nodes import (
     NodeStatus,
     NodeType,
     MaterialSupport,
+    NodeHeartbeatStatusResponse,
 )
 from ..deps import get_authenticated_identity
 
@@ -35,7 +36,7 @@ router = APIRouter(prefix="/nodes", tags=["nodes"])
 
 # Constants for location fuzzing and heartbeat timeout
 LOCATION_FUZZ_DEGREES = 0.01  # ~1km radius
-HEARTBEAT_TIMEOUT_MINUTES = 1440  # 24 hours — nodes stay visible longer
+HEARTBEAT_TIMEOUT_MINUTES = 5
 EARTH_RADIUS_KM = 6371.0
 
 
@@ -65,11 +66,19 @@ def _haversine_distance(lat1: float, lng1: float, lat2: float, lng2: float) -> f
     return EARTH_RADIUS_KM * c
 
 
+def _compute_online_status(last_heartbeat: str | None) -> str:
+    if not last_heartbeat:
+        return "offline"
+    heartbeat_at = datetime.fromisoformat(last_heartbeat.replace('Z', '+00:00'))
+    cutoff = datetime.now(timezone.utc) - timedelta(minutes=HEARTBEAT_TIMEOUT_MINUTES)
+    return "online" if heartbeat_at >= cutoff else "offline"
+
+
 def _row_to_node_response(row: dict) -> NodeResponse:
     """Convert DB row to public NodeResponse"""
     materials = json.loads(row["materials"]) if isinstance(row["materials"], str) else row["materials"]
     capabilities = json.loads(row["capabilities"]) if isinstance(row["capabilities"], str) else row["capabilities"]
-    
+
     return NodeResponse(
         id=row["id"],
         name=row["name"],
@@ -83,6 +92,7 @@ def _row_to_node_response(row: dict) -> NodeResponse:
         build_volume_z=row["build_volume_z"],
         description=row["description"],
         status=NodeStatus(row["status"]),
+        online_status=_compute_online_status(row.get("last_heartbeat")),
         last_heartbeat=row["last_heartbeat"],
         created_at=row["created_at"],
     )
@@ -301,8 +311,17 @@ def list_nodes(
 
         rows = db.execute(query, params).fetchall()
 
+        nodes = []
+        for r in rows:
+            row_dict = dict(r)
+            online_status = _compute_online_status(row_dict.get("last_heartbeat"))
+            if online_status == "offline" and row_dict["status"] != NodeStatus.offline.value:
+                db.execute("UPDATE nodes SET status = ? WHERE id = ?", (NodeStatus.offline.value, row_dict["id"]))
+                row_dict["status"] = NodeStatus.offline.value
+            nodes.append(_row_to_node_response(row_dict))
+
         return {
-            "nodes": [_row_to_node_response(dict(r)) for r in rows],
+            "nodes": nodes,
             "total": total,
             "page": page,
             "limit": limit,
@@ -427,6 +446,33 @@ def get_my_nodes(identity: dict = Depends(get_authenticated_identity)):
         ).fetchall()
         
         return [_row_to_node_detail(dict(row)) for row in rows]
+
+
+@router.get("/{node_id}/heartbeat", response_model=NodeHeartbeatStatusResponse)
+def get_node_heartbeat(node_id: str):
+    """Get node heartbeat with computed online status."""
+    with get_db() as db:
+        row = db.execute(
+            "SELECT id, status, last_heartbeat FROM nodes WHERE id = ?",
+            (node_id,),
+        ).fetchone()
+        if not row:
+            raise HTTPException(status_code=404, detail="Node not found")
+
+        row_dict = dict(row)
+        online_status = _compute_online_status(row_dict.get("last_heartbeat"))
+        effective_status = row_dict["status"]
+
+        if online_status == "offline" and row_dict["status"] != NodeStatus.offline.value:
+            db.execute("UPDATE nodes SET status = ? WHERE id = ?", (NodeStatus.offline.value, node_id))
+            effective_status = NodeStatus.offline.value
+
+    return NodeHeartbeatStatusResponse(
+        node_id=node_id,
+        last_heartbeat=row_dict.get("last_heartbeat"),
+        online_status=online_status,
+        status=NodeStatus(effective_status),
+    )
 
 
 @router.get("/{node_id}")
