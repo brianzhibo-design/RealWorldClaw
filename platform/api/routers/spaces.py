@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import sqlite3
 import uuid
 from datetime import datetime, timezone
 
@@ -13,7 +14,7 @@ from ..database import get_db
 from ..deps import get_authenticated_identity
 
 logger = logging.getLogger(__name__)
-router = APIRouter(prefix="/api/v1/spaces", tags=["spaces"])
+router = APIRouter(prefix="/spaces", tags=["spaces"])
 
 
 class SpaceCreate(BaseModel):
@@ -131,8 +132,8 @@ def join_space(name: str, identity: dict = Depends(get_authenticated_identity)):
                 (space["id"], user_id, now),
             )
             db.execute("UPDATE spaces SET member_count = member_count + 1 WHERE id = ?", (space["id"],))
-        except Exception:
-            raise HTTPException(409, "Already a member")
+        except sqlite3.IntegrityError as exc:
+            raise HTTPException(409, "Already a member") from exc
 
     return {"message": f"Joined {name}"}
 

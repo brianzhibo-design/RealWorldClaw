@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import sqlite3
 import uuid
 from datetime import datetime, timezone
 
@@ -14,7 +15,7 @@ from ..deps import get_authenticated_identity
 from ..notifications import send_notification
 
 logger = logging.getLogger(__name__)
-router = APIRouter(prefix="/api/v1/social", tags=["social"])
+router = APIRouter(prefix="/social", tags=["social"])
 
 
 # ── Follow / Unfollow ───────────────────────────────────────────
@@ -41,8 +42,8 @@ def follow_user(user_id: str, identity: dict = Depends(get_authenticated_identit
                 "INSERT INTO follows (id, follower_id, following_id, created_at) VALUES (?, ?, ?, ?)",
                 (str(uuid.uuid4()), follower_id, user_id, now),
             )
-        except Exception:
-            raise HTTPException(409, "Already following")
+        except sqlite3.IntegrityError as exc:
+            raise HTTPException(409, "Already following") from exc
 
         target_user = db.execute("SELECT email, username FROM users WHERE id = ?", (user_id,)).fetchone()
 
