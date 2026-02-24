@@ -6,7 +6,7 @@ import os
 import sqlite3
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Any, Dict, Iterator, Union
+from typing import Any, Iterator, Union
 
 # 检查环境变量决定使用哪个数据库
 DATABASE_URL = os.getenv("DATABASE_URL")

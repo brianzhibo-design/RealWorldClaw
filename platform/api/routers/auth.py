@@ -30,7 +30,6 @@ def _rate_check(key: str, max_calls: int, window_sec: int) -> bool:
     bucket.append(now)
     return True
 from fastapi import APIRouter, Depends, HTTPException
-from jose import jwt as jose_jwt
 from google.oauth2 import id_token as google_id_token
 from google.auth.transport import requests as google_auth_requests
 from pydantic import BaseModel, Field

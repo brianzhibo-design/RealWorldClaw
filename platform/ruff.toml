@@ -3,4 +3,8 @@ line-length = 120
 exclude = [
     "printer/bambu_test_manual.py",
     "printer/bambu_test_cli.py",
+    "api/routers/_archived/",
 ]
+
+[lint]
+ignore = ["E402"]  # module-level imports — unavoidable with conditional DB imports

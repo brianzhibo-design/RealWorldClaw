@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import logging
-import re
 import uuid
 from datetime import datetime, timezone
 
@@ -60,7 +59,7 @@ def create_space(req: SpaceCreate, identity: dict = Depends(get_authenticated_id
 
 @router.get("")
 def list_spaces(
-    sort: str = Query("popular", regex="^(popular|newest|name)$"),
+    sort: str = Query("popular", pattern="^(popular|newest|name)$"),
     limit: int = Query(20, ge=1, le=100),
     offset: int = Query(0, ge=0),
 ):

@@ -1,12 +1,16 @@
 #!/usr/bin/env python3
 """Direct SQLite→PostgreSQL migration. Run on Fly.io machine."""
-import os, sqlite3, sys
+import os
+import sqlite3
+import sys
 
 DATABASE_URL = os.environ.get("DATABASE_URL")
 if not DATABASE_URL:
-    print("❌ DATABASE_URL not set"); sys.exit(1)
+    print("❌ DATABASE_URL not set")
+    sys.exit(1)
 
-import psycopg2, psycopg2.extras
+import psycopg2
+import psycopg2.extras
 
 SQLITE_PATH = "/app/data/realworldclaw.db"
 
@@ -110,7 +114,7 @@ def migrate():
                 cur.execute(f'SELECT COUNT(*) FROM "{table}"')
                 count = cur.fetchone()[0]
                 print(f"  {table}: {count}")
-            except:
+            except Exception:
                 pg.rollback()
     
     pg.close()

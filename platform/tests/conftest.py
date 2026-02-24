@@ -103,7 +103,7 @@ def admin_headers(client):
         "password": "testpass1234",
     })
     data = resp.json()
-    token = data["access_token"]
+    _ = data["access_token"]  # noqa: F841
     user_id = data.get("user", {}).get("id", "")
     # Directly set admin role in DB
     from api.database import get_db

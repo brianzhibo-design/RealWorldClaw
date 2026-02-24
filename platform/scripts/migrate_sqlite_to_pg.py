@@ -9,7 +9,7 @@ import sys
 import sqlite3
 import json
 from pathlib import Path
-from typing import List, Dict, Any, Tuple
+from typing import List, Dict, Any
 
 # 添加父目录到路径以便导入
 sys.path.append(str(Path(__file__).parent.parent))
@@ -17,7 +17,6 @@ sys.path.append(str(Path(__file__).parent.parent))
 try:
     import psycopg2
     import psycopg2.extras
-    from psycopg2.pool import SimpleConnectionPool
 except ImportError:
     print("❌ 请安装psycopg2: pip install psycopg2-binary")
     sys.exit(1)
@@ -146,7 +145,7 @@ def insert_table_data(pg_conn, table_name: str, columns: List[Dict[str, Any]], d
 
 def migrate_database(sqlite_path: Path, postgres_url: str):
     """执行完整的数据库迁移"""
-    print(f"🚀 开始迁移数据库...")
+    print("🚀 开始迁移数据库...")
     print(f"   源数据库: {sqlite_path}")
     print(f"   目标数据库: {postgres_url[:50]}...")
     
@@ -239,7 +238,7 @@ def migrate_database(sqlite_path: Path, postgres_url: str):
                 continue
         
         # 最终统计
-        print(f"\n📊 迁移完成统计:")
+        print("\n📊 迁移完成统计:")
         print(f"   总共迁移 {total_rows_migrated} 行数据")
         
         success_count = sum(1 for stats in migration_stats.values() if stats['status'] == 'success')
@@ -253,7 +252,7 @@ def migrate_database(sqlite_path: Path, postgres_url: str):
         print(f"   空表: {empty_count} 表")
         
         # 详细报告
-        print(f"\n📋 详细报告:")
+        print("\n📋 详细报告:")
         for table_name, stats in migration_stats.items():
             status_emoji = {'success': '✅', 'partial': '⚠️', 'failed': '❌', 'empty': '⏭️'}
             emoji = status_emoji.get(stats['status'], '❓')
@@ -287,8 +286,8 @@ def main():
     if len(sys.argv) > 1:
         sqlite_path = Path(sys.argv[1])
     
-    print(f"SQLite到PostgreSQL迁移工具")
-    print(f"================================")
+    print("SQLite到PostgreSQL迁移工具")
+    print("================================")
     
     # 询问确认
     response = input(f"确定要将 {sqlite_path} 迁移到PostgreSQL吗? (y/N): ").strip().lower()
