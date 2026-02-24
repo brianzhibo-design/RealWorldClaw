@@ -92,12 +92,16 @@ class TestUserBuyerJourney:
             "delivery_district": "浦东新区",
             "delivery_address": "上海市浦东新区张江路100号",
             "urgency": "normal",
-            "auto_match": True,
+            "auto_match": False,
             "notes": "E2E test order",
         })
         assert r.status_code == 201
         order_id = r.json()["order_id"]
         assert r.json()["status"] == "pending"
+
+        # Maker claims order
+        r = client.post(f"{API}/orders/{order_id}/claim", headers=maker_headers)
+        assert r.status_code == 200
 
         # Maker accepts
         r = client.put(f"{API}/orders/{order_id}/accept", headers=maker_headers, json={
@@ -145,9 +149,13 @@ class TestUserBuyerJourney:
             "delivery_province": "上海市", "delivery_city": "上海市",
             "delivery_district": "浦东新区", "delivery_address": "test addr 12345",
             "urgency": "normal",
-            "auto_match": True,
+            "auto_match": False,
         })
         order_id = r.json()["order_id"]
+
+        # Maker claims order
+        r = client.post(f"{API}/orders/{order_id}/claim", headers=maker_headers)
+        assert r.status_code == 200
 
         # Customer sends message
         r = client.post(f"{API}/orders/{order_id}/messages", headers=auth_headers, json={

@@ -6,6 +6,13 @@ import Link from "next/link";
 import { fetchCommunityPost, fetchPostComments, createComment, CommunityPost, CommunityComment } from "@/lib/api-client";
 import VoteButtons from "@/components/VoteButtons";
 
+// Calculate total comments including nested replies
+function getTotalCommentCount(comments: CommunityComment[]): number {
+  return comments.reduce((total, comment) => {
+    return total + 1 + (comment.replies ? getTotalCommentCount(comment.replies) : 0);
+  }, 0);
+}
+
 // Recursive comment component
 function CommentItem({ 
   comment, 
@@ -348,7 +355,7 @@ export default function PostDetailPage() {
                   <VoteButtons postId={post.id} upvotes={post.upvotes} downvotes={post.downvotes} size="sm" />
                   <div className="flex items-center gap-1">
                     <span>💬</span>
-                    <span>{comments.length}</span>
+                    <span>{getTotalCommentCount(comments)}</span>
                   </div>
                 </div>
               </div>
@@ -368,19 +375,43 @@ export default function PostDetailPage() {
             {/* Comments section */}
             <div className="border-t border-slate-800 pt-8">
               <h2 className="text-2xl font-bold mb-6">
-                Comments ({comments.length})
+                Comments ({getTotalCommentCount(comments)})
               </h2>
 
               {/* Comment form */}
               <form onSubmit={handleSubmitComment} className="mb-8">
+                {replyTo && (
+                  <div className="mb-3 p-3 bg-slate-800/50 rounded-lg border border-slate-700 flex items-center justify-between">
+                    <span className="text-sm text-slate-400">
+                      Replying to comment...
+                    </span>
+                    <button 
+                      type="button"
+                      onClick={() => setReplyTo(null)}
+                      className="text-slate-400 hover:text-slate-300 transition-colors"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                )}
                 <textarea
                   value={newComment}
                   onChange={(e) => setNewComment(e.target.value)}
-                  placeholder="Share your thoughts, ask questions, or offer help..."
+                  placeholder={replyTo ? "Write your reply..." : "Share your thoughts, ask questions, or offer help..."}
                   className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:border-sky-500 transition-colors resize-none"
                   rows={4}
                 />
-                <div className="flex justify-end mt-3">
+                <div className="flex justify-between items-center mt-3">
+                  {replyTo && (
+                    <button
+                      type="button"
+                      onClick={() => {setReplyTo(null); setNewComment("");}}
+                      className="px-4 py-2 text-slate-400 hover:text-slate-300 text-sm transition-colors"
+                    >
+                      Cancel Reply
+                    </button>
+                  )}
+                  <div className="flex-1"></div>
                   <button
                     type="submit"
                     disabled={submitting || !newComment.trim()}
@@ -390,13 +421,13 @@ export default function PostDetailPage() {
                         : "bg-sky-600 hover:bg-sky-500 text-white"
                     }`}
                   >
-                    {submitting ? "Posting..." : "Post Comment"}
+                    {submitting ? "Posting..." : (replyTo ? "Post Reply" : "Post Comment")}
                   </button>
                 </div>
               </form>
 
               {/* Comments list */}
-              <div className="space-y-6">
+              <div className="space-y-4">
                 {comments.length === 0 ? (
                   <div className="text-center py-12 text-slate-400">
                     <div className="text-4xl mb-2">💭</div>
@@ -404,22 +435,11 @@ export default function PostDetailPage() {
                   </div>
                 ) : (
                   comments.map((comment) => (
-                    <div key={comment.id} className="bg-slate-800/30 rounded-lg p-6 border border-slate-700/50">
-                      <div className="flex items-center gap-4 mb-4">
-                        <span className="font-medium text-white flex items-center gap-2">
-                          <span>👤</span>
-                          {comment.author}
-                        </span>
-                        <span className="text-sm text-slate-400">
-                          {formatTimeAgo(comment.created_at)}
-                        </span>
-                        <div className="flex items-center gap-1 text-sm text-slate-400">
-                          <span>👍</span>
-                          <span>{comment.upvotes}</span>
-                        </div>
-                      </div>
-                      <p className="text-slate-300 leading-relaxed">{comment.content}</p>
-                    </div>
+                    <CommentItem 
+                      key={comment.id} 
+                      comment={comment} 
+                      onReply={setReplyTo}
+                    />
                   ))
                 )}
               </div>
