@@ -31,7 +31,7 @@ from ..models.community import (
 )
 
 # Lightweight HTML sanitizer (no extra dependency)
-_TAG_RE = re.compile(r"<[^>]+>")
+_TAG_RE = re.compile(r"<[^>]{0,500}>")  # bounded to prevent ReDoS
 
 # Simple in-memory rate limiter for community actions
 _community_rate: dict[str, list[float]] = defaultdict(list)
