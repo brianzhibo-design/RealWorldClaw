@@ -12,4 +12,4 @@
 - 补测试覆盖：`platform/tests/test_regression_matrix.py` 新增 `test_ws_accepts_connection_with_valid_query_token`，锁定 WS 鉴权协议（query token）正向链路。
 - 执行验证：`python3 -m pytest platform/tests/test_regression_matrix.py -q` 结果 `6 passed`。
 - 运营增长任务：更新 `docs/marketing/launch-posts.md`，新增可直接分发的「Community Update (Week of 2026-02-24)」双平台文案（X + Moltbook）。
-- 流程遵守：未进行 push/deploy，等待慢羊羊复审后再发布。
+- 流程遵守：先触发慢羊羊复审并拿到 Pass 后，已完成 `git push` + 后端 `fly deploy --remote-only` + 前端 `vercel --prod` 发布。
