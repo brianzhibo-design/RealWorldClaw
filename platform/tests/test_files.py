@@ -171,16 +171,16 @@ class TestFileDownload:
         )
         file_id = upload_r.json()["file_id"]
         
-        # Download the file
-        r = client.get(f"/api/v1/files/{file_id}/download")
+        # Download the file (requires auth)
+        r = client.get(f"/api/v1/files/{file_id}/download", headers=authenticated_user)
         
         assert r.status_code == 200
         assert r.content == file_content
         assert r.headers["content-disposition"] == f'attachment; filename="{filename}"'
     
-    def test_download_nonexistent_file(self):
+    def test_download_nonexistent_file(self, authenticated_user):
         """Test downloading non-existent file."""
-        r = client.get("/api/v1/files/nonexistent-id/download")
+        r = client.get("/api/v1/files/nonexistent-id/download", headers=authenticated_user)
         
         assert r.status_code == 404
 

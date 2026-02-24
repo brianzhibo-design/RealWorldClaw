@@ -176,7 +176,7 @@ async def get_file_info(file_id: str):
 
 
 @router.get("/{file_id}/download")
-async def download_file(file_id: str):
+async def download_file(file_id: str, identity: dict = Depends(get_authenticated_identity)):
     """Download a file."""
     
     with get_db() as db:
