@@ -37,12 +37,11 @@ async def search(
                     title as name,
                     content,
                     author_id,
-                    tags,
                     created_at,
                     upvotes,
                     downvotes,
-                    reply_count
-                FROM posts 
+                    comment_count
+                FROM community_posts 
                 WHERE title LIKE ? OR content LIKE ?
                 ORDER BY upvotes DESC, created_at DESC
                 LIMIT ? OFFSET ?
@@ -60,12 +59,12 @@ async def search(
                     name=row["name"],
                     snippet=snippet,
                     author_id=row["author_id"],
-                    tags=row["tags"] or "[]",
+                    tags="[]",
                     created_at=row["created_at"],
                     metadata={
                         "upvotes": row["upvotes"],
                         "downvotes": row["downvotes"],
-                        "reply_count": row["reply_count"]
+                        "reply_count": row["comment_count"]
                     }
                 ))
         
@@ -114,7 +113,7 @@ async def search(
         # Get total counts
         if type in ["post", "all"]:
             post_count = db.execute("""
-                SELECT COUNT(*) as count FROM posts 
+                SELECT COUNT(*) as count FROM community_posts 
                 WHERE title LIKE ? OR content LIKE ?
             """, (search_term, search_term)).fetchone()["count"]
         else:
