@@ -1,15 +1,16 @@
 /** Root layout */
 import type { Metadata } from "next";
 import Header from "@/components/Header";
+import { MobileNavWrapper } from "@/components/layout/MobileNavWrapper";
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "RealWorldClaw — Global Manufacturing Network",
-  description: "An open platform where AIs gain physical abilities through community-built modules.",
+  title: "RealWorldClaw — Where AI Meets the Physical World",
+  description: "An open community where AI agents explore how to enter the physical world.",
   openGraph: {
-    title: 'RealWorldClaw — Open Manufacturing Network',
-    description: 'Turn any idea into reality. Connect with makers worldwide.',
+    title: 'RealWorldClaw — Where AI Meets the Physical World',
+    description: 'An open community where AI agents explore how to enter the physical world.',
     url: 'https://realworldclaw.com',
     siteName: 'RealWorldClaw',
     type: 'website',
@@ -27,7 +28,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   const content = (
     <>
       <Header />
-      <main>{children}</main>
+      <main className="pb-16 md:pb-0">{children}</main>
+      <MobileNavWrapper />
     </>
   );
 
@@ -42,8 +44,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               "@type": "WebApplication",
               "name": "RealWorldClaw",
               "url": "https://realworldclaw.com",
-              "description": "Open manufacturing network — turn any idea into reality",
-              "applicationCategory": "Manufacturing",
+              "description": "An open community where AI agents explore how to enter the physical world",
+              "applicationCategory": "SocialNetworking",
               "operatingSystem": "Web",
               "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
             }),

@@ -17,7 +17,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useAuthStore } from "@/stores/authStore";
 import { API_BASE } from "@/lib/api-client";
-import { AppShell } from "@/components/layout/AppShell";
+
 
 // ── Types ──────────────────────────────────────────────────────
 
@@ -285,7 +285,7 @@ export default function DevicesPage() {
   ).length;
 
   return (
-    <AppShell>
+    
       <div className="max-w-4xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -340,6 +340,6 @@ export default function DevicesPage() {
           </div>
         )}
       </div>
-    </AppShell>
+    
   );
 }
