@@ -32,7 +32,7 @@ export default function RegisterPage() {
         email: res.user.email,
         role: res.user.role,
       });
-      router.push("/");
+      router.push("/spaces");
     } catch {
       setError("Registration failed. Please try again.");
     } finally {

@@ -32,61 +32,13 @@ interface Post {
   created_at: string;
 }
 
-// Typing Effect Component
-function TypingEffect() {
-  const phrases = useMemo(() => [
-    "Physical Object",
-    "Real Product", 
-    "Working Robot",
-    "Smart Device",
-    "Custom Part"
-  ], []);
-  
-  const [currentPhrase, setCurrentPhrase] = useState(0);
-  const [currentText, setCurrentText] = useState("");
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [showCursor, setShowCursor] = useState(true);
-
-  useEffect(() => {
-    const phrase = phrases[currentPhrase];
-    const speed = isDeleting ? 50 : 100;
-    
-    const timer = setTimeout(() => {
-      if (!isDeleting) {
-        if (currentText.length < phrase.length) {
-          setCurrentText(phrase.slice(0, currentText.length + 1));
-        } else {
-          setTimeout(() => setIsDeleting(true), 2000);
-        }
-      } else {
-        if (currentText.length > 0) {
-          setCurrentText(phrase.slice(0, currentText.length - 1));
-        } else {
-          setIsDeleting(false);
-          setCurrentPhrase((prev) => (prev + 1) % phrases.length);
-        }
-      }
-    }, speed);
-
-    return () => clearTimeout(timer);
-  }, [currentText, isDeleting, currentPhrase, phrases]);
-
-  // Cursor blinking
-  useEffect(() => {
-    const cursorTimer = setInterval(() => {
-      setShowCursor(prev => !prev);
-    }, 500);
-    return () => clearInterval(cursorTimer);
-  }, []);
-
-  return (
-    <span className="bg-gradient-to-r from-[#10b981] to-[#22d3ee] bg-clip-text text-transparent">
-      {currentText}
-      <span className={`${showCursor ? 'opacity-100' : 'opacity-0'} transition-opacity text-[#10b981]`}>
-        |
-      </span>
-    </span>
-  );
+interface Stats {
+  makers?: number;
+  orders?: number;
+  spaces?: number;
+  total_makers?: number;
+  total_orders?: number;
+  total_spaces?: number;
 }
 
 // Animated RWC Logo Component
@@ -98,7 +50,7 @@ function AnimatedLogo() {
   }, []);
 
   return (
-    <div className="relative w-20 h-20 mx-auto mb-6">
+    <div className="relative w-16 h-16 mx-auto mb-6">
       <style jsx>{`
         @keyframes strokeDraw {
           from { 
@@ -150,7 +102,7 @@ function AnimatedLogo() {
       `}</style>
       
       <div className="logo-container">
-        <svg width="80" height="80" viewBox="0 0 130 130" className="w-full h-full">
+        <svg width="64" height="64" viewBox="0 0 130 130" className="w-full h-full">
           <rect width="130" height="130" rx="20" fill="#0f172a" />
           <path 
             d="M 25 105 V 35 H 55 A 15 15 0 0 1 55 65 H 25 M 40 65 L 60 105" 
@@ -230,51 +182,6 @@ function FloatingDot({
   );
 }
 
-// Code Block Line Animation
-function AnimatedCodeBlock({ lines }: { lines: string[] }) {
-  const [visibleLines, setVisibleLines] = useState(0);
-  const ref = useRef(null);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          let lineIndex = 0;
-          const showLine = () => {
-            if (lineIndex < lines.length) {
-              setVisibleLines(lineIndex + 1);
-              lineIndex++;
-              setTimeout(showLine, 300);
-            }
-          };
-          showLine();
-        }
-      },
-      { threshold: 0.5 }
-    );
-
-    if (ref.current) {
-      observer.observe(ref.current);
-    }
-
-    return () => observer.disconnect();
-  }, [lines.length]);
-
-  return (
-    <div ref={ref} className="bg-[#0a0a0f] border border-[#1f2937] rounded-lg p-4 font-mono text-xs text-[#22d3ee] overflow-hidden">
-      {lines.map((line, index) => (
-        <div
-          key={index}
-          className={`transition-all duration-300 ${
-            index < visibleLines ? 'opacity-100 transform translate-y-0' : 'opacity-0 transform translate-y-2'
-          }`}
-          dangerouslySetInnerHTML={{ __html: line }}
-        />
-      ))}
-    </div>
-  );
-}
-
 // Counter Animation Component
 function AnimatedCounter({ 
   target, 
@@ -330,6 +237,7 @@ export default function Home() {
   // Real data state
   const [nodes, setNodes] = useState<Node[]>([]);
   const [posts, setPosts] = useState<Post[]>([]);
+  const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -340,12 +248,14 @@ export default function Home() {
         setLoading(true);
         setError(null);
 
-        // Fetch nodes and posts in parallel
-        const [nodesData, postsData] = await Promise.all([
+        // Fetch stats, nodes and posts in parallel
+        const [statsData, nodesData, postsData] = await Promise.all([
+          apiFetch<Stats>('/stats'),
           apiFetch<Node[]>('/nodes/map'),
           apiFetch<{posts: Post[]}>('/community/posts?limit=4')
         ]);
 
+        setStats(statsData);
         setNodes(Array.isArray(nodesData) ? nodesData : []);
         setPosts(postsData.posts || []);
       } catch (err) {
@@ -358,19 +268,6 @@ export default function Home() {
 
     fetchData();
   }, []);
-
-  // Calculate stats from real data
-  const stats = useMemo(() => {
-    const machineCount = nodes.length;
-    const countries = new Set(
-      nodes
-        .map(node => node.location?.country)
-        .filter(country => country && country.trim() !== '')
-    );
-    const countryCount = countries.size;
-
-    return { machineCount, countryCount };
-  }, [nodes]);
 
   const copySkillUrl = async () => {
     try {
@@ -408,38 +305,35 @@ export default function Home() {
           {/* Alpha badge */}
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-[#10b981]/30 bg-[#10b981]/8 text-[#10b981] text-sm font-mono mb-8">
             <div className="w-1.5 h-1.5 rounded-full bg-[#10b981] shadow-[0_0_6px_#10b981]" />
-            Alpha Platform — Real Hardware Connected
+            Open Manufacturing Network
           </div>
 
           {/* Animated Logo */}
           <AnimatedLogo />
 
-          {/* Main heading with typing effect */}
+          {/* Main heading */}
           <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold leading-[1.05] tracking-tight mb-6">
-            Turn Any Idea Into a{' '}
-            <span className="block">
-              <TypingEffect />
-            </span>
+            The Open Manufacturing Network
           </h1>
 
           {/* Subtitle */}
           <p className="text-lg md:text-xl text-[#9ca3af] max-w-2xl mx-auto mb-12 leading-relaxed">
-            The open network connecting <span className="text-[#10b981] font-semibold">AI agents</span>, makers, and manufacturing machines worldwide
+            Turn any digital design into a physical product. Zero commission. Community-powered.
           </p>
 
           {/* CTA buttons */}
           <div className="flex flex-wrap gap-4 justify-center mb-16">
             <Link 
-              href="/map"
+              href="/spaces"
               className="inline-flex items-center gap-2 px-7 py-4 bg-[#10b981] hover:bg-[#34d399] text-white font-semibold rounded-lg transition-all duration-200 hover:-translate-y-0.5 shadow-[0_0_20px_rgba(16,185,129,0.25)]"
             >
-              Explore Map →
+              Browse Spaces →
             </Link>
             <Link 
-              href="/community"
+              href="/makers/register"
               className="inline-flex items-center gap-2 px-7 py-4 bg-[#6366f1] hover:bg-[#818cf8] text-white font-semibold rounded-lg transition-all duration-200 hover:-translate-y-0.5 shadow-[0_0_20px_rgba(99,102,241,0.25)]"
             >
-              Join Community →
+              Become a Maker →
             </Link>
           </div>
 
@@ -450,32 +344,36 @@ export default function Home() {
                 <div className="text-3xl font-bold text-[#6b7280]">...</div>
               ) : error ? (
                 <div className="text-3xl font-bold text-[#ef4444]">?</div>
-              ) : stats.machineCount === 0 ? (
-                <div className="text-3xl font-bold text-[#6b7280]">0</div>
+              ) : stats && (stats.makers || stats.total_makers) ? (
+                <AnimatedCounter target={stats.makers || stats.total_makers || 0} />
               ) : (
-                <AnimatedCounter target={stats.machineCount} suffix={stats.machineCount > 1 ? "+" : ""} />
+                <div className="text-3xl font-bold text-[#6b7280]">0</div>
               )}
-              <div className="text-sm text-[#6b7280] font-mono">
-                {loading ? "Loading..." : error ? "Machines" : stats.machineCount === 0 ? "No data yet" : "Machines"}
-              </div>
+              <div className="text-sm text-[#6b7280] font-mono">Makers</div>
             </div>
             <div>
               {loading ? (
                 <div className="text-3xl font-bold text-[#6b7280]">...</div>
               ) : error ? (
                 <div className="text-3xl font-bold text-[#ef4444]">?</div>
-              ) : stats.countryCount === 0 ? (
-                <div className="text-3xl font-bold text-[#6b7280]">0</div>
+              ) : stats && (stats.orders || stats.total_orders) ? (
+                <AnimatedCounter target={stats.orders || stats.total_orders || 0} />
               ) : (
-                <AnimatedCounter target={stats.countryCount} />
+                <div className="text-3xl font-bold text-[#6b7280]">0</div>
               )}
-              <div className="text-sm text-[#6b7280] font-mono">
-                {loading ? "Loading..." : error ? "Countries" : stats.countryCount === 0 ? "No data yet" : "Countries"}
-              </div>
+              <div className="text-sm text-[#6b7280] font-mono">Orders</div>
             </div>
             <div>
-              <div className="text-3xl font-bold bg-gradient-to-r from-[#10b981] to-[#22d3ee] bg-clip-text text-transparent">v0.1</div>
-              <div className="text-sm text-[#6b7280] font-mono">Alpha</div>
+              {loading ? (
+                <div className="text-3xl font-bold text-[#6b7280]">...</div>
+              ) : error ? (
+                <div className="text-3xl font-bold text-[#ef4444]">?</div>
+              ) : stats && (stats.spaces || stats.total_spaces) ? (
+                <AnimatedCounter target={stats.spaces || stats.total_spaces || 0} />
+              ) : (
+                <div className="text-3xl font-bold text-[#6b7280]">0</div>
+              )}
+              <div className="text-sm text-[#6b7280] font-mono">Spaces</div>
             </div>
           </div>
         </div>

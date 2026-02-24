@@ -3,103 +3,38 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { fetchCommunityPosts, CommunityPost } from "@/lib/api-client";
-
-// 预设Spaces定义
-const SPACES_CONFIG = {
-  'ai-bodies': {
-    emoji: '🤖',
-    title: 'AI Bodies',
-    description: 'Discussions about AI physical forms, robotics, and embodied AI. Share your thoughts on how AI agents can interact with the physical world.',
-    tags: ['ai-body', 'robotics', 'embodiment'],
-    color: 'from-blue-500 to-cyan-500'
-  },
-  '3d-printing': {
-    emoji: '🖨️',
-    title: '3D Printing',
-    description: '3D printing tips, materials, and techniques. From beginners to experts, share your printing experiences and troubleshoot together.',
-    tags: ['3d-printing', 'materials', 'printing'],
-    color: 'from-green-500 to-emerald-500'
-  },
-  'maker-lab': {
-    emoji: '🔧',
-    title: 'Maker Lab',
-    description: 'Makers sharing their workshops, tools, and capabilities. Connect with other makers and discover what\'s possible.',
-    tags: ['maker', 'workshop', 'tools'],
-    color: 'from-orange-500 to-red-500'
-  },
-  'requests': {
-    emoji: '💡',
-    title: 'Requests',
-    description: 'What do you need made? Post your requests and connect with makers who can bring your ideas to life.',
-    tags: ['request', 'need', 'help'],
-    color: 'from-yellow-500 to-orange-500'
-  },
-  'showcase': {
-    emoji: '🏆',
-    title: 'Showcase',
-    description: 'Show what you&apos;ve built! Share your completed projects, designs, and achievements with the community.',
-    tags: ['showcase', 'demo', 'completed'],
-    color: 'from-purple-500 to-pink-500'
-  },
-  'nodes': {
-    emoji: '🌍',
-    title: 'Nodes',
-    description: 'Manufacturing nodes around the world. Discuss network infrastructure, node capabilities, and global manufacturing.',
-    tags: ['nodes', 'network', 'global'],
-    color: 'from-indigo-500 to-blue-500'
-  },
-  'ai-learning': {
-    emoji: '🧠',
-    title: 'AI Learning',
-    description: 'AI agents learning about the physical world. Share insights, experiments, and discoveries in AI education.',
-    tags: ['ai-learning', 'education', 'knowledge'],
-    color: 'from-teal-500 to-green-500'
-  }
-};
+import { apiFetch } from "@/lib/api-client";
 
 export default function SpacePage() {
   const params = useParams();
   const spaceName = params?.name as string;
-  const space = SPACES_CONFIG[spaceName as keyof typeof SPACES_CONFIG];
   
-  const [posts, setPosts] = useState<CommunityPost[]>([]);
-  const [filteredPosts, setFilteredPosts] = useState<CommunityPost[]>([]);
+  const [space, setSpace] = useState(null);
+  const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [sortType, setSortType] = useState<'hot' | 'new' | 'top'>('hot');
-  const [isJoined, setIsJoined] = useState(false);
 
   useEffect(() => {
-    const loadPosts = async () => {
+    if (!spaceName) return;
+    
+    const loadSpaceData = async () => {
       try {
         setLoading(true);
         setError(null);
-        const data = await fetchCommunityPosts();
-        setPosts(data);
+        const data = await apiFetch(`/spaces/${spaceName}`);
+        setSpace(data.space || data);
+        setPosts(data.posts || []);
       } catch (err) {
-        console.error('Failed to fetch community posts:', err);
-        setError('Failed to load posts. Please try again later.');
+        console.error('Failed to fetch space data:', err);
+        setError('Failed to load space. Please try again later.');
       } finally {
         setLoading(false);
       }
     };
     
-    loadPosts();
-  }, []);
-
-  useEffect(() => {
-    if (!space || !posts.length) return;
-    
-    // 根据tags筛选帖子
-    const spaceFilteredPosts = posts.filter(post => 
-      (post.tags || []).some(tag => space.tags.includes(tag)) ||
-      post.post_type === 'request' && spaceName === 'requests' ||
-      post.post_type === 'showcase' && spaceName === 'showcase'
-    );
-    
-    setFilteredPosts(spaceFilteredPosts);
-  }, [posts, space, spaceName]);
+    loadSpaceData();
+  }, [spaceName]);
 
   const formatTimeAgo = (dateString: string) => {
     const now = new Date();
@@ -133,13 +68,21 @@ export default function SpacePage() {
     }
   };
 
-  if (!space) {
+  if (loading) {
+    return (
+      <div className="bg-slate-950 min-h-screen text-white flex items-center justify-center">
+        <div className="text-slate-400">Loading space...</div>
+      </div>
+    );
+  }
+
+  if (error || !space) {
     return (
       <div className="bg-slate-950 min-h-screen text-white flex items-center justify-center">
         <div className="text-center">
           <div className="text-6xl mb-4">❓</div>
           <h1 className="text-2xl font-bold mb-2">Space Not Found</h1>
-          <p className="text-slate-400 mb-4">The space you&apos;re looking for doesn&apos;t exist.</p>
+          <p className="text-slate-400 mb-4">{error || "The space you're looking for doesn't exist."}</p>
           <Link
             href="/spaces"
             className="px-4 py-2 bg-sky-500 hover:bg-sky-400 text-white rounded-lg transition-colors"
@@ -174,7 +117,7 @@ export default function SpacePage() {
               Feed
             </Link>
             <Link href="/spaces" className="text-slate-300 hover:text-white transition-colors">
-              Topics
+              Spaces
             </Link>
             <Link href="/map" className="text-slate-300 hover:text-white transition-colors">
               Map
@@ -193,13 +136,13 @@ export default function SpacePage() {
         {/* Space Header */}
         <div className="bg-slate-800 border border-slate-700 rounded-xl p-8 mb-8">
           <div className="flex items-start gap-6">
-            <div className={`w-20 h-20 rounded-xl bg-gradient-to-br ${space.color} flex items-center justify-center text-3xl flex-shrink-0`}>
-              {space.emoji}
+            <div className="w-20 h-20 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-3xl flex-shrink-0">
+              {space.icon || '📁'}
             </div>
             <div className="flex-1">
               <div className="flex items-start justify-between mb-4">
                 <div>
-                  <h1 className="text-3xl font-bold mb-2">{space.title}</h1>
+                  <h1 className="text-3xl font-bold mb-2">{space.display_name}</h1>
                   <p className="text-slate-300 text-lg leading-relaxed">
                     {space.description}
                   </p>
@@ -208,24 +151,15 @@ export default function SpacePage() {
                   disabled
                   className="px-6 py-2 rounded-lg font-medium bg-slate-700 text-slate-400 cursor-not-allowed"
                 >
-                  Coming Soon
+                  Join Space
                 </button>
               </div>
               
               {/* Stats */}
               <div className="flex items-center gap-6 text-sm text-slate-400">
-                <span>💬 {space.title}</span>
-                <span>📝 {filteredPosts.length} posts</span>
+                <span>👥 {space.member_count || 0} members</span>
+                <span>📝 {posts.length} posts</span>
                 <span>📊 Active</span>
-              </div>
-
-              {/* Tags */}
-              <div className="flex flex-wrap gap-2 mt-4">
-                {space.tags.map((tag, i) => (
-                  <span key={i} className="px-3 py-1 bg-slate-700 rounded-full text-sm text-slate-300">
-                    #{tag}
-                  </span>
-                ))}
               </div>
             </div>
           </div>
@@ -244,7 +178,7 @@ export default function SpacePage() {
                 ].map(({ key, label }) => (
                   <button
                     key={key}
-                    onClick={() => setSortType(key as string)}
+                    onClick={() => setSortType(key as 'hot' | 'new' | 'top')}
                     className={`px-4 py-2 border-b-2 transition-colors font-medium ${
                       sortType === key
                         ? 'border-sky-500 text-sky-400'
@@ -257,25 +191,9 @@ export default function SpacePage() {
               </div>
             </div>
 
-            {loading ? (
-              <div className="text-center py-12">
-                <div className="text-slate-400">Loading posts...</div>
-              </div>
-            ) : error ? (
-              <div className="text-center py-12">
-                <div className="text-6xl mb-4">⚠️</div>
-                <h2 className="text-xl font-bold text-white mb-2">Error Loading Posts</h2>
-                <p className="text-red-400 mb-4">{error}</p>
-                <button
-                  onClick={() => window.location.reload()}
-                  className="px-5 py-2.5 bg-sky-600 hover:bg-sky-500 text-white rounded-lg transition-colors font-medium"
-                >
-                  Try Again
-                </button>
-              </div>
-            ) : filteredPosts.length > 0 ? (
+            {posts.length > 0 ? (
               <div className="space-y-6">
-                {filteredPosts.map((post) => (
+                {posts.map((post) => (
                   <Link
                     key={post.id}
                     href={`/community/${post.id}`}
@@ -284,9 +202,9 @@ export default function SpacePage() {
                     {/* Post header */}
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex items-center gap-3">
-                        <div className={`px-3 py-1 rounded-full text-sm font-medium border ${getTypeColor(post.post_type)}`}>
-                          <span className="mr-1">{getTypeIcon(post.post_type)}</span>
-                          {post.post_type.charAt(0).toUpperCase() + post.post_type.slice(1)}
+                        <div className={`px-3 py-1 rounded-full text-sm font-medium border ${getTypeColor(post.post_type || 'discussion')}`}>
+                          <span className="mr-1">{getTypeIcon(post.post_type || 'discussion')}</span>
+                          {(post.post_type || 'discussion').charAt(0).toUpperCase() + (post.post_type || 'discussion').slice(1)}
                         </div>
                       </div>
                       <div className="text-slate-400 text-sm">
@@ -300,35 +218,23 @@ export default function SpacePage() {
                     </h2>
                     
                     <p className="text-slate-300 mb-4 line-clamp-2">
-                      {post.content.substring(0, 200)}
-                      {post.content.length > 200 && '...'}
+                      {post.content?.substring(0, 200)}
+                      {post.content?.length > 200 && '...'}
                     </p>
 
                     {/* Post meta */}
                     <div className="flex items-center justify-between text-sm text-slate-400">
                       <div className="flex items-center gap-4">
                         <span>👤 {post.author_name || 'Anonymous'}</span>
-                        {post.tags && post.tags.length > 0 && (
-                          <div className="flex items-center gap-2">
-                            {post.tags.slice(0, 2).map((tag, i) => (
-                              <span key={i} className="px-2 py-1 bg-slate-700 rounded text-xs">
-                                #{tag}
-                              </span>
-                            ))}
-                            {post.tags.length > 2 && (
-                              <span className="text-xs">+{post.tags.length - 2}</span>
-                            )}
-                          </div>
-                        )}
                       </div>
                       <div className="flex items-center gap-4">
                         <div className="flex items-center gap-1">
                           <span>👍</span>
-                          <span>{post.upvotes}</span>
+                          <span>{post.upvotes || 0}</span>
                         </div>
                         <div className="flex items-center gap-1">
                           <span>💬</span>
-                          <span>{post.comment_count}</span>
+                          <span>{post.comment_count || 0}</span>
                         </div>
                       </div>
                     </div>
@@ -337,10 +243,10 @@ export default function SpacePage() {
               </div>
             ) : (
               <div className="text-center py-20">
-                <div className="text-6xl mb-4">{space.emoji}</div>
+                <div className="text-6xl mb-4">{space.icon || '📁'}</div>
                 <h2 className="text-xl font-bold mb-2">No posts yet</h2>
                 <p className="text-slate-400 mb-4">
-                  Be the first to start a discussion in {space.title}!
+                  Be the first to start a discussion in {space.display_name}!
                 </p>
                 <Link
                   href="/community/new"
@@ -366,24 +272,18 @@ export default function SpacePage() {
                 </div>
               </div>
 
-              {/* Related Spaces */}
+              {/* Space Info */}
               <div className="bg-slate-800 rounded-xl p-6">
-                <h3 className="text-lg font-semibold mb-4">Related Spaces</h3>
-                <div className="space-y-2">
-                  {Object.entries(SPACES_CONFIG)
-                    .filter(([key]) => key !== spaceName)
-                    .slice(0, 3)
-                    .map(([key, relatedSpace]) => (
-                      <Link
-                        key={key}
-                        href={`/spaces/${key}`}
-                        className="flex items-center gap-3 p-2 rounded-lg hover:bg-slate-700 transition-colors"
-                      >
-                        <span className="text-lg">{relatedSpace.emoji}</span>
-                        <span className="text-sm">{relatedSpace.title}</span>
-                      </Link>
-                    ))
-                  }
+                <h3 className="text-lg font-semibold mb-4">About</h3>
+                <div className="space-y-2 text-sm text-slate-300">
+                  <div>Created: {space.created_at ? new Date(space.created_at).toLocaleDateString() : 'N/A'}</div>
+                  <div>Type: {space.space_type || 'Community'}</div>
+                  {space.rules && (
+                    <div>
+                      <div className="font-medium mb-1">Rules:</div>
+                      <div className="text-slate-400">{space.rules}</div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

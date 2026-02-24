@@ -15,10 +15,15 @@ export default function ProfilePage() {
   const [userPosts, setUserPosts] = useState<CommunityPost[]>([]);
   const [userNodes, setUserNodes] = useState<any[]>([]);
   const [userOrders, setUserOrders] = useState<any[]>([]);
+  const [karma, setKarma] = useState<number>(0);
+  const [followers, setFollowers] = useState<number>(0);
+  const [following, setFollowing] = useState<number>(0);
+  const [isFollowing, setIsFollowing] = useState<boolean>(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [nodesLoading, setNodesLoading] = useState(false);
   const [ordersLoading, setOrdersLoading] = useState(false);
+  const [followLoading, setFollowLoading] = useState(false);
 
   // Derive user info from their posts or current user
   const [profileName, setProfileName] = useState<string>("");
@@ -43,6 +48,32 @@ export default function ProfilePage() {
         // If we didn't have the name yet, try to get it from posts
         if (!profileName && filtered.length > 0) {
           setProfileName(filtered[0].author);
+        }
+
+        // Load social data (karma, followers, following)
+        try {
+          const [karmaData, followersData, followingData] = await Promise.all([
+            apiFetch<{karma: number}>(`/social/karma/${userId}`).catch(() => ({karma: 0})),
+            apiFetch<{count: number}>(`/social/followers/${userId}`).catch(() => ({count: 0})),
+            apiFetch<{count: number}>(`/social/following/${userId}`).catch(() => ({count: 0}))
+          ]);
+
+          setKarma(karmaData.karma || 0);
+          setFollowers(followersData.count || 0);
+          setFollowing(followingData.count || 0);
+
+          // Check if current user is following this user
+          if (!isOwnProfile && currentUser) {
+            try {
+              const followStatus = await apiFetch<{is_following: boolean}>(`/social/follow/${userId}/status`);
+              setIsFollowing(followStatus.is_following || false);
+            } catch {
+              setIsFollowing(false);
+            }
+          }
+        } catch (err) {
+          console.error("Failed to load social data:", err);
+          // Don't show error, just use default values
         }
 
         // Load nodes and orders only for current user
@@ -81,6 +112,29 @@ export default function ProfilePage() {
 
     loadProfile();
   }, [userId, isOwnProfile, currentUser, profileName]);
+
+  const handleFollowToggle = async () => {
+    if (!currentUser || isOwnProfile || followLoading) return;
+    
+    setFollowLoading(true);
+    try {
+      if (isFollowing) {
+        // Unfollow
+        await apiFetch(`/social/follow/${userId}`, { method: 'DELETE' });
+        setIsFollowing(false);
+        setFollowers(prev => Math.max(0, prev - 1));
+      } else {
+        // Follow
+        await apiFetch(`/social/follow/${userId}`, { method: 'POST' });
+        setIsFollowing(true);
+        setFollowers(prev => prev + 1);
+      }
+    } catch (err) {
+      console.error("Failed to toggle follow:", err);
+    } finally {
+      setFollowLoading(false);
+    }
+  };
 
   const formatTimeAgo = (dateString: string) => {
     const diff = Date.now() - new Date(dateString).getTime();
@@ -122,20 +176,57 @@ export default function ProfilePage() {
             <div className="w-20 h-20 bg-gradient-to-br from-sky-500 to-blue-600 rounded-full flex items-center justify-center text-3xl">
               {profileName ? profileName[0].toUpperCase() : "?"}
             </div>
-            <div>
+            <div className="flex-1">
               <h1 className="text-2xl font-bold">{profileName || `User ${userId.slice(0, 8)}`}</h1>
               <p className="text-slate-400 mt-1">
                 {isOwnProfile && currentUser ? currentUser.role : "Member"}
               </p>
-              <p className="text-slate-400 text-sm mt-1">
-                {userPosts.length} post{userPosts.length !== 1 ? "s" : ""}
-              </p>
+              
+              {/* Social stats */}
+              <div className="flex items-center gap-6 mt-3 text-sm">
+                <div className="flex items-center gap-1">
+                  <span className="text-yellow-400">⭐</span>
+                  <span className="font-semibold">{karma}</span>
+                  <span className="text-slate-400">karma</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <span className="text-sky-400">👥</span>
+                  <span className="font-semibold">{followers}</span>
+                  <span className="text-slate-400">followers</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <span className="text-green-400">🔗</span>
+                  <span className="font-semibold">{following}</span>
+                  <span className="text-slate-400">following</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <span className="text-slate-400">📝</span>
+                  <span className="font-semibold">{userPosts.length}</span>
+                  <span className="text-slate-400">posts</span>
+                </div>
+              </div>
             </div>
-            {isOwnProfile && (
-              <Link href="/settings" className="ml-auto px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm transition-colors">
-                Edit Profile
-              </Link>
-            )}
+            
+            {/* Action buttons */}
+            <div className="flex items-center gap-3">
+              {isOwnProfile ? (
+                <Link href="/settings" className="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm transition-colors">
+                  Edit Profile
+                </Link>
+              ) : currentUser ? (
+                <button
+                  onClick={handleFollowToggle}
+                  disabled={followLoading}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    isFollowing
+                      ? 'bg-slate-700 hover:bg-slate-600 text-white'
+                      : 'bg-sky-600 hover:bg-sky-500 text-white'
+                  } ${followLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                >
+                  {followLoading ? 'Loading...' : isFollowing ? 'Unfollow' : 'Follow'}
+                </button>
+              ) : null}
+            </div>
           </div>
         </div>
 
