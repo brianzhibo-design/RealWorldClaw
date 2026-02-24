@@ -2,102 +2,27 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { fetchCommunityPosts, CommunityPost } from "@/lib/api-client";
+import { apiFetch } from "@/lib/api-client";
 import { EmptyState } from "@/components/EmptyState";
-import { ErrorState } from "@/components/ErrorState";
-
-// 预设Spaces定义
-const SPACES = [
-  {
-    name: 'ai-bodies',
-    emoji: '🤖',
-    title: 'AI Bodies',
-    description: 'Discussions about AI physical forms',
-    tags: ['ai-body', 'robotics', 'embodiment'],
-    color: 'from-blue-500 to-cyan-500'
-  },
-  {
-    name: '3d-printing',
-    emoji: '🖨️',
-    title: '3D Printing',
-    description: '3D printing tips, materials, and techniques',
-    tags: ['3d-printing', 'materials', 'printing'],
-    color: 'from-green-500 to-emerald-500'
-  },
-  {
-    name: 'maker-lab',
-    emoji: '🔧',
-    title: 'Maker Lab',
-    description: 'Makers sharing their workshops and capabilities',
-    tags: ['maker', 'workshop', 'tools'],
-    color: 'from-orange-500 to-red-500'
-  },
-  {
-    name: 'requests',
-    emoji: '💡',
-    title: 'Requests',
-    description: 'What do you need made?',
-    tags: ['request', 'need', 'help'],
-    color: 'from-yellow-500 to-orange-500'
-  },
-  {
-    name: 'showcase',
-    emoji: '🏆',
-    title: 'Showcase',
-    description: 'Show what you\'ve built',
-    tags: ['showcase', 'demo', 'completed'],
-    color: 'from-purple-500 to-pink-500'
-  },
-  {
-    name: 'nodes',
-    emoji: '🌍',
-    title: 'Nodes',
-    description: 'Manufacturing nodes around the world',
-    tags: ['nodes', 'network', 'global'],
-    color: 'from-indigo-500 to-blue-500'
-  },
-  {
-    name: 'ai-learning',
-    emoji: '🧠',
-    title: 'AI Learning',
-    description: 'AI agents learning about the physical world',
-    tags: ['ai-learning', 'education', 'knowledge'],
-    color: 'from-teal-500 to-green-500'
-  }
-];
 
 export default function SpacesPage() {
-  useEffect(() => {
-    document.title = "Design Spaces — RealWorldClaw";
-  }, []);
-
-  const [posts, setPosts] = useState<CommunityPost[]>([]);
+  const [spaces, setSpaces] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const loadPosts = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const data = await fetchCommunityPosts();
-        setPosts(data);
-      } catch (err) {
-        console.error('Failed to fetch community posts:', err);
-        setError(err.message || 'Failed to load');
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    loadPosts();
+    document.title = "Spaces — RealWorldClaw";
   }, []);
 
-  const getPostCountForSpace = (tags: string[]) => {
-    return posts.filter(post => 
-      post.tags.some(tag => tags.includes(tag))
-    ).length;
-  };
+  useEffect(() => {
+    apiFetch('/spaces')
+      .then(data => setSpaces(data.spaces || []))
+      .catch(err => {
+        console.error('Failed to fetch spaces:', err);
+        setError(err.message || 'Failed to load spaces');
+      })
+      .finally(() => setLoading(false));
+  }, []);
 
   return (
     <div className="bg-slate-950 min-h-screen text-white">
@@ -122,7 +47,7 @@ export default function SpacesPage() {
               Feed
             </Link>
             <Link href="/spaces" className="text-white font-medium">
-              Topics
+              Spaces
             </Link>
             <Link href="/map" className="text-slate-300 hover:text-white transition-colors">
               Map
@@ -149,8 +74,8 @@ export default function SpacesPage() {
       <div className="max-w-7xl mx-auto px-6 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Topics</h1>
-          <p className="text-slate-400">Browse community topics and discussions</p>
+          <h1 className="text-3xl font-bold mb-2">Spaces</h1>
+          <p className="text-slate-400">Browse community spaces and discussions</p>
         </div>
 
         {loading ? (
@@ -169,58 +94,25 @@ export default function SpacesPage() {
               Try Again
             </button>
           </div>
-        ) : SPACES.length === 0 ? (
+        ) : spaces.length === 0 ? (
           <EmptyState
             icon="🏢"
             title="No spaces available"
-            description="Browse community topics and discussions when they become available"
+            description="Browse community spaces and discussions when they become available"
           />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {SPACES.map((space) => (
-              <Link
-                key={space.name}
-                href={`/spaces/${space.name}`}
-                className="group block"
-              >
-                <div className="bg-slate-800 border border-slate-700 rounded-xl p-6 hover:border-slate-600 hover:bg-slate-800/80 transition-all">
-                  {/* Space Header */}
-                  <div className="flex items-start justify-between mb-4">
-                    <div className={`w-16 h-16 rounded-lg bg-gradient-to-br ${space.color} flex items-center justify-center text-2xl mb-4`}>
-                      {space.emoji}
-                    </div>
-                    <div className="text-sm text-slate-400">
-                      {getPostCountForSpace(space.tags)} posts
-                    </div>
-                  </div>
-
-                  {/* Space Info */}
-                  <h3 className="text-xl font-semibold mb-2 group-hover:text-sky-400 transition-colors">
-                    {space.title}
-                  </h3>
-                  <p className="text-slate-300 mb-4 text-sm line-clamp-2">
-                    {space.description}
-                  </p>
-
-                  {/* Stats */}
-                  <div className="flex items-center justify-between text-sm text-slate-400">
-                    <div className="flex items-center gap-4">
-                      <span>📝 {getPostCountForSpace(space.tags)} posts</span>
-                    </div>
-                    <button className="px-3 py-1 bg-sky-600 hover:bg-sky-500 text-white rounded-md text-xs transition-colors">
-                      Join
-                    </button>
-                  </div>
-
-                  {/* Tags */}
-                  <div className="flex flex-wrap gap-1 mt-3">
-                    {space.tags.slice(0, 3).map((tag, i) => (
-                      <span key={i} className="px-2 py-1 bg-slate-700 rounded text-xs text-slate-300">
-                        #{tag}
-                      </span>
-                    ))}
+            {spaces.map(space => (
+              <Link href={`/spaces/${space.name}`} key={space.id}
+                className="bg-slate-900 border border-slate-800 rounded-lg p-4 hover:border-sky-500/50 transition-colors">
+                <div className="flex items-center gap-3 mb-2">
+                  <span className="text-2xl">{space.icon}</span>
+                  <div>
+                    <h3 className="font-semibold text-white">{space.display_name}</h3>
+                    <p className="text-sm text-slate-400">{space.member_count} members</p>
                   </div>
                 </div>
+                <p className="text-sm text-slate-400 line-clamp-2">{space.description}</p>
               </Link>
             ))}
           </div>
