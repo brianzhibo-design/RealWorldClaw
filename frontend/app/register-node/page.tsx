@@ -1,5 +1,5 @@
 "use client";
-import { API_BASE as API_URL, apiFetch } from "@/lib/api-client";
+import { apiFetch, getErrorMessage } from "@/lib/api-client";
 import { useAuthStore } from "@/stores/authStore";
 
 import { useState } from "react";
@@ -150,8 +150,9 @@ export default function RegisterNodePage() {
       setTimeout(() => {
         router.push("/map");
       }, 3000);
-    } catch { setError("Network error. Please try again."); }
-    finally { setSubmitting(false); }
+    } catch (err) {
+      setError(`Failed to update: ${getErrorMessage(err, "Unknown error")}`);
+    } finally { setSubmitting(false); }
   };
 
   const inputCls = "w-full px-4 py-3 bg-slate-900 border border-slate-800 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent";

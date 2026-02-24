@@ -28,7 +28,7 @@ function CreateSpaceSection({ onCreated }: { onCreated: () => void }) {
     try {
       await apiFetch("/spaces", {
         method: "POST",
-        body: JSON.stringify({ name, description }),
+        body: JSON.stringify({ name, display_name: name, description }),
       });
       onCreated();
       setShowForm(false);

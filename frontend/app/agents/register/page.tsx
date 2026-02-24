@@ -4,13 +4,15 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { API_BASE, apiFetch } from "@/lib/api-client";
 
+interface RegisteredAgent {
+  id: string;
+  name: string;
+  display_name: string;
+}
+
 interface RegistrationResponse {
   api_key: string;
-  agent: {
-    id: string;
-    name: string;
-    display_name: string;
-  };
+  agent: RegisteredAgent;
 }
 
 export default function RegisterAgentPage() {
@@ -25,7 +27,7 @@ export default function RegisterAgentPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [apiKey, setApiKey] = useState<string | null>(null);
-  const [registeredAgent, setRegisteredAgent] = useState<any>(null);
+  const [registeredAgent, setRegisteredAgent] = useState<RegisteredAgent | null>(null);
 
   const validateAgentName = (name: string) => {
     // Only lowercase letters, numbers, and hyphens

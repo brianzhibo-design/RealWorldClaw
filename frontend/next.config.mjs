@@ -13,6 +13,12 @@ const nextConfig = {
         ]
       : [];
   },
+  async redirects() {
+    return [
+      { source: '/devices', destination: '/map', permanent: true },
+      { source: '/maker-orders', destination: '/orders', permanent: true },
+    ];
+  },
 };
 
 export default nextConfig;

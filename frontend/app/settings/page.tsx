@@ -1,5 +1,5 @@
 "use client";
-import { API_BASE as API_URL, apiFetch } from "@/lib/api-client";
+import { apiFetch, getErrorMessage } from "@/lib/api-client";
 import { useAuthStore } from "@/stores/authStore";
 
 import { useState, useEffect } from "react";
@@ -62,7 +62,7 @@ export default function SettingsPage() {
           email: data.email || ""
         });
       } catch (err) {
-        setError('Network error. Please try again.');
+        setError(`Failed to load profile: ${getErrorMessage(err, "Unknown error")}`);
       } finally {
         setLoading(false);
       }
@@ -85,7 +85,7 @@ export default function SettingsPage() {
       setProfile(updated);
       setSuccess('Profile updated successfully');
     } catch (err) {
-      setError('Network error. Please try again.');
+      setError(`Failed to update: ${getErrorMessage(err, "Unknown error")}`);
     } finally {
       setSaving(false);
     }
@@ -123,7 +123,7 @@ export default function SettingsPage() {
         confirm_password: ""
       });
     } catch (err) {
-      setError('Network error. Please try again.');
+      setError(`Failed to update: ${getErrorMessage(err, "Unknown error")}`);
     } finally {
       setSaving(false);
     }
@@ -373,8 +373,8 @@ export default function SettingsPage() {
                           await apiFetch('/auth/me', { method: 'DELETE' });
                           localStorage.clear();
                           window.location.href = '/';
-                        } catch {
-                          setError('Failed to delete account. Please try again.');
+                        } catch (err) {
+                          setError(`Failed to update: ${getErrorMessage(err, "Failed to delete account")}`);
                           setTimeout(() => setError(null), 3000);
                         }
                       }}

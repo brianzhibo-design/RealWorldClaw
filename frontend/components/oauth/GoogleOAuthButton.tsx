@@ -1,6 +1,6 @@
 "use client";
 
-import { GoogleLogin } from '@react-oauth/google';
+import { GoogleLogin, type CredentialResponse } from '@react-oauth/google';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/stores/authStore';
@@ -16,10 +16,13 @@ export default function GoogleOAuthButton({ onError, className = "" }: GoogleOAu
   const router = useRouter();
   const login = useAuthStore((s) => s.login);
 
-  const handleGoogleSuccess = async (credentialResponse: any) => {
+  const handleGoogleSuccess = async (credentialResponse: CredentialResponse) => {
     setLoading(true);
     try {
       const credential = credentialResponse.credential;
+      if (!credential) {
+        throw new Error('Missing Google credential');
+      }
       const res = await googleAuthAPI(credential);
       
       login(res.access_token, {

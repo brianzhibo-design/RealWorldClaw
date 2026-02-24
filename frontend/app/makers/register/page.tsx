@@ -1,5 +1,5 @@
 "use client";
-import { API_BASE as API_URL, apiFetch } from "@/lib/api-client";
+import { apiFetch, getErrorMessage } from "@/lib/api-client";
 import { useAuthStore } from "@/stores/authStore";
 
 import { useState } from "react";
@@ -95,8 +95,8 @@ export default function MakerRegisterPage() {
       setTimeout(() => {
         router.push("/maker-orders");
       }, 3000);
-    } catch {
-      setError("Network error. Please try again.");
+    } catch (err) {
+      setError(`Failed to update: ${getErrorMessage(err, "Unknown error")}`);
     } finally {
       setSubmitting(false);
     }

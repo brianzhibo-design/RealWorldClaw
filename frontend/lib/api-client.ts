@@ -38,7 +38,23 @@ export async function apiFetch<T>(
   }
 
   if (!res.ok) {
-    throw new Error(`API ${res.status}: ${res.statusText}`);
+    let detail = "";
+    try {
+      const data = await res.json();
+      if (typeof data?.detail === "string") {
+        detail = data.detail;
+      } else if (typeof data?.message === "string") {
+        detail = data.message;
+      }
+    } catch {
+      try {
+        detail = await res.text();
+      } catch {
+        detail = "";
+      }
+    }
+
+    throw new Error(detail || `API ${res.status}: ${res.statusText}`);
   }
 
   return res.json();
@@ -47,6 +63,16 @@ export async function apiFetch<T>(
 // ─── SWR fetcher ──────────────────────────────────────
 
 export const swrFetcher = <T>(path: string) => apiFetch<T>(path);
+
+export function getErrorMessage(error: unknown, fallback = "Request failed"): string {
+  if (error instanceof Error && error.message) {
+    return error.message;
+  }
+  if (typeof error === "string") {
+    return error;
+  }
+  return fallback;
+}
 
 // ─── Auth API ─────────────────────────────────────────
 
@@ -115,12 +141,11 @@ export function useWebSocket(
     const token = useAuthStore.getState().token;
     if (!token) return;
 
-    const ws = new WebSocket(WS_BASE);
+    const wsUrl = `${WS_BASE}?token=${encodeURIComponent(token)}`;
+    const ws = new WebSocket(wsUrl);
     wsRef.current = ws;
 
     ws.onopen = () => {
-      // Authenticate via message instead of URL query (security)
-      ws.send(JSON.stringify({ action: "auth", token }));
       setConnected(true);
       reconnectRef.current = 0;
       // Subscribe to channels
