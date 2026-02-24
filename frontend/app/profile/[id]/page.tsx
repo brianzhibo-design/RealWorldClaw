@@ -53,19 +53,19 @@ export default function ProfilePage() {
         // Load social data (karma, followers, following)
         try {
           const [karmaData, followersData, followingData] = await Promise.all([
-            apiFetch<{karma: number}>(`/social/karma/${userId}`).catch(() => ({karma: 0})),
-            apiFetch<{count: number}>(`/social/followers/${userId}`).catch(() => ({count: 0})),
-            apiFetch<{count: number}>(`/social/following/${userId}`).catch(() => ({count: 0}))
+            apiFetch<{ karma: number }>(`/social/karma/${userId}`).catch(() => ({ karma: 0 })),
+            apiFetch<{ total?: number }>(`/social/followers/${userId}`).catch(() => ({ total: 0 })),
+            apiFetch<{ total?: number }>(`/social/following/${userId}`).catch(() => ({ total: 0 })),
           ]);
 
           setKarma(karmaData.karma || 0);
-          setFollowers(followersData.count || 0);
-          setFollowing(followingData.count || 0);
+          setFollowers(followersData.total || 0);
+          setFollowing(followingData.total || 0);
 
           // Check if current user is following this user
           if (!isOwnProfile && currentUser) {
             try {
-              const followStatus = await apiFetch<{is_following: boolean}>(`/social/follow/${userId}/status`);
+              const followStatus = await apiFetch<{ is_following: boolean }>(`/social/is-following/${userId}`);
               setIsFollowing(followStatus.is_following || false);
             } catch {
               setIsFollowing(false);
@@ -159,7 +159,7 @@ export default function ProfilePage() {
         <div className="text-center">
           <div className="text-5xl mb-4">⚠️</div>
           <p className="text-red-400 mb-4">{error}</p>
-          <button onClick={() => window.location.reload()} className="px-4 py-2 bg-sky-600 hover:bg-sky-500 rounded-lg">
+          <button onClick={() => window.location.reload()} className="px-4 py-2 bg-sky-600 hover:bg-sky-500 hover:shadow-[0_0_18px_rgba(56,189,248,0.35)] rounded-lg transition-all">
             Retry
           </button>
         </div>
@@ -181,14 +181,10 @@ export default function ProfilePage() {
               <p className="text-slate-400 mt-1">
                 {isOwnProfile && currentUser ? currentUser.role : "Member"}
               </p>
-              
+              <p className="text-sky-400 mt-1 font-medium">⭐ Karma: {karma}</p>
+
               {/* Social stats */}
               <div className="flex items-center gap-6 mt-3 text-sm">
-                <div className="flex items-center gap-1">
-                  <span className="text-yellow-400">⭐</span>
-                  <span className="font-semibold">{karma}</span>
-                  <span className="text-slate-400">karma</span>
-                </div>
                 <div className="flex items-center gap-1">
                   <span className="text-sky-400">👥</span>
                   <span className="font-semibold">{followers}</span>
@@ -210,18 +206,18 @@ export default function ProfilePage() {
             {/* Action buttons */}
             <div className="flex items-center gap-3">
               {isOwnProfile ? (
-                <Link href="/settings" className="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm transition-colors">
+                <Link href="/settings" className="px-4 py-2 bg-slate-700 hover:bg-sky-500 rounded-lg text-sm transition-all hover:shadow-[0_0_18px_rgba(56,189,248,0.35)]">
                   Edit Profile
                 </Link>
               ) : currentUser ? (
                 <button
                   onClick={handleFollowToggle}
                   disabled={followLoading}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                     isFollowing
-                      ? 'bg-slate-700 hover:bg-slate-600 text-white'
+                      ? 'bg-slate-700 hover:bg-sky-500 text-white'
                       : 'bg-sky-600 hover:bg-sky-500 text-white'
-                  } ${followLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  } hover:shadow-[0_0_18px_rgba(56,189,248,0.35)] ${followLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
                   {followLoading ? 'Loading...' : isFollowing ? 'Unfollow' : 'Follow'}
                 </button>
@@ -305,7 +301,7 @@ export default function ProfilePage() {
               <div className="text-center py-12 bg-slate-900/50 border border-slate-800 rounded-xl">
                 <div className="text-4xl mb-3">🖨️</div>
                 <p className="text-slate-400 mb-4">No nodes registered yet</p>
-                <Link href="/register-node" className="px-4 py-2 bg-sky-600 hover:bg-sky-500 rounded-lg text-sm">
+                <Link href="/register-node" className="px-4 py-2 bg-sky-600 hover:bg-sky-500 hover:shadow-[0_0_18px_rgba(56,189,248,0.35)] rounded-lg text-sm transition-all">
                   Register Node
                 </Link>
               </div>
@@ -363,7 +359,7 @@ export default function ProfilePage() {
               <div className="text-center py-12 bg-slate-900/50 border border-slate-800 rounded-xl">
                 <div className="text-4xl mb-3">📦</div>
                 <p className="text-slate-400 mb-4">No orders yet</p>
-                <Link href="/orders/new" className="px-4 py-2 bg-sky-600 hover:bg-sky-500 rounded-lg text-sm">
+                <Link href="/orders/new" className="px-4 py-2 bg-sky-600 hover:bg-sky-500 hover:shadow-[0_0_18px_rgba(56,189,248,0.35)] rounded-lg text-sm transition-all">
                   Create Order
                 </Link>
               </div>

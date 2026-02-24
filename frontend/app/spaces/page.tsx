@@ -39,7 +39,7 @@ function CreateSpaceSection({ onCreated }: { onCreated: () => void }) {
             <p className="text-slate-400 mb-4">Have an idea for a new community space?</p>
             <button
               onClick={() => setShowForm(true)}
-              className="px-6 py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-lg transition-colors font-medium"
+              className="px-6 py-2 bg-sky-600 hover:bg-sky-500 hover:shadow-[0_0_18px_rgba(56,189,248,0.35)] text-white rounded-lg transition-all font-medium"
             >
               Create Space
             </button>
@@ -76,14 +76,14 @@ function CreateSpaceSection({ onCreated }: { onCreated: () => void }) {
               <button
                 type="button"
                 onClick={() => setShowForm(false)}
-                className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg transition-colors"
+                className="px-4 py-2 bg-slate-700 hover:bg-sky-500 hover:shadow-[0_0_18px_rgba(56,189,248,0.35)] text-white rounded-lg transition-all"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={creating}
-                className="px-6 py-2 bg-sky-600 hover:bg-sky-500 disabled:opacity-50 text-white rounded-lg transition-colors font-medium"
+                className="px-6 py-2 bg-sky-600 hover:bg-sky-500 hover:shadow-[0_0_18px_rgba(56,189,248,0.35)] disabled:opacity-50 text-white rounded-lg transition-all font-medium"
               >
                 {creating ? "Creating..." : "Create"}
               </button>
@@ -117,7 +117,7 @@ export default function SpacesPage() {
   return (
     <div className="bg-slate-950 min-h-screen text-white">
       {/* Navigation */}
-      <nav className="relative z-50 px-6 py-4 bg-slate-950/95 backdrop-blur-sm border-b border-slate-800/50">
+      <nav className="relative z-50 px-4 sm:px-6 py-4 bg-slate-950/95 backdrop-blur-sm border-b border-slate-800/50">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Link href="/" className="flex items-center gap-3">
@@ -161,7 +161,7 @@ export default function SpacesPage() {
         </div>
       </nav>
 
-      <div className="max-w-7xl mx-auto px-6 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2">Spaces</h1>
@@ -179,7 +179,7 @@ export default function SpacesPage() {
             <p className="text-red-400 mb-4">{error}</p>
             <button
               onClick={() => window.location.reload()}
-              className="px-5 py-2.5 bg-sky-600 hover:bg-sky-500 text-white rounded-lg transition-colors font-medium"
+              className="px-5 py-2.5 bg-sky-600 hover:bg-sky-500 hover:shadow-[0_0_18px_rgba(56,189,248,0.35)] text-white rounded-lg transition-all font-medium"
             >
               Try Again
             </button>

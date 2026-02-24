@@ -48,7 +48,7 @@ function CommentItem({
           <span>·</span>
           <span>{formatTimeAgo(comment.created_at)}</span>
         </div>
-        <div className="text-slate-300 mb-2 prose prose-invert prose-sm max-w-none prose-pre:bg-slate-900 prose-pre:border prose-pre:border-slate-700 prose-code:text-sky-300 prose-img:rounded-lg">
+        <div className="text-slate-300 mb-2 prose prose-invert prose-sm max-w-none prose-pre:bg-slate-900 prose-pre:border prose-pre:border-slate-700 prose-pre:rounded-lg prose-pre:p-4 prose-pre:overflow-x-auto prose-code:text-sky-300 prose-a:text-sky-400 prose-img:rounded-lg prose-img:max-w-full">
           <ReactMarkdown remarkPlugins={[remarkGfm]}>{comment.content}</ReactMarkdown>
         </div>
         <button 
@@ -175,7 +175,7 @@ export default function PostDetailPage() {
       return (
         <Link
           href={`/submit?fork=${post.id}`}
-          className="px-6 py-3 bg-sky-600 hover:bg-sky-500 rounded-lg font-medium transition-colors flex items-center gap-2 shadow-lg"
+          className="px-6 py-3 bg-sky-600 hover:bg-sky-500 hover:shadow-[0_0_20px_rgba(56,189,248,0.35)] rounded-lg font-medium transition-all flex items-center gap-2 shadow-lg"
         >
           Fork This Design
         </Link>
@@ -282,7 +282,7 @@ export default function PostDetailPage() {
             </Link>
             <Link
               href="/register-node"
-              className="px-4 py-2 bg-sky-500 hover:bg-sky-400 text-white rounded-lg transition-colors font-medium"
+              className="px-4 py-2 bg-sky-500 hover:bg-sky-400 hover:shadow-[0_0_18px_rgba(56,189,248,0.35)] text-white rounded-lg transition-all font-medium"
             >
               Register Your Machine
             </Link>
@@ -345,7 +345,7 @@ export default function PostDetailPage() {
             </div>
 
             {/* Post content */}
-            <div className="prose prose-invert max-w-none mb-12 prose-pre:bg-slate-900 prose-pre:border prose-pre:border-slate-700 prose-code:text-sky-300 prose-code:font-mono prose-img:rounded-lg prose-img:max-w-full prose-headings:text-white prose-a:text-sky-400 prose-strong:text-white prose-blockquote:border-sky-500/50">
+            <div className="prose prose-invert max-w-none mb-12 prose-pre:bg-slate-900 prose-pre:border prose-pre:border-slate-700 prose-pre:rounded-lg prose-pre:p-4 prose-pre:overflow-x-auto prose-code:text-sky-300 prose-code:font-mono prose-img:rounded-lg prose-img:max-w-full prose-headings:text-white prose-a:text-sky-400 prose-strong:text-white prose-blockquote:border-sky-500/50">
               <div className="bg-slate-800/50 rounded-xl p-6 border border-slate-700">
                 <ReactMarkdown remarkPlugins={[remarkGfm]}>{post.content}</ReactMarkdown>
               </div>
@@ -394,10 +394,10 @@ export default function PostDetailPage() {
                   <button
                     type="submit"
                     disabled={submitting || !newComment.trim()}
-                    className={`px-6 py-2 rounded-md text-sm font-medium transition-colors ${
+                    className={`px-6 py-2 rounded-md text-sm font-medium transition-all ${
                       submitting || !newComment.trim()
                         ? "bg-slate-700 text-slate-400 cursor-not-allowed"
-                        : "bg-sky-600 hover:bg-sky-500 text-white"
+                        : "bg-sky-600 hover:bg-sky-500 hover:shadow-[0_0_18px_rgba(56,189,248,0.35)] text-white"
                     }`}
                   >
                     {submitting ? "Posting..." : (replyTo ? "Post Reply" : "Post Comment")}
@@ -482,13 +482,13 @@ export default function PostDetailPage() {
                 <div className="space-y-3">
                   <Link
                     href="/community/new"
-                    className="block w-full px-4 py-2 bg-sky-600 hover:bg-sky-500 rounded-lg text-center text-sm font-medium transition-colors"
+                    className="block w-full px-4 py-2 bg-sky-600 hover:bg-sky-500 hover:shadow-[0_0_18px_rgba(56,189,248,0.35)] rounded-lg text-center text-sm font-medium transition-all"
                   >
                     New Post
                   </Link>
                   <Link
                     href="/community"
-                    className="block w-full px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-center text-sm font-medium transition-colors"
+                    className="block w-full px-4 py-2 bg-slate-700 hover:bg-sky-500 hover:shadow-[0_0_18px_rgba(56,189,248,0.35)] rounded-lg text-center text-sm font-medium transition-all"
                   >
                     Back to Community
                   </Link>
