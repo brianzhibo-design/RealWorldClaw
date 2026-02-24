@@ -5,7 +5,7 @@ from __future__ import annotations
 import uuid
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, Header, HTTPException
 from pydantic import BaseModel, Field
 
 from ..database import get_db
@@ -15,15 +15,21 @@ from ..notifications import send_notification
 router = APIRouter(prefix="/messages", tags=["messages"])
 
 
+def get_messages_identity(authorization: str | None = Header(None)) -> dict:
+    if not authorization:
+        raise HTTPException(status_code=401, detail="Authorization header required")
+    return get_authenticated_identity(authorization=authorization)
+
+
 class MessageSendRequest(BaseModel):
     recipient_id: str = Field(..., min_length=1)
-    content: str = Field(..., min_length=1, max_length=5000)
+    content: str = Field(..., max_length=5000)
 
 
 @router.post("")
 async def send_message(
     request: MessageSendRequest,
-    identity: dict = Depends(get_authenticated_identity),
+    identity: dict = Depends(get_messages_identity),
 ):
     sender_id = identity["identity_id"]
     if sender_id == request.recipient_id:
@@ -82,7 +88,7 @@ async def send_message(
 
 
 @router.get("")
-def list_conversations(identity: dict = Depends(get_authenticated_identity)):
+def list_conversations(identity: dict = Depends(get_messages_identity)):
     current_user_id = identity["identity_id"]
 
     with get_db() as db:
@@ -158,7 +164,7 @@ def list_conversations(identity: dict = Depends(get_authenticated_identity)):
 @router.get("/{user_id}")
 def get_conversation_history(
     user_id: str,
-    identity: dict = Depends(get_authenticated_identity),
+    identity: dict = Depends(get_messages_identity),
 ):
     current_user_id = identity["identity_id"]
 

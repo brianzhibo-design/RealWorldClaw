@@ -201,21 +201,32 @@ def logout():
 
 @router.delete("/me")
 def delete_account(user: dict = Depends(get_current_user)):
-    """Delete user account and all associated data (GDPR right to erasure)."""
+    """Delete user account and associated records."""
     user_id = user["id"]
     logger.warning("Account deletion requested: user=%s email=%s", user_id, user.get("email"))
-    now = datetime.now(timezone.utc).isoformat()
+
     with get_db() as db:
-        # Soft-delete: deactivate and anonymize
-        db.execute(
-            "UPDATE users SET is_active = 0, email = ?, username = ?, updated_at = ? WHERE id = ?",
-            (f"deleted-{user_id[:8]}@removed.local", f"deleted-{user_id[:8]}", now, user_id),
-        )
-        # Clean up user content
+        # Delete private messages in both directions first.
+        db.execute("DELETE FROM direct_messages WHERE sender_id = ? OR recipient_id = ?", (user_id, user_id))
+
+        # Remove follow relationships.
+        db.execute("DELETE FROM follows WHERE follower_id = ? OR following_id = ?", (user_id, user_id))
+
+        # Remove comments and votes authored by this user.
         db.execute("DELETE FROM community_comments WHERE author_id = ?", (user_id,))
-        db.execute("UPDATE community_posts SET author_id = 'deleted', content = '[deleted]' WHERE author_id = ?", (user_id,))
-        # Deactivate makers
-        db.execute("UPDATE makers SET status = 'inactive' WHERE owner_id = ?", (user_id,))
+        db.execute("DELETE FROM community_votes WHERE user_id = ?", (user_id,))
+
+        # Remove posts (and dependent comments/votes via ON DELETE CASCADE where applicable).
+        db.execute("DELETE FROM community_posts WHERE author_id = ?", (user_id,))
+        db.execute("DELETE FROM replies WHERE author_id = ?", (user_id,))
+        db.execute("DELETE FROM posts WHERE author_id = ?", (user_id,))
+
+        # Remove maker profiles bound to this user.
+        db.execute("DELETE FROM makers WHERE owner_id = ?", (user_id,))
+
+        # Finally remove user account.
+        db.execute("DELETE FROM users WHERE id = ?", (user_id,))
+
     logger.info("Account deleted: user=%s", user_id)
     return {"message": "Account deleted. Your data has been removed."}
 
