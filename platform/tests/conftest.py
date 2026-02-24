@@ -66,11 +66,29 @@ def maker_headers(client):
     })
     token = resp.json()["access_token"]
     headers = {"Authorization": f"Bearer {token}"}
-    client.post("/api/v1/makers/register", json={
-        "display_name": f"Maker {uid}",
+    
+    # Register as maker with all required fields
+    maker_resp = client.post("/api/v1/makers/register", json={
+        "maker_type": "maker",
+        "printer_model": "Ender 3 V2",
+        "printer_brand": "Creality",
+        "build_volume_x": 220.0,
+        "build_volume_y": 220.0,
+        "build_volume_z": 250.0,
+        "materials": ["PLA", "PETG"],
         "capabilities": ["fdm_printing"],
-        "materials": ["PLA"],
+        "location_province": "上海市",
+        "location_city": "上海市",
+        "location_district": "浦东新区",
+        "availability": "open",
+        "pricing_per_hour_cny": 15.0,
+        "description": f"Test maker {uid}"
     }, headers=headers)
+    
+    if maker_resp.status_code == 201:
+        maker_id = maker_resp.json()["id"]
+        headers["_maker_id"] = maker_id
+    
     return headers
 
 

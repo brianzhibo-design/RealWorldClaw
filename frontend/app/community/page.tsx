@@ -16,9 +16,9 @@ const POST_TYPES = [
 ];
 
 const SORT_OPTIONS = [
-  { key: "latest", label: "Latest" },
-  { key: "hot", label: "Hot" },
-  { key: "most_commented", label: "Most Commented" },
+  { key: "newest", label: "🕐 New", icon: "🕐" },
+  { key: "hot", label: "🔥 Hot", icon: "🔥" },
+  { key: "best", label: "⭐ Best", icon: "⭐" },
 ];
 
 export default function CommunityPage() {
@@ -30,14 +30,14 @@ export default function CommunityPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeType, setActiveType] = useState("");
-  const [sortBy, setSortBy] = useState("latest");
+  const [sortBy, setSortBy] = useState("newest");
   const { isAuthenticated } = useAuthStore();
 
   const fetchPosts = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const data = await fetchCommunityPosts(activeType, 1, 50);
+      const data = await fetchCommunityPosts(activeType, 1, 50, sortBy);
       setPosts(data);
     } catch (err) {
       setError(err.message || 'Failed to load');
@@ -45,28 +45,14 @@ export default function CommunityPage() {
     } finally {
       setLoading(false);
     }
-  }, [activeType]);
+  }, [activeType, sortBy]);
 
   useEffect(() => {
     fetchPosts();
   }, [fetchPosts]);
 
-  // Client-side filtering by post type (if API doesn't support type filtering)
-  const filteredPosts = posts.filter(post => 
-    !activeType || post.post_type === activeType
-  );
-
-  // Client-side sorting
-  const sortedPosts = [...filteredPosts].sort((a, b) => {
-    switch (sortBy) {
-      case "hot":
-        return (b.upvotes + b.comment_count * 2) - (a.upvotes + a.comment_count * 2);
-      case "most_commented":
-        return b.comment_count - a.comment_count;
-      default: // latest
-        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-    }
-  });
+  // Posts are already sorted by the backend
+  const displayedPosts = posts;
 
   const handleVote = async (postId: string, voteType: 'up' | 'down') => {
     if (!isAuthenticated) {
@@ -152,7 +138,7 @@ export default function CommunityPage() {
                   {type.label}
                   {type.key && (
                     <span className="ml-1 px-2 py-0.5 bg-slate-950 rounded-full text-xs">
-                      {filteredPosts.length}
+                      {displayedPosts.length}
                     </span>
                   )}
                 </button>
@@ -192,7 +178,7 @@ export default function CommunityPage() {
         {error && <ErrorState message={error} />}
 
         {/* Empty state */}
-        {!loading && !error && sortedPosts.length === 0 && (
+        {!loading && !error && displayedPosts.length === 0 && (
           <EmptyState
             icon={activeType ? POST_TYPES.find(t => t.key === activeType)?.icon || "🚀" : "🚀"}
             title={activeType ? `No ${activeType}s yet` : "No posts yet"}
@@ -204,9 +190,9 @@ export default function CommunityPage() {
         )}
 
         {/* Posts List */}
-        {!loading && !error && sortedPosts.length > 0 && (
+        {!loading && !error && displayedPosts.length > 0 && (
           <div className="space-y-4">
-            {sortedPosts.map((post) => (
+            {displayedPosts.map((post) => (
               <div
                 key={post.id}
                 className="bg-card border rounded-xl p-4 sm:p-6 hover:bg-accent/50 transition-all"

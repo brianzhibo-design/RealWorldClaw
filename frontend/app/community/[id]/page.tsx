@@ -6,6 +6,51 @@ import Link from "next/link";
 import { fetchCommunityPost, fetchPostComments, createComment, CommunityPost, CommunityComment } from "@/lib/api-client";
 import VoteButtons from "@/components/VoteButtons";
 
+// Recursive comment component
+function CommentItem({ 
+  comment, 
+  depth = 0, 
+  onReply 
+}: { 
+  comment: CommunityComment; 
+  depth?: number; 
+  onReply: (commentId: string) => void;
+}) {
+  const formatTimeAgo = (dateString: string) => {
+    const now = new Date();
+    const date = new Date(dateString);
+    const diff = now.getTime() - date.getTime();
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const days = Math.floor(hours / 24);
+    
+    if (days > 0) return `${days}d ago`;
+    if (hours > 0) return `${hours}h ago`;
+    return "Just now";
+  };
+
+  return (
+    <div className={`${depth > 0 ? 'ml-6 border-l border-slate-700 pl-4' : ''}`}>
+      <div className="bg-slate-800/30 rounded-lg p-4 border border-slate-700/50 mb-3">
+        <div className="flex items-center gap-2 text-sm text-slate-400 mb-2">
+          <span className="font-medium text-slate-300">{comment.author_name || comment.author}</span>
+          <span>·</span>
+          <span>{formatTimeAgo(comment.created_at)}</span>
+        </div>
+        <p className="text-slate-300 mb-2">{comment.content}</p>
+        <button 
+          onClick={() => onReply(comment.id)}
+          className="text-xs text-sky-400 hover:text-sky-300 transition-colors"
+        >
+          Reply
+        </button>
+      </div>
+      {comment.replies && comment.replies.map(reply => (
+        <CommentItem key={reply.id} comment={reply} depth={depth + 1} onReply={onReply} />
+      ))}
+    </div>
+  );
+}
+
 export default function PostDetailPage() {
   const params = useParams();
   const [post, setPost] = useState<CommunityPost | null>(null);
@@ -14,6 +59,7 @@ export default function PostDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [newComment, setNewComment] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [replyTo, setReplyTo] = useState<string | null>(null);
 
   const fetchPost = useCallback(async () => {
     if (!params.id) return;
@@ -54,9 +100,10 @@ export default function PostDetailPage() {
 
     setSubmitting(true);
     try {
-      const result = await createComment(params.id as string, newComment.trim());
+      const result = await createComment(params.id as string, newComment.trim(), replyTo || undefined);
       if (result.success) {
         setNewComment("");
+        setReplyTo(null);
         fetchComments(); // Refresh comments
       } else {
         alert(result.error || "Failed to post comment");

@@ -52,6 +52,48 @@ def _sanitize(text: str) -> str:
     """Strip all HTML tags and escape remaining entities."""
     return html.escape(_TAG_RE.sub("", text))
 
+
+def _build_comment_tree(comments: list[dict], db=None) -> list[CommentResponse]:
+    """Build nested comment structure from flat list."""
+    comment_map = {}
+    root_comments = []
+    
+    # Create CommentResponse objects with author names
+    for row in comments:
+        # Resolve author name
+        author_name = None
+        if db and row.get("author_id"):
+            try:
+                user_row = db.execute("SELECT username FROM users WHERE id = ?", (row["author_id"],)).fetchone()
+                if user_row:
+                    author_name = user_row["username"]
+            except Exception:
+                pass
+        
+        comment = CommentResponse(
+            id=row["id"],
+            post_id=row["post_id"],
+            content=row["content"],
+            author_id=row["author_id"],
+            author_type=row["author_type"],
+            parent_id=row.get("parent_id"),
+            author_name=author_name,
+            replies=[],
+            created_at=row["created_at"],
+            updated_at=row["updated_at"]
+        )
+        comment_map[row["id"]] = comment
+        
+        # Add to root if no parent, otherwise add to parent's replies
+        if row.get("parent_id") is None:
+            root_comments.append(comment)
+        else:
+            parent = comment_map.get(row["parent_id"])
+            if parent:
+                parent.replies.append(comment)
+    
+    return root_comments
+
 router = APIRouter(prefix="/community", tags=["community"])
 
 
@@ -301,10 +343,10 @@ async def create_comment(
 @router.get("/posts/{post_id}/comments", response_model=list[CommentResponse])
 async def get_post_comments(
     post_id: str,
-    limit: int = Query(50, ge=1, le=100, description="Comments per request"),
+    limit: int = Query(200, ge=1, le=500, description="Comments per request"),
     offset: int = Query(0, ge=0, description="Comments offset")
 ):
-    """Get comments for a specific post."""
+    """Get comments for a specific post with nested structure."""
     
     # Verify post exists
     with get_db() as db:
@@ -315,26 +357,20 @@ async def get_post_comments(
         if not post_row:
             raise HTTPException(status_code=404, detail="Post not found")
         
-        # Get comments
+        # Get ALL comments for this post to build tree properly
+        # (We need all to establish parent-child relationships)
         rows = db.execute("""
             SELECT * FROM community_comments 
             WHERE post_id = ?
             ORDER BY created_at ASC
-            LIMIT ? OFFSET ?
-        """, (post_id, limit, offset)).fetchall()
+        """, (post_id,)).fetchall()
+        
+        comments = [dict(row) for row in rows]
+        
+        # Build nested structure
+        nested_comments = _build_comment_tree(comments, db)
     
-    return [
-        CommentResponse(
-            id=row["id"],
-            post_id=row["post_id"],
-            content=row["content"],
-            author_id=row["author_id"],
-            author_type=row["author_type"],
-            created_at=row["created_at"],
-            updated_at=row["updated_at"]
-        )
-        for row in rows
-    ]
+    return nested_comments
 
 
 @router.post("/posts/{post_id}/vote", response_model=VoteResponse)

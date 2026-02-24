@@ -9,7 +9,7 @@ from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException, Query
 
 from ..database import get_db
-from ..security import get_current_user, get_authenticated_identity
+from ..deps import get_current_user, get_authenticated_identity
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/v1/social", tags=["social"])

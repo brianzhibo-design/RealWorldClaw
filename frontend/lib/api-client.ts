@@ -232,6 +232,9 @@ export interface CommunityComment {
   content: string;
   author: string;
   author_id: string;
+  author_name?: string;
+  parent_id?: string;
+  replies?: CommunityComment[];
   created_at: string;
   updated_at: string;
   upvotes: number;
@@ -420,12 +423,14 @@ export async function fetchStats(): Promise<{
 export async function fetchCommunityPosts(
   type?: string,
   page = 1,
-  limit = 20
+  limit = 20,
+  sort = 'newest'
 ): Promise<CommunityPost[]> {
   try {
     const params = new URLSearchParams({
       page: page.toString(),
       limit: limit.toString(),
+      sort: sort,
       ...(type && type !== '' && { type }),
     });
     const res = await fetch(`${API_BASE}/community/posts?${params}`);
@@ -486,13 +491,14 @@ export async function createCommunityPost(data: {
 
 export async function createComment(
   postId: string,
-  content: string
+  content: string,
+  parentId?: string
 ): Promise<{ success: boolean; comment_id?: string; error?: string }> {
   try {
     const res = await fetch(`${API_BASE}/community/posts/${postId}/comments`, {
       method: 'POST',
       headers: authHeaders({ 'Content-Type': 'application/json' }),
-      body: JSON.stringify({ content }),
+      body: JSON.stringify({ content, parent_id: parentId }),
     });
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
