@@ -40,7 +40,7 @@ export default function CommunityPage() {
       const data = await fetchCommunityPosts(activeType, 1, 50, sortBy);
       setPosts(data);
     } catch (err) {
-      setError(err.message || 'Failed to load');
+      setError("Failed to load");
       setPosts([]);
     } finally {
       setLoading(false);
@@ -207,10 +207,10 @@ export default function CommunityPage() {
                     <span className="text-xs sm:text-sm text-muted-foreground">
                       by {post.author_name || 'Anonymous'}
                     </span>
-                    {post.materials && post.materials.length > 0 && (
+                    {(post as any).materials && (post as any).materials.length > 0 && (
                       <div className="hidden sm:flex items-center gap-1">
                         <span className="text-xs text-muted-foreground">Materials:</span>
-                        {post.materials.slice(0, 2).map((material, i) => (
+                        {(post as any).materials.slice(0, 2).map((material: string, i: number) => (
                           <span key={i} className="px-2 py-1 bg-secondary rounded text-xs">
                             {material}
                           </span>
@@ -220,9 +220,9 @@ export default function CommunityPage() {
                   </div>
                   <div className="text-muted-foreground text-xs sm:text-sm flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
                     <span>{formatTimeAgo(post.created_at)}</span>
-                    {post.budget && (
+                    {(post as any).budget && (
                       <span className="text-green-600 font-medium">
-                        Budget: ${post.budget}
+                        Budget: ${(post as any).budget}
                       </span>
                     )}
                   </div>
@@ -257,9 +257,9 @@ export default function CommunityPage() {
                 {/* Post meta */}
                 <div className="flex items-center justify-between text-sm text-muted-foreground">
                   <div className="flex items-center gap-4">
-                    {post.deadline && (
+                    {(post as any).deadline && (
                       <span className="text-sky-400">
-                        📅 Due {formatTimeAgo(post.deadline)}
+                        📅 Due {formatTimeAgo((post as any).deadline)}
                       </span>
                     )}
                   </div>

@@ -321,6 +321,7 @@ export default function PostDetailPage() {
                 <div className={`px-3 py-1 rounded-full text-sm font-medium border ${getTypeColor(post.post_type)}`}>
                   <span className="mr-1">{getTypeIcon(post.post_type)}</span>
                   {post.post_type.charAt(0).toUpperCase() + post.post_type.slice(1)}
+                </div>
               </div>
 
               <h1 className="text-3xl font-bold mb-4 leading-tight">{post.title}</h1>
@@ -332,11 +333,11 @@ export default function PostDetailPage() {
                 </div>
                 <span>•</span>
                 <span>{formatTimeAgo(post.created_at)}</span>
-                {post.deadline && (
+                {(post as any).deadline && (
                   <>
                     <span>•</span>
                     <span className="text-sky-400">
-                      📅 Due {new Date(post.deadline).toLocaleDateString()}
+                      📅 Due {new Date((post as any).deadline).toLocaleDateString()}
                     </span>
                   </>
                 )}
@@ -459,11 +460,11 @@ export default function PostDetailPage() {
                     <span className="text-slate-400">Created</span>
                     <span className="text-white">{new Date(post.created_at).toLocaleDateString()}</span>
                   </div>
-                  {(post as Record<string, unknown>).materials && (post as Record<string, unknown>).materials.length > 0 && (
+                  {(post as any).materials && (post as any).materials.length > 0 && (
                     <div>
                       <span className="text-slate-400 block mb-2">Materials</span>
                       <div className="flex flex-wrap gap-1">
-                        {(post as Record<string, unknown>).materials.map((material: string, i: number) => (
+                        {((post as any).materials as string[]).map((material: string, i: number) => (
                           <span key={i} className="px-2 py-1 bg-slate-700 rounded text-xs">
                             {material}
                           </span>
