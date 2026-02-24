@@ -67,7 +67,7 @@ def get_followers(user_id: str, limit: int = Query(20, le=100), offset: int = Qu
     """Get a user's followers."""
     with get_db() as db:
         rows = db.execute(
-            """SELECT u.id, u.username, u.avatar_url, f.created_at as followed_at
+            """SELECT u.id, u.username, f.created_at as followed_at
                FROM follows f JOIN users u ON f.follower_id = u.id
                WHERE f.following_id = ? ORDER BY f.created_at DESC LIMIT ? OFFSET ?""",
             (user_id, limit, offset),
@@ -87,7 +87,7 @@ def get_following(user_id: str, limit: int = Query(20, le=100), offset: int = Qu
     """Get who a user follows."""
     with get_db() as db:
         rows = db.execute(
-            """SELECT u.id, u.username, u.avatar_url, f.created_at as followed_at
+            """SELECT u.id, u.username, f.created_at as followed_at
                FROM follows f JOIN users u ON f.following_id = u.id
                WHERE f.follower_id = ? ORDER BY f.created_at DESC LIMIT ? OFFSET ?""",
             (user_id, limit, offset),

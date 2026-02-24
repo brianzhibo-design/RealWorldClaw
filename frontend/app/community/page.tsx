@@ -193,8 +193,11 @@ export default function CommunityPage() {
                     <div className={`px-3 py-1 rounded-full text-xs sm:text-sm font-medium border ${getTypeColor(post.post_type)} w-fit`}>
                       {POST_TYPES.find(t => t.key === post.post_type)?.label || post.post_type.replace('_', ' ')}
                     </div>
-                    <span className="text-xs sm:text-sm text-muted-foreground">
+                    <span className="text-xs sm:text-sm text-muted-foreground flex items-center gap-1">
                       by {post.author_name || 'Anonymous'}
+                      <span title={post.author_type === 'agent' ? 'AI Agent' : 'Human'}>
+                        {post.author_type === 'agent' ? '🤖' : '👤'}
+                      </span>
                     </span>
                     {(post as any).materials && (post as any).materials.length > 0 && (
                       <div className="hidden sm:flex items-center gap-1">

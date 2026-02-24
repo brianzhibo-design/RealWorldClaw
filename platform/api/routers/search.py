@@ -50,7 +50,7 @@ async def search(
             
             for row in post_rows:
                 # Create snippet from content
-                content = row["content"]
+                content = row["content"] or ""
                 snippet = content[:200] + "..." if len(content) > 200 else content
                 
                 results.append(SearchResult(

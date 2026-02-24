@@ -93,9 +93,17 @@ def stats():
         agent_count = db.execute("SELECT COUNT(*) as c FROM agents").fetchone()["c"]
         maker_count = db.execute("SELECT COUNT(*) as c FROM makers").fetchone()["c"]
         order_count = db.execute("SELECT COUNT(*) as c FROM orders").fetchone()["c"]
+        user_count = db.execute("SELECT COUNT(*) as c FROM users").fetchone()["c"]
+        post_count = db.execute("SELECT COUNT(*) as c FROM community_posts").fetchone()["c"]
+        space_count = db.execute("SELECT COUNT(*) as c FROM nodes").fetchone()["c"]
+        comment_count = db.execute("SELECT COUNT(*) as c FROM community_comments").fetchone()["c"]
     return {
         "components": component_count,
         "agents": agent_count,
         "makers": maker_count,
         "orders": order_count,
+        "users": user_count,
+        "posts": post_count,
+        "spaces": space_count,
+        "comments": comment_count,
     }

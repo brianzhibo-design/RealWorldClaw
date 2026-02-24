@@ -90,6 +90,8 @@ interface Stats {
   makers?: number;
   orders?: number;
   spaces?: number;
+  agents?: number;
+  components?: number;
   total_makers?: number;
   total_orders?: number;
   total_spaces?: number;

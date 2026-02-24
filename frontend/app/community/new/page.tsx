@@ -1,10 +1,23 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { createCommunityPost } from "@/lib/api-client";
+import { createCommunityPost, apiFetch, API_BASE } from "@/lib/api-client";
 import { useAuthStore } from "@/stores/authStore";
+
+interface MyNode {
+  id: string;
+  name: string;
+  node_type: string;
+  status: string;
+}
+
+interface UploadedFile {
+  file_id: string;
+  filename: string;
+  size?: number;
+}
 
 const POST_TYPES = [
   {
@@ -44,6 +57,7 @@ const POST_TYPES = [
 export default function NewPostPage() {
   const router = useRouter();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const token = useAuthStore((s) => s.token);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -62,6 +76,73 @@ export default function NewPostPage() {
   });
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Node selection
+  const [myNodes, setMyNodes] = useState<MyNode[]>([]);
+  const [selectedNodeId, setSelectedNodeId] = useState<string>("");
+  const [nodesLoading, setNodesLoading] = useState(false);
+
+  // File upload
+  const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Fetch user's nodes
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    setNodesLoading(true);
+    apiFetch<MyNode[] | { nodes: MyNode[] }>("/nodes/my-nodes")
+      .then((data) => {
+        const nodes = Array.isArray(data) ? data : (data.nodes || []);
+        setMyNodes(nodes);
+      })
+      .catch(() => setMyNodes([]))
+      .finally(() => setNodesLoading(false));
+  }, [isAuthenticated]);
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    setUploading(true);
+    try {
+      for (const file of Array.from(files)) {
+        const formDataUpload = new FormData();
+        formDataUpload.append("file", file);
+
+        const authToken = token || (typeof window !== "undefined" ? localStorage.getItem("auth_token") : null);
+        const res = await fetch(`${API_BASE}/files/upload`, {
+          method: "POST",
+          headers: authToken ? { Authorization: `Bearer ${authToken}` } : {},
+          body: formDataUpload,
+        });
+
+        if (res.ok) {
+          const result = await res.json();
+          setUploadedFiles((prev) => [
+            ...prev,
+            {
+              file_id: result.file_id || result.id,
+              filename: file.name,
+              size: file.size,
+            },
+          ]);
+        } else {
+          const err = await res.json().catch(() => ({}));
+          setError(`Failed to upload ${file.name}: ${err.detail || "Unknown error"}`);
+        }
+      }
+    } catch {
+      setError("File upload failed. Please try again.");
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
+  const removeFile = (fileId: string) => {
+    setUploadedFiles((prev) => prev.filter((f) => f.file_id !== fileId));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -83,22 +164,31 @@ export default function NewPostPage() {
         ? formData.deadline
         : undefined;
 
-      const result = await createCommunityPost({
+      const postData: Record<string, unknown> = {
         title: formData.title.trim(),
         content: formData.content.trim(),
-        post_type: selectedType as 'discussion' | 'request' | 'task' | 'showcase',
+        post_type: selectedType,
         tags,
         materials,
         budget,
         deadline,
-      });
+      };
+
+      if (selectedNodeId) {
+        postData.node_id = selectedNodeId;
+      }
+      if (uploadedFiles.length > 0) {
+        postData.file_ids = uploadedFiles.map((f) => f.file_id);
+      }
+
+      const result = await createCommunityPost(postData as Parameters<typeof createCommunityPost>[0]);
       
       if (result.success) {
         router.push(`/community/${result.post_id}`);
       } else {
         setError(result.error || "Failed to create post");
       }
-    } catch (err) {
+    } catch {
       setError("Failed to create post. Please try again.");
     } finally {
       setSubmitting(false);
@@ -124,27 +214,15 @@ export default function NewPostPage() {
           </Link>
           
           <div className="hidden md:flex items-center gap-8">
-            <Link href="/" className="text-slate-300 hover:text-white transition-colors">
-              Feed
-            </Link>
-            <Link href="/map" className="text-slate-300 hover:text-white transition-colors">
-              Map
-            </Link>
-            <Link href="/community" className="text-slate-300 hover:text-white transition-colors">
-              Community
-            </Link>
-            <Link href="/orders/new" className="text-slate-300 hover:text-white transition-colors">
-              Submit
-            </Link>
-            <Link href="https://realworldclaw-api.fly.dev/docs" target="_blank" className="text-slate-300 hover:text-white transition-colors">
-              Docs
-            </Link>
+            <Link href="/" className="text-slate-300 hover:text-white transition-colors">Feed</Link>
+            <Link href="/map" className="text-slate-300 hover:text-white transition-colors">Map</Link>
+            <Link href="/community" className="text-slate-300 hover:text-white transition-colors">Community</Link>
+            <Link href="/orders/new" className="text-slate-300 hover:text-white transition-colors">Submit</Link>
+            <Link href="https://realworldclaw-api.fly.dev/docs" target="_blank" className="text-slate-300 hover:text-white transition-colors">Docs</Link>
           </div>
 
           <div className="flex items-center gap-4">
-            <Link href="/community" className="text-slate-300 hover:text-white transition-colors">
-              Cancel
-            </Link>
+            <Link href="/community" className="text-slate-300 hover:text-white transition-colors">Cancel</Link>
           </div>
         </div>
       </nav>
@@ -217,7 +295,7 @@ export default function NewPostPage() {
                   required
                 />
                 <p className="text-xs text-slate-400 mt-2">
-                  Markdown supported. Be specific about your requirements, materials, or project details.
+                  Markdown supported. You can also embed images: <code className="text-sky-300">![alt](url)</code>
                 </p>
               </div>
 
@@ -231,9 +309,84 @@ export default function NewPostPage() {
                   className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg focus:outline-none focus:border-sky-500 transition-colors"
                   placeholder="esp32, 3d-printing, hexapod, energy-core (comma-separated)"
                 />
+              </div>
+
+              {/* Associated Node */}
+              <div>
+                <label className="block text-sm font-medium mb-2">🔗 Associated Device (optional)</label>
+                <select
+                  value={selectedNodeId}
+                  onChange={(e) => setSelectedNodeId(e.target.value)}
+                  className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg focus:outline-none focus:border-sky-500 transition-colors"
+                >
+                  <option value="">None — no device linked</option>
+                  {nodesLoading && <option disabled>Loading nodes...</option>}
+                  {myNodes.map((node) => (
+                    <option key={node.id} value={node.id}>
+                      {node.name} ({node.node_type}) — {node.status}
+                    </option>
+                  ))}
+                </select>
                 <p className="text-xs text-slate-400 mt-2">
-                  Add relevant tags to help others find your post
+                  Link a registered node/device to this post
                 </p>
+              </div>
+
+              {/* File Upload */}
+              <div className="bg-slate-800 border border-slate-700 rounded-lg p-6">
+                <h3 className="text-lg font-semibold mb-3">📸 Attachments</h3>
+                <p className="text-slate-400 text-sm mb-4">
+                  Upload images or files to accompany your post
+                </p>
+
+                {/* Uploaded files list */}
+                {uploadedFiles.length > 0 && (
+                  <div className="mb-4 space-y-2">
+                    {uploadedFiles.map((f) => (
+                      <div key={f.file_id} className="flex items-center justify-between bg-slate-700/50 rounded-lg px-4 py-2">
+                        <span className="text-sm text-slate-300 truncate">
+                          📄 {f.filename}
+                          {f.size && <span className="text-slate-500 ml-2">({(f.size / 1024).toFixed(1)} KB)</span>}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => removeFile(f.file_id)}
+                          className="text-red-400 hover:text-red-300 text-sm ml-3"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  multiple
+                  accept="image/*,.pdf,.stl,.3mf,.step"
+                  onChange={handleFileUpload}
+                  className="hidden"
+                />
+
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploading}
+                  className="border-2 border-dashed border-slate-600 hover:border-sky-500 rounded-lg p-6 text-center w-full transition-colors cursor-pointer"
+                >
+                  {uploading ? (
+                    <div className="flex items-center justify-center gap-2 text-slate-400">
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-sky-400"></div>
+                      Uploading...
+                    </div>
+                  ) : (
+                    <>
+                      <div className="text-3xl mb-2">📁</div>
+                      <p className="text-slate-400 text-sm">Click to upload images, STL, 3MF, STEP, or PDF</p>
+                    </>
+                  )}
+                </button>
               </div>
 
               {/* Type-specific fields */}
@@ -276,20 +429,6 @@ export default function NewPostPage() {
                   <p className="text-xs text-slate-400 mt-2">
                     Specify your budget to attract serious makers
                   </p>
-                </div>
-              )}
-
-              {selectedType === "showcase" && (
-                <div className="bg-slate-800 border border-slate-700 rounded-lg p-6">
-                  <h3 className="text-lg font-semibold mb-3">📸 Media Upload</h3>
-                  <p className="text-slate-400 mb-4">
-                    Upload images and files to showcase your project (Feature coming soon)
-                  </p>
-                  <div className="border-2 border-dashed border-slate-600 rounded-lg p-8 text-center">
-                    <div className="text-4xl mb-2">📁</div>
-                    <p className="text-slate-400">Image and file upload coming soon</p>
-                    <p className="text-sm text-slate-400 mt-2">For now, include image URLs in your content</p>
-                  </div>
                 </div>
               )}
 
