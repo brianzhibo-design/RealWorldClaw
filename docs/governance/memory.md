@@ -42,3 +42,15 @@
   - 后端：`fly deploy --remote-only` 成功（machine health check 通过）
   - 前端：`vercel --prod` 成功，生产域名别名 `https://realworldclaw.com`
 - 约束合规：未改动首页 `frontend/app/page.tsx`，无 mock/coming-soon/as any 引入。
+
+## 2026-02-25 01:20 持续推进
+- 完成 P0/P1-2：后端 WS 鉴权由“仅 query token”扩展为“双协议兼容”（query token + 首帧 auth message），消除前后端协议不一致。
+- 代码变更：
+  - `platform/api/routers/ws.py`：支持首帧 `{"type":"auth","token":...}` 鉴权并保持原 query token 兼容。
+  - `platform/api/ws_manager.py`：连接建立时避免重复 `accept`，兼容预先握手场景。
+  - `platform/tests/test_regression_matrix.py`：新增首帧 auth 正反向用例，并修正无 token 拒绝用例断言。
+- 验证：
+  - `python3 -m pytest platform/tests/test_regression_matrix.py -q` → `9 passed`
+  - `python3 -m pytest tests/ -x -q` → `2 passed, 1 skipped`
+  - `npm --prefix frontend run build` → 成功（warning 不阻断）
+- 流程状态：已完成蛋蛋审查，进入慢羊羊复审待批；通过前不 push / 不 deploy。

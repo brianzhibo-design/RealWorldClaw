@@ -9,6 +9,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from fastapi import WebSocket
+from starlette.websockets import WebSocketState
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +35,8 @@ class ConnectionManager:
         self._heartbeat_task: asyncio.Task | None = None
 
     async def connect(self, ws: WebSocket, channel: str, target_id: str, user_id: str) -> Connection:
-        await ws.accept()
+        if ws.application_state != WebSocketState.CONNECTED:
+            await ws.accept()
         conn = Connection(websocket=ws, channel=channel, target_id=target_id, user_id=user_id)
         self._connections.setdefault(channel, {}).setdefault(target_id, []).append(conn)
         logger.info("WS connected: channel=%s target=%s user=%s", channel, target_id, user_id)

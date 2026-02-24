@@ -109,9 +109,10 @@ def test_files_download_missing_file_returns_404_when_authenticated(client):
 
 
 def test_ws_rejects_connection_when_token_missing(client):
-    with pytest.raises(WebSocketDisconnect) as exc:
-        with client.websocket_connect(f"{API}/ws/orders/user_1"):
-            pass
+    with client.websocket_connect(f"{API}/ws/orders/user_1") as ws:
+        ws.send_json({"type": "pong"})
+        with pytest.raises(WebSocketDisconnect) as exc:
+            ws.receive_json()
 
     assert exc.value.code == 4001
 
@@ -122,3 +123,23 @@ def test_ws_accepts_connection_with_valid_query_token(client):
 
     with client.websocket_connect(f"{API}/ws/orders/{user_id}?token={token}") as ws:
         ws.send_json({"type": "pong"})
+
+
+def test_ws_accepts_connection_with_first_auth_message_token(client):
+    headers, user_id = _register_and_get_headers(client, email="wsauth@test.com", username="ws_auth_user")
+    token = headers["Authorization"].split(" ", 1)[1]
+
+    with client.websocket_connect(f"{API}/ws/orders/{user_id}") as ws:
+        ws.send_json({"type": "auth", "token": token})
+        ws.send_json({"type": "pong"})
+
+
+def test_ws_rejects_connection_with_invalid_first_auth_message(client):
+    _, user_id = _register_and_get_headers(client, email="wsauthbad@test.com", username="ws_auth_bad_user")
+
+    with client.websocket_connect(f"{API}/ws/orders/{user_id}") as ws:
+        ws.send_json({"type": "auth", "token": "invalid-token"})
+        with pytest.raises(WebSocketDisconnect) as exc:
+            ws.receive_json()
+
+    assert exc.value.code == 4001

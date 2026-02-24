@@ -13,12 +13,12 @@
 
 ## 当前状态
 - 本轮动作：
-  - 补充回归测试 `test_files_download_missing_file_returns_404_when_authenticated`，覆盖文件下载接口在“已鉴权 + 资源不存在”时的稳定错误语义（404）。
-  - 产出一条新的社区进展播报文案（聚焦“回归矩阵边界补齐 + 发布门禁通过”），用于运营增长任务素材池。
+  - 修复 P0/P1-2：统一 WS 鉴权协议，后端同时支持 query token 与首帧 auth message（兼容旧前端/客户端）。
+  - 补充回归测试：新增 `test_ws_accepts_connection_with_first_auth_message_token` 与 `test_ws_rejects_connection_with_invalid_first_auth_message`，并更新无 token 拒绝用例断言时机。
 - 验证结果：
-  - `python3 -m pytest platform/tests/test_regression_matrix.py -q` ✅（7 passed）
+  - `python3 -m pytest platform/tests/test_regression_matrix.py -q` ✅（9 passed）
   - `python3 -m pytest tests/ -x -q` ✅（2 passed, 1 skipped）
   - `npm --prefix frontend run build` ✅（成功，warning 不阻断）
   - Merge Checklist grep 项 + 首页保护检查全部通过
-- 慢羊羊复审：已触发，待批（通过前不 push / 不 deploy）。
+- 慢羊羊复审：本轮改动已准备提交复审（通过前不 push / 不 deploy）。
 - 发布状态：等待复审结论后执行。

@@ -15,12 +15,29 @@ router = APIRouter(prefix="/ws", tags=["websocket"])
 
 
 async def _authenticate_ws(ws: WebSocket, token: str | None) -> dict | None:
-    """Validate JWT token for WebSocket. Returns payload or None."""
-    if not token:
-        await ws.close(code=4001, reason="Missing token")
-        return None
+    """Validate JWT token for WebSocket. Returns payload or None.
+
+    Supports two auth modes for backward compatibility:
+    1) Query token: ws://.../ws/...?...&token=<jwt>
+    2) First message auth: {"type":"auth","token":"<jwt>"}
+    """
+    incoming_token = token
+
+    if not incoming_token:
+        await ws.accept()
+        try:
+            first_msg = await ws.receive_json()
+        except Exception:
+            await ws.close(code=4001, reason="Missing token")
+            return None
+
+        if first_msg.get("type") != "auth" or not first_msg.get("token"):
+            await ws.close(code=4001, reason="Missing token")
+            return None
+        incoming_token = first_msg["token"]
+
     try:
-        payload = decode_token(token)
+        payload = decode_token(incoming_token)
     except JWTError:
         await ws.close(code=4001, reason="Invalid token")
         return None
