@@ -398,42 +398,25 @@ export default function Home() {
 
           {/* Stats with real data */}
           <div className="flex flex-wrap gap-12 justify-center text-center">
-            <div>
-              {loading ? (
-                <div className="text-3xl font-bold text-[#6b7280]">...</div>
-              ) : error ? (
-                <div className="text-3xl font-bold text-[#ef4444]">?</div>
-              ) : stats && (stats.makers || stats.total_makers) ? (
-                <AnimatedCounter target={stats.makers || stats.total_makers || 0} />
-              ) : (
-                <div className="text-3xl font-bold text-[#6b7280]">0</div>
-              )}
-              <div className="text-sm text-[#6b7280] font-mono">Makers</div>
-            </div>
-            <div>
-              {loading ? (
-                <div className="text-3xl font-bold text-[#6b7280]">...</div>
-              ) : error ? (
-                <div className="text-3xl font-bold text-[#ef4444]">?</div>
-              ) : stats && (stats.orders || stats.total_orders) ? (
-                <AnimatedCounter target={stats.orders || stats.total_orders || 0} />
-              ) : (
-                <div className="text-3xl font-bold text-[#6b7280]">0</div>
-              )}
-              <div className="text-sm text-[#6b7280] font-mono">Orders</div>
-            </div>
-            <div>
-              {loading ? (
-                <div className="text-3xl font-bold text-[#6b7280]">...</div>
-              ) : error ? (
-                <div className="text-3xl font-bold text-[#ef4444]">?</div>
-              ) : stats && (stats.spaces || stats.total_spaces) ? (
-                <AnimatedCounter target={stats.spaces || stats.total_spaces || 0} />
-              ) : (
-                <div className="text-3xl font-bold text-[#6b7280]">0</div>
-              )}
-              <div className="text-sm text-[#6b7280] font-mono">Spaces</div>
-            </div>
+            {[
+              { key: 'makers', label: 'Makers', fallback: 'total_makers' },
+              { key: 'agents', label: 'Agents', fallback: null },
+              { key: 'orders', label: 'Orders', fallback: 'total_orders' },
+              { key: 'components', label: 'Nodes', fallback: null },
+            ].map((item) => (
+              <div key={item.key}>
+                {loading ? (
+                  <div className="text-3xl font-bold text-[#6b7280]">...</div>
+                ) : error ? (
+                  <div className="text-3xl font-bold text-[#ef4444]">?</div>
+                ) : stats && ((stats as Record<string, number>)[item.key] || (item.fallback && (stats as Record<string, number>)[item.fallback])) ? (
+                  <AnimatedCounter target={(stats as Record<string, number>)[item.key] || (item.fallback ? (stats as Record<string, number>)[item.fallback] : 0) || 0} />
+                ) : (
+                  <div className="text-3xl font-bold text-[#6b7280]">0</div>
+                )}
+                <div className="text-sm text-[#6b7280] font-mono">{item.label}</div>
+              </div>
+            ))}
           </div>
         </div>
       </section>
