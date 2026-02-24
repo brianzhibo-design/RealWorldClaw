@@ -99,14 +99,8 @@ class TestUserBuyerJourney:
         order_id = r.json()["order_id"]
         assert r.json()["status"] == "pending"
 
-        # Maker claims order
+        # Maker claims order (auto-accepts)
         r = client.post(f"{API}/orders/{order_id}/claim", headers=maker_headers)
-        assert r.status_code == 200
-
-        # Maker accepts
-        r = client.put(f"{API}/orders/{order_id}/accept", headers=maker_headers, json={
-            "estimated_hours": 4.0,
-        })
         assert r.status_code == 200
         assert r.json()["status"] == "accepted"
 
@@ -370,9 +364,12 @@ class TestErrorScenarios:
             "delivery_province": "上海市", "delivery_city": "上海市",
             "delivery_district": "浦东新区", "delivery_address": "test addr 12345",
             "urgency": "normal",
-            "auto_match": True,
+            "auto_match": False,
         })
         order_id = r.json()["order_id"]
+
+        # Maker claims order
+        client.post(f"{API}/orders/{order_id}/claim", headers=maker_headers)
 
         # Accept first
         client.put(f"{API}/orders/{order_id}/accept", headers=maker_headers, json={

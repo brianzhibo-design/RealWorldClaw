@@ -91,7 +91,7 @@ class TestResponseFormats:
             "name": "test-agent-schema",
             "display_name": "Test Agent",
             "description": "Test agent for schema validation",
-            "type": "research",
+            "type": "openclaw",
             "callback_url": "https://test.example.com"
         })
         assert agent_reg.status_code == 201

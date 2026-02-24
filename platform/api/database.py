@@ -429,6 +429,36 @@ def init_db():
             )
         """)
 
+        # ── Spaces (submolt-like communities) ─────────────────────
+        db.execute("""
+            CREATE TABLE IF NOT EXISTS spaces (
+                id TEXT PRIMARY KEY,
+                name TEXT UNIQUE NOT NULL,
+                display_name TEXT NOT NULL,
+                description TEXT DEFAULT '',
+                icon TEXT DEFAULT '🏭',
+                creator_id TEXT NOT NULL,
+                member_count INTEGER DEFAULT 0,
+                post_count INTEGER DEFAULT 0,
+                created_at TEXT NOT NULL
+            )
+        """)
+        db.execute("""
+            CREATE TABLE IF NOT EXISTS space_members (
+                space_id TEXT NOT NULL,
+                user_id TEXT NOT NULL,
+                role TEXT DEFAULT 'member',
+                joined_at TEXT NOT NULL,
+                PRIMARY KEY(space_id, user_id)
+            )
+        """)
+
+        # Add space_id to community_posts if not exists
+        try:
+            db.execute("ALTER TABLE community_posts ADD COLUMN space_id TEXT DEFAULT NULL")
+        except Exception:
+            pass
+
 
 if __name__ == "__main__":
     init_db()
