@@ -4,6 +4,60 @@ import Link from "next/link";
 import { useState, useEffect, useRef, useMemo } from "react";
 import { API_BASE, apiFetch } from "@/lib/api-client";
 
+// Typing Effect Component
+function TypingEffect() {
+  const phrases = useMemo(() => [
+    "Physical Object",
+    "Real Product", 
+    "Working Robot",
+    "Smart Device",
+    "Custom Part"
+  ], []);
+  
+  const [currentPhrase, setCurrentPhrase] = useState(0);
+  const [currentText, setCurrentText] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [showCursor, setShowCursor] = useState(true);
+
+  useEffect(() => {
+    const phrase = phrases[currentPhrase];
+    const speed = isDeleting ? 50 : 100;
+    
+    const timer = setTimeout(() => {
+      if (!isDeleting) {
+        if (currentText.length < phrase.length) {
+          setCurrentText(phrase.slice(0, currentText.length + 1));
+        } else {
+          setTimeout(() => setIsDeleting(true), 2000);
+        }
+      } else {
+        if (currentText.length > 0) {
+          setCurrentText(phrase.slice(0, currentText.length - 1));
+        } else {
+          setIsDeleting(false);
+          setCurrentPhrase((prev) => (prev + 1) % phrases.length);
+        }
+      }
+    }, speed);
+
+    return () => clearTimeout(timer);
+  }, [currentText, isDeleting, currentPhrase, phrases]);
+
+  useEffect(() => {
+    const cursorTimer = setInterval(() => {
+      setShowCursor(prev => !prev);
+    }, 530);
+    return () => clearInterval(cursorTimer);
+  }, []);
+
+  return (
+    <span className="text-[#10b981]">
+      {currentText}
+      <span className={`${showCursor ? 'opacity-100' : 'opacity-0'} transition-opacity`}>|</span>
+    </span>
+  );
+}
+
 // Types
 interface Node {
   name: string;
@@ -311,14 +365,17 @@ export default function Home() {
           {/* Animated Logo */}
           <AnimatedLogo />
 
-          {/* Main heading */}
+          {/* Main heading with typing effect */}
           <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold leading-[1.05] tracking-tight mb-6">
-            The Open Manufacturing Network
+            Turn Any Idea Into a{' '}
+            <span className="block">
+              <TypingEffect />
+            </span>
           </h1>
 
           {/* Subtitle */}
           <p className="text-lg md:text-xl text-[#9ca3af] max-w-2xl mx-auto mb-12 leading-relaxed">
-            Turn any digital design into a physical product. Zero commission. Community-powered.
+            The open network connecting <span className="text-[#10b981] font-semibold">AI agents</span>, makers, and manufacturing machines worldwide
           </p>
 
           {/* CTA buttons */}
