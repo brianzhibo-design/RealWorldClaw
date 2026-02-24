@@ -15,4 +15,4 @@
   - 补齐 `platform/tests/test_regression_matrix.py` 的 WS 正向链路测试（valid query token）。
   - 增加 `docs/marketing/launch-posts.md` 的「Community Update (2026-02-24)」真实进展内容，供社区分发。
 - 验证结果：`python3 -m pytest platform/tests/test_regression_matrix.py -q` ✅（6 passed）。
-- 当前分支有未提交改动；按流程先走慢羊羊复审，通过后再 push/deploy。
+- 当前分支状态：`main...origin/main [ahead 1]`（本轮已本地提交）；按流程已触发慢羊羊复审，通过后再 push/deploy。
