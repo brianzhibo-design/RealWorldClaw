@@ -1,9 +1,9 @@
 # WORK-QUEUE（持续推进）
 
 ## 当前优先级
-1. P0/P1-5 社区发帖 DB 作用域修复（已完成开发与测试，待慢羊羊复审）
-2. P0/P1 已完成项复核（等待慢羊羊复审结果，未通过前不push/deploy）
-3. P2-9 回归测试矩阵修复（进行中）
+1. P2-9 回归测试矩阵修复（进行中）
+2. 第一批已完成项发布后复核（持续观察线上稳定性）
+3. 运营增长任务（社区真实进展内容 + 反馈修复 + 补测试）
    - [x] 修复 E2E 默认协议：HTTPS -> HTTP
    - [x] 修复 agent 注册接口路径：`/agents` -> `/agents/register`
    - [x] 修复 agent 返回结构解析（兼容 `agent.id`）
@@ -19,5 +19,5 @@
   - `python3 -m pytest tests/ -x -q` ✅（2 passed, 1 skipped）
   - `npm --prefix frontend run build` ✅（成功，warning 不阻断）
   - Merge Checklist grep 项 + 首页保护检查全部通过
-- 慢羊羊复审：已重新触发（`agent:main:subagent:159665d7-d172-48b4-a842-ed822f12220a`），待结果（未通过前不 push / 不 deploy）。
-- 发布状态：等待复审通过后执行。
+- 慢羊羊复审：Pass（确认 `create_post` DB 作用域风险已消除，允许发布）。
+- 发布状态：已执行 `git push`、后端 `fly deploy --remote-only`、前端 `vercel --prod`（生产域名已别名到 `https://realworldclaw.com`）。

@@ -34,3 +34,11 @@
   - Merge Checklist grep 项全零命中，且 `frontend/app/page.tsx` 无改动
 - 触发慢羊羊复审（最新会话）：`agent:main:subagent:159665d7-d172-48b4-a842-ed822f12220a`。
 - 流程状态：严格停在“复审待批”阶段，不 push、不 deploy。
+
+## 2026-02-25 00:58 持续推进
+- 收到慢羊羊复审结论：**Pass**，允许 `push + deploy`。
+- 已按流程执行发布：
+  - `git push`（main -> origin/main，commit: `cbc77f4`）
+  - 后端：`fly deploy --remote-only` 成功（machine health check 通过）
+  - 前端：`vercel --prod` 成功，生产域名别名 `https://realworldclaw.com`
+- 约束合规：未改动首页 `frontend/app/page.tsx`，无 mock/coming-soon/as any 引入。
