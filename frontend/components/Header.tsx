@@ -3,7 +3,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Globe, Package, Settings, PlusCircle, LogOut, MessageSquare, LayoutDashboard, Bot, ChevronDown, Cpu, Users, Compass } from "lucide-react";
+import { Globe, Package, Settings, PlusCircle, LogOut, MessageSquare, LayoutDashboard, Bot, ChevronDown, Compass } from "lucide-react";
 import { useAuthStore } from "@/stores/authStore";
 import { Button } from "@/components/ui/button";
 import {
@@ -24,8 +24,7 @@ const navItems = [
 const exploreItems = [
   { href: "/orders", label: "Orders", icon: Package },
   { href: "/agents", label: "Agents", icon: Bot },
-  { href: "/devices", label: "Devices", icon: Cpu },
-  { href: "/makers", label: "Makers", icon: Users },
+  { href: "/search", label: "Search", icon: Compass },
 ];
 
 export default function Header() {
@@ -73,7 +72,7 @@ export default function Header() {
           <DropdownMenu>
             <DropdownMenuTrigger
               className={`flex items-center gap-1 md:gap-1.5 rounded-lg px-2 md:px-3 py-1.5 text-xs md:text-sm font-medium transition-colors whitespace-nowrap ${
-                ["/orders", "/agents", "/devices", "/makers"].some(p => pathname.startsWith(p))
+                ["/orders", "/agents", "/search"].some(p => pathname.startsWith(p))
                   ? "bg-sky-500/10 text-sky-400"
                   : "text-slate-400 hover:text-white hover:bg-slate-800"
               }`}

@@ -3,28 +3,24 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Package, MessageSquare, File, Printer, Plus, ArrowRight, Loader2 } from "lucide-react";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { MessageSquare, Globe, Bot, Package, ArrowRight, Loader2, Settings, Layers } from "lucide-react";
 import { useAuthStore } from "@/stores/authStore";
 import { apiFetch } from "@/lib/api-client";
-import { EmptyState } from "@/components/EmptyState";
 
 interface DashboardStats {
   myPosts: number;
   myOrders: number;
-  myFiles: number;
-  myNodes: number;
 }
 
 interface RecentPost {
   id: string;
   title: string;
+  content: string;
   post_type: string;
-  created_at: string;
-  upvotes: number;
-  comment_count: number;
   author_id?: string;
+  comment_count: number;
+  upvotes?: number;
+  created_at: string;
 }
 
 interface PostsResponse {
@@ -36,26 +32,17 @@ interface OrdersResponse {
   as_maker?: unknown[];
 }
 
-interface FilesResponse {
-  files?: unknown[];
-}
-
-interface NodeItem {
-  id: string;
-}
-
 export default function DashboardPage() {
+  const router = useRouter();
+  const { user, isAuthenticated } = useAuthStore();
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [recentPosts, setRecentPosts] = useState<RecentPost[]>([]);
+
   useEffect(() => {
     document.title = "Dashboard — RealWorldClaw";
   }, []);
 
-  const router = useRouter();
-  const { user, isAuthenticated } = useAuthStore();
-  const [stats, setStats] = useState<DashboardStats | null>(null);
-  const [recentPosts, setRecentPosts] = useState<RecentPost[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  // Redirect to login if not authenticated
   useEffect(() => {
     if (!isAuthenticated) {
       router.push('/auth/login');
@@ -65,269 +52,180 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (!isAuthenticated) return;
-    
-    const fetchDashboardData = async () => {
+
+    const fetchData = async () => {
       try {
-        const [postsResponse, ordersResponse, filesResponse, nodesResponse] = await Promise.allSettled([
+        const [postsRes, ordersRes] = await Promise.allSettled([
           apiFetch<RecentPost[] | PostsResponse>('/community/posts'),
           apiFetch<unknown[] | OrdersResponse>('/orders'),
-          apiFetch<unknown[] | FilesResponse>('/files/my'),
-          apiFetch<NodeItem[]>('/nodes/my-nodes'),
         ]);
 
-        // Safely extract arrays from API responses (backends return various formats)
-        const postsRaw = postsResponse.status === 'fulfilled' ? postsResponse.value : {};
+        const postsRaw = postsRes.status === 'fulfilled' ? postsRes.value : {};
         const allPosts: RecentPost[] = Array.isArray(postsRaw) ? postsRaw : ((postsRaw as PostsResponse)?.posts ?? []);
-        const userPosts = allPosts.filter((post) => post.author_id === user?.id);
-        
-        const ordersRaw = ordersResponse.status === 'fulfilled' ? ordersResponse.value : {};
-        const orders: unknown[] = Array.isArray(ordersRaw) ? ordersRaw : [...((ordersRaw as OrdersResponse)?.as_customer ?? []), ...((ordersRaw as OrdersResponse)?.as_maker ?? [])];
-        
-        const filesRaw = filesResponse.status === 'fulfilled' ? filesResponse.value : {};
-        const files: unknown[] = Array.isArray(filesRaw) ? filesRaw : ((filesRaw as FilesResponse)?.files ?? []);
-        
-        const nodesRaw = nodesResponse.status === 'fulfilled' ? nodesResponse.value : [];
-        const nodes: NodeItem[] = Array.isArray(nodesRaw) ? nodesRaw : [];
+        const userPosts = allPosts.filter((p) => p.author_id === user?.id);
+
+        const ordersRaw = ordersRes.status === 'fulfilled' ? ordersRes.value : {};
+        const orders: unknown[] = Array.isArray(ordersRaw) ? ordersRaw : [
+          ...((ordersRaw as OrdersResponse)?.as_customer ?? []),
+          ...((ordersRaw as OrdersResponse)?.as_maker ?? [])
+        ];
 
         setStats({
           myPosts: userPosts.length,
           myOrders: Array.isArray(orders) ? orders.length : 0,
-          myFiles: Array.isArray(files) ? files.length : 0,
-          myNodes: Array.isArray(nodes) ? nodes.length : 0,
         });
 
-        // Set recent posts (latest 5)
         setRecentPosts(
           userPosts
-            .sort((a: RecentPost, b: RecentPost) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+            .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
             .slice(0, 5)
         );
-      } catch (error) {
-        console.error('Failed to fetch dashboard data:', error);
-        setStats({
-          myPosts: 0,
-          myOrders: 0,
-          myFiles: 0,
-          myNodes: 0,
-        });
+      } catch {
+        setStats({ myPosts: 0, myOrders: 0 });
       } finally {
         setLoading(false);
       }
     };
 
-    fetchDashboardData();
+    fetchData();
   }, [isAuthenticated, user?.id]);
 
-  const getGreeting = () => {
-    const h = new Date().getHours();
-    if (h < 6) return "Good evening";
-    if (h < 12) return "Good morning";
-    if (h < 18) return "Good afternoon";
-    return "Good evening";
-  };
-
-  const getTypeIcon = (type: string) => {
-    switch (type) {
-      case "discussion": return "💬";
-      case "request": return "🙋";
-      case "task": return "📋";
-      case "showcase": return "🏆";
-      default: return "📝";
-    }
-  };
-
   const formatTimeAgo = (dateString: string) => {
-    const now = new Date();
-    const date = new Date(dateString);
-    const diff = now.getTime() - date.getTime();
+    const diff = Date.now() - new Date(dateString).getTime();
     const hours = Math.floor(diff / (1000 * 60 * 60));
     const days = Math.floor(hours / 24);
-    
     if (days > 0) return `${days}d ago`;
     if (hours > 0) return `${hours}h ago`;
     return "Just now";
   };
 
-  if (!isAuthenticated) {
-    return null; // Will redirect
-  }
+  if (!isAuthenticated) return null;
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6 sm:space-y-8">
-      {/* Greeting */}
-      <div>
-        <h1 className="text-2xl sm:text-3xl font-bold mb-2">
-          {getGreeting()}, {user?.username} 👋
-        </h1>
-        <p className="text-muted-foreground text-sm sm:text-base">
-          Welcome to your RealWorldClaw dashboard
-        </p>
-      </div>
-
-      {/* Stats Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-        <Card className="p-4 sm:p-6 hover:bg-accent/50 transition-colors cursor-pointer">
-          <div className="flex items-center gap-3 sm:gap-4">
-            <div className="p-2 bg-blue-500/20 text-blue-400 rounded-lg">
-              <MessageSquare className="h-4 w-4 sm:h-5 sm:w-5" />
-            </div>
-            <div>
-              <p className="text-xs sm:text-sm text-muted-foreground">My Posts</p>
-              <p className="text-xl sm:text-2xl font-bold">
-                {loading ? "—" : stats?.myPosts ?? 0}
-              </p>
-            </div>
-          </div>
-        </Card>
-
-        <Card className="p-4 sm:p-6 hover:bg-accent/50 transition-colors cursor-pointer">
-          <div className="flex items-center gap-3 sm:gap-4">
-            <div className="p-2 bg-green-500/20 text-green-400 rounded-lg">
-              <Package className="h-4 w-4 sm:h-5 sm:w-5" />
-            </div>
-            <div>
-              <p className="text-xs sm:text-sm text-muted-foreground">My Orders</p>
-              <p className="text-xl sm:text-2xl font-bold">
-                {loading ? "—" : stats?.myOrders ?? 0}
-              </p>
-            </div>
-          </div>
-        </Card>
-
-        <Card className="p-4 sm:p-6 hover:bg-accent/50 transition-colors cursor-pointer">
-          <div className="flex items-center gap-3 sm:gap-4">
-            <div className="p-2 bg-sky-500/20 text-sky-400 rounded-lg">
-              <File className="h-4 w-4 sm:h-5 sm:w-5" />
-            </div>
-            <div>
-              <p className="text-xs sm:text-sm text-muted-foreground">My Files</p>
-              <p className="text-xl sm:text-2xl font-bold">
-                {loading ? "—" : stats?.myFiles ?? 0}
-              </p>
-            </div>
-          </div>
-        </Card>
-
-        <Card className="p-4 sm:p-6 hover:bg-accent/50 transition-colors cursor-pointer">
-          <div className="flex items-center gap-3 sm:gap-4">
-            <div className="p-2 bg-sky-500/20 text-sky-400 rounded-lg">
-              <Printer className="h-4 w-4 sm:h-5 sm:w-5" />
-            </div>
-            <div>
-              <p className="text-xs sm:text-sm text-muted-foreground">My Nodes</p>
-              <p className="text-xl sm:text-2xl font-bold">
-                {loading ? "—" : stats?.myNodes ?? 0}
-              </p>
-            </div>
-          </div>
-        </Card>
-      </div>
-
-      {/* Quick Actions */}
-      <div>
-        <h2 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4">Quick Actions</h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-          <Link href="/community/new">
-            <Card className="p-3 sm:p-4 hover:bg-accent/50 transition-colors cursor-pointer min-h-[120px] sm:min-h-[140px]">
-              <div className="text-center">
-                <div className="w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-2 sm:mb-3 bg-blue-500/20 text-blue-400 rounded-lg flex items-center justify-center text-lg sm:text-xl">
-                  💬
-                </div>
-                <h3 className="font-semibold mb-1 text-sm sm:text-base">New Post</h3>
-                <p className="text-xs sm:text-sm text-muted-foreground">Share with community</p>
-              </div>
-            </Card>
-          </Link>
-
-          <Link href="/orders/new">
-            <Card className="p-3 sm:p-4 hover:bg-accent/50 transition-colors cursor-pointer min-h-[120px] sm:min-h-[140px]">
-              <div className="text-center">
-                <div className="w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-2 sm:mb-3 bg-green-500/20 text-green-400 rounded-lg flex items-center justify-center text-lg sm:text-xl">
-                  📤
-                </div>
-                <h3 className="font-semibold mb-1 text-sm sm:text-base">Submit Design</h3>
-                <p className="text-xs sm:text-sm text-muted-foreground">Upload your files</p>
-              </div>
-            </Card>
-          </Link>
-
-          <Link href="/register-node">
-            <Card className="p-3 sm:p-4 hover:bg-accent/50 transition-colors cursor-pointer min-h-[120px] sm:min-h-[140px]">
-              <div className="text-center">
-                <div className="w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-2 sm:mb-3 bg-sky-500/20 text-sky-400 rounded-lg flex items-center justify-center text-lg sm:text-xl">
-                  🤖
-                </div>
-                <h3 className="font-semibold mb-1 text-sm sm:text-base">Register Node</h3>
-                <p className="text-xs sm:text-sm text-muted-foreground">Add your machine</p>
-              </div>
-            </Card>
-          </Link>
-
-          <Link href="/orders/new">
-            <Card className="p-3 sm:p-4 hover:bg-accent/50 transition-colors cursor-pointer min-h-[120px] sm:min-h-[140px]">
-              <div className="text-center">
-                <div className="w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-2 sm:mb-3 bg-sky-500/20 text-sky-400 rounded-lg flex items-center justify-center text-lg sm:text-xl">
-                  📋
-                </div>
-                <h3 className="font-semibold mb-1 text-sm sm:text-base">Create Order</h3>
-                <p className="text-xs sm:text-sm text-muted-foreground">Start manufacturing</p>
-              </div>
-            </Card>
-          </Link>
+    <div className="min-h-screen bg-slate-950">
+      <div className="max-w-4xl mx-auto px-4 py-8">
+        {/* Welcome */}
+        <div className="mb-8">
+          <h1 className="text-2xl font-bold text-white mb-1">
+            Welcome back, {user?.username || "Agent"}
+          </h1>
+          <p className="text-slate-400 text-sm">Your activity on RealWorldClaw</p>
         </div>
-      </div>
 
-      {/* Recent Posts */}
-      <div>
-        <div className="flex items-center justify-between mb-3 sm:mb-4">
-          <h2 className="text-lg sm:text-xl font-semibold">My Recent Posts</h2>
-          <Link href="/community" className="text-primary hover:text-primary/80 text-xs sm:text-sm font-medium">
-            <span className="hidden sm:inline">View All Posts</span>
-            <span className="sm:hidden">View All</span>
-            <ArrowRight className="h-3 w-3 sm:h-4 sm:w-4 ml-1 inline" />
+        {/* Stats */}
+        <div className="grid grid-cols-2 gap-4 mb-8">
+          <div className="bg-slate-900 border border-slate-800 rounded-xl p-5">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-sky-500/10 rounded-lg">
+                <MessageSquare className="h-5 w-5 text-sky-400" />
+              </div>
+              <div>
+                <p className="text-xs text-slate-500">My Posts</p>
+                <p className="text-2xl font-bold text-white">
+                  {loading ? "—" : stats?.myPosts ?? 0}
+                </p>
+              </div>
+            </div>
+          </div>
+          <div className="bg-slate-900 border border-slate-800 rounded-xl p-5">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-emerald-500/10 rounded-lg">
+                <Package className="h-5 w-5 text-emerald-400" />
+              </div>
+              <div>
+                <p className="text-xs text-slate-500">My Orders</p>
+                <p className="text-2xl font-bold text-white">
+                  {loading ? "—" : stats?.myOrders ?? 0}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Actions */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
+          <Link href="/community/new" className="bg-slate-900 border border-slate-800 rounded-xl p-4 hover:border-sky-500/30 hover:bg-slate-900/80 transition-all text-center group">
+            <MessageSquare className="h-6 w-6 text-sky-400 mx-auto mb-2 group-hover:scale-110 transition-transform" />
+            <p className="text-sm font-medium text-white">New Post</p>
+            <p className="text-xs text-slate-500 mt-0.5">Share your thoughts</p>
+          </Link>
+          <Link href="/spaces" className="bg-slate-900 border border-slate-800 rounded-xl p-4 hover:border-purple-500/30 hover:bg-slate-900/80 transition-all text-center group">
+            <Layers className="h-6 w-6 text-purple-400 mx-auto mb-2 group-hover:scale-110 transition-transform" />
+            <p className="text-sm font-medium text-white">Spaces</p>
+            <p className="text-xs text-slate-500 mt-0.5">Browse topics</p>
+          </Link>
+          <Link href="/map" className="bg-slate-900 border border-slate-800 rounded-xl p-4 hover:border-emerald-500/30 hover:bg-slate-900/80 transition-all text-center group">
+            <Globe className="h-6 w-6 text-emerald-400 mx-auto mb-2 group-hover:scale-110 transition-transform" />
+            <p className="text-sm font-medium text-white">World Map</p>
+            <p className="text-xs text-slate-500 mt-0.5">See the network</p>
+          </Link>
+          <Link href="/agents" className="bg-slate-900 border border-slate-800 rounded-xl p-4 hover:border-amber-500/30 hover:bg-slate-900/80 transition-all text-center group">
+            <Bot className="h-6 w-6 text-amber-400 mx-auto mb-2 group-hover:scale-110 transition-transform" />
+            <p className="text-sm font-medium text-white">Agents</p>
+            <p className="text-xs text-slate-500 mt-0.5">AI participants</p>
           </Link>
         </div>
 
-        {loading ? (
-          <div className="flex justify-center py-8">
-            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        {/* Recent Posts */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-white">My Recent Posts</h2>
+            <Link href="/community" className="text-sky-400 hover:text-sky-300 text-sm flex items-center gap-1">
+              View All <ArrowRight className="h-3 w-3" />
+            </Link>
           </div>
-        ) : recentPosts.length > 0 ? (
-          <div className="space-y-4">
-            {recentPosts.map((post) => (
-              <Link key={post.id} href={`/community/${post.id}`}>
-                <Card className="p-4 hover:bg-accent/50 transition-colors">
-                  <div className="flex items-center gap-3 mb-2">
-                    <span className="text-lg">{getTypeIcon(post.post_type)}</span>
-                    <span className="text-sm text-muted-foreground capitalize">
-                      {post.post_type}
-                    </span>
-                    <span className="text-sm text-muted-foreground">
-                      {formatTimeAgo(post.created_at)}
-                    </span>
+
+          {loading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="h-6 w-6 animate-spin text-slate-500" />
+            </div>
+          ) : recentPosts.length > 0 ? (
+            <div className="space-y-2">
+              {recentPosts.map((post) => (
+                <Link key={post.id} href={`/community/${post.id}`}
+                  className="block bg-slate-900 border border-slate-800 rounded-lg p-4 hover:border-slate-700 transition-colors">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <h3 className="font-medium text-white text-sm truncate">{post.title}</h3>
+                      <p className="text-xs text-slate-500 mt-1 line-clamp-1">{post.content}</p>
+                    </div>
+                    <div className="flex items-center gap-3 text-xs text-slate-500 shrink-0">
+                      <span>👍 {post.upvotes || 0}</span>
+                      <span>💬 {post.comment_count}</span>
+                      <span>{formatTimeAgo(post.created_at)}</span>
+                    </div>
                   </div>
-                  <h3 className="font-semibold mb-2 hover:text-primary transition-colors">
-                    {post.title}
-                  </h3>
-                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                    <span className="flex items-center gap-1">
-                      👍 {post.upvotes}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      💬 {post.comment_count}
-                    </span>
-                  </div>
-                </Card>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <div className="bg-slate-900 border border-slate-800 rounded-xl p-8 text-center">
+              <MessageSquare className="h-8 w-8 text-slate-600 mx-auto mb-3" />
+              <p className="text-slate-400 text-sm mb-3">You haven&apos;t posted yet</p>
+              <Link href="/community/new" className="text-sky-400 hover:text-sky-300 text-sm font-medium">
+                Create your first post →
               </Link>
-            ))}
+            </div>
+          )}
+        </div>
+
+        {/* Account */}
+        <div className="bg-slate-900 border border-slate-800 rounded-xl p-5">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-sky-500/20 flex items-center justify-center text-sky-400 font-medium">
+                {user?.username?.[0]?.toUpperCase() || "?"}
+              </div>
+              <div>
+                <p className="font-medium text-white text-sm">{user?.username}</p>
+                <p className="text-xs text-slate-500">{user?.email}</p>
+              </div>
+            </div>
+            <Link href="/settings" className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors">
+              <Settings className="h-4 w-4" />
+            </Link>
           </div>
-        ) : (
-          <EmptyState
-            icon="✨"
-            title="No posts yet"
-            description="Start sharing your ideas with the community"
-          />
-        )}
+        </div>
       </div>
     </div>
   );
