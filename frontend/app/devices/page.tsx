@@ -16,7 +16,7 @@ import {
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useAuthStore } from "@/stores/authStore";
-import { API_BASE } from "@/lib/api";
+import { API_BASE } from "@/lib/api-client";
 import { AppShell } from "@/components/layout/AppShell";
 
 // ── Types ──────────────────────────────────────────────────────
