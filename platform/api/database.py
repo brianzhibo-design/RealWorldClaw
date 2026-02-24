@@ -1,21 +1,136 @@
-"""RealWorldClaw — SQLite数据库（MVP版）"""
+"""RealWorldClaw — Database layer (SQLite locally, PostgreSQL in production)"""
 
 from __future__ import annotations
 
+import os
+import re
 import sqlite3
 from contextlib import contextmanager
 from pathlib import Path
 
+DATABASE_URL = os.environ.get("DATABASE_URL")
+USE_POSTGRES = DATABASE_URL is not None and DATABASE_URL.startswith("postgres")
+
 DB_PATH = Path(__file__).parent.parent / "data" / "realworldclaw.db"
 
+if USE_POSTGRES:
+    import psycopg2
+    import psycopg2.extras
 
-def get_connection() -> sqlite3.Connection:
-    DB_PATH.parent.mkdir(parents=True, exist_ok=True)
-    conn = sqlite3.connect(str(DB_PATH))
-    conn.row_factory = sqlite3.Row
-    conn.execute("PRAGMA journal_mode=WAL")
-    conn.execute("PRAGMA foreign_keys=ON")
-    return conn
+    class PgRowWrapper:
+        """Make psycopg2 rows behave like sqlite3.Row (dict-like access)."""
+        def __init__(self, cursor, row):
+            self._data = {desc[0]: val for desc, val in zip(cursor.description, row)}
+        def __getitem__(self, key):
+            if isinstance(key, int):
+                return list(self._data.values())[key]
+            return self._data[key]
+        def keys(self):
+            return self._data.keys()
+        def get(self, key, default=None):
+            return self._data.get(key, default)
+        def __contains__(self, key):
+            return key in self._data
+        def __iter__(self):
+            return iter(self._data.values())
+
+    class PgCursorWrapper:
+        """Wraps psycopg2 cursor to translate SQLite ? placeholders to %s."""
+        def __init__(self, cursor, conn):
+            self._cursor = cursor
+            self._conn = conn
+            self.rowcount = 0
+            self.description = None
+            self.lastrowid = None
+
+        def execute(self, sql, params=None):
+            sql = self._translate_sql(sql)
+            if params:
+                self._cursor.execute(sql, params)
+            else:
+                self._cursor.execute(sql)
+            self.rowcount = self._cursor.rowcount
+            self.description = self._cursor.description
+            return self
+
+        def executemany(self, sql, params_list):
+            sql = self._translate_sql(sql)
+            self._cursor.executemany(sql, params_list)
+            self.rowcount = self._cursor.rowcount
+            return self
+
+        def fetchone(self):
+            row = self._cursor.fetchone()
+            if row is None:
+                return None
+            if self._cursor.description:
+                return PgRowWrapper(self._cursor, row)
+            return row
+
+        def fetchall(self):
+            rows = self._cursor.fetchall()
+            if self._cursor.description:
+                return [PgRowWrapper(self._cursor, r) for r in rows]
+            return rows
+
+        def _translate_sql(self, sql):
+            """Translate SQLite SQL to PostgreSQL."""
+            # Skip PRAGMA
+            if sql.strip().upper().startswith("PRAGMA"):
+                return "SELECT 1"
+            # ? → %s
+            sql = sql.replace("?", "%s")
+            # julianday → EXTRACT(EPOCH FROM ...)  (simplified)
+            sql = sql.replace("julianday('now')", "EXTRACT(EPOCH FROM NOW())/86400")
+            sql = sql.replace("julianday(created_at)", "EXTRACT(EPOCH FROM created_at::timestamp)/86400")
+            # INTEGER NOT NULL DEFAULT 0 for booleans
+            # BEGIN IMMEDIATE → BEGIN
+            sql = sql.replace("BEGIN IMMEDIATE", "BEGIN")
+            return sql
+
+    class PgConnectionWrapper:
+        """Make psycopg2 connection look like sqlite3.Connection."""
+        def __init__(self, conn):
+            self._conn = conn
+
+        def execute(self, sql, params=None):
+            cur = PgCursorWrapper(self._conn.cursor(), self._conn)
+            return cur.execute(sql, params)
+
+        def cursor(self):
+            return PgCursorWrapper(self._conn.cursor(), self._conn)
+
+        def commit(self):
+            self._conn.commit()
+
+        def rollback(self):
+            self._conn.rollback()
+
+        def executescript(self, sql):
+            """Execute multiple SQL statements (PG doesn't have executescript)."""
+            for stmt in sql.split(";"):
+                stmt = stmt.strip()
+                if stmt:
+                    try:
+                        self.execute(stmt)
+                    except Exception:
+                        pass
+
+        def close(self):
+            self._conn.close()
+
+
+def get_connection():
+    if USE_POSTGRES:
+        conn = psycopg2.connect(DATABASE_URL)
+        return PgConnectionWrapper(conn)
+    else:
+        DB_PATH.parent.mkdir(parents=True, exist_ok=True)
+        conn = sqlite3.connect(str(DB_PATH))
+        conn.row_factory = sqlite3.Row
+        conn.execute("PRAGMA journal_mode=WAL")
+        conn.execute("PRAGMA foreign_keys=ON")
+        return conn
 
 
 @contextmanager
@@ -33,6 +148,20 @@ def get_db():
 
 def init_db():
     """创建所有表"""
+    if USE_POSTGRES:
+        # PG tables created by migration script; just ensure new tables exist
+        with get_db() as db:
+            for sql in [
+                "CREATE TABLE IF NOT EXISTS follows (id TEXT PRIMARY KEY, follower_id TEXT NOT NULL, following_id TEXT NOT NULL, created_at TEXT NOT NULL, UNIQUE(follower_id, following_id))",
+                "CREATE TABLE IF NOT EXISTS spaces (id TEXT PRIMARY KEY, name TEXT UNIQUE NOT NULL, display_name TEXT NOT NULL, description TEXT DEFAULT '', icon TEXT DEFAULT '🏭', creator_id TEXT NOT NULL, member_count INTEGER DEFAULT 0, post_count INTEGER DEFAULT 0, created_at TEXT NOT NULL)",
+                "CREATE TABLE IF NOT EXISTS space_members (space_id TEXT NOT NULL, user_id TEXT NOT NULL, role TEXT DEFAULT 'member', joined_at TEXT NOT NULL, PRIMARY KEY(space_id, user_id))",
+            ]:
+                try:
+                    db.execute(sql)
+                except Exception:
+                    pass
+        return
+
     from .models.user import USERS_TABLE_SQL
     from .models.files import FILES_TABLE_SQL
     from .models.community import COMMUNITY_TABLES_SQL
