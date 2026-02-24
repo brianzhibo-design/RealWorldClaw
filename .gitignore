@@ -1,83 +1,64 @@
+# === OS ===
+._*
+.DS_Store
+Thumbs.db
 
-# Build artifacts
-# Database (local dev)
-# Docker
-# IDE
-# Node
-# OS
-# Package managers
-# Python
-# Secrets
-# Virtual environments
+# === IDE ===
+.idea/
+.vscode/
+*.sublime-*
+*.swp
+*.swo
+
+# === Node ===
+node_modules/
+.next/
+.vercel/
+*.tsbuildinfo
+
+# === Python ===
+__pycache__/
+*.py[cod]
 *$py.class
-*.3mf
+*.egg
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+venv/
+.venv/
+env/
+
+# === Build / Artifacts ===
+dist/
+build/
+*.log
+
+# === Secrets / Config ===
+.env
+.env.local
+*.env.production
+*.key
+*.pem
+
+# === Database (local dev) ===
 *.db
 *.db-shm
 *.db-wal
-*.egg
-*.egg-info/
-*.env.production
-*.gcode
-*.key
-*.log
-*.pem
-*.py[cod]
 *.sqlite3
-*.sublime-project
-*.sublime-workspace
-*.swo
-*.swp
-*.tsbuildinfo
-*.whl
-*~
-.DS_Store
-.DS_Store?
-.Spotlight-V100
-.Trashes
-._*
-.coverage
-.env
-.env*.local
-.env.*.local
-.env.local
-.idea/
-.mypy_cache/
-.next/
-.nuxt/
-.pnpm-debug.log*
-.pytest_cache/
-.ruff_cache/
-.turbo/
-.venv/
-.vscode/
-Desktop.ini
-ENV/
-Thumbs.db
-__pycache__/
-build/
-coverage.xml
-dist/
-docker-compose.override.yml
-ehthumbs.db
-htmlcov/
-node_modules/
-npm-debug.log*
-out/
-temp/
-tmp/
-tools/references/
-tools/ui-ux-pro-max/
-venv/
-yarn-debug.log*
-yarn-error.log*
-docs/strategy/
-# Internal docs (not for public)
-docs/strategy/
-docs/archive/PROJECT-internal.md
-docs/archive/LAUNCH-PLAN-internal.md
-platform/ORDERS_SYSTEM_README.md
-frontend/ORDERS_FEATURE_SUMMARY.md
-content/
-seed-components/*/agent/SOUL.md
-docs-site/guides/maker-network.md
+
+# === Project-specific ===
+platform/data/
+platform/logs/
 platform/uploads/
+archive/
+content/
+demo/
+seed-components/
+website/
+
+# === 3D Files (large binaries — use GitHub Releases) ===
+*.3mf
+*.gcode
+
+# === Deployment ===
+.deploy-trigger
