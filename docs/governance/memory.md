@@ -13,3 +13,24 @@
 - 执行验证：`python3 -m pytest platform/tests/test_regression_matrix.py -q` 结果 `6 passed`。
 - 运营增长任务：更新 `docs/marketing/launch-posts.md`，新增可直接分发的「Community Update (Week of 2026-02-24)」双平台文案（X + Moltbook）。
 - 流程遵守：先触发慢羊羊复审并拿到 Pass 后，已完成 `git push` + 后端 `fly deploy --remote-only` + 前端 `vercel --prod` 发布。
+
+## 2026-02-25 00:35 持续推进
+- 第一批 P0/P1 继续收口：修复 `platform/api/routers/community.py` 的 `create_post` DB 作用域问题，避免 `with get_db()` 退出后继续把 `db` 传入 `_row_to_post_response`。
+- 验证执行：`python3 -m pytest platform/tests/test_community.py platform/tests/test_regression_matrix.py -q`，结果 `27 passed`。
+- 流程遵守：已完成蛋蛋审查，已触发慢羊羊复审；复审通过前不 push / 不 deploy。
+
+## 2026-02-25 00:46 持续推进
+- 按公司流程补全 Merge Checklist 验证：
+  - `python3 -m pytest tests/ -x -q` → `2 passed, 1 skipped`
+  - `npm --prefix frontend run build` → build 成功（仅 ESLint warning，无阻断错误）
+  - `grep` 检查：`as any` / `mock|MOCK|fake|dummy` / `alert(` / `window.location.reload` 在 `frontend/app/**/*.tsx` 均零命中
+  - `git diff --name-only -- frontend/app/page.tsx` 为空（首页未改动）
+- 慢羊羊复审：再次触发独立复审会话 `agent:main:subagent:edc34307-465a-4268-9718-e257c1f454c5`，当前等待结论；结论未出前继续保持不 push / 不 deploy。
+
+## 2026-02-25 00:55 持续推进
+- 按公司流程再次执行发布前门禁，结果一致通过：
+  - `python3 -m pytest tests/ -x -q` → `2 passed, 1 skipped`
+  - `npm --prefix frontend run build` → build 成功（仅 warning，无阻断）
+  - Merge Checklist grep 项全零命中，且 `frontend/app/page.tsx` 无改动
+- 触发慢羊羊复审（最新会话）：`agent:main:subagent:159665d7-d172-48b4-a842-ed822f12220a`。
+- 流程状态：严格停在“复审待批”阶段，不 push、不 deploy。

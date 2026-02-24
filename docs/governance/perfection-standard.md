@@ -31,6 +31,8 @@
 - 已修复：默认基址改为 `http://localhost:8000/api/v1`，并同步修正 agents 注册路径与返回结构解析，回归矩阵修复继续推进。
 - 2026-02-24 深夜巡检：修复 `test_full_flow.py` 发帖鉴权链路（改为 agent api_key + claim 激活），`tests/` 全量恢复到 `2 passed, 1 skipped`（设备端点在当前后端配置缺失时自动跳过，避免误报阻断发布门禁）。
 - 2026-02-25 00:xx 持续推进：补充 `platform/tests/test_regression_matrix.py` WebSocket 正向鉴权测试（query token），回归矩阵验证 `6 passed`；并新增社区进展发布素材，支撑运营增长任务。
+- 2026-02-25 00:35 持续推进：修复 P0/P1-5（`community.create_post` DB 作用域）——在数据库上下文内完成帖子响应映射，消除连接关闭后使用 `db` 的隐患；验证 `python3 -m pytest platform/tests/test_community.py platform/tests/test_regression_matrix.py -q` → `27 passed`，已进入慢羊羊复审待批。
+- 2026-02-25 00:55 持续推进：按公司流程再次执行发布门禁（`python3 -m pytest tests/ -x -q`、`npm --prefix frontend run build`、Merge Checklist grep + 首页保护）全部通过；已重新触发慢羊羊复审（session: `agent:main:subagent:159665d7-d172-48b4-a842-ed822f12220a`），结论未出前继续保持不 push / 不 deploy。
 
 ### 第三批（长期）
 11. SLO+观测体系

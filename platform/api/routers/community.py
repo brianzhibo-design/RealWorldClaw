@@ -241,14 +241,15 @@ async def create_post(
             now,
             now
         ))
-        
-        # Fetch the created post
+
+        # Fetch + map created post before db context exits
         row = db.execute("""
             SELECT * FROM community_posts WHERE id = ?
         """, (post_id,)).fetchone()
-    
+        response = _row_to_post_response(dict(row), db)
+
     logger.info("Post created: id=%s by=%s type=%s", post_id, identity["identity_id"], post.post_type)
-    return _row_to_post_response(dict(row), db)
+    return response
 
 
 @router.get("/posts", response_model=PostListResponse)
