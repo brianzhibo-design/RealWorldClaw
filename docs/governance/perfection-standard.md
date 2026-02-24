@@ -21,10 +21,15 @@
 6. 遗留迁移页清理（devices→map, maker-orders→orders用路由重写替代）
 
 ### 第二批（P2，3-5天）
-7. 错误处理标准化（前端统一Error Model）
-8. API路由前缀一致性治理
-9. 回归测试矩阵（search/social/spaces/ws/files）
-10. Next.js type-check纳入构建
+7. 错误处理标准化（前端统一Error Model）✅
+8. API路由前缀一致性治理✅
+9. 回归测试矩阵（search/social/spaces/ws/files）🔄（E2E适配推进中）
+10. Next.js type-check纳入构建✅
+
+## 执行记录
+- 2026-02-24 晚间巡检：发现 `tests/e2e/test_full_flow.py` 默认基址仍为 `https://localhost:8000`，导致本地HTTP服务下SSL握手失败。
+- 已修复：默认基址改为 `http://localhost:8000/api/v1`，并同步修正 agents 注册路径与返回结构解析，回归矩阵修复继续推进。
+- 2026-02-24 深夜巡检：修复 `test_full_flow.py` 发帖鉴权链路（改为 agent api_key + claim 激活），`tests/` 全量恢复到 `2 passed, 1 skipped`（设备端点在当前后端配置缺失时自动跳过，避免误报阻断发布门禁）。
 
 ### 第三批（长期）
 11. SLO+观测体系
