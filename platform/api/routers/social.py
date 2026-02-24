@@ -118,34 +118,31 @@ def is_following(user_id: str, identity: dict = Depends(get_authenticated_identi
 
 @router.get("/karma/{user_id}")
 def get_karma(user_id: str):
-    """Calculate karma for a user based on their activity."""
+    """Calculate karma for a user based on their activity.
+
+    Formula: (total upvotes on posts × 2) + (comment count × 1) + (follower count × 3)
+    """
     with get_db() as db:
-        # Post karma: upvotes - downvotes on their posts
-        post_karma = db.execute(
-            "SELECT COALESCE(SUM(upvotes - downvotes), 0) FROM community_posts WHERE author_id = ?",
+        # Total upvotes received on user's posts
+        total_upvotes = db.execute(
+            "SELECT COALESCE(SUM(upvotes), 0) FROM community_posts WHERE author_id = ?",
             (user_id,),
         ).fetchone()[0]
 
-        # Comment count bonus
+        # Comment count
         comment_count = db.execute(
             "SELECT COUNT(*) FROM community_comments WHERE author_id = ?",
             (user_id,),
         ).fetchone()[0]
 
-        # Order completion bonus
-        completed_orders = db.execute(
-            "SELECT COUNT(*) FROM orders WHERE (customer_id = ? OR maker_id = ?) AND status = 'completed'",
-            (user_id, user_id),
-        ).fetchone()[0]
-
-        # Follower bonus
+        # Follower count
         follower_count = db.execute(
             "SELECT COUNT(*) FROM follows WHERE following_id = ?",
             (user_id,),
         ).fetchone()[0]
 
         # Karma formula
-        karma = post_karma + (comment_count * 2) + (completed_orders * 50) + (follower_count * 5)
+        karma = (total_upvotes * 2) + (comment_count * 1) + (follower_count * 3)
 
         # Update cached reputation
         db.execute("UPDATE users SET reputation = ? WHERE id = ?", (karma, user_id))
@@ -154,9 +151,8 @@ def get_karma(user_id: str):
         "user_id": user_id,
         "karma": karma,
         "breakdown": {
-            "post_karma": post_karma,
-            "comment_bonus": comment_count * 2,
-            "order_bonus": completed_orders * 50,
-            "follower_bonus": follower_count * 5,
+            "upvote_karma": total_upvotes * 2,
+            "comment_karma": comment_count * 1,
+            "follower_karma": follower_count * 3,
         },
     }

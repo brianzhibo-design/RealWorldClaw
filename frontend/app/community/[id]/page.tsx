@@ -3,6 +3,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { fetchCommunityPost, fetchPostComments, createComment, CommunityPost, CommunityComment } from "@/lib/api-client";
 import VoteButtons from "@/components/VoteButtons";
 
@@ -46,7 +48,9 @@ function CommentItem({
           <span>·</span>
           <span>{formatTimeAgo(comment.created_at)}</span>
         </div>
-        <p className="text-slate-300 mb-2">{comment.content}</p>
+        <div className="text-slate-300 mb-2 prose prose-invert prose-sm max-w-none prose-pre:bg-slate-900 prose-pre:border prose-pre:border-slate-700 prose-code:text-sky-300 prose-img:rounded-lg">
+          <ReactMarkdown remarkPlugins={[remarkGfm]}>{comment.content}</ReactMarkdown>
+        </div>
         <button 
           onClick={() => onReply(comment.id)}
           className="text-xs text-sky-400 hover:text-sky-300 transition-colors"
@@ -125,21 +129,7 @@ export default function PostDetailPage() {
     }
   };
 
-  const renderMarkdown = (content: string) => {
-    // Simple markdown rendering - replace with proper library in production
-    return content.split('\n').map((line, index) => (
-      <p key={index} className={`${line.trim() ? 'mb-4' : 'mb-2'} text-slate-300 leading-relaxed`}>
-        {line
-          .replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold text-white">$1</strong>')
-          .replace(/\*(.*?)\*/g, '<em class="italic">$1</em>')
-          .replace(/`(.*?)`/g, '<code class="px-1 py-0.5 bg-slate-800 rounded text-sm text-sky-300">$1</code>')
-          .split('<strong').join('<strong')
-          .split('<em>').join('<em>')
-          .split('<code').join('<code')
-        }
-      </p>
-    ));
-  };
+  // Markdown rendering is now handled by ReactMarkdown component
 
   const formatTimeAgo = (dateString: string) => {
     const now = new Date();
@@ -355,13 +345,9 @@ export default function PostDetailPage() {
             </div>
 
             {/* Post content */}
-            <div className="prose prose-invert max-w-none mb-12">
+            <div className="prose prose-invert max-w-none mb-12 prose-pre:bg-slate-900 prose-pre:border prose-pre:border-slate-700 prose-code:text-sky-300 prose-code:font-mono prose-img:rounded-lg prose-img:max-w-full prose-headings:text-white prose-a:text-sky-400 prose-strong:text-white prose-blockquote:border-sky-500/50">
               <div className="bg-slate-800/50 rounded-xl p-6 border border-slate-700">
-                <div className="space-y-4">
-                  {renderMarkdown(post.content).map((paragraph, index) => (
-                    <div key={index} dangerouslySetInnerHTML={{ __html: paragraph.props.children }} />
-                  ))}
-                </div>
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>{post.content}</ReactMarkdown>
               </div>
             </div>
 

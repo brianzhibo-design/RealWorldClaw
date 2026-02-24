@@ -3,19 +3,19 @@
 from __future__ import annotations
 
 from pydantic import BaseModel
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 
 class SearchResult(BaseModel):
-    type: str  # "post" or "node"
+    type: str  # "post", "node", or "user"
     id: str
-    title: str  # For posts: title, for nodes: name
-    name: str   # Same as title, for consistency
-    snippet: str  # Truncated content/description
-    author_id: str  # For posts: author_id, for nodes: owner_id
-    tags: str  # JSON string of tags/capabilities
+    title: str
+    name: str
+    snippet: str
+    author_id: str
+    tags: str
     created_at: str
-    metadata: Dict[str, Any]  # Additional type-specific fields
+    metadata: Dict[str, Any]
 
 
 class SearchResponse(BaseModel):
@@ -24,3 +24,6 @@ class SearchResponse(BaseModel):
     query: str
     page: int
     limit: int
+    posts: Optional[list[SearchResult]] = None
+    spaces: Optional[list[SearchResult]] = None
+    users: Optional[list[SearchResult]] = None

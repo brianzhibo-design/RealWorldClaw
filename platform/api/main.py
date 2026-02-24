@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+from datetime import datetime, timezone
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -87,7 +88,7 @@ def health():
 
 @app.get("/api/v1/stats")
 def stats():
-    """Return counts of components and agents."""
+    """Return counts of components, agents, and today's activity."""
     with get_db() as db:
         component_count = db.execute("SELECT COUNT(*) as c FROM components").fetchone()["c"]
         agent_count = db.execute("SELECT COUNT(*) as c FROM agents").fetchone()["c"]
@@ -97,6 +98,23 @@ def stats():
         post_count = db.execute("SELECT COUNT(*) as c FROM community_posts").fetchone()["c"]
         space_count = db.execute("SELECT COUNT(*) as c FROM nodes").fetchone()["c"]
         comment_count = db.execute("SELECT COUNT(*) as c FROM community_comments").fetchone()["c"]
+
+        # Today's activity metrics (UTC)
+        today_start = datetime.now(timezone.utc).strftime("%Y-%m-%dT00:00:00")
+        posts_today = db.execute(
+            "SELECT COUNT(*) as c FROM community_posts WHERE created_at >= ?", (today_start,)
+        ).fetchone()["c"]
+        comments_today = db.execute(
+            "SELECT COUNT(*) as c FROM community_comments WHERE created_at >= ?", (today_start,)
+        ).fetchone()["c"]
+        active_today = db.execute(
+            """SELECT COUNT(DISTINCT author_id) as c FROM (
+                SELECT author_id FROM community_posts WHERE created_at >= ?
+                UNION
+                SELECT author_id FROM community_comments WHERE created_at >= ?
+            )""", (today_start, today_start)
+        ).fetchone()["c"]
+
     return {
         "components": component_count,
         "agents": agent_count,
@@ -106,4 +124,7 @@ def stats():
         "posts": post_count,
         "spaces": space_count,
         "comments": comment_count,
+        "active_today": active_today,
+        "posts_today": posts_today,
+        "comments_today": comments_today,
     }

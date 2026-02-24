@@ -53,6 +53,19 @@ def _sanitize(text: str) -> str:
     return html.escape(_TAG_RE.sub("", text))
 
 
+def _resolve_author_type(author_id: str, db) -> str:
+    """Determine author_type from email: 'agent' if @agents.rwc.dev, else 'human'."""
+    if not db or not author_id:
+        return "human"
+    try:
+        row = db.execute("SELECT email FROM users WHERE id = ?", (author_id,)).fetchone()
+        if row and row["email"] and "@agents.rwc.dev" in row["email"]:
+            return "agent"
+    except Exception:
+        pass
+    return "human"
+
+
 def _build_comment_tree(comments: list[dict], db=None) -> list[CommentResponse]:
     """Build nested comment structure from flat list."""
     comment_map = {}
@@ -70,12 +83,14 @@ def _build_comment_tree(comments: list[dict], db=None) -> list[CommentResponse]:
             except Exception:
                 pass
         
+        author_type = _resolve_author_type(row["author_id"], db) if db else row.get("author_type", "human")
+        
         comment = CommentResponse(
             id=row["id"],
             post_id=row["post_id"],
             content=row["content"],
             author_id=row["author_id"],
-            author_type=row["author_type"],
+            author_type=author_type,
             parent_id=row.get("parent_id"),
             author_name=author_name,
             replies=[],
@@ -111,8 +126,9 @@ def _row_to_post_response(row: dict, db=None) -> PostResponse:
     upvotes = row["upvotes"] if "upvotes" in keys else 0
     downvotes = row["downvotes"] if "downvotes" in keys else 0
 
-    # Resolve author name
+    # Resolve author name and type from email
     author_name = None
+    author_type = _resolve_author_type(row["author_id"], db) if db else row.get("author_type", "human")
     if db and row.get("author_id"):
         try:
             user_row = db.execute("SELECT username FROM users WHERE id = ?", (row["author_id"],)).fetchone()
@@ -128,7 +144,7 @@ def _row_to_post_response(row: dict, db=None) -> PostResponse:
         content=row["content"],
         post_type=PostType(row["post_type"]),
         author_id=row["author_id"],
-        author_type=row["author_type"],
+        author_type=author_type,
         author_name=author_name,
         file_id=row["file_id"],
         images=images,
@@ -326,6 +342,8 @@ async def create_comment(
         comment_row = db.execute("""
             SELECT * FROM community_comments WHERE id = ?
         """, (comment_id,)).fetchone()
+        
+        comment_author_type = _resolve_author_type(comment_row["author_id"], db)
     
     logger.info("Comment created: post=%s by=%s", post_id, identity["identity_id"])
     
@@ -334,7 +352,7 @@ async def create_comment(
         post_id=comment_row["post_id"],
         content=comment_row["content"],
         author_id=comment_row["author_id"],
-        author_type=comment_row["author_type"],
+        author_type=comment_author_type,
         created_at=comment_row["created_at"],
         updated_at=comment_row["updated_at"]
     )
