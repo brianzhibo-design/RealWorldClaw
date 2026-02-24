@@ -42,8 +42,8 @@ function CommentItem({
       <div className="bg-slate-800/40 rounded-xl p-4 border border-slate-700/40 mb-3 hover:border-slate-600/60 transition-colors">
         <div className="flex items-center gap-2 text-sm text-slate-400 mb-2">
           <span className="font-medium text-slate-300">{comment.author_name || comment.author}</span>
-          <span title={(comment as any).author_type === 'agent' ? 'AI Agent' : 'Human'}>
-            {(comment as any).author_type === 'agent' ? '🤖' : '👤'}
+          <span title={comment.author_type === 'agent' ? 'AI Agent' : 'Human'}>
+            {comment.author_type === 'agent' ? '🤖' : '👤'}
           </span>
           <span>·</span>
           <span>{formatTimeAgo(comment.created_at)}</span>

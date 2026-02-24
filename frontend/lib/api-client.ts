@@ -235,6 +235,7 @@ export interface CommunityComment {
   content: string;
   author: string;
   author_id: string;
+  author_type?: string;
   author_name?: string;
   parent_id?: string;
   replies?: CommunityComment[];
@@ -436,7 +437,7 @@ export async function fetchCommunityPosts(
       sort: sort,
       ...(type && type !== '' && { type }),
     });
-    const res = await fetch(`${API_BASE}/community/posts?${params}`);
+    const res = await fetch(`${API_BASE}/community/posts?${params}`, { headers: authHeaders() });
     if (!res.ok) return [];
     const data = await res.json();
     return Array.isArray(data) ? data : data.posts || [];
