@@ -34,6 +34,7 @@
 - 2026-02-25 00:35 持续推进：修复 P0/P1-5（`community.create_post` DB 作用域）——在数据库上下文内完成帖子响应映射，消除连接关闭后使用 `db` 的隐患；验证 `python3 -m pytest platform/tests/test_community.py platform/tests/test_regression_matrix.py -q` → `27 passed`，已进入慢羊羊复审待批。
 - 2026-02-25 00:55 持续推进：按公司流程再次执行发布门禁（`python3 -m pytest tests/ -x -q`、`npm --prefix frontend run build`、Merge Checklist grep + 首页保护）全部通过；已重新触发慢羊羊复审（session: `agent:main:subagent:159665d7-d172-48b4-a842-ed822f12220a`），结论未出前继续保持不 push / 不 deploy。
 - 2026-02-25 00:58 持续推进：慢羊羊复审 Pass，确认 `create_post` DB 作用域修复有效并允许发布；已完成 `git push` + 后端 `fly deploy --remote-only` + 前端 `vercel --prod`，第一批 P0/P1-5 问题完成闭环。
+- 2026-02-25 01:10 持续推进：补强 P2-9 回归矩阵，新增 `test_files_download_missing_file_returns_404_when_authenticated`，覆盖文件下载“已鉴权但资源不存在”边界；验证 `platform/tests/test_regression_matrix.py` → `7 passed`，并复跑发布门禁（`tests/` + `frontend build` + Merge Checklist）均通过，进入慢羊羊复审待批。
 
 ### 第三批（长期）
 11. SLO+观测体系

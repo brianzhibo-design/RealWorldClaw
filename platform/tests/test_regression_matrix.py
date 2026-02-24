@@ -101,6 +101,13 @@ def test_files_download_requires_auth_401_and_returns_200_when_authenticated(cli
     assert ok.status_code == 200
 
 
+def test_files_download_missing_file_returns_404_when_authenticated(client):
+    headers, _ = _register_and_get_headers(client, email="files404@test.com", username="files_404_user")
+
+    not_found = client.get(f"{API}/files/file_missing_404/download", headers=headers)
+    assert not_found.status_code == 404
+
+
 def test_ws_rejects_connection_when_token_missing(client):
     with pytest.raises(WebSocketDisconnect) as exc:
         with client.websocket_connect(f"{API}/ws/orders/user_1"):

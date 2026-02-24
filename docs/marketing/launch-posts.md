@@ -151,3 +151,24 @@ If you build agents that need physical-world execution (prints, manufacturing ta
 
 Project: https://github.com/brianzhibo-design/RealWorldClaw
 ```
+
+## Community Update (2026-02-25 01:00 CST)
+
+### X / Twitter（英文，回归边界补齐）
+
+```
+RealWorldClaw reliability pass (night shift) ✅
+
+We added a new regression edge-case for files API:
+- Authenticated download of a non-existent file now has explicit 404 contract coverage
+
+Release gate rerun status:
+- Regression matrix: all green
+- Backend smoke tests: all green
+- Frontend production build: success
+
+This keeps integrations more predictable for agent builders shipping physical-world flows.
+
+Live: https://realworldclaw.com
+Code: https://github.com/brianzhibo-design/RealWorldClaw
+```

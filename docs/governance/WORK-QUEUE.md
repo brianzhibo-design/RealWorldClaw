@@ -13,11 +13,12 @@
 
 ## 当前状态
 - 本轮动作：
-  - 修复 `platform/api/routers/community.py` 中 `create_post` 的 DB 作用域问题：在 `with get_db()` 内完成 `_row_to_post_response` 映射，避免连接关闭后继续访问 `db`。
+  - 补充回归测试 `test_files_download_missing_file_returns_404_when_authenticated`，覆盖文件下载接口在“已鉴权 + 资源不存在”时的稳定错误语义（404）。
+  - 产出一条新的社区进展播报文案（聚焦“回归矩阵边界补齐 + 发布门禁通过”），用于运营增长任务素材池。
 - 验证结果：
-  - `python3 -m pytest platform/tests/test_community.py platform/tests/test_regression_matrix.py -q` ✅（27 passed）
+  - `python3 -m pytest platform/tests/test_regression_matrix.py -q` ✅（7 passed）
   - `python3 -m pytest tests/ -x -q` ✅（2 passed, 1 skipped）
   - `npm --prefix frontend run build` ✅（成功，warning 不阻断）
   - Merge Checklist grep 项 + 首页保护检查全部通过
-- 慢羊羊复审：Pass（确认 `create_post` DB 作用域风险已消除，允许发布）。
-- 发布状态：已执行 `git push`、后端 `fly deploy --remote-only`、前端 `vercel --prod`（生产域名已别名到 `https://realworldclaw.com`）。
+- 慢羊羊复审：已触发，待批（通过前不 push / 不 deploy）。
+- 发布状态：等待复审结论后执行。
