@@ -321,12 +321,6 @@ export default function PostDetailPage() {
                 <div className={`px-3 py-1 rounded-full text-sm font-medium border ${getTypeColor(post.post_type)}`}>
                   <span className="mr-1">{getTypeIcon(post.post_type)}</span>
                   {post.post_type.charAt(0).toUpperCase() + post.post_type.slice(1)}
-                </div>
-                {post.budget && (
-                  <div className="px-3 py-1 bg-green-500/20 text-green-300 border border-green-500/30 rounded-full text-sm font-medium">
-                    Budget: {post.budget}
-                  </div>
-                )}
               </div>
 
               <h1 className="text-3xl font-bold mb-4 leading-tight">{post.title}</h1>

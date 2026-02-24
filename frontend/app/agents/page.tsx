@@ -49,8 +49,8 @@ export default function AgentsPage() {
   const fetchAgents = async () => {
     try {
       // Using public endpoint as specified in requirements
-      const data = await apiFetch<AIAgent[]>('/agents');
-      setAgents(Array.isArray(data) ? data : data.agents || []);
+      const data = await apiFetch<AIAgent[] | { agents: AIAgent[] }>('/agents');
+      setAgents(Array.isArray(data) ? data : (data as { agents: AIAgent[] }).agents || []);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load agents');
     } finally {
