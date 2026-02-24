@@ -44,10 +44,9 @@ export default function LoginPage() {
   const handleGoogleLogin = () => {
     const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
     if (!clientId) {
-      setError("Google OAuth — Coming Soon");
+      setError("Google OAuth is not configured. Please contact support.");
       return;
     }
-    // If configured, redirect to Google OAuth
     const redirectUri = `${window.location.origin}/auth/callback/google`;
     const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=openid%20email%20profile`;
     window.location.href = url;

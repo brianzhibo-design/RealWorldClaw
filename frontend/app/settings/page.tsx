@@ -18,7 +18,7 @@ export default function SettingsPage() {
   }, []);
 
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<"profile" | "password" | "ai" | "notifications" | "danger">("profile");
+  const [activeTab, setActiveTab] = useState<"profile" | "password" | "ai" | "danger">("profile");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -42,7 +42,7 @@ export default function SettingsPage() {
     confirm_password: ""
   });
   
-  // AI Settings and Notifications - coming soon
+  // AI Settings - placeholder
 
   const token = useAuthStore((state) => state.token);
 
@@ -129,7 +129,7 @@ export default function SettingsPage() {
     }
   };
 
-  // notification toggle removed - coming soon
+  // notification toggle removed
 
   if (loading) {
     return (
@@ -143,7 +143,7 @@ export default function SettingsPage() {
     { key: "profile", label: "Profile", icon: "👤" },
     { key: "password", label: "Password", icon: "🔐" },
     { key: "ai", label: "AI Connection", icon: "🤖" },
-    { key: "notifications", label: "Notifications", icon: "🔔" },
+
     { key: "danger", label: "Danger Zone", icon: "⚠️" }
   ];
 
@@ -282,7 +282,48 @@ export default function SettingsPage() {
                   </div>
                 </div>
 
-                <p className="text-slate-400 text-sm">🚧 Coming Soon — Password change is under development.</p>
+                <form onSubmit={handlePasswordChange} className="space-y-4 sm:space-y-6">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-300 mb-2">Current Password</label>
+                    <input
+                      type="password"
+                      value={passwordData.current_password}
+                      onChange={(e) => setPasswordData(prev => ({ ...prev, current_password: e.target.value }))}
+                      required
+                      className="w-full px-4 py-4 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent min-h-[44px]"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-300 mb-2">New Password</label>
+                    <input
+                      type="password"
+                      value={passwordData.new_password}
+                      onChange={(e) => setPasswordData(prev => ({ ...prev, new_password: e.target.value }))}
+                      required
+                      minLength={8}
+                      placeholder="At least 8 characters"
+                      className="w-full px-4 py-4 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent min-h-[44px]"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-300 mb-2">Confirm New Password</label>
+                    <input
+                      type="password"
+                      value={passwordData.confirm_password}
+                      onChange={(e) => setPasswordData(prev => ({ ...prev, confirm_password: e.target.value }))}
+                      required
+                      minLength={8}
+                      className="w-full px-4 py-4 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-sky-600 focus:border-transparent min-h-[44px]"
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={saving}
+                    className="px-6 py-3 bg-sky-600 hover:bg-sky-500 disabled:bg-slate-700 disabled:text-slate-400 text-white rounded-lg font-medium transition-colors min-h-[44px]"
+                  >
+                    {saving ? 'Changing...' : 'Change Password'}
+                  </button>
+                </form>
               </div>
             )}
 
@@ -300,25 +341,7 @@ export default function SettingsPage() {
                     </p>
                   </div>
                 </div>
-                <p className="text-slate-400 text-sm">🚧 Coming Soon — AI integrations are under development.</p>
-              </div>
-            )}
-
-            {/* Notifications Tab */}
-            {activeTab === "notifications" && (
-              <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-6">
-                <div className="flex items-center gap-4 mb-6">
-                  <div className="w-16 h-16 bg-slate-800 rounded-full flex items-center justify-center text-2xl">
-                    🔔
-                  </div>
-                  <div>
-                    <h2 className="text-xl font-semibold">Notification Preferences</h2>
-                    <p className="text-slate-400 text-sm">
-                      Control what notifications you receive
-                    </p>
-                  </div>
-                </div>
-                <p className="text-slate-400 text-sm">🚧 Coming Soon — Notification preferences are under development.</p>
+                <p className="text-slate-400 text-sm">AI integrations are not yet available. Check back later.</p>
               </div>
             )}
 

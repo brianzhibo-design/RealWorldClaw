@@ -69,6 +69,8 @@ export default function OrderDetailPage() {
   const [msgError, setMsgError] = useState(false);
   
   // Review system state
+  const [newMessage, setNewMessage] = useState("");
+  const [sendingMsg, setSendingMsg] = useState(false);
   const [reviewRating, setReviewRating] = useState(0);
   const [reviewComment, setReviewComment] = useState("");
   const [reviewSubmitting, setReviewSubmitting] = useState(false);
@@ -245,11 +247,11 @@ export default function OrderDetailPage() {
           <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-6">
             <h2 className="text-lg font-semibold mb-4">💬 Messages</h2>
             {msgError ? (
-              <p className="text-slate-400 text-sm italic">Messages coming soon</p>
+              <p className="text-slate-400 text-sm italic">Failed to load messages. Please try again later.</p>
             ) : messages && messages.length > 0 ? (
               <div className="space-y-3 max-h-64 overflow-y-auto">
                 {messages.map((m) => (
-                  <div key={m.id} className="p-3 bg-slate-800/50 rounded-lg border border-slate-700">
+                  <div key={m.id} className={`p-3 rounded-lg border ${m.sender_id === user?.id ? 'bg-sky-900/30 border-sky-800' : 'bg-slate-800/50 border-slate-700'}`}>
                     <p className="text-slate-300 text-sm">{m.content}</p>
                     <p className="text-slate-400 text-xs mt-1">{formatDate(m.created_at)}</p>
                   </div>
@@ -258,6 +260,43 @@ export default function OrderDetailPage() {
             ) : (
               <p className="text-slate-400 text-sm">No messages yet</p>
             )}
+            {/* Send message */}
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                if (!newMessage.trim() || sendingMsg) return;
+                setSendingMsg(true);
+                try {
+                  const msg = await apiFetch<Message>(`/orders/${params.id}/messages`, {
+                    method: "POST",
+                    body: JSON.stringify({ content: newMessage.trim() }),
+                  });
+                  setMessages((prev) => [...(prev || []), msg]);
+                  setNewMessage("");
+                  setMsgError(false);
+                } catch {
+                  alert("Failed to send message");
+                } finally {
+                  setSendingMsg(false);
+                }
+              }}
+              className="mt-4 flex gap-2"
+            >
+              <input
+                type="text"
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+                placeholder="Type a message..."
+                className="flex-1 px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-600"
+              />
+              <button
+                type="submit"
+                disabled={sendingMsg || !newMessage.trim()}
+                className="px-4 py-3 bg-sky-600 hover:bg-sky-500 disabled:opacity-50 text-white rounded-lg font-medium transition-colors"
+              >
+                {sendingMsg ? "..." : "Send"}
+              </button>
+            </form>
           </div>
 
           {/* Review System - Show for completed/delivered orders */}

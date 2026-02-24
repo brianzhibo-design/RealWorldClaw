@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { apiFetch } from "@/lib/api-client";
+import { useAuthStore } from "@/stores/authStore";
 
 export default function SpacePage() {
   const params = useParams();
@@ -14,6 +15,9 @@ export default function SpacePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [sortType, setSortType] = useState<'hot' | 'new' | 'top'>('hot');
+  const [isMember, setIsMember] = useState(false);
+  const [joinLoading, setJoinLoading] = useState(false);
+  const currentUser = useAuthStore((s) => s.user);
 
   useEffect(() => {
     if (!spaceName) return;
@@ -23,8 +27,10 @@ export default function SpacePage() {
         setLoading(true);
         setError(null);
         const data = await apiFetch(`/spaces/${spaceName}`);
-        setSpace(data.space || data);
+        const spaceData = data.space || data;
+        setSpace(spaceData);
         setPosts(data.posts || []);
+        setIsMember(spaceData.is_member || false);
       } catch (err) {
         console.error('Failed to fetch space data:', err);
         setError('Failed to load space. Please try again later.');
@@ -147,12 +153,34 @@ export default function SpacePage() {
                     {space.description}
                   </p>
                 </div>
-                <button
-                  disabled
-                  className="px-6 py-2 rounded-lg font-medium bg-slate-700 text-slate-400 cursor-not-allowed"
-                >
-                  Join Space
-                </button>
+                {currentUser && (
+                  <button
+                    onClick={async () => {
+                      setJoinLoading(true);
+                      try {
+                        if (isMember) {
+                          await apiFetch(`/spaces/${spaceName}/leave`, { method: "DELETE" });
+                          setIsMember(false);
+                        } else {
+                          await apiFetch(`/spaces/${spaceName}/join`, { method: "POST" });
+                          setIsMember(true);
+                        }
+                      } catch (err: any) {
+                        alert(err.message || "Action failed");
+                      } finally {
+                        setJoinLoading(false);
+                      }
+                    }}
+                    disabled={joinLoading}
+                    className={`px-6 py-2 rounded-lg font-medium transition-colors ${
+                      isMember
+                        ? "bg-slate-700 hover:bg-slate-600 text-white"
+                        : "bg-sky-600 hover:bg-sky-500 text-white"
+                    } ${joinLoading ? "opacity-50 cursor-not-allowed" : ""}`}
+                  >
+                    {joinLoading ? "..." : isMember ? "Leave Space" : "Join Space"}
+                  </button>
+                )}
               </div>
               
               {/* Stats */}

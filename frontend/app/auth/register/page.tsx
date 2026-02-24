@@ -43,7 +43,7 @@ export default function RegisterPage() {
   const handleGoogleLogin = () => {
     const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
     if (!clientId) {
-      setError("Google OAuth — Coming Soon");
+      setError("Google OAuth is not configured. Please contact support.");
       return;
     }
     const redirectUri = `${window.location.origin}/auth/callback/google`;

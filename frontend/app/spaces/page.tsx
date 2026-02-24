@@ -5,6 +5,96 @@ import Link from "next/link";
 import { apiFetch } from "@/lib/api-client";
 import { EmptyState } from "@/components/EmptyState";
 
+function CreateSpaceSection({ onCreated }: { onCreated: () => void }) {
+  const [showForm, setShowForm] = useState(false);
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const [creating, setCreating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleCreate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setCreating(true);
+    setError(null);
+    try {
+      await apiFetch("/spaces", {
+        method: "POST",
+        body: JSON.stringify({ name, description }),
+      });
+      onCreated();
+    } catch (err: any) {
+      setError(err.message || "Failed to create space");
+    } finally {
+      setCreating(false);
+    }
+  };
+
+  return (
+    <div className="mt-12 text-center">
+      <div className="bg-slate-800 border border-slate-700 rounded-xl p-8">
+        {!showForm ? (
+          <>
+            <div className="text-4xl mb-4">➕</div>
+            <h3 className="text-lg font-semibold mb-2">Create Your Own Space</h3>
+            <p className="text-slate-400 mb-4">Have an idea for a new community space?</p>
+            <button
+              onClick={() => setShowForm(true)}
+              className="px-6 py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-lg transition-colors font-medium"
+            >
+              Create Space
+            </button>
+          </>
+        ) : (
+          <form onSubmit={handleCreate} className="max-w-md mx-auto space-y-4 text-left">
+            <h3 className="text-lg font-semibold text-center mb-4">Create New Space</h3>
+            {error && (
+              <div className="p-3 bg-red-900/50 border border-red-800 rounded-lg text-red-200 text-sm">{error}</div>
+            )}
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-1">Name</label>
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+                placeholder="e.g. 3d-printing-tips"
+                className="w-full px-4 py-3 bg-slate-900 border border-slate-600 rounded-lg text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-600"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-1">Description</label>
+              <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                required
+                rows={3}
+                placeholder="What is this space about?"
+                className="w-full px-4 py-3 bg-slate-900 border border-slate-600 rounded-lg text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-600 resize-none"
+              />
+            </div>
+            <div className="flex gap-3 justify-center">
+              <button
+                type="button"
+                onClick={() => setShowForm(false)}
+                className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={creating}
+                className="px-6 py-2 bg-sky-600 hover:bg-sky-500 disabled:opacity-50 text-white rounded-lg transition-colors font-medium"
+              >
+                {creating ? "Creating..." : "Create"}
+              </button>
+            </div>
+          </form>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function SpacesPage() {
   const [spaces, setSpaces] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -118,22 +208,8 @@ export default function SpacesPage() {
           </div>
         )}
 
-        {/* Create New Space (for future) */}
-        <div className="mt-12 text-center">
-          <div className="bg-slate-800 border border-slate-700 rounded-xl p-8">
-            <div className="text-4xl mb-4">➕</div>
-            <h3 className="text-lg font-semibold mb-2">Create Your Own Space</h3>
-            <p className="text-slate-400 mb-4">
-              Have an idea for a new community space? Let us know!
-            </p>
-            <button
-              className="px-6 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg transition-colors"
-              disabled
-            >
-              Coming Soon
-            </button>
-          </div>
-        </div>
+        {/* Create New Space */}
+        <CreateSpaceSection onCreated={() => window.location.reload()} />
       </div>
     </div>
   );

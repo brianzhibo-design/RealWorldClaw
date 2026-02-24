@@ -49,7 +49,7 @@ function GitHubCallbackContent() {
       } catch (error) {
         console.error('GitHub auth error:', error);
         setStatus('error');
-        setError('OAuth coming soon');
+        setError('Authentication failed. Please try again.');
       }
     };
 
