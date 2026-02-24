@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { apiFetch } from "@/lib/api-client";
+import { apiFetch, getErrorMessage } from "@/lib/api-client";
 import { EmptyState } from "@/components/EmptyState";
 
 interface SpaceItem {
@@ -35,8 +35,7 @@ function CreateSpaceSection({ onCreated }: { onCreated: () => void }) {
       setName("");
       setDescription("");
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Failed to create space";
-      setError(message);
+      setError(getErrorMessage(err, "Unable to create space. Please review the form and try again."));
       setTimeout(() => setError(null), 3000);
     } finally {
       setCreating(false);
@@ -122,8 +121,7 @@ export default function SpacesPage() {
       setSpaces(data.spaces || []);
     } catch (err) {
       console.error("Failed to fetch spaces:", err);
-      const message = err instanceof Error ? err.message : "Failed to load spaces";
-      setError(message);
+      setError(getErrorMessage(err, "Unable to load spaces. Please check your network and retry."));
       setTimeout(() => setError(null), 3000);
     } finally {
       setLoading(false);

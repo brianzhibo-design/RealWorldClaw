@@ -1,6 +1,6 @@
 /**
  * Manufacturing node types and API client.
- * All data comes from the real API — zero mock data.
+ * All data comes from the real API.
  */
 
 import { API_BASE } from "@/lib/api-client";

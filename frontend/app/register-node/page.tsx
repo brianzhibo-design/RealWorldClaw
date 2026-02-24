@@ -151,7 +151,7 @@ export default function RegisterNodePage() {
         router.push("/map");
       }, 3000);
     } catch (err) {
-      setError(`Failed to update: ${getErrorMessage(err, "Unknown error")}`);
+      setError(getErrorMessage(err, "Unable to register node. Please check the form and try again."));
     } finally { setSubmitting(false); }
   };
 

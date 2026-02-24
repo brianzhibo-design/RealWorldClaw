@@ -4,6 +4,7 @@
 
 import { useAuthStore } from "@/stores/authStore";
 import { useEffect, useRef, useCallback, useState } from "react";
+import { createHttpError, getDisplayErrorMessage } from "@/lib/errors";
 
 export const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
 const WS_BASE = process.env.NEXT_PUBLIC_WS_URL || "wss://realworldclaw-api.fly.dev/api/v1/ws";
@@ -38,23 +39,19 @@ export async function apiFetch<T>(
   }
 
   if (!res.ok) {
-    let detail = "";
+    let payload: unknown = null;
+
     try {
-      const data = await res.json();
-      if (typeof data?.detail === "string") {
-        detail = data.detail;
-      } else if (typeof data?.message === "string") {
-        detail = data.message;
-      }
+      payload = await res.json();
     } catch {
       try {
-        detail = await res.text();
+        payload = { detail: await res.text() };
       } catch {
-        detail = "";
+        payload = null;
       }
     }
 
-    throw new Error(detail || `API ${res.status}: ${res.statusText}`);
+    throw createHttpError(res.status, payload, res.statusText);
   }
 
   return res.json();
@@ -64,14 +61,8 @@ export async function apiFetch<T>(
 
 export const swrFetcher = <T>(path: string) => apiFetch<T>(path);
 
-export function getErrorMessage(error: unknown, fallback = "Request failed"): string {
-  if (error instanceof Error && error.message) {
-    return error.message;
-  }
-  if (typeof error === "string") {
-    return error;
-  }
-  return fallback;
+export function getErrorMessage(error: unknown, fallback = "Request failed. Please try again."): string {
+  return getDisplayErrorMessage(error, { fallback });
 }
 
 // ─── Auth API ─────────────────────────────────────────
@@ -455,20 +446,26 @@ export async function fetchCommunityPosts(
   limit = 20,
   sort = 'newest'
 ): Promise<CommunityPost[]> {
-  try {
-    const params = new URLSearchParams({
-      page: page.toString(),
-      limit: limit.toString(),
-      sort: sort,
-      ...(type && type !== '' && { type }),
-    });
-    const res = await fetch(`${API_BASE}/community/posts?${params}`, { headers: authHeaders() });
-    if (!res.ok) return [];
-    const data = await res.json();
-    return Array.isArray(data) ? data : data.posts || [];
-  } catch {
-    return [];
+  const params = new URLSearchParams({
+    page: page.toString(),
+    limit: limit.toString(),
+    sort: sort,
+    ...(type && type !== '' && { type }),
+  });
+
+  const res = await fetch(`${API_BASE}/community/posts?${params}`, { headers: authHeaders() });
+  if (!res.ok) {
+    let payload: unknown = null;
+    try {
+      payload = await res.json();
+    } catch {
+      payload = null;
+    }
+    throw createHttpError(res.status, payload, res.statusText);
   }
+
+  const data = await res.json();
+  return Array.isArray(data) ? data : data.posts || [];
 }
 
 export async function fetchCommunityPost(id: string): Promise<CommunityPost | null> {

@@ -1,5 +1,5 @@
 "use client";
-import { API_BASE as API_URL, apiFetch } from "@/lib/api-client";
+import { apiFetch, getErrorMessage } from "@/lib/api-client";
 import { useAuthStore } from "@/stores/authStore";
 import { EmptyState } from "@/components/EmptyState";
 import { ErrorState } from "@/components/ErrorState";
@@ -75,7 +75,7 @@ export default function OrdersPage() {
           setOrders([...(data.as_customer || []), ...(data.as_maker || []), ...(data.orders || [])]);
         }
       } catch (err) {
-        setError(err.message || 'Failed to load');
+        setError(getErrorMessage(err, 'Unable to load your orders. Please try again.'));
       } finally {
         setLoading(false);
       }

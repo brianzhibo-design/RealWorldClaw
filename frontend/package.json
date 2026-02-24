@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "quality:check": "bash -c 'if grep -RInE \"as any|mock|\\balert\\(|location\\.reload\\(\" app components lib; then echo \"❌ Quality gate failed: forbidden patterns found\"; exit 1; else echo \"✅ Quality gate passed\"; fi'"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.15",

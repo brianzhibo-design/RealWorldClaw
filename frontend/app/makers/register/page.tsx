@@ -96,7 +96,7 @@ export default function MakerRegisterPage() {
         router.push("/maker-orders");
       }, 3000);
     } catch (err) {
-      setError(`Failed to update: ${getErrorMessage(err, "Unknown error")}`);
+      setError(getErrorMessage(err, "Unable to submit maker registration. Please review your information and try again."));
     } finally {
       setSubmitting(false);
     }

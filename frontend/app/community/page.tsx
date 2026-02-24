@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { fetchCommunityPosts, CommunityPost, votePost } from "@/lib/api-client";
+import { fetchCommunityPosts, CommunityPost, votePost, getErrorMessage } from "@/lib/api-client";
 import { useAuthStore } from "@/stores/authStore";
 import { EmptyState } from "@/components/EmptyState";
 import { ErrorState } from "@/components/ErrorState";
@@ -38,8 +38,8 @@ export default function CommunityPage() {
     try {
       const data = await fetchCommunityPosts(activeType, 1, 50, sortBy);
       setPosts(data);
-    } catch {
-      setError("Failed to load");
+    } catch (err) {
+      setError(getErrorMessage(err, "Unable to load community posts. Please check your connection and try again."));
       setPosts([]);
     } finally {
       setLoading(false);

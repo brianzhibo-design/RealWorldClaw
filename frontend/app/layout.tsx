@@ -1,5 +1,5 @@
 /** Root layout */
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import Header from "@/components/Header";
 import { MobileNavWrapper } from "@/components/layout/MobileNavWrapper";
 import { GoogleOAuthProvider } from '@react-oauth/google';
@@ -19,6 +19,9 @@ export const metadata: Metadata = {
     card: 'summary_large_image'
   },
   manifest: '/manifest.json',
+};
+
+export const viewport: Viewport = {
   themeColor: '#0ea5e9',
 };
 

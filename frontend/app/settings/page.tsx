@@ -62,7 +62,7 @@ export default function SettingsPage() {
           email: data.email || ""
         });
       } catch (err) {
-        setError(`Failed to load profile: ${getErrorMessage(err, "Unknown error")}`);
+        setError(getErrorMessage(err, "Unable to load profile. Please try again."));
       } finally {
         setLoading(false);
       }
@@ -85,7 +85,7 @@ export default function SettingsPage() {
       setProfile(updated);
       setSuccess('Profile updated successfully');
     } catch (err) {
-      setError(`Failed to update: ${getErrorMessage(err, "Unknown error")}`);
+      setError(getErrorMessage(err, "Unable to save profile changes. Please try again."));
     } finally {
       setSaving(false);
     }
@@ -123,7 +123,7 @@ export default function SettingsPage() {
         confirm_password: ""
       });
     } catch (err) {
-      setError(`Failed to update: ${getErrorMessage(err, "Unknown error")}`);
+      setError(getErrorMessage(err, "Unable to change password. Please verify your current password and try again."));
     } finally {
       setSaving(false);
     }
@@ -374,7 +374,7 @@ export default function SettingsPage() {
                           localStorage.clear();
                           window.location.href = '/';
                         } catch (err) {
-                          setError(`Failed to update: ${getErrorMessage(err, "Failed to delete account")}`);
+                          setError(getErrorMessage(err, "Unable to delete account right now. Please try again."));
                           setTimeout(() => setError(null), 3000);
                         }
                       }}

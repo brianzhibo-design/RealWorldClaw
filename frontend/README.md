@@ -36,3 +36,14 @@ npm run dev
 - `npm run build` — 生产构建
 - `npm start` — 启动生产服务
 - `npm run lint` — ESLint 检查
+- `npm run quality:check` — 前端质量门禁（扫描 `as any` / `mock` / `alert()` / `location.reload()`）
+
+## 质量门禁使用
+
+提交前建议执行：
+
+```bash
+npm run quality:check
+```
+
+若命中禁用模式会直接失败，请先修复再提交。
