@@ -15,7 +15,7 @@ interface Order {
   notes?: string;
   status: string;
   urgency?: string;
-  delivery_address?: string;
+  
   created_at: string;
   updated_at?: string;
   file_id?: string;
@@ -224,10 +224,13 @@ export default function OrderDetailPage() {
                 </div>
               )}
             </div>
-            {order.delivery_address && (
+            {(order.delivery_province || order.delivery_city) && (
               <div className="mt-4 pt-4 border-t border-slate-800">
-                <div className="text-sm text-slate-400 mb-1">Delivery Address</div>
-                <div className="text-slate-300">{order.delivery_address}</div>
+                <div className="text-sm text-slate-400 mb-1">Delivery Region</div>
+                <div className="text-slate-300">
+                  {[order.delivery_province, order.delivery_city].filter(Boolean).join(', ')}
+                </div>
+                <div className="text-xs text-slate-500 mt-1">Full address is only visible to the platform for privacy</div>
               </div>
             )}
             {order.notes && (
