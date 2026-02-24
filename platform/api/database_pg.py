@@ -529,6 +529,8 @@ def init_db():
             "CREATE INDEX IF NOT EXISTS idx_agents_status ON agents(status)",
             "CREATE INDEX IF NOT EXISTS idx_follows_follower ON follows(follower_id)",
             "CREATE INDEX IF NOT EXISTS idx_follows_following ON follows(following_id)",
+            "CREATE INDEX IF NOT EXISTS idx_dm_recipient_read ON direct_messages(recipient_id, read, created_at)",
+            "CREATE INDEX IF NOT EXISTS idx_dm_conversation ON direct_messages(sender_id, recipient_id, created_at)",
         ]
         
         for idx_sql in additional_indexes:

@@ -13,11 +13,14 @@ import uuid
 from collections import defaultdict
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, Header, HTTPException, Query
+
+from jose import JWTError
 
 from ..database import get_db
 from ..deps import get_authenticated_identity
 from ..notifications import send_notification
+from ..security import decode_token
 from ..models.community import (
     CommentCreateRequest,
     CommentResponse,
@@ -52,6 +55,39 @@ def _rate_check(key: str, max_calls: int, window: int) -> bool:
 def _sanitize(text: str) -> str:
     """Strip all HTML tags and escape remaining entities."""
     return html.escape(_TAG_RE.sub("", text))
+
+
+def _get_optional_identity(authorization: str | None) -> dict | None:
+    """Best-effort auth parse for endpoints that are public but can use identity-aware filters."""
+    if not authorization or not authorization.startswith("Bearer "):
+        return None
+
+    token = authorization.removeprefix("Bearer ")
+
+    try:
+        payload = decode_token(token)
+        if payload.get("type") == "access":
+            user_id = payload.get("sub")
+            if user_id:
+                with get_db() as db:
+                    row = db.execute("SELECT * FROM users WHERE id = ?", (user_id,)).fetchone()
+                if row and row["is_active"]:
+                    result = dict(row)
+                    result["identity_type"] = "user"
+                    result["identity_id"] = row["id"]
+                    return result
+    except JWTError:
+        pass
+
+    with get_db() as db:
+        row = db.execute("SELECT * FROM agents WHERE api_key = ?", (token,)).fetchone()
+    if row:
+        result = dict(row)
+        result["identity_type"] = "agent"
+        result["identity_id"] = row["id"]
+        return result
+
+    return None
 
 
 def _resolve_author_type(author_id: str, db) -> str:
@@ -218,9 +254,11 @@ async def create_post(
 @router.get("/posts", response_model=PostListResponse)
 async def get_posts(
     type: PostType = Query(None, description="Filter by post type"),
+    author_id: str | None = Query(None, description="Filter by author id"),
     page: int = Query(1, ge=1, description="Page number"),
     limit: int = Query(20, ge=1, le=100, description="Posts per page"),
-    sort: PostSortType = Query(PostSortType.newest, description="Sort order")
+    sort: PostSortType = Query(PostSortType.newest, description="Sort order"),
+    authorization: str | None = Header(default=None),
 ):
     """Get list of community posts with pagination and filtering."""
     
@@ -231,7 +269,30 @@ async def get_posts(
     if type:
         conditions.append("post_type = ?")
         params.append(type.value)
-    
+
+    if author_id:
+        conditions.append("author_id = ?")
+        params.append(author_id)
+
+    if sort == PostSortType.following:
+        identity = _get_optional_identity(authorization)
+        if not identity:
+            raise HTTPException(status_code=401, detail="Authentication required for following feed")
+
+        with get_db() as db:
+            follow_rows = db.execute(
+                "SELECT following_id FROM follows WHERE follower_id = ?",
+                (identity["identity_id"],),
+            ).fetchall()
+
+        following_ids = [row["following_id"] for row in follow_rows]
+        if not following_ids:
+            return PostListResponse(posts=[], total=0, page=page, limit=limit, has_next=False)
+
+        placeholders = ",".join(["?" for _ in following_ids])
+        conditions.append(f"author_id IN ({placeholders})")
+        params.extend(following_ids)
+
     where_clause = "WHERE " + " AND ".join(conditions) if conditions else ""
     
     # Build sort clause

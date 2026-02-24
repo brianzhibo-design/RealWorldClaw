@@ -19,6 +19,7 @@ class PostSortType(str, enum.Enum):
     popular = "popular"
     hot = "hot"
     best = "best"
+    following = "following"
 
 
 # ─── Request / Response schemas ──────────────────────────

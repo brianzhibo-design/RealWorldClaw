@@ -157,6 +157,8 @@ def init_db():
                 "CREATE TABLE IF NOT EXISTS direct_messages (id TEXT PRIMARY KEY, sender_id TEXT NOT NULL, recipient_id TEXT NOT NULL, content TEXT NOT NULL, read INTEGER NOT NULL DEFAULT 0, created_at TEXT NOT NULL)",
                 "CREATE INDEX IF NOT EXISTS idx_dm_sender_recipient ON direct_messages(sender_id, recipient_id)",
                 "CREATE INDEX IF NOT EXISTS idx_dm_created_at ON direct_messages(created_at)",
+                "CREATE INDEX IF NOT EXISTS idx_dm_recipient_read ON direct_messages(recipient_id, read, created_at)",
+                "CREATE INDEX IF NOT EXISTS idx_dm_conversation ON direct_messages(sender_id, recipient_id, created_at)",
             ]:
                 try:
                     db.execute(sql)
@@ -573,6 +575,8 @@ def init_db():
         """)
         db.execute("CREATE INDEX IF NOT EXISTS idx_dm_sender_recipient ON direct_messages(sender_id, recipient_id)")
         db.execute("CREATE INDEX IF NOT EXISTS idx_dm_created_at ON direct_messages(created_at)")
+        db.execute("CREATE INDEX IF NOT EXISTS idx_dm_recipient_read ON direct_messages(recipient_id, read, created_at)")
+        db.execute("CREATE INDEX IF NOT EXISTS idx_dm_conversation ON direct_messages(sender_id, recipient_id, created_at)")
 
         # ── Spaces (submolt-like communities) ─────────────────────
         db.execute("""

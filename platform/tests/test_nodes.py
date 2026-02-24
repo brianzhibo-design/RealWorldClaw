@@ -185,15 +185,16 @@ class TestNodeHeartbeat:
         """Test successful heartbeat update."""
         headers = {"Authorization": f"Bearer {mock_agent['api_key']}"}
         # Register node first
-        client.post("/api/v1/nodes/register", json=SAMPLE_NODE_DATA, headers=headers)
+        register_response = client.post("/api/v1/nodes/register", json=SAMPLE_NODE_DATA, headers=headers)
+        node_id = register_response.json()["id"]
         
         heartbeat_data = {
             "status": "online",
             "current_job_id": "job-123",
             "queue_length": 3
         }
-        
-        response = client.post("/api/v1/nodes/heartbeat", json=heartbeat_data, headers=headers)
+
+        response = client.post(f"/api/v1/nodes/{node_id}/heartbeat", json=heartbeat_data, headers=headers)
         
         assert response.status_code == 200
         data = response.json()
@@ -208,15 +209,15 @@ class TestNodeHeartbeat:
             "queue_length": 0
         }
         
-        response = client.post("/api/v1/nodes/heartbeat", json=heartbeat_data, headers=headers)
-        
-        assert response.status_code == 404
-        assert "No node found" in response.json()["detail"]
+        response = client.post("/api/v1/nodes/nonexistent-node/heartbeat", json=heartbeat_data, headers=headers)
+
+        assert response.status_code == 403
+        assert "access denied" in response.json()["detail"].lower()
     
     def test_heartbeat_without_auth(self):
         """Test that heartbeat requires authentication."""
         heartbeat_data = {"status": "online", "queue_length": 0}
-        response = client.post("/api/v1/nodes/heartbeat", json=heartbeat_data)
+        response = client.post("/api/v1/nodes/some-node/heartbeat", json=heartbeat_data)
         assert response.status_code == 422  # FastAPI returns 422 for missing required fields
         assert "authorization" in str(response.json()["detail"]).lower()
 
@@ -238,8 +239,9 @@ class TestNearbyNodes:
         """Test nearby search finds nodes."""
         headers = {"Authorization": f"Bearer {mock_agent['api_key']}"}
         # Register node and send heartbeat
-        client.post("/api/v1/nodes/register", json=SAMPLE_NODE_DATA, headers=headers)
-        client.post("/api/v1/nodes/heartbeat", json={"status": "online", "queue_length": 0}, headers=headers)
+        register_response = client.post("/api/v1/nodes/register", json=SAMPLE_NODE_DATA, headers=headers)
+        node_id = register_response.json()["id"]
+        client.post(f"/api/v1/nodes/{node_id}/heartbeat", json={"status": "online", "queue_length": 0}, headers=headers)
         
         # Search near the node location
         response = client.get("/api/v1/nodes/nearby?lat=39.9&lng=116.4&radius=50")
@@ -253,8 +255,9 @@ class TestNearbyNodes:
         """Test that distance filtering works."""
         headers = {"Authorization": f"Bearer {mock_agent['api_key']}"}
         # Register node in Beijing
-        client.post("/api/v1/nodes/register", json=SAMPLE_NODE_DATA, headers=headers)
-        client.post("/api/v1/nodes/heartbeat", json={"status": "online", "queue_length": 0}, headers=headers)
+        register_response = client.post("/api/v1/nodes/register", json=SAMPLE_NODE_DATA, headers=headers)
+        node_id = register_response.json()["id"]
+        client.post(f"/api/v1/nodes/{node_id}/heartbeat", json={"status": "online", "queue_length": 0}, headers=headers)
         
         # Search in Shanghai (much farther away)
         response = client.get("/api/v1/nodes/nearby?lat=31.2304&lng=121.4737&radius=50")
@@ -281,8 +284,9 @@ class TestNodeMatching:
         """Test basic node matching."""
         headers = {"Authorization": f"Bearer {mock_agent['api_key']}"}
         # Register node
-        client.post("/api/v1/nodes/register", json=SAMPLE_NODE_DATA, headers=headers)
-        client.post("/api/v1/nodes/heartbeat", json={"status": "online", "queue_length": 0}, headers=headers)
+        register_response = client.post("/api/v1/nodes/register", json=SAMPLE_NODE_DATA, headers=headers)
+        node_id = register_response.json()["id"]
+        client.post(f"/api/v1/nodes/{node_id}/heartbeat", json={"status": "online", "queue_length": 0}, headers=headers)
         
         match_request = {
             "required_materials": ["pla"],
@@ -300,8 +304,9 @@ class TestNodeMatching:
         """Test matching with material requirements."""
         headers = {"Authorization": f"Bearer {mock_agent['api_key']}"}
         # Register node
-        client.post("/api/v1/nodes/register", json=SAMPLE_NODE_DATA, headers=headers)
-        client.post("/api/v1/nodes/heartbeat", json={"status": "online", "queue_length": 0}, headers=headers)
+        register_response = client.post("/api/v1/nodes/register", json=SAMPLE_NODE_DATA, headers=headers)
+        node_id = register_response.json()["id"]
+        client.post(f"/api/v1/nodes/{node_id}/heartbeat", json={"status": "online", "queue_length": 0}, headers=headers)
         
         # Request material not supported
         match_request = {"required_materials": ["carbon_fiber"]}
@@ -316,8 +321,9 @@ class TestNodeMatching:
         """Test matching with build volume requirements."""
         headers = {"Authorization": f"Bearer {mock_agent['api_key']}"}
         # Register node
-        client.post("/api/v1/nodes/register", json=SAMPLE_NODE_DATA, headers=headers)
-        client.post("/api/v1/nodes/heartbeat", json={"status": "online", "queue_length": 0}, headers=headers)
+        register_response = client.post("/api/v1/nodes/register", json=SAMPLE_NODE_DATA, headers=headers)
+        node_id = register_response.json()["id"]
+        client.post(f"/api/v1/nodes/{node_id}/heartbeat", json={"status": "online", "queue_length": 0}, headers=headers)
         
         # Request larger build volume
         match_request = {

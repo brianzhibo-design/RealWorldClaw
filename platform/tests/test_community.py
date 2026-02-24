@@ -264,12 +264,82 @@ class TestGetPosts:
             "post_type": "discussion"
         }
         client.post("/api/v1/community/posts", headers=authenticated_user, json=post_data)
-        
+
         r = client.get("/api/v1/community/posts?sort=popular")
-        
+
         assert r.status_code == 200
         data = r.json()
         assert len(data["posts"]) == 1
+
+    def test_get_posts_filter_by_author_id(self, authenticated_user):
+        """Test filtering posts by author_id."""
+        # user A post
+        client.post(
+            "/api/v1/community/posts",
+            headers=authenticated_user,
+            json={"title": "A1", "content": "c", "post_type": "discussion"},
+        )
+
+        # user B register/login and post
+        client.post("/api/v1/auth/register", json={
+            "email": "other@example.com", "username": "otheruser", "password": "securepass123",
+        })
+        login_r = client.post("/api/v1/auth/login", json={"email": "other@example.com", "password": "securepass123"})
+        other_headers = {"Authorization": f"Bearer {login_r.json()['access_token']}"}
+        post_r = client.post(
+            "/api/v1/community/posts",
+            headers=other_headers,
+            json={"title": "B1", "content": "c", "post_type": "discussion"},
+        )
+        other_user_id = post_r.json()["author_id"]
+
+        r = client.get(f"/api/v1/community/posts?author_id={other_user_id}")
+        assert r.status_code == 200
+        data = r.json()
+        assert data["total"] == 1
+        assert data["posts"][0]["author_id"] == other_user_id
+
+    def test_get_posts_sort_following_requires_auth(self):
+        """Following feed requires authentication."""
+        r = client.get("/api/v1/community/posts?sort=following")
+        assert r.status_code == 401
+
+    def test_get_posts_sort_following(self, authenticated_user):
+        """Following feed should return only followed authors with server-side filtering."""
+        # Create followed user and a post
+        client.post("/api/v1/auth/register", json={
+            "email": "followed@example.com", "username": "followed", "password": "securepass123",
+        })
+        followed_login = client.post("/api/v1/auth/login", json={"email": "followed@example.com", "password": "securepass123"})
+        followed_headers = {"Authorization": f"Bearer {followed_login.json()['access_token']}"}
+        followed_post = client.post(
+            "/api/v1/community/posts",
+            headers=followed_headers,
+            json={"title": "followed post", "content": "c", "post_type": "discussion"},
+        )
+        followed_user_id = followed_post.json()["author_id"]
+
+        # Create unfollowed user and a post
+        client.post("/api/v1/auth/register", json={
+            "email": "unfollowed@example.com", "username": "unfollowed", "password": "securepass123",
+        })
+        unfollowed_login = client.post("/api/v1/auth/login", json={"email": "unfollowed@example.com", "password": "securepass123"})
+        unfollowed_headers = {"Authorization": f"Bearer {unfollowed_login.json()['access_token']}"}
+        client.post(
+            "/api/v1/community/posts",
+            headers=unfollowed_headers,
+            json={"title": "unfollowed post", "content": "c", "post_type": "discussion"},
+        )
+
+        # auth user follows followed_user_id
+        follow_r = client.post(f"/api/v1/social/follow/{followed_user_id}", headers=authenticated_user)
+        assert follow_r.status_code == 200
+
+        r = client.get("/api/v1/community/posts?sort=following", headers=authenticated_user)
+        assert r.status_code == 200
+        data = r.json()
+        assert data["total"] == 1
+        assert data["posts"][0]["author_id"] == followed_user_id
 
 
 class TestGetPostDetail:

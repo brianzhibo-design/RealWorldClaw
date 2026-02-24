@@ -206,34 +206,39 @@ def get_map_nodes():
         return result
 
 
-@router.post("/heartbeat")
-def node_heartbeat(request: NodeHeartbeatRequest, identity: dict = Depends(get_authenticated_identity)):
-    """Update node heartbeat and status"""
+@router.post("/{node_id}/heartbeat")
+def node_heartbeat(node_id: str, request: NodeHeartbeatRequest, identity: dict = Depends(get_authenticated_identity)):
+    """Update node heartbeat and status for a specific node owned by current identity."""
     now = datetime.now(timezone.utc).isoformat()
-    
+
     with get_db() as db:
-        # Find node owned by current agent
         node = db.execute(
-            "SELECT id FROM nodes WHERE owner_id = ?",
-            (identity["identity_id"],)
+            "SELECT id FROM nodes WHERE id = ? AND owner_id = ?",
+            (node_id, identity["identity_id"]),
         ).fetchone()
-        
+
         if not node:
-            raise HTTPException(status_code=404, detail="No node found for current agent")
-        
-        # Update heartbeat and status
-        db.execute("""
-            UPDATE nodes 
-            SET status = ?, current_job_id = ?, queue_length = ?, 
+            raise HTTPException(status_code=403, detail="Node not found or access denied")
+
+        db.execute(
+            """
+            UPDATE nodes
+            SET status = ?, current_job_id = ?, queue_length = ?,
                 last_heartbeat = ?, updated_at = ?
             WHERE id = ?
-        """, (
-            request.status.value, request.current_job_id, request.queue_length,
-            now, now, node["id"]
-        ))
-        
-        logger.info("Node heartbeat: id=%s by=%s status=%s", node["id"], identity["identity_id"], request.status.value)
-        
+            """,
+            (
+                request.status.value,
+                request.current_job_id,
+                request.queue_length,
+                now,
+                now,
+                node_id,
+            ),
+        )
+
+        logger.info("Node heartbeat: id=%s by=%s status=%s", node_id, identity["identity_id"], request.status.value)
+
         return {"message": "Heartbeat updated", "timestamp": now}
 
 

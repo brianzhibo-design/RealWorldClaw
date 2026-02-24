@@ -29,6 +29,10 @@ async def send_message(
     if sender_id == request.recipient_id:
         raise HTTPException(status_code=400, detail="Cannot message yourself")
 
+    content = request.content.strip()
+    if not content:
+        raise HTTPException(status_code=400, detail="Message content cannot be empty")
+
     now = datetime.now(timezone.utc).isoformat()
     message_id = str(uuid.uuid4())
 
@@ -46,7 +50,7 @@ async def send_message(
                 id, sender_id, recipient_id, content, read, created_at
             ) VALUES (?, ?, ?, ?, ?, ?)
             """,
-            (message_id, sender_id, request.recipient_id, request.content.strip(), 0, now),
+            (message_id, sender_id, request.recipient_id, content, 0, now),
         )
 
         # Mark previous received messages from recipient as read when sender replies
@@ -63,7 +67,7 @@ async def send_message(
     await send_notification(
         recipient["email"],
         "You have a new direct message",
-        f"You received a new message from {identity.get('username') or sender_id}:\n\n{request.content[:200]}",
+        f"You received a new message from {identity.get('username') or sender_id}:\n\n{content[:200]}",
         notification_type="direct_message",
     )
 
@@ -71,7 +75,7 @@ async def send_message(
         "id": message_id,
         "sender_id": sender_id,
         "recipient_id": request.recipient_id,
-        "content": request.content.strip(),
+        "content": content,
         "read": False,
         "created_at": now,
     }
