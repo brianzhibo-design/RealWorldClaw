@@ -61,6 +61,19 @@ def get_current_agent(authorization: str = Header(...)):
     return dict(row)
 
 
+# ─── GET /agents ──────────────────────────────────────────
+
+@router.get("")
+def list_agents(limit: int = 20, offset: int = 0):
+    with get_db() as db:
+        rows = db.execute(
+            "SELECT * FROM agents ORDER BY created_at DESC LIMIT ? OFFSET ?",
+            (limit, offset)
+        ).fetchall()
+        total = db.execute("SELECT COUNT(*) FROM agents").fetchone()[0]
+    return {"agents": [_row_to_agent(r) for r in rows], "total": total}
+
+
 # ─── POST /agents/register ───────────────────────────────
 
 @router.post("/register", response_model=AgentRegisterResponse, status_code=201)
