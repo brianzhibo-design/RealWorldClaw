@@ -365,6 +365,12 @@ def init_db():
         except Exception:
             pass
         
+        # Add parent_id to community_comments for nested comments
+        try:
+            db.execute("ALTER TABLE community_comments ADD COLUMN parent_id TEXT DEFAULT NULL")
+        except Exception:
+            pass  # Column already exists
+        
         # Add new columns to existing orders table if they don't exist
         # OAuth columns
         try:
@@ -404,11 +410,24 @@ def init_db():
             "CREATE INDEX IF NOT EXISTS idx_files_owner ON files(owner_id)",
             "CREATE INDEX IF NOT EXISTS idx_agents_status ON agents(status)",
             "CREATE INDEX IF NOT EXISTS idx_nodes_status ON nodes(status)",
+            "CREATE INDEX IF NOT EXISTS idx_follows_follower ON follows(follower_id)",
+            "CREATE INDEX IF NOT EXISTS idx_follows_following ON follows(following_id)",
         ]:
             try:
                 db.execute(idx_sql)
             except Exception:
                 pass
+
+        # ── Follows table ─────────────────────────────────────────
+        db.execute("""
+            CREATE TABLE IF NOT EXISTS follows (
+                id TEXT PRIMARY KEY,
+                follower_id TEXT NOT NULL,
+                following_id TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                UNIQUE(follower_id, following_id)
+            )
+        """)
 
 
 if __name__ == "__main__":

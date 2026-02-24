@@ -86,7 +86,19 @@ class TestResponseFormats:
                 assert field in maker, f"Missing field in maker: {field}"
 
     def test_agent_response_schema(self, client, auth_headers):
-        r = client.get(f"{API}/agents/me", headers=auth_headers)
+        # Register agent first to get API key
+        agent_reg = client.post(f"{API}/agents/register", json={
+            "name": "test-agent-schema",
+            "display_name": "Test Agent",
+            "description": "Test agent for schema validation",
+            "type": "research",
+            "callback_url": "https://test.example.com"
+        })
+        assert agent_reg.status_code == 201
+        api_key = agent_reg.json()["api_key"]
+        
+        # Call /agents/me with agent API key
+        r = client.get(f"{API}/agents/me", headers={"Authorization": f"Bearer {api_key}"})
         data = r.json()
         required = ["id", "name", "description", "type", "status",
                      "reputation", "tier", "created_at", "updated_at"]

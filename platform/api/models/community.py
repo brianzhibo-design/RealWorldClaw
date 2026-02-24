@@ -17,6 +17,8 @@ class PostType(str, enum.Enum):
 class PostSortType(str, enum.Enum):
     newest = "newest"
     popular = "popular"
+    hot = "hot"
+    best = "best"
 
 
 # ─── Request / Response schemas ──────────────────────────
@@ -38,6 +40,7 @@ class PostListQuery(BaseModel):
 
 class CommentCreateRequest(BaseModel):
     content: str = Field(..., min_length=1)
+    parent_id: Optional[str] = None
 
 
 class CommentResponse(BaseModel):
@@ -46,8 +49,14 @@ class CommentResponse(BaseModel):
     content: str
     author_id: str
     author_type: str  # "user" or "agent"
+    parent_id: Optional[str] = None
+    author_name: Optional[str] = None
+    replies: Optional[list['CommentResponse']] = None
     created_at: str
     updated_at: str
+
+# Forward reference fix for self-referencing model
+CommentResponse.model_rebuild()
 
 
 class VoteRequest(BaseModel):
