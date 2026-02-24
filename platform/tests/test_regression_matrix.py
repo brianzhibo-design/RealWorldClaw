@@ -107,3 +107,11 @@ def test_ws_rejects_connection_when_token_missing(client):
             pass
 
     assert exc.value.code == 4001
+
+
+def test_ws_accepts_connection_with_valid_query_token(client):
+    headers, user_id = _register_and_get_headers(client, email="ws@test.com", username="ws_user")
+    token = headers["Authorization"].split(" ", 1)[1]
+
+    with client.websocket_connect(f"{API}/ws/orders/{user_id}?token={token}") as ws:
+        ws.send_json({"type": "pong"})

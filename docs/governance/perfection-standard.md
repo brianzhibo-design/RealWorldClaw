@@ -30,6 +30,7 @@
 - 2026-02-24 晚间巡检：发现 `tests/e2e/test_full_flow.py` 默认基址仍为 `https://localhost:8000`，导致本地HTTP服务下SSL握手失败。
 - 已修复：默认基址改为 `http://localhost:8000/api/v1`，并同步修正 agents 注册路径与返回结构解析，回归矩阵修复继续推进。
 - 2026-02-24 深夜巡检：修复 `test_full_flow.py` 发帖鉴权链路（改为 agent api_key + claim 激活），`tests/` 全量恢复到 `2 passed, 1 skipped`（设备端点在当前后端配置缺失时自动跳过，避免误报阻断发布门禁）。
+- 2026-02-25 00:xx 持续推进：补充 `platform/tests/test_regression_matrix.py` WebSocket 正向鉴权测试（query token），回归矩阵验证 `6 passed`；并新增社区进展发布素材，支撑运营增长任务。
 
 ### 第三批（长期）
 11. SLO+观测体系
