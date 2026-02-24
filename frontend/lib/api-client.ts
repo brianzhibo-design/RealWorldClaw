@@ -224,6 +224,9 @@ export interface CommunityPost {
   updated_at: string;
   // Optional UI fields (may not come from API)
   tags?: string[];
+  budget?: number;
+  deadline?: string;
+  materials?: string[];
 }
 
 export interface CommunityComment {

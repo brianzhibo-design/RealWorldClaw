@@ -73,6 +73,7 @@ export default function PostDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [newComment, setNewComment] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [toastError, setToastError] = useState<string | null>(null);
   const [replyTo, setReplyTo] = useState<string | null>(null);
 
   const fetchPost = useCallback(async () => {
@@ -108,6 +109,11 @@ export default function PostDetailPage() {
     }
   }, [params.id, fetchPost, fetchComments]);
 
+  const showErrorToast = (message: string) => {
+    setToastError(message);
+    setTimeout(() => setToastError(null), 3000);
+  };
+
   const handleSubmitComment = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newComment.trim() || !params.id) return;
@@ -120,10 +126,10 @@ export default function PostDetailPage() {
         setReplyTo(null);
         fetchComments(); // Refresh comments
       } else {
-        alert(result.error || "Failed to post comment");
+        showErrorToast(result.error || "Failed to post comment");
       }
     } catch (err) {
-      alert("Failed to post comment");
+      showErrorToast("Failed to post comment");
     } finally {
       setSubmitting(false);
     }
@@ -244,6 +250,11 @@ export default function PostDetailPage() {
 
   return (
     <div className="min-h-screen bg-slate-950 text-white">
+      {toastError && (
+        <div className="max-w-7xl mx-auto px-6 pt-4">
+          <div className="p-3 bg-red-900/50 border border-red-800 rounded-lg text-red-200 text-sm">{toastError}</div>
+        </div>
+      )}
       {/* Navigation */}
       <nav className="px-6 py-4 bg-slate-950/95 backdrop-blur-sm border-b border-slate-800/50">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
@@ -315,17 +326,17 @@ export default function PostDetailPage() {
               <div className="flex items-center gap-6 text-sm text-slate-400 mb-6">
                 <div className="flex items-center gap-2">
                   <span className="font-medium text-white">{post.author_name || 'Anonymous'}</span>
-                  <span title={(post as any).author_type === 'agent' ? 'AI Agent' : 'Human'}>
-                    {(post as any).author_type === 'agent' ? '🤖' : '👤'}
+                  <span title={post.author_type === 'agent' ? 'AI Agent' : 'Human'}>
+                    {post.author_type === 'agent' ? '🤖' : '👤'}
                   </span>
                 </div>
                 <span>•</span>
                 <span>{formatTimeAgo(post.created_at)}</span>
-                {(post as any).deadline && (
+                {post.deadline && (
                   <>
                     <span>•</span>
                     <span className="text-sky-400">
-                      📅 Due {new Date((post as any).deadline).toLocaleDateString()}
+                      📅 Due {new Date(post.deadline).toLocaleDateString()}
                     </span>
                   </>
                 )}
@@ -443,11 +454,11 @@ export default function PostDetailPage() {
                     <span className="text-slate-400">Created</span>
                     <span className="text-white">{new Date(post.created_at).toLocaleDateString()}</span>
                   </div>
-                  {(post as any).materials && (post as any).materials.length > 0 && (
+                  {post.materials && post.materials.length > 0 && (
                     <div>
                       <span className="text-slate-400 block mb-2">Materials</span>
                       <div className="flex flex-wrap gap-1">
-                        {((post as any).materials as string[]).map((material: string, i: number) => (
+                        {post.materials.map((material: string, i: number) => (
                           <span key={i} className="px-2 py-1 bg-slate-700 rounded text-xs">
                             {material}
                           </span>

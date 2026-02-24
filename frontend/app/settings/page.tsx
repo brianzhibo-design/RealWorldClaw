@@ -373,8 +373,9 @@ export default function SettingsPage() {
                           await apiFetch('/auth/me', { method: 'DELETE' });
                           localStorage.clear();
                           window.location.href = '/';
-                        } catch (err) {
-                          alert('Failed to delete account. Please try again.');
+                        } catch {
+                          setError('Failed to delete account. Please try again.');
+                          setTimeout(() => setError(null), 3000);
                         }
                       }}
                       aria-label="Delete account permanently"

@@ -17,6 +17,7 @@ export default function SpacePage() {
   const [sortType, setSortType] = useState<'hot' | 'new' | 'top'>('hot');
   const [isMember, setIsMember] = useState(false);
   const [joinLoading, setJoinLoading] = useState(false);
+  const [toastError, setToastError] = useState<string | null>(null);
   const currentUser = useAuthStore((s) => s.user);
 
   useEffect(() => {
@@ -41,6 +42,11 @@ export default function SpacePage() {
     
     loadSpaceData();
   }, [spaceName]);
+
+  const showErrorToast = (message: string) => {
+    setToastError(message);
+    setTimeout(() => setToastError(null), 3000);
+  };
 
   const formatTimeAgo = (dateString: string) => {
     const now = new Date();
@@ -102,6 +108,11 @@ export default function SpacePage() {
 
   return (
     <div className="bg-slate-950 min-h-screen text-white">
+      {toastError && (
+        <div className="max-w-7xl mx-auto px-6 pt-4">
+          <div className="p-3 bg-red-900/50 border border-red-800 rounded-lg text-red-200 text-sm">{toastError}</div>
+        </div>
+      )}
       {/* Navigation */}
       <nav className="relative z-50 px-6 py-4 bg-slate-950/95 backdrop-blur-sm border-b border-slate-800/50">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
@@ -165,8 +176,8 @@ export default function SpacePage() {
                           await apiFetch(`/spaces/${spaceName}/join`, { method: "POST" });
                           setIsMember(true);
                         }
-                      } catch (err: any) {
-                        alert(err.message || "Action failed");
+                      } catch (err) {
+                        showErrorToast(err instanceof Error ? err.message : "Action failed");
                       } finally {
                         setJoinLoading(false);
                       }

@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { fetchCommunityPosts, CommunityPost, votePost, apiFetch } from "@/lib/api-client";
+import { fetchCommunityPosts, CommunityPost, votePost } from "@/lib/api-client";
 import { useAuthStore } from "@/stores/authStore";
 import { EmptyState } from "@/components/EmptyState";
 import { ErrorState } from "@/components/ErrorState";
@@ -30,15 +30,13 @@ export default function CommunityPage() {
   const [error, setError] = useState<string | null>(null);
   const [activeType, setActiveType] = useState("");
   const [sortBy, setSortBy] = useState("newest");
-  const [followingIds, setFollowingIds] = useState<string[]>([]);
-  const { isAuthenticated, user } = useAuthStore();
+  const { isAuthenticated } = useAuthStore();
 
   const fetchPosts = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const backendSort = sortBy === "following" ? "newest" : sortBy;
-      const data = await fetchCommunityPosts(activeType, 1, 50, backendSort);
+      const data = await fetchCommunityPosts(activeType, 1, 50, sortBy);
       setPosts(data);
     } catch {
       setError("Failed to load");
@@ -48,36 +46,9 @@ export default function CommunityPage() {
     }
   }, [activeType, sortBy]);
 
-  const fetchFollowing = useCallback(async () => {
-    if (!isAuthenticated || !user?.id) {
-      setFollowingIds([]);
-      return;
-    }
-
-    try {
-      const data = await apiFetch<{ following?: Array<{ id: string }>; total?: number }>(
-        `/social/following/${user.id}?limit=100`
-      );
-      const ids = Array.isArray(data?.following) ? data.following.map((item) => item.id) : [];
-      setFollowingIds(ids);
-    } catch {
-      setFollowingIds([]);
-    }
-  }, [isAuthenticated, user?.id]);
-
   useEffect(() => {
     fetchPosts();
   }, [fetchPosts]);
-
-  useEffect(() => {
-    fetchFollowing();
-  }, [fetchFollowing]);
-
-  const displayedPosts = useMemo(() => {
-    if (sortBy !== "following") return posts;
-    if (followingIds.length === 0) return [];
-    return posts.filter((post) => followingIds.includes(post.author_id));
-  }, [posts, sortBy, followingIds]);
 
   const handleVote = async (postId: string, voteType: "up" | "down") => {
     if (!isAuthenticated) {
@@ -193,7 +164,7 @@ export default function CommunityPage() {
 
         {error && <ErrorState message={error} />}
 
-        {!loading && !error && displayedPosts.length === 0 && (
+        {!loading && !error && posts.length === 0 && (
           <EmptyState
             icon="📝"
             title={sortBy === "following" ? "No posts from people you follow yet" : activeType ? `No ${activeType}s yet` : "No posts yet"}
@@ -206,9 +177,9 @@ export default function CommunityPage() {
           />
         )}
 
-        {!loading && !error && displayedPosts.length > 0 && (
+        {!loading && !error && posts.length > 0 && (
           <div className="grid gap-4">
-            {displayedPosts.map((post) => (
+            {posts.map((post) => (
               <div
                 key={post.id}
                 className="bg-card border rounded-xl p-4 sm:p-6 hover:bg-accent/50 hover:shadow-[0_0_20px_rgba(56,189,248,0.2)] transition-all"
@@ -227,7 +198,7 @@ export default function CommunityPage() {
                   </div>
                   <div className="text-muted-foreground text-xs sm:text-sm flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
                     <span>{formatTimeAgo(post.created_at)}</span>
-                    {(post as any).budget && <span className="text-green-600 font-medium">Budget: ${(post as any).budget}</span>}
+                    {post.budget && <span className="text-green-600 font-medium">Budget: ${post.budget}</span>}
                   </div>
                 </div>
 
@@ -253,7 +224,7 @@ export default function CommunityPage() {
 
                 <div className="flex items-center justify-between text-sm text-muted-foreground">
                   <div className="flex items-center gap-4">
-                    {(post as any).deadline && <span className="text-sky-400">📅 Due {formatTimeAgo((post as any).deadline)}</span>}
+                    {post.deadline && <span className="text-sky-400">📅 Due {formatTimeAgo(post.deadline)}</span>}
                   </div>
                   <div className="flex items-center gap-4">
                     <button

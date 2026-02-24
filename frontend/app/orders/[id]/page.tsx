@@ -75,6 +75,7 @@ export default function OrderDetailPage() {
   const [reviewComment, setReviewComment] = useState("");
   const [reviewSubmitting, setReviewSubmitting] = useState(false);
   const [reviewSubmitted, setReviewSubmitted] = useState(false);
+  const [toastError, setToastError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!token) { router.push("/auth/login"); return; }
@@ -94,6 +95,11 @@ export default function OrderDetailPage() {
       .catch(() => setMsgError(true));
   }, [params.id, token, router]);
 
+  const showErrorToast = (message: string) => {
+    setToastError(message);
+    setTimeout(() => setToastError(null), 3000);
+  };
+
   const doAction = async (url: string, method: string, body?: unknown) => {
     setActionLoading(true);
     try {
@@ -105,7 +111,7 @@ export default function OrderDetailPage() {
       const updated = (raw as Record<string, unknown>).order || raw;
       setOrder(updated);
     } catch (err) {
-      alert((err as Error).message || "Action failed");
+      showErrorToast((err as Error).message || "Action failed");
     } finally {
       setActionLoading(false);
     }
@@ -113,7 +119,7 @@ export default function OrderDetailPage() {
 
   const submitReview = async () => {
     if (reviewRating === 0) {
-      alert("Please select a rating");
+      showErrorToast("Please select a rating");
       return;
     }
 
@@ -131,7 +137,7 @@ export default function OrderDetailPage() {
       setReviewRating(0);
       setReviewComment("");
     } catch (err) {
-      alert((err as Error).message || "Failed to submit review");
+      showErrorToast((err as Error).message || "Failed to submit review");
     } finally {
       setReviewSubmitting(false);
     }
@@ -173,6 +179,11 @@ export default function OrderDetailPage() {
 
   return (
     <div className="min-h-screen bg-slate-950 text-white">
+      {toastError && (
+        <div className="max-w-6xl mx-auto px-6 pt-4">
+          <div className="p-3 bg-red-900/50 border border-red-800 rounded-lg text-red-200 text-sm">{toastError}</div>
+        </div>
+      )}
       <header className="border-b border-slate-800">
         <div className="max-w-6xl mx-auto px-6 py-4">
           <button onClick={() => router.back()} className="text-slate-400 hover:text-slate-300 mb-3 flex items-center gap-2 transition-colors">
@@ -275,7 +286,7 @@ export default function OrderDetailPage() {
                   setNewMessage("");
                   setMsgError(false);
                 } catch {
-                  alert("Failed to send message");
+                  showErrorToast("Failed to send message");
                 } finally {
                   setSendingMsg(false);
                 }
