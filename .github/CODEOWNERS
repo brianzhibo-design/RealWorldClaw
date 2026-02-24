@@ -10,7 +10,6 @@
 # Hardware & firmware
 /hardware/ @brianzhibo-design
 /firmware/ @brianzhibo-design
-/components/ @brianzhibo-design
 
 # Documentation
 /docs/ @brianzhibo-design
