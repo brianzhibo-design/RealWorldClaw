@@ -155,6 +155,9 @@ export default function Header() {
     router.push("/");
   };
 
+  // Map page has its own immersive header
+  if (pathname === '/map') return null;
+
   return (
     <header className="sticky top-0 z-50 border-b border-slate-800 bg-slate-950/80 backdrop-blur-md">
       <div className="mx-auto flex h-12 md:h-14 max-w-6xl items-center justify-between px-3 md:px-4">
