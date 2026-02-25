@@ -157,6 +157,7 @@ def init_db():
                 "CREATE TABLE IF NOT EXISTS direct_messages (id TEXT PRIMARY KEY, sender_id TEXT NOT NULL, recipient_id TEXT NOT NULL, content TEXT NOT NULL, read INTEGER NOT NULL DEFAULT 0, created_at TEXT NOT NULL)",
                 "CREATE TABLE IF NOT EXISTS messages (id TEXT PRIMARY KEY, from_user TEXT NOT NULL, to_user TEXT NOT NULL, content TEXT NOT NULL, read INTEGER DEFAULT 0, created_at TEXT NOT NULL)",
                 "CREATE TABLE IF NOT EXISTS reports (id TEXT PRIMARY KEY, reporter_id TEXT NOT NULL, target_type TEXT NOT NULL, target_id TEXT NOT NULL, reason TEXT NOT NULL, description TEXT, status TEXT DEFAULT 'pending', resolved_by TEXT, resolution_action TEXT, resolution_notes TEXT, created_at TEXT NOT NULL, resolved_at TEXT)",
+                "CREATE TABLE IF NOT EXISTS manufacturing_proofs (id TEXT PRIMARY KEY, node_id TEXT NOT NULL, submitter_id TEXT NOT NULL, order_id TEXT, proof_type TEXT NOT NULL, description TEXT, evidence_url TEXT NOT NULL, verification_status TEXT DEFAULT 'pending', verified_by TEXT, verification_notes TEXT, created_at TEXT NOT NULL, verified_at TEXT)",
                 "CREATE INDEX IF NOT EXISTS idx_dm_sender_recipient ON direct_messages(sender_id, recipient_id)",
                 "CREATE INDEX IF NOT EXISTS idx_dm_created_at ON direct_messages(created_at)",
                 "CREATE INDEX IF NOT EXISTS idx_dm_recipient_read ON direct_messages(recipient_id, read, created_at)",
@@ -490,6 +491,24 @@ def init_db():
         CREATE INDEX IF NOT EXISTS idx_nodes_type ON nodes(node_type);
         CREATE INDEX IF NOT EXISTS idx_nodes_location ON nodes(fuzzy_latitude, fuzzy_longitude);
         CREATE INDEX IF NOT EXISTS idx_nodes_heartbeat ON nodes(last_heartbeat);
+
+        CREATE TABLE IF NOT EXISTS manufacturing_proofs (
+            id TEXT PRIMARY KEY,
+            node_id TEXT NOT NULL,
+            submitter_id TEXT NOT NULL,
+            order_id TEXT,
+            proof_type TEXT NOT NULL,
+            description TEXT,
+            evidence_url TEXT NOT NULL,
+            verification_status TEXT DEFAULT 'pending',
+            verified_by TEXT,
+            verification_notes TEXT,
+            created_at TEXT NOT NULL,
+            verified_at TEXT
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_manufacturing_proofs_node ON manufacturing_proofs(node_id, created_at);
+        CREATE INDEX IF NOT EXISTS idx_manufacturing_proofs_status ON manufacturing_proofs(verification_status);
         """)
         
         # Add files and community tables

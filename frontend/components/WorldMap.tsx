@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { ComposableMap, Geographies, Geography, Marker, ZoomableGroup } from 'react-simple-maps';
+import { geoContains } from 'd3-geo';
 import { ManufacturingNode, MapRegionSummary, NODE_TYPE_INFO, STATUS_COLORS } from '@/lib/nodes';
 
 const geoUrl = '/world-110m.json';
@@ -64,8 +65,12 @@ export function WorldMap({
   const [zoom, setZoom] = useState(1);
   const [center, setCenter] = useState<[number, number]>([0, 20]);
   const [selectedNode, setSelectedNode] = useState<ManufacturingNode | null>(null);
+  const geoHasNodeCache = useRef(new Map<string, boolean>());
 
   const level = zoom < 2 ? 1 : zoom < 5 ? 2 : 3;
+
+  // Clear geo cache when nodes change
+  useMemo(() => { geoHasNodeCache.current.clear(); }, [nodes]);
 
   const filteredNodes = useMemo(() => {
     return nodes.filter((node) => {
@@ -222,26 +227,47 @@ export function WorldMap({
               geographies.map((geo) => {
                 const geoKeys = getGeoCountryKeys(geo);
                 const countrySummary = geoKeys.map((k) => countrySummaries.get(k)).find(Boolean);
-                const hasNode = geoKeys.some((key) => countryKeysWithNodes.has(key));
+                // Use geoContains to check if any node falls within this country's polygon
+                const hasNode = countrySummary?.total
+                  ? true
+                  : geoHasNodeCache.current.has(geo.rsmKey)
+                    ? geoHasNodeCache.current.get(geo.rsmKey)!
+                    : (() => {
+                        const result = filteredNodes.some((node) =>
+                          geoContains(geo, [node.fuzzy_longitude, node.fuzzy_latitude])
+                        );
+                        geoHasNodeCache.current.set(geo.rsmKey, result);
+                        return result;
+                      })();
 
                 return (
                   <Geography
                     key={geo.rsmKey}
                     geography={geo}
-                    fill={hasNode ? '#31465e' : '#1e293b'}
-                    stroke="#334155"
-                    strokeWidth={0.4}
+                    fill={hasNode ? '#1a3a2a' : '#1e293b'}
+                    stroke={hasNode ? '#10b981' : '#334155'}
+                    strokeWidth={hasNode ? 0.8 : 0.4}
                     onClick={(e) => {
                       e.stopPropagation();
                       setSelectedNode(null);
                       onNodeHover?.(null);
-                      if (level === 1 && countrySummary) {
-                        updateView(countrySummary.center, 3);
+                      if (level === 1) {
+                        // Find center from nodes in this country
+                        const nodesInGeo = filteredNodes.filter((n) =>
+                          geoContains(geo, [n.fuzzy_longitude, n.fuzzy_latitude])
+                        );
+                        if (nodesInGeo.length > 0) {
+                          const avgLng = nodesInGeo.reduce((s, n) => s + n.fuzzy_longitude, 0) / nodesInGeo.length;
+                          const avgLat = nodesInGeo.reduce((s, n) => s + n.fuzzy_latitude, 0) / nodesInGeo.length;
+                          updateView([avgLng, avgLat], 3);
+                        } else if (countrySummary) {
+                          updateView(countrySummary.center, 3);
+                        }
                       }
                     }}
                     style={{
                       default: { outline: 'none' },
-                      hover: { outline: 'none', fill: hasNode ? '#3b5877' : '#243244' },
+                      hover: { outline: 'none', fill: hasNode ? '#1f4a35' : '#243244' },
                       pressed: { outline: 'none' },
                     }}
                   />
