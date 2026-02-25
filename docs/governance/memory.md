@@ -54,3 +54,75 @@
   - `python3 -m pytest tests/ -x -q` → `2 passed, 1 skipped`
   - `npm --prefix frontend run build` → 成功（warning 不阻断）
 - 流程状态：已完成蛋蛋审查，进入慢羊羊复审待批；通过前不 push / 不 deploy。
+
+## 2026-02-25 01:25 持续推进
+- 检测到 `git status`：`main...origin/main [ahead 1]`，存在未发布本地 commit。
+- 已按流程重跑发布门禁并全部通过：
+  - `python3 -m pytest tests/ -x -q` → `2 passed, 1 skipped`
+  - `npm --prefix frontend run build` → 成功（仅 warning，不阻断）
+  - Merge Checklist grep 项（`as any` / `mock|MOCK|fake|dummy` / `alert(` / `window.location.reload`）零命中
+  - 首页保护：`frontend/app/page.tsx` 在本地待发布提交中无改动
+- 已触发慢羊羊复审会话：`agent:main:subagent:f41481d0-0007-45d9-bb01-c3272b57ba8a`。
+- 当前状态：等待复审结论；结论未出前严格不 push / 不 deploy。
+
+## 2026-02-25 01:35 持续推进
+- 再次确认仓库仍为 `main...origin/main [ahead 1]`，继续执行“先审查后push后deploy”流程。
+- 已完成发布门禁复核并通过：
+  - `python3 -m pytest tests/ -x -q` → `2 passed, 1 skipped`
+  - `npm --prefix frontend run build` → 成功（仅 warning，不阻断）
+  - Merge Checklist grep 项（`as any` / `mock|MOCK|fake|dummy` / `alert(` / `window.location.reload`）零命中
+  - `git diff --name-only` 仅文档文件变更，首页 `app/page.tsx` 无改动
+- 已触发慢羊羊复审新会话：`agent:main:subagent:e7e6067b-1532-414c-a16c-4876783aed63`。
+- 当前状态：复审进行中，结论返回前不 push / 不 deploy。
+
+## 2026-02-25 01:45 持续推进
+- 检测仓库仍为 `main...origin/main [ahead 1]`，按公司流程继续先审查后发布。
+- 再次完成发布门禁并通过：
+  - `python3 -m pytest tests/ -x -q` → `2 passed, 1 skipped`
+  - `npm --prefix frontend run build` → 成功（仅 warning，不阻断）
+  - Merge Checklist grep 项（`as any` / `mock|MOCK|fake|dummy` / `alert(` / `window.location.reload`）零命中
+  - 首页保护：`app/page.tsx` 无改动
+- 已触发慢羊羊复审会话：`agent:main:subagent:63fc3219-3996-4405-8dfd-94c33a764285`。
+- 当前状态：等待复审结论；结论返回前严格不 push / 不 deploy。
+
+## 2026-02-25 01:55 持续推进
+- 检测仓库仍为 `main...origin/main [ahead 1]`，继续执行“先审查后push后deploy”。
+- 已完成发布门禁并通过：
+  - `python3 -m pytest tests/ -x -q` → `2 passed, 1 skipped`
+  - `npm --prefix frontend run build` → 成功（仅 warning，不阻断）
+  - Merge Checklist grep 项（`as any` / `mock|MOCK|fake|dummy` / `alert(` / `window.location.reload`）零命中
+  - 首页保护：`frontend/app/page.tsx` 在待发布提交中无改动
+- 已触发慢羊羊复审会话：`agent:main:subagent:acd45ba3-b4d9-46a5-9a7f-3d98fbe56230`。
+- 当前状态：等待复审结论；结论返回前严格不 push / 不 deploy。
+
+## 2026-02-25 02:05 持续推进
+- 检测仓库仍为 `main...origin/main [ahead 1]`（另有文档工作区改动），继续按流程“先审查后push后deploy”。
+- 已完成发布门禁并通过：
+  - `python3 -m pytest tests/ -x -q` → `2 passed, 1 skipped`
+  - `npm --prefix frontend run build` → 成功（仅 warning，不阻断）
+  - Merge Checklist grep 项（`as any` / `mock|MOCK|fake|dummy` / `alert(` / `window.location.reload`）零命中
+  - 首页保护：`frontend/app/page.tsx` 无改动
+- 已触发慢羊羊复审会话：`agent:main:subagent:e446d8ce-0c1f-43a2-9940-05922b9b7f3b`。
+- 当前状态：复审进行中；结论返回前严格不 push / 不 deploy。
+
+## 2026-02-25 02:15 持续推进
+- 再次确认仓库状态：`main...origin/main [ahead 1]`，继续严格执行“先审查后push后deploy”。
+- 已完成发布门禁并通过：
+  - `python3 -m pytest tests/ -x -q` → `2 passed, 1 skipped`
+  - `npm --prefix frontend run build` → 成功（仅 warning，不阻断）
+  - Merge Checklist grep 项（`as any` / `mock|MOCK|fake|dummy` / `alert(` / `window.location.reload`）零命中
+  - 首页保护：`frontend/app/page.tsx` 无改动
+- 已触发慢羊羊复审会话：`agent:main:subagent:147042d9-83aa-4dba-ba88-ddb3d698b6aa`。
+- 当前状态：等待复审结论；结论返回前严格不 push / 不 deploy。
+
+## 2026-02-25 12:20 持续推进
+- 门禁回归先发现失败：`tests/e2e/test_full_flow.py` 对注册响应结构仍按旧版顶层字段断言（`username/id`），与当前 `AuthResponse(user嵌套)` 不一致；且社区链路仍调用遗留 `/posts` 导致 404。
+- 已完成修复（1 个代码任务）：
+  - `tests/e2e/test_full_flow.py`：注册响应改为兼容 `payload.user`；新增 `user_id` 缺失保护断言。
+  - 同文件社区链路改为 `/community/posts`，并适配 `post_type` 请求字段与 `{"posts": [...]}` 列表响应结构。
+- 复核结果：
+  - `python3 -m pytest tests/ -x -q` → `2 passed, 1 skipped`
+  - `npm --prefix frontend run build` → 成功（warning 不阻断）
+  - Merge Checklist grep 项零命中；首页 `frontend/app/page.tsx` 无改动
+- 已触发慢羊羊复审会话：`agent:main:subagent:8c74806e-577c-447a-886e-898f870d9da4`。
+- 当前状态：等待复审结论，结论前不 push / 不 deploy。

@@ -57,9 +57,11 @@ class TestUserFlow:
             "password": self.password,
         }, timeout=TIMEOUT)
         assert r.status_code == 201, f"Register failed: {r.status_code} {r.text}"
-        user = r.json()
-        assert user["username"] == self.username, f"Username mismatch: {user}"
-        user_id = user["id"]
+        register_payload = r.json()
+        user = register_payload.get("user") or register_payload
+        assert user.get("username") == self.username, f"Username mismatch: {register_payload}"
+        user_id = user.get("id")
+        assert user_id, f"Missing user id in register response: {register_payload}"
 
         # 2. Login
         r = requests.post(_url("/auth/login"), json={
@@ -104,23 +106,24 @@ class TestUserFlow:
         )
         assert r.status_code in (200, 201), f"Claim agent failed: {r.status_code} {r.text}"
 
-        # 5. Create post (legacy /posts requires active agent API key auth)
-        r = requests.post(_url("/posts"), json={
-            "type": "discussion",
+        # 5. Create post
+        r = requests.post(_url("/community/posts"), json={
+            "post_type": "discussion",
             "title": "E2E Test Post",
             "content": f"Automated test at {time.time()}",
-            "tags": ["e2e", "test"],
-        }, headers={"Authorization": f"Bearer {agent_api_key}"}, timeout=TIMEOUT)
+            "images": [],
+        }, headers=self._auth_header(), timeout=TIMEOUT)
         assert r.status_code in (200, 201), f"Create post failed: {r.status_code} {r.text}"
         post = r.json()
         post_id = post.get("id") or post.get("post_id")
         assert post_id, f"No post id: {post}"
 
         # 6. Query posts
-        r = requests.get(_url("/posts"), timeout=TIMEOUT)
+        r = requests.get(_url("/community/posts"), timeout=TIMEOUT)
         assert r.status_code == 200, f"List posts failed: {r.status_code} {r.text}"
-        posts = r.json()
-        assert isinstance(posts, (list, dict)), f"Unexpected posts format: {type(posts)}"
+        posts_payload = r.json()
+        posts = posts_payload.get("posts") if isinstance(posts_payload, dict) else posts_payload
+        assert isinstance(posts, list), f"Unexpected posts format: {posts_payload}"
 
 
 # ─── Device Flow: Register → Telemetry → Command → Status ──────
