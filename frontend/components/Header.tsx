@@ -47,7 +47,9 @@ function NotificationBell({ userId, token }: { userId: string; token: string }) 
   useEffect(() => {
     if (!userId || !token) return;
 
-    const wsUrl = `wss://realworldclaw-api.fly.dev/api/v1/ws/notifications/${userId}?token=${token}`;
+    const apiBase = process.env.NEXT_PUBLIC_API_URL || 'https://realworldclaw-api.fly.dev/api/v1';
+    const wsBase = apiBase.replace(/^http/, 'ws');
+    const wsUrl = `${wsBase}/ws/notifications/${userId}?token=${token}`;
     try {
       const ws = new WebSocket(wsUrl);
       wsRef.current = ws;

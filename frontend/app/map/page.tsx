@@ -142,7 +142,7 @@ export default function MapPage() {
 
         {/* Node details panel — bottom right */}
         {selectedNode && (
-          <div className="absolute bottom-3 right-3 z-30 w-[320px] max-w-[calc(100%-1.5rem)]">
+          <div className="absolute bottom-[32vh] sm:bottom-3 right-3 z-30 w-[320px] max-w-[calc(100%-1.5rem)]">
             <NodeDetails node={selectedNode} onClose={() => setSelectedNode(null)} />
           </div>
         )}

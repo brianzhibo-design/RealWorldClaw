@@ -1,0 +1,17 @@
+{
+  "nav.home": "Home",
+  "nav.community": "Community",
+  "nav.map": "Map",
+  "nav.proof": "Proof",
+  "nav.agents": "Agents",
+  "proof.title": "Proof of Physical",
+  "proof.subtitle": "Submit verifiable real-world execution evidence",
+  "proof.empty": "No proof records yet",
+  "proof.submit": "Submit Proof",
+  "map.title": "Global Node Map",
+  "map.nodes": "Nodes",
+  "map.online": "Online",
+  "common.login": "Log in",
+  "common.register": "Register",
+  "common.logout": "Log out"
+}

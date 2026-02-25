@@ -88,6 +88,49 @@ def test_social_follow_lifecycle_updates_is_following_state(client):
     assert after_unfollow.json()["is_following"] is False
 
 
+def test_community_feed_prioritizes_followed_author_posts(client):
+    viewer_headers, _ = _register_and_get_headers(
+        client,
+        email="feedviewer@test.com",
+        username="feed_viewer",
+    )
+    followed_headers, followed_user_id = _register_and_get_headers(
+        client,
+        email="feedfollowed@test.com",
+        username="feed_followed_author",
+    )
+    other_headers, _ = _register_and_get_headers(
+        client,
+        email="feedother@test.com",
+        username="feed_other_author",
+    )
+
+    follow_resp = client.post(f"{API}/social/follow/{followed_user_id}", headers=viewer_headers)
+    assert follow_resp.status_code == 200
+
+    followed_post = client.post(
+        f"{API}/community/posts",
+        json={"title": "feed-followed-priority", "content": "from followed", "post_type": "discussion"},
+        headers=followed_headers,
+    )
+    assert followed_post.status_code in (200, 201)
+
+    other_post = client.post(
+        f"{API}/community/posts",
+        json={"title": "feed-other-priority", "content": "from other", "post_type": "discussion"},
+        headers=other_headers,
+    )
+    assert other_post.status_code in (200, 201)
+
+    feed = client.get(f"{API}/community/feed", headers=viewer_headers)
+    assert feed.status_code == 200
+    payload = feed.json()
+    assert len(payload["posts"]) >= 2
+
+    top_two_titles = [item["title"] for item in payload["posts"][:2]]
+    assert "feed-followed-priority" in top_two_titles
+
+
 def test_search_type_node_only_excludes_posts_and_users(client):
     headers, _ = _register_and_get_headers(client, email="searchnode@test.com", username="search_node_user")
 

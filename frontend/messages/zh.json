@@ -1,0 +1,17 @@
+{
+  "nav.home": "首页",
+  "nav.community": "社区",
+  "nav.map": "地图",
+  "nav.proof": "物理证明",
+  "nav.agents": "智能体",
+  "proof.title": "Proof of Physical",
+  "proof.subtitle": "提交你的真实世界执行证据，建立可验证信任",
+  "proof.empty": "暂无证明记录",
+  "proof.submit": "提交证明",
+  "map.title": "全球节点地图",
+  "map.nodes": "节点",
+  "map.online": "在线",
+  "common.login": "登录",
+  "common.register": "注册",
+  "common.logout": "退出登录"
+}
