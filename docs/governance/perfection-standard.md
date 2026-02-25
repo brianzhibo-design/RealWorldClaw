@@ -112,3 +112,24 @@
 - 2026-02-25 18:19 持续推进：继续补强第二批 P2-9 回归矩阵，在 `platform/tests/test_regression_matrix.py` 新增 `test_community_post_best_answer_rejects_comment_from_another_post`，锁定“跨帖子评论不可被设为当前帖子最佳答案”的结构一致性契约（返回 404，且目标帖子 best_* 字段保持未设置）。
 - 2026-02-25 18:19 运营增长：`docs/community/seed-posts.md` 新增 Post 44（跨帖子 best-answer 防污染回归闭环复盘）。
 - 2026-02-25 18:19 验证：`JWT_SECRET_KEY=test-secret python3 -m pytest platform/tests/test_regression_matrix.py -q` -> `27 passed`；首页保护满足（`frontend/app/page.tsx` 无改动），本轮未引入 `as any` / `Coming Soon` / `mock|fake|dummy`。
+- 2026-02-25 18:29 持续推进：继续补强第二批 P2-9 回归矩阵，在 `platform/tests/test_regression_matrix.py` 新增 `test_community_posts_following_sort_requires_auth`，锁定 `GET /community/posts?sort=following` 的鉴权边界（未认证必须 401），防止匿名访问个性化 feed 视图。
+- 2026-02-25 18:29 运营增长：`docs/community/seed-posts.md` 新增 Post 45（following 视图鉴权门禁回归复盘）。
+- 2026-02-25 18:29 验证：`JWT_SECRET_KEY=test-secret python3 -m pytest platform/tests/test_regression_matrix.py -q` -> `28 passed`；`python3 -m pytest tests/ -x -q` -> `2 passed, 1 skipped`；`npm --prefix frontend run build` 成功；Merge Checklist grep 与首页保护检查通过（`frontend/app/page.tsx` 无改动）。
+- 2026-02-25 18:39 持续推进：继续补强第二批 P2-9 回归矩阵，在 `platform/tests/test_regression_matrix.py` 新增 `test_community_posts_following_sort_prioritizes_followed_author`，锁定 `GET /community/posts?sort=following` 已认证场景下“关注作者内容优先出现”的正向排序契约。
+- 2026-02-25 18:39 运营增长：`docs/community/seed-posts.md` 新增 Post 46（following 视图正向排序契约回归复盘）。
+- 2026-02-25 18:39 验证：`JWT_SECRET_KEY=test-secret python3 -m pytest platform/tests/test_regression_matrix.py -q` -> `29 passed`；首页保护满足（`frontend/app/page.tsx` 无改动），本轮未引入 `as any` / `Coming Soon` / `mock|fake|dummy`。
+- 2026-02-25 18:49 持续推进：继续补强第二批 P2-9 回归矩阵，在 `platform/tests/test_regression_matrix.py` 新增 `test_community_posts_following_sort_returns_empty_when_no_follows`，锁定 `GET /community/posts?sort=following` 的空态契约（已认证但无关注关系时必须返回 `posts=[]/total=0/has_next=false`，不得回退到通用时间流）。
+- 2026-02-25 18:49 运营增长：`docs/community/seed-posts.md` 新增 Post 47（following 视图空态契约回归闭环复盘）。
+- 2026-02-25 18:49 验证：`JWT_SECRET_KEY=test-secret python3 -m pytest platform/tests/test_regression_matrix.py -q` -> `30 passed`；`python3 -m pytest tests/ -x -q` -> `2 passed, 1 skipped`；`npm --prefix frontend run build` 成功；首页保护满足（`frontend/app/page.tsx` 无改动），本轮未引入 `as any` / `Coming Soon` / `mock|fake|dummy`。
+- 2026-02-25 18:59 持续推进：继续补强第二批 P2-9 回归矩阵，在 `platform/tests/test_regression_matrix.py` 新增 `test_community_posts_following_sort_pagination_contract`，锁定 `GET /community/posts?sort=following` 的分页契约（`limit=1` 时 page1/page2 的 `total/has_next` 边界一致）。
+- 2026-02-25 18:59 运营增长：`docs/community/seed-posts.md` 新增 Post 48（following 视图分页契约回归闭环复盘）。
+- 2026-02-25 18:59 验证：`JWT_SECRET_KEY=test-secret python3 -m pytest platform/tests/test_regression_matrix.py -q` -> `31 passed`；`python3 -m pytest tests/ -x -q` -> `2 passed, 1 skipped`；`npm --prefix frontend run build` 成功；Merge Checklist grep 与首页保护检查通过（`frontend/app/page.tsx` 无改动）。
+- 2026-02-25 19:10 持续推进：继续补强第二批 P2-9 回归矩阵，在 `platform/tests/test_regression_matrix.py` 新增 `test_community_posts_following_sort_unfollow_excludes_previous_author`，锁定“取消关注后 following 视图即时剔除该作者内容”的状态一致性契约。
+- 2026-02-25 19:10 运营增长：`docs/community/seed-posts.md` 新增 Post 49（unfollow 即时生效契约回归复盘）。
+- 2026-02-25 19:10 验证：`JWT_SECRET_KEY=test-secret python3 -m pytest platform/tests/test_regression_matrix.py -q` -> `32 passed`；`python3 -m pytest tests/ -x -q` -> `2 passed, 1 skipped`；Merge Checklist grep 与首页保护检查通过（`frontend/app/page.tsx` 无改动）。
+- 2026-02-25 19:19 持续推进：继续补强第二批 P2-9 回归矩阵，在 `platform/tests/test_regression_matrix.py` 新增 `test_community_posts_following_sort_page_overflow_returns_empty_with_consistent_total`，锁定 `GET /community/posts?sort=following` 越界分页契约（`limit=1,page=3` 返回 `posts=[]/total=2/has_next=false`）。
+- 2026-02-25 19:19 运营增长：`docs/community/seed-posts.md` 新增 Post 50（following 越界分页契约回归复盘）。
+- 2026-02-25 19:19 验证：`JWT_SECRET_KEY=test-secret python3 -m pytest platform/tests/test_regression_matrix.py -q` -> `33 passed`；`python3 -m pytest tests/ -x -q` -> `2 passed, 1 skipped`；`npm --prefix frontend run build` 成功；Merge Checklist grep 与首页保护检查通过（`frontend/app/page.tsx` 无改动）。
+- 2026-02-25 19:29 持续推进：继续补强第二批 P2-9 回归矩阵，在 `platform/tests/test_regression_matrix.py` 新增 `test_community_posts_following_sort_author_filter_excludes_non_followed_author`，锁定 `GET /community/posts?sort=following&author_id=<未关注作者>` 不能穿透关注图约束（应返回空态）。
+- 2026-02-25 19:29 运营增长：`docs/community/seed-posts.md` 新增 Post 51（following + author 组合过滤权限边界回归复盘）。
+- 2026-02-25 19:29 验证：`JWT_SECRET_KEY=test-secret python3 -m pytest platform/tests/test_regression_matrix.py -q` -> `34 passed`；`python3 -m pytest tests/ -x -q` -> `2 passed, 1 skipped`；`npm --prefix frontend run build` 成功；Merge Checklist grep 与首页保护检查通过（`frontend/app/page.tsx` 无改动）。

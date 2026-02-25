@@ -210,6 +210,17 @@
   - 首页保护：`frontend/app/page.tsx` 无改动
 - 发布状态：当前仅工作树改动，`main...origin/main` 无 ahead commit；按流程本轮不触发慢羊羊复审，不 push / 不 deploy。
 
+## 当前状态（18:29 更新）
+- 本轮动作（1-2项已完成）：
+  - 第二批 P2-9 回归矩阵补强：`platform/tests/test_regression_matrix.py` 新增 `test_community_posts_following_sort_requires_auth`，锁定 `GET /community/posts?sort=following` 在未认证场景下必须返回 401 的鉴权契约。
+  - 运营增长补充：`docs/community/seed-posts.md` 新增 Post 45（following 视图鉴权门禁回归闭环复盘）。
+- 验证结果：
+  - `JWT_SECRET_KEY=test-secret python3 -m pytest platform/tests/test_regression_matrix.py -q` ✅（28 passed）
+  - `python3 -m pytest tests/ -x -q` ✅（2 passed, 1 skipped）
+  - `npm --prefix frontend run build` ✅（成功）
+  - Merge Checklist grep + 首页保护 ✅（`frontend/app/page.tsx` 无改动）
+- 发布状态：当前为工作树改动，`main...origin/main` 无 ahead commit；按流程本轮不触发慢羊羊复审，不 push / 不 deploy。
+
 ## 当前状态（18:19 更新）
 - 本轮动作（1-2项已完成）：
   - 第二批 P2-9 回归矩阵补强：`platform/tests/test_regression_matrix.py` 新增 `test_community_post_best_answer_rejects_comment_from_another_post`，覆盖“comment_id 属于其他帖子”时 `POST /community/posts/{id}/best-answer` 返回 404 且目标帖子 `best_answer_comment_id/best_comment_id/resolved_at` 保持未设置的契约。
@@ -219,3 +230,68 @@
   - 首页保护：`frontend/app/page.tsx` 无改动
   - 约束复核：本轮未引入 `as any` / `Coming Soon` / `mock|fake|dummy`
 - 发布状态：`git rev-list --left-right --count origin/main...HEAD` 为 `0 0`（无未发布本地 commit）；按流程本轮不触发慢羊羊复审，不 push / 不 deploy。
+
+## 当前状态（18:39 更新）
+- 本轮动作（1-2项已完成）：
+  - 第二批 P2-9 回归矩阵补强：`platform/tests/test_regression_matrix.py` 新增 `test_community_posts_following_sort_prioritizes_followed_author`，锁定 `GET /community/posts?sort=following` 已认证场景下“关注作者内容优先出现”的正向排序契约。
+  - 运营增长补充：`docs/community/seed-posts.md` 新增 Post 46（following 视图正向排序契约回归闭环复盘）。
+- 验证结果：
+  - `JWT_SECRET_KEY=test-secret python3 -m pytest platform/tests/test_regression_matrix.py -q` ✅（29 passed）
+  - 首页保护：`frontend/app/page.tsx` 无改动
+  - 约束复核：本轮未引入 `as any` / `Coming Soon` / `mock|fake|dummy`
+- 发布状态：当前为工作树改动，`main...origin/main` 无 ahead commit；按流程本轮不触发慢羊羊复审，不 push / 不 deploy。
+
+## 当前状态（18:49 更新）
+- 本轮动作（1-2项已完成）：
+  - 第二批 P2-9 回归矩阵补强：`platform/tests/test_regression_matrix.py` 新增 `test_community_posts_following_sort_returns_empty_when_no_follows`，锁定 `GET /community/posts?sort=following` 在“已认证但无关注关系”场景下的空态契约（`posts=[]/total=0/has_next=false`）。
+  - 运营增长补充：`docs/community/seed-posts.md` 新增 Post 47（following 视图空态契约回归闭环复盘）。
+- 验证结果：
+  - `JWT_SECRET_KEY=test-secret python3 -m pytest platform/tests/test_regression_matrix.py -q` ✅（30 passed）
+  - `python3 -m pytest tests/ -x -q` ✅（2 passed, 1 skipped）
+  - `npm --prefix frontend run build` ✅（成功）
+  - 首页保护：`frontend/app/page.tsx` 无改动
+  - 约束复核：本轮未引入 `as any` / `Coming Soon` / `mock|fake|dummy`
+- 发布状态：`git status --short --branch` 当前为 `## main...origin/main`（无未发布本地 commit）；按流程本轮不触发慢羊羊复审，不 push / 不 deploy。
+
+## 当前状态（18:59 更新）
+- 本轮动作（1-2项已完成）：
+  - 第二批 P2-9 回归矩阵补强：`platform/tests/test_regression_matrix.py` 新增 `test_community_posts_following_sort_pagination_contract`，锁定 `GET /community/posts?sort=following` 在 `limit=1` 条件下 `page=1/2` 的分页元数据契约（`total` 稳定、`has_next` 边界准确）。
+  - 运营增长补充：`docs/community/seed-posts.md` 新增 Post 48（following 视图分页契约回归闭环复盘）。
+- 验证结果：
+  - `JWT_SECRET_KEY=test-secret python3 -m pytest platform/tests/test_regression_matrix.py -q` ✅（31 passed）
+  - `python3 -m pytest tests/ -x -q` ✅（2 passed, 1 skipped）
+  - `npm --prefix frontend run build` ✅（成功）
+  - Merge Checklist grep + 首页保护 ✅（`frontend/app/page.tsx` 无改动）
+- 发布状态：`git status --short --branch` 当前为 `## main...origin/main`（无未发布本地 commit）；按流程本轮不触发慢羊羊复审，不 push / 不 deploy。
+
+## 当前状态（19:10 更新）
+- 本轮动作（1-2项已完成）：
+  - 第二批 P2-9 回归矩阵补强：`platform/tests/test_regression_matrix.py` 新增 `test_community_posts_following_sort_unfollow_excludes_previous_author`，覆盖 follow->unfollow 后 `sort=following` 结果即时剔除的契约。
+  - 运营增长补充：`docs/community/seed-posts.md` 新增 Post 49（unfollow 即时生效回归闭环复盘）。
+- 验证结果：
+  - `JWT_SECRET_KEY=test-secret python3 -m pytest platform/tests/test_regression_matrix.py -q` ✅（32 passed）
+  - `python3 -m pytest tests/ -x -q` ✅（2 passed, 1 skipped）
+  - Merge Checklist grep + 首页保护 ✅（`frontend/app/page.tsx` 无改动）
+- 发布状态：当前仅工作树改动，`main...origin/main` 无 ahead commit；按流程本轮不触发慢羊羊复审，不 push / 不 deploy。
+
+## 当前状态（19:19 更新）
+- 本轮动作（1-2项已完成）：
+  - 第二批 P2-9 回归矩阵补强：`platform/tests/test_regression_matrix.py` 新增 `test_community_posts_following_sort_page_overflow_returns_empty_with_consistent_total`，锁定 `GET /community/posts?sort=following` 在越界分页场景（`limit=1,page=3`）必须返回空数组且保持 `total` 一致。
+  - 运营增长补充：`docs/community/seed-posts.md` 新增 Post 50（following 越界分页契约回归闭环复盘）。
+- 验证结果：
+  - `JWT_SECRET_KEY=test-secret python3 -m pytest platform/tests/test_regression_matrix.py -q` ✅（33 passed）
+  - `python3 -m pytest tests/ -x -q` ✅（2 passed, 1 skipped）
+  - `npm --prefix frontend run build` ✅（成功）
+  - Merge Checklist grep + 首页保护 ✅（`frontend/app/page.tsx` 无改动）
+- 发布状态：当前仅工作树改动，`main...origin/main` 无 ahead commit；按流程本轮不触发慢羊羊复审，不 push / 不 deploy。
+
+## 当前状态（19:29 更新）
+- 本轮动作（1-2项已完成）：
+  - 第二批 P2-9 回归矩阵补强：`platform/tests/test_regression_matrix.py` 新增 `test_community_posts_following_sort_author_filter_excludes_non_followed_author`，锁定 `sort=following` 与 `author_id` 组合场景下“过滤只能收窄、不能扩大权限范围”的契约。
+  - 运营增长补充：`docs/community/seed-posts.md` 新增 Post 51（following + author 组合过滤边界回归复盘）。
+- 验证结果：
+  - `JWT_SECRET_KEY=test-secret python3 -m pytest platform/tests/test_regression_matrix.py -q` ✅（34 passed）
+  - `python3 -m pytest tests/ -x -q` ✅（2 passed, 1 skipped）
+  - `npm --prefix frontend run build` ✅（成功）
+  - Merge Checklist grep + 首页保护 ✅（`frontend/app/page.tsx` 无改动）
+- 发布状态：当前仅工作树改动，`main...origin/main` 无 ahead commit；按流程本轮不触发慢羊羊复审，不 push / 不 deploy。

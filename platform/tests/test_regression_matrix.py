@@ -131,6 +131,243 @@ def test_community_feed_prioritizes_followed_author_posts(client):
     assert "feed-followed-priority" in top_two_titles
 
 
+def test_community_posts_following_sort_requires_auth(client):
+    unauthorized = client.get(f"{API}/community/posts", params={"sort": "following"})
+    assert unauthorized.status_code == 401
+
+
+def test_community_posts_following_sort_prioritizes_followed_author(client):
+    viewer_headers, _ = _register_and_get_headers(
+        client,
+        email="followingviewer@test.com",
+        username="following_viewer",
+    )
+    followed_headers, followed_user_id = _register_and_get_headers(
+        client,
+        email="followingauthor@test.com",
+        username="following_author",
+    )
+    other_headers, _ = _register_and_get_headers(
+        client,
+        email="followingother@test.com",
+        username="following_other",
+    )
+
+    follow_resp = client.post(f"{API}/social/follow/{followed_user_id}", headers=viewer_headers)
+    assert follow_resp.status_code == 200
+
+    followed_post = client.post(
+        f"{API}/community/posts",
+        json={"title": "following-sort-followed", "content": "followed", "post_type": "discussion"},
+        headers=followed_headers,
+    )
+    assert followed_post.status_code in (200, 201)
+
+    other_post = client.post(
+        f"{API}/community/posts",
+        json={"title": "following-sort-other", "content": "other", "post_type": "discussion"},
+        headers=other_headers,
+    )
+    assert other_post.status_code in (200, 201)
+
+    result = client.get(f"{API}/community/posts", params={"sort": "following"}, headers=viewer_headers)
+    assert result.status_code == 200
+    payload = result.json()
+    assert isinstance(payload.get("posts"), list)
+    assert len(payload["posts"]) >= 1
+
+    top_titles = [post["title"] for post in payload["posts"][:3]]
+    assert "following-sort-followed" in top_titles
+
+
+def test_community_posts_following_sort_returns_empty_when_no_follows(client):
+    viewer_headers, _ = _register_and_get_headers(
+        client,
+        email="followingnofollows@test.com",
+        username="following_no_follows",
+    )
+
+    result = client.get(f"{API}/community/posts", params={"sort": "following"}, headers=viewer_headers)
+    assert result.status_code == 200
+    payload = result.json()
+
+    assert payload["posts"] == []
+    assert payload["total"] == 0
+    assert payload["has_next"] is False
+
+
+def test_community_posts_following_sort_author_filter_excludes_non_followed_author(client):
+    viewer_headers, _ = _register_and_get_headers(
+        client,
+        email="followingauthorfilterviewer@test.com",
+        username="following_author_filter_viewer",
+    )
+    followed_headers, followed_user_id = _register_and_get_headers(
+        client,
+        email="followingauthorfilterfollowed@test.com",
+        username="following_author_filter_followed",
+    )
+    other_headers, other_user_id = _register_and_get_headers(
+        client,
+        email="followingauthorfilterother@test.com",
+        username="following_author_filter_other",
+    )
+
+    follow_resp = client.post(f"{API}/social/follow/{followed_user_id}", headers=viewer_headers)
+    assert follow_resp.status_code == 200
+
+    post_resp = client.post(
+        f"{API}/community/posts",
+        json={
+            "title": "following-author-filter-other",
+            "content": "should be filtered out",
+            "post_type": "discussion",
+        },
+        headers=other_headers,
+    )
+    assert post_resp.status_code in (200, 201)
+
+    result = client.get(
+        f"{API}/community/posts",
+        params={"sort": "following", "author_id": other_user_id},
+        headers=viewer_headers,
+    )
+    assert result.status_code == 200
+    payload = result.json()
+
+    assert payload["posts"] == []
+    assert payload["total"] == 0
+    assert payload["has_next"] is False
+
+
+def test_community_posts_following_sort_pagination_contract(client):
+    viewer_headers, _ = _register_and_get_headers(
+        client,
+        email="followingpaginationviewer@test.com",
+        username="following_pagination_viewer",
+    )
+    followed_headers, followed_user_id = _register_and_get_headers(
+        client,
+        email="followingpaginationauthor@test.com",
+        username="following_pagination_author",
+    )
+
+    follow_resp = client.post(f"{API}/social/follow/{followed_user_id}", headers=viewer_headers)
+    assert follow_resp.status_code == 200
+
+    for idx in range(2):
+        post_resp = client.post(
+            f"{API}/community/posts",
+            json={
+                "title": f"following-pagination-{idx}",
+                "content": "followed author content",
+                "post_type": "discussion",
+            },
+            headers=followed_headers,
+        )
+        assert post_resp.status_code in (200, 201)
+
+    page_one = client.get(
+        f"{API}/community/posts",
+        params={"sort": "following", "limit": 1, "page": 1},
+        headers=viewer_headers,
+    )
+    assert page_one.status_code == 200
+    payload_one = page_one.json()
+    assert payload_one["total"] == 2
+    assert len(payload_one["posts"]) == 1
+    assert payload_one["has_next"] is True
+
+    page_two = client.get(
+        f"{API}/community/posts",
+        params={"sort": "following", "limit": 1, "page": 2},
+        headers=viewer_headers,
+    )
+    assert page_two.status_code == 200
+    payload_two = page_two.json()
+    assert payload_two["total"] == 2
+    assert len(payload_two["posts"]) == 1
+    assert payload_two["has_next"] is False
+
+
+def test_community_posts_following_sort_page_overflow_returns_empty_with_consistent_total(client):
+    viewer_headers, _ = _register_and_get_headers(
+        client,
+        email="followingoverflowviewer@test.com",
+        username="following_overflow_viewer",
+    )
+    followed_headers, followed_user_id = _register_and_get_headers(
+        client,
+        email="followingoverflowauthor@test.com",
+        username="following_overflow_author",
+    )
+
+    follow_resp = client.post(f"{API}/social/follow/{followed_user_id}", headers=viewer_headers)
+    assert follow_resp.status_code == 200
+
+    for idx in range(2):
+        post_resp = client.post(
+            f"{API}/community/posts",
+            json={
+                "title": f"following-overflow-{idx}",
+                "content": "followed author content",
+                "post_type": "discussion",
+            },
+            headers=followed_headers,
+        )
+        assert post_resp.status_code in (200, 201)
+
+    overflow_page = client.get(
+        f"{API}/community/posts",
+        params={"sort": "following", "limit": 1, "page": 3},
+        headers=viewer_headers,
+    )
+    assert overflow_page.status_code == 200
+    payload = overflow_page.json()
+
+    assert payload["posts"] == []
+    assert payload["total"] == 2
+    assert payload["has_next"] is False
+
+
+def test_community_posts_following_sort_unfollow_excludes_previous_author(client):
+    viewer_headers, _ = _register_and_get_headers(
+        client,
+        email="followingunfollowviewer@test.com",
+        username="following_unfollow_viewer",
+    )
+    followed_headers, followed_user_id = _register_and_get_headers(
+        client,
+        email="followingunfollowauthor@test.com",
+        username="following_unfollow_author",
+    )
+
+    follow_resp = client.post(f"{API}/social/follow/{followed_user_id}", headers=viewer_headers)
+    assert follow_resp.status_code == 200
+
+    unfollow_resp = client.delete(f"{API}/social/follow/{followed_user_id}", headers=viewer_headers)
+    assert unfollow_resp.status_code == 200
+
+    post_resp = client.post(
+        f"{API}/community/posts",
+        json={
+            "title": "following-unfollowed-author-post",
+            "content": "must not appear in following feed",
+            "post_type": "discussion",
+        },
+        headers=followed_headers,
+    )
+    assert post_resp.status_code in (200, 201)
+
+    result = client.get(f"{API}/community/posts", params={"sort": "following"}, headers=viewer_headers)
+    assert result.status_code == 200
+    payload = result.json()
+
+    assert payload["posts"] == []
+    assert payload["total"] == 0
+    assert payload["has_next"] is False
+
+
 def test_search_type_node_only_excludes_posts_and_users(client):
     headers, _ = _register_and_get_headers(client, email="searchnode@test.com", username="search_node_user")
 

@@ -266,3 +266,77 @@
   2) 运营增长任务：`docs/community/seed-posts.md` 新增 Post 44（跨帖子 best-answer 防污染复盘）。
 - 验证：`JWT_SECRET_KEY=test-secret python3 -m pytest platform/tests/test_regression_matrix.py -q` -> `27 passed`；首页 `frontend/app/page.tsx` 无改动。
 - 发布状态：当前仅工作树改动且无 ahead commit；按公司流程本轮不触发慢羊羊复审，不 push / 不 deploy。
+
+## 2026-02-25 18:29 持续推进
+- 流程检查：先读 `docs/governance/perfection-standard.md` 与 `docs/governance/company-process.md`，并确认 `git status --short --branch` 为 `## main...origin/main`（无未发布本地 commit）。
+- 执行动作（1-2项）：
+  1) 第二批 P2-9 回归矩阵补强：`platform/tests/test_regression_matrix.py` 新增 `test_community_posts_following_sort_requires_auth`，锁定 `sort=following` 的未认证请求必须返回 401。
+  2) 运营增长任务：`docs/community/seed-posts.md` 新增 Post 45（following 视图鉴权门禁复盘）。
+- 验证：`JWT_SECRET_KEY=test-secret python3 -m pytest platform/tests/test_regression_matrix.py -q` -> `28 passed`；`python3 -m pytest tests/ -x -q` -> `2 passed, 1 skipped`；`npm --prefix frontend run build` 成功；首页 `frontend/app/page.tsx` 无改动。
+- 发布状态：当前仅工作树改动且无 ahead commit；按公司流程本轮不触发慢羊羊复审，不 push / 不 deploy。
+
+## 2026-02-25 18:39 持续推进
+- 流程检查：先读 `docs/governance/perfection-standard.md` 与 `docs/governance/company-process.md`，并确认 `git status --short --branch` 为 `## main...origin/main`（无未发布本地 commit）。
+- 执行动作（1-2项）：
+  1) 第二批 P2-9 回归矩阵补强：`platform/tests/test_regression_matrix.py` 新增 `test_community_posts_following_sort_prioritizes_followed_author`，锁定 `sort=following` 在已认证场景下关注作者内容优先出现的排序契约。
+  2) 运营增长任务：`docs/community/seed-posts.md` 新增 Post 46（following 视图正向排序契约复盘）。
+- 验证：`JWT_SECRET_KEY=test-secret python3 -m pytest platform/tests/test_regression_matrix.py -q` -> `29 passed`；首页 `frontend/app/page.tsx` 无改动。
+- 发布状态：当前仅工作树改动且无 ahead commit；按公司流程本轮不触发慢羊羊复审，不 push / 不 deploy。
+
+## 2026-02-25 18:49 持续推进
+- 按引擎流程先读 `docs/governance/perfection-standard.md` 与 `docs/governance/company-process.md`，并确认 `git status --short --branch` 为 `## main...origin/main`（无未发布本地 commit）。
+- 完成 1 个代码任务：在 `platform/tests/test_regression_matrix.py` 新增 `test_community_posts_following_sort_returns_empty_when_no_follows`，锁定 `GET /community/posts?sort=following` 在“已认证但无关注关系”场景的空态契约（`posts=[]/total=0/has_next=false`）。
+- 完成 1 个运营增长任务：`docs/community/seed-posts.md` 新增 Post 47（following 视图空态契约回归闭环复盘）。
+- 验证：
+  - `JWT_SECRET_KEY=test-secret python3 -m pytest platform/tests/test_regression_matrix.py -q` -> `30 passed`
+  - `python3 -m pytest tests/ -x -q` -> `2 passed, 1 skipped`
+  - `npm --prefix frontend run build` -> success
+  - 首页保护通过（`frontend/app/page.tsx` 无改动）
+- 流程遵守：本轮无 ahead commit，按流程不触发慢羊羊复审，不 push / 不 deploy。
+
+## 2026-02-25 18:59 持续推进
+- 按引擎流程先读取 `docs/governance/perfection-standard.md` 与 `docs/governance/company-process.md`，并检查 `git status --short --branch`：`## main...origin/main`（无未发布本地 commit）。
+- 完成 2 项任务：
+  1) `platform/tests/test_regression_matrix.py` 新增 `test_community_posts_following_sort_pagination_contract`，补齐 following 视图分页边界契约（`limit=1` + `page=1/2`）。
+  2) `docs/community/seed-posts.md` 新增 Post 48，发布真实工程进展素材。
+- 验证结果：
+  - `JWT_SECRET_KEY=test-secret python3 -m pytest platform/tests/test_regression_matrix.py -q` -> `31 passed`
+  - `python3 -m pytest tests/ -x -q` -> `2 passed, 1 skipped`
+  - `npm --prefix frontend run build` -> success
+  - Merge Checklist grep 零命中，且 `frontend/app/page.tsx` 无改动。
+- 发布状态：当前无 ahead commit；按流程本轮不触发慢羊羊复审，不 push / 不 deploy。
+
+## 2026-02-25 19:10 持续推进
+- 按引擎流程先读 `docs/governance/perfection-standard.md` 与 `docs/governance/company-process.md`，并确认 `git status --short --branch` 为 `## main...origin/main`（无未发布本地 commit）。
+- 完成 2 项任务：
+  1) 第二批 P2-9 回归矩阵新增 `test_community_posts_following_sort_unfollow_excludes_previous_author`，锁定 `sort=following` 在用户取消关注后的即时一致性（不再返回被取消关注作者的新内容）。
+  2) 运营增长任务：`docs/community/seed-posts.md` 新增 Post 49（unfollow 即时生效契约复盘）。
+- 验证结果：
+  - `JWT_SECRET_KEY=test-secret python3 -m pytest platform/tests/test_regression_matrix.py -q` -> `32 passed`
+  - `python3 -m pytest tests/ -x -q` -> `2 passed, 1 skipped`
+  - Merge Checklist grep 零命中，且 `frontend/app/page.tsx` 无改动。
+- 发布状态：当前无 ahead commit；按流程本轮不触发慢羊羊复审，不 push / 不 deploy。
+
+## 2026-02-25 19:19 持续推进
+- 按引擎流程先读 `docs/governance/perfection-standard.md` 与 `docs/governance/company-process.md`，并确认 `git status --short --branch` 为 `## main...origin/main`（无未发布本地 commit）。
+- 完成 2 项任务：
+  1) 第二批 P2-9 回归矩阵新增 `test_community_posts_following_sort_page_overflow_returns_empty_with_consistent_total`，锁定 following 视图越界分页返回契约（空结果 + 总量一致）。
+  2) 运营增长任务：`docs/community/seed-posts.md` 新增 Post 50（following 越界分页契约复盘）。
+- 验证结果：
+  - `JWT_SECRET_KEY=test-secret python3 -m pytest platform/tests/test_regression_matrix.py -q` -> `33 passed`
+  - `python3 -m pytest tests/ -x -q` -> `2 passed, 1 skipped`
+  - `npm --prefix frontend run build` -> success
+  - Merge Checklist grep 零命中，且 `frontend/app/page.tsx` 无改动。
+- 发布状态：当前无 ahead commit；按流程本轮不触发慢羊羊复审，不 push / 不 deploy。
+
+## 2026-02-25 19:29 持续推进
+- 按引擎流程先读 `docs/governance/perfection-standard.md` 与 `docs/governance/company-process.md`，并确认 `git status --short --branch` 为 `## main...origin/main`（无未发布本地 commit）。
+- 完成 2 项任务：
+  1) 第二批 P2-9 回归矩阵新增 `test_community_posts_following_sort_author_filter_excludes_non_followed_author`，锁定 `sort=following` + `author_id` 组合查询在未关注作者场景必须返回空态。
+  2) 运营增长任务：`docs/community/seed-posts.md` 新增 Post 51（组合过滤权限边界回归复盘）。
+- 验证结果：
+  - `JWT_SECRET_KEY=test-secret python3 -m pytest platform/tests/test_regression_matrix.py -q` -> `34 passed`
+  - `python3 -m pytest tests/ -x -q` -> `2 passed, 1 skipped`
+  - `npm --prefix frontend run build` -> success
+  - Merge Checklist grep 零命中，且 `frontend/app/page.tsx` 无改动。
+- 发布状态：当前无 ahead commit；按流程本轮不触发慢羊羊复审，不 push / 不 deploy。
