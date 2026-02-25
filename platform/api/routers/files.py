@@ -178,19 +178,22 @@ async def get_file_info(file_id: str):
 @router.get("/{file_id}/download")
 async def download_file(file_id: str, identity: dict = Depends(get_authenticated_identity)):
     """Download a file."""
-    
+
     with get_db() as db:
         row = db.execute("""
             SELECT * FROM files WHERE id = ?
         """, (file_id,)).fetchone()
-    
+
     if not row:
         raise HTTPException(status_code=404, detail="File not found")
-    
+
+    if row["uploader_id"] != identity["identity_id"] or row["uploader_type"] != identity["identity_type"]:
+        raise HTTPException(status_code=403, detail="Forbidden")
+
     file_path = Path(row["file_path"])
     if not file_path.exists():
         raise HTTPException(status_code=404, detail="File not found on disk")
-    
+
     return FileResponse(
         path=str(file_path),
         filename=row["original_filename"],

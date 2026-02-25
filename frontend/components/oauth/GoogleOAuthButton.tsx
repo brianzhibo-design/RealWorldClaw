@@ -35,7 +35,7 @@ export default function GoogleOAuthButton({ onError, className = "" }: GoogleOAu
       router.push("/dashboard");
     } catch (error) {
       console.error('Google auth error:', error);
-      onError?.("OAuth coming soon");
+      onError?.("Google OAuth is temporarily unavailable. Please try again later.");
     } finally {
       setLoading(false);
     }

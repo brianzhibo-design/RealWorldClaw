@@ -16,7 +16,9 @@ const nextConfig = {
   async redirects() {
     return [
       { source: '/devices', destination: '/map', permanent: true },
+      { source: '/devices/:path*', destination: '/map/:path*', permanent: true },
       { source: '/maker-orders', destination: '/orders', permanent: true },
+      { source: '/maker-orders/:path*', destination: '/orders/:path*', permanent: true },
     ];
   },
 };

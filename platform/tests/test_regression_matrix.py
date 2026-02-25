@@ -116,6 +116,22 @@ def test_files_download_missing_file_returns_404_when_authenticated(client):
     assert not_found.status_code == 404
 
 
+def test_files_download_forbidden_for_non_uploader(client):
+    uploader_headers, _ = _register_and_get_headers(client, email="owner@test.com", username="files_owner")
+    other_headers, _ = _register_and_get_headers(client, email="other@test.com", username="files_other")
+
+    upload = client.post(
+        f"{API}/files/upload",
+        headers=uploader_headers,
+        files={"file": ("private.stl", io.BytesIO(b"solid private\nendsolid"), "model/stl")},
+    )
+    assert upload.status_code == 200
+    file_id = upload.json()["file_id"]
+
+    forbidden = client.get(f"{API}/files/{file_id}/download", headers=other_headers)
+    assert forbidden.status_code == 403
+
+
 def test_ws_rejects_connection_when_token_missing(client):
     with client.websocket_connect(f"{API}/ws/orders/user_1") as ws:
         ws.send_json({"type": "pong"})

@@ -15,7 +15,7 @@ export default function GitHubOAuthButton({ className = "", onError }: GitHubOAu
     
     const clientId = process.env.NEXT_PUBLIC_GITHUB_CLIENT_ID;
     if (!clientId) {
-      onError?.("GitHub OAuth — Coming Soon");
+      onError?.("GitHub OAuth is not configured yet. Please contact support.");
       setLoading(false);
       return;
     }

@@ -15,7 +15,7 @@
 ### 第一批（P0/P1，立即修）
 1. Spaces创建契约不一致（前端缺display_name）
 2. WS鉴权协议不统一（前端auth message vs 后端query token）✅
-3. 文件下载无鉴权（/files/{id}/download裸露）
+3. 文件下载鉴权与所有权校验（/files/{id}/download）✅
 4. any类型残留（agents/register, GoogleOAuthButton）
 5. DB作用域问题（community.create_post连接关闭后使用db）
 6. 遗留迁移页清理（devices→map, maker-orders→orders用路由重写替代）
@@ -44,8 +44,18 @@
 - 2026-02-25 02:15 持续推进：再次对 `main...origin/main [ahead 1]` 执行完整发布门禁，结果全部通过（`tests/`、`frontend build`、Merge Checklist grep、首页保护）；已触发慢羊羊复审新会话 `agent:main:subagent:147042d9-83aa-4dba-ba88-ddb3d698b6aa`，复审通过前保持不 push / 不 deploy。
 - 2026-02-25 12:20 持续推进：修复 E2E 回归断言漂移（`tests/e2e/test_full_flow.py` 兼容 `/auth/register` 的 `AuthResponse.user` 结构）并将遗留社区路径 `/posts` 对齐为 `/community/posts`，同步适配 `post_type` 与列表返回结构；发布门禁复跑通过（`python3 -m pytest tests/ -x -q` -> `2 passed, 1 skipped`，`npm --prefix frontend run build` 成功，Merge Checklist grep 与首页保护通过），已触发慢羊羊复审会话 `agent:main:subagent:8c74806e-577c-447a-886e-898f870d9da4`，结论返回前不 push / 不 deploy。
 - 2026-02-25 12:30 持续推进：补强 P2-9 WebSocket 回归矩阵与鉴权边界，后端新增首帧鉴权超时（5s）与非法负载防护，并加上通知/订单/打印机频道最小权限校验（防跨用户订阅）；新增 5 条回归用例覆盖超时、payload 类型错误、空字典、客户端提前断开、跨用户订阅拒绝。验证 `python3 -m pytest platform/tests/test_regression_matrix.py -q` -> `14 passed`；并复跑发布门禁（`python3 -m pytest tests/ -x -q`、`npm --prefix frontend run build`、Merge Checklist grep + 首页保护）全部通过。
+- 2026-02-25 12:40 持续推进：继续闭环 P0/P1-1 Spaces 契约一致性，在 `platform/tests/test_regression_matrix.py` 扩展 `test_spaces_create_contract_includes_display_name`，新增列表接口断言（`GET /spaces` 必含创建项且 `display_name` 不丢失）；同步完成运营增长任务，新增社区真实进展素材 Post 21（WS 鉴权加固与回归数据）。验证结果：`python3 -m pytest platform/tests/test_regression_matrix.py -q` -> `14 passed`、`python3 -m pytest tests/ -x -q` -> `2 passed, 1 skipped`、`npm --prefix frontend run build` 成功，Merge Checklist grep 与首页保护通过。
+- 2026-02-25 12:50 持续推进：推进第一批 P0/P1-6 遗留迁移页清理，修复 `frontend/app/makers/register/page.tsx` 注册后跳转（`/maker-orders` → `/orders`），对齐当前信息架构；并补充运营增长素材 Post 22（路由债清理与转化一致性）。验证结果：`python3 -m pytest platform/tests/test_regression_matrix.py -q` -> `14 passed`、`npm --prefix frontend run build` 成功，Merge Checklist grep 与首页保护通过。
 
 ### 第三批（长期）
 11. SLO+观测体系
 12. 下载签名URL
 13. 完美标准看板化
+- 2026-02-25 13:00 持续推进：执行首页保护纠偏，回滚未审批的 `frontend/app/page.tsx` 工作树改动，确保“绝不改首页风格”硬约束持续满足；同时清理 OAuth 占位文案（`GoogleOAuthButton` / `GitHubOAuthButton`）中的 “Coming Soon” 表述，改为真实可执行错误提示，避免伪完成感。
+- 2026-02-25 13:00 验证：`python3 -m pytest tests/ -x -q` -> `2 passed, 1 skipped`；`npm --prefix frontend run build` 成功；Merge Checklist grep（`as any` / `mock|MOCK|fake|dummy` / `alert(` / `window.location.reload`）零命中；首页保护检查通过（`frontend/app/page.tsx` 无diff）。
+- 2026-02-25 13:10 持续推进：继续闭环第一批 P0/P1-6 遗留迁移页治理，将 Next.js 永久重定向从“仅根路径”扩展为“整族路径”——新增 `/devices/:path* -> /map/:path*`、`/maker-orders/:path* -> /orders/:path*`，避免历史深链残留导致 IA 裂缝。
+- 2026-02-25 13:10 运营增长：社区素材新增 Post 23（迁移路由整族重定向的真实工程复盘，含验证数据与实践结论）。
+- 2026-02-25 13:10 验证：`python3 -m pytest tests/ -x -q` -> `2 passed, 1 skipped`；`npm --prefix frontend run build` 成功；Merge Checklist grep（`as any` / `mock|MOCK|fake|dummy` / `alert(` / `window.location.reload`）零命中；首页保护检查通过（`frontend/app/page.tsx` 无diff）。
+- 2026-02-25 13:20 持续推进：继续闭环第一批 P0/P1-3 文件下载安全项，在 `platform/api/routers/files.py` 对 `/files/{id}/download` 增加上传者作用域校验（`uploader_id + uploader_type`），阻断“任意已认证用户读取他人文件”。
+- 2026-02-25 13:20 持续推进：回归矩阵新增 `test_files_download_forbidden_for_non_uploader`，覆盖跨用户下载拒绝(403)边界；同步新增社区真实进展素材 Post 24（文件所有权鉴权修复复盘）。
+- 2026-02-25 13:20 验证：`python3 -m pytest platform/tests/test_regression_matrix.py -q` -> `15 passed`；`python3 -m pytest tests/ -x -q` -> `2 passed, 1 skipped`；`npm --prefix frontend run build` 成功；Merge Checklist grep 与首页保护检查通过（`frontend/app/page.tsx` 无diff）。

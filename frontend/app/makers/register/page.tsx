@@ -93,7 +93,7 @@ export default function MakerRegisterPage() {
 
       setSuccess(true);
       setTimeout(() => {
-        router.push("/maker-orders");
+        router.push("/orders");
       }, 3000);
     } catch (err) {
       setError(getErrorMessage(err, "Unable to submit maker registration. Please review your information and try again."));
