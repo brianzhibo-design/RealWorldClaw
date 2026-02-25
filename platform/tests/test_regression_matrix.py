@@ -349,3 +349,55 @@ def test_ws_accepts_printer_subscription_for_token_owner(client):
 
     with client.websocket_connect(f"{API}/ws/printer/{user_id}?token={token}") as ws:
         ws.send_json({"type": "pong"})
+
+
+def test_community_post_best_answer_contract_persists_post_and_comment_fields(client):
+    author_headers, _ = _register_and_get_headers(
+        client,
+        email="bestanswerauthor@test.com",
+        username="best_answer_author",
+    )
+    helper_headers, _ = _register_and_get_headers(
+        client,
+        email="bestanswerhelper@test.com",
+        username="best_answer_helper",
+    )
+
+    post_resp = client.post(
+        f"{API}/community/posts",
+        json={"title": "Need help", "content": "How to calibrate?", "post_type": "discussion"},
+        headers=author_headers,
+    )
+    assert post_resp.status_code in (200, 201)
+    post_id = post_resp.json()["id"]
+
+    comment_resp = client.post(
+        f"{API}/community/posts/{post_id}/comments",
+        json={"content": "Use a 0.2mm feeler gauge and re-run test print."},
+        headers=helper_headers,
+    )
+    assert comment_resp.status_code in (200, 201)
+    comment_id = comment_resp.json()["id"]
+
+    mark_resp = client.post(
+        f"{API}/community/posts/{post_id}/best-answer",
+        json={"comment_id": comment_id},
+        headers=author_headers,
+    )
+    assert mark_resp.status_code == 200
+    marked = mark_resp.json()
+    assert marked["ok"] is True
+    assert marked["comment_id"] == comment_id
+
+    post_detail = client.get(f"{API}/community/posts/{post_id}")
+    assert post_detail.status_code == 200
+    detail_payload = post_detail.json()
+    assert detail_payload["best_answer_comment_id"] == comment_id
+    assert detail_payload["best_comment_id"] == comment_id
+    assert detail_payload["resolved_at"] is not None
+
+    comments = client.get(f"{API}/community/posts/{post_id}/comments")
+    assert comments.status_code == 200
+    payload = comments.json()
+    matched = next(item for item in payload if item["id"] == comment_id)
+    assert matched["is_best_answer"] is True

@@ -59,7 +59,7 @@ export default function ComponentsPage() {
       setComponents(Array.isArray(data) ? data : (data as { components: Component[] }).components || []);
       setError(null);
     } catch (err) {
-      // API unavailable - show coming soon instead of error
+      // API unavailable - fallback to empty state without surfacing an error
       setComponents([]);
       setError(null);
     } finally {

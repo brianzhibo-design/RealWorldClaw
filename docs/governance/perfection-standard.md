@@ -93,3 +93,10 @@
   2) 社区契约补强：`platform/api/routers/community.py` 新增个性化 feed（关注权重 + 新鲜度 + 互动因子）与 `POST /community/posts/{id}/best-answer`，并确保 `best_comment_id/resolved_at` 持久化字段一致。
 - 2026-02-25 17:19 验证：`JWT_SECRET_KEY=test-secret python3 -m pytest platform/tests/test_nodes.py platform/tests/test_community.py -q` -> `36 passed`；`python3 -m pytest tests/ -x -q` -> `2 passed, 1 skipped`；`npm --prefix frontend run build` 成功；Merge Checklist grep 与首页保护检查通过（`frontend/app/page.tsx` 无diff）。
 - 2026-02-25 17:19 流程：已形成本地提交 `c661e83`（`main...origin/main [ahead 1]`），已触发慢羊羊复审会话 `agent:main:subagent:2d4d1fa8-1802-484a-8811-f98742f20472`；复审结论返回前保持不 push / 不 deploy。
+- 2026-02-25 17:29 持续推进：继续收敛第二批 P2-9 回归矩阵，在 `platform/tests/test_nodes.py` 新增 `test_get_map_backfills_country_code_for_legacy_nodes`，锁定历史节点 `country_code` 缺失时的地图读取自愈契约（响应返回推断值 + DB 回填持久化）。
+- 2026-02-25 17:29 运营增长：`docs/community/seed-posts.md` 新增 Post 35（Legacy 节点国家码自愈链路复盘）。
+- 2026-02-25 17:29 质量治理：清理归档页面注释中的 “coming soon” 表述（`frontend/app/_archived/components/page.tsx`），维持“零 coming soon”硬约束。
+- 2026-02-25 17:29 验证：`JWT_SECRET_KEY=test-secret python3 -m pytest platform/tests/test_nodes.py -q` -> `25 passed`；`python3 -m pytest tests/ -x -q` -> `2 passed, 1 skipped`；`npm --prefix frontend run build` 成功；Merge Checklist grep 与首页保护检查通过（`frontend/app/page.tsx` 无改动）。
+- 2026-02-25 17:42 持续推进：继续补强第二批 P2-9 回归矩阵，在 `platform/tests/test_regression_matrix.py` 新增 `test_community_post_best_answer_contract_persists_post_and_comment_fields`，锁定最佳答案接口写入后在帖子详情（`best_answer_comment_id`/`best_comment_id`/`resolved_at`）与评论 `is_best_answer` 的一致性契约。
+- 2026-02-25 17:42 运营增长：`docs/community/seed-posts.md` 新增 Post 36（Best-answer 契约闭环复盘）。
+- 2026-02-25 17:42 验证：`JWT_SECRET_KEY=test-secret python3 -m pytest platform/tests/test_regression_matrix.py -q` -> `23 passed`；`python3 -m pytest tests/ -x -q` -> `2 passed, 1 skipped`；`npm --prefix frontend run build` 成功；首页保护满足（`frontend/app/page.tsx` 无改动）。

@@ -211,3 +211,28 @@
   - `npm --prefix frontend run build` -> success
   - Merge Checklist grep + 首页保护（`frontend/app/page.tsx` 无改动）全部通过
 - 流程遵守：因形成未发布本地 commit（`main...origin/main [ahead 1]`），已触发慢羊羊复审会话 `agent:main:subagent:2d4d1fa8-1802-484a-8811-f98742f20472`；复审通过前严格不 push / 不 deploy。
+
+## 2026-02-25 17:29 持续推进
+- 流程检查：先读 `docs/governance/perfection-standard.md` 与 `docs/governance/company-process.md`，并确认 `git status --short --branch` 为 `## main...origin/main`（无未发布本地 commit）。
+- 执行动作（1-2项）：
+  1) 在 `platform/tests/test_nodes.py` 新增 `test_get_map_backfills_country_code_for_legacy_nodes`，验证 legacy 节点在 `country_code` 为空时，地图查询可完成推断并回填数据库。
+  2) 清理 `frontend/app/_archived/components/page.tsx` 中 `coming soon` 注释表述，防止违反“零 coming soon”约束。
+- 运营增长：`docs/community/seed-posts.md` 新增 Post 35（节点国家码自愈链路复盘）。
+- 验证：
+  - `JWT_SECRET_KEY=test-secret python3 -m pytest platform/tests/test_nodes.py -q` -> `25 passed`
+  - `python3 -m pytest tests/ -x -q` -> `2 passed, 1 skipped`
+  - `npm --prefix frontend run build` -> success
+  - Merge Checklist grep + 首页保护通过（`frontend/app/page.tsx` 无改动）
+- 发布状态：当前仅工作树改动、无 ahead commit；按流程本轮不触发慢羊羊复审，不 push / 不 deploy。
+
+## 2026-02-25 17:42 持续推进
+- 流程检查：先读取 `docs/governance/perfection-standard.md` 与 `docs/governance/company-process.md`，并确认 `git status --short --branch` 为 `## main...origin/main`（无未发布本地 commit）。
+- 执行动作（1-2项）：
+  1) 在 `platform/tests/test_regression_matrix.py` 新增 `test_community_post_best_answer_contract_persists_post_and_comment_fields`，锁定最佳答案接口写入后帖子详情（`best_answer_comment_id`/`best_comment_id`/`resolved_at`）与评论 `is_best_answer` 的一致性。
+  2) 在 `docs/community/seed-posts.md` 新增 Post 36（Best-answer 契约闭环复盘）作为真实社区增长素材。
+- 验证：
+  - `JWT_SECRET_KEY=test-secret python3 -m pytest platform/tests/test_regression_matrix.py -q` -> `23 passed`
+  - `python3 -m pytest tests/ -x -q` -> `2 passed, 1 skipped`
+  - `npm --prefix frontend run build` -> success
+  - 首页保护满足（`frontend/app/page.tsx` 无改动）
+- 发布状态：当前仅工作树改动，`main...origin/main` 无 ahead commit；按流程本轮不触发慢羊羊复审，不 push / 不 deploy。

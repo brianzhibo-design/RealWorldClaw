@@ -156,3 +156,26 @@
   - `npm --prefix frontend run build` ✅（成功）
   - Merge Checklist grep + 首页保护 ✅（零命中，`frontend/app/page.tsx` 无改动）
 - 发布状态：已提交 `c661e83`，当前 `main...origin/main [ahead 1]`；已按流程触发慢羊羊复审 `agent:main:subagent:2d4d1fa8-1802-484a-8811-f98742f20472`，结论返回前不 push / 不 deploy。
+
+## 当前状态（17:29 更新）
+- 本轮动作（1-2项已完成）：
+  - 第二批 P2-9 数据一致性回归补强：`platform/tests/test_nodes.py` 新增 `test_get_map_backfills_country_code_for_legacy_nodes`，覆盖历史节点 `country_code` 为空时的“读取即修复 + 持久化回填”契约。
+  - 运营增长补充：`docs/community/seed-posts.md` 新增 Post 35（Legacy 节点国家码自愈链路复盘）。
+  - 质量债清理：移除归档页面中的 `coming soon` 表述注释（`frontend/app/_archived/components/page.tsx`），保持“零 coming soon”硬约束持续满足。
+- 验证结果：
+  - `JWT_SECRET_KEY=test-secret python3 -m pytest platform/tests/test_nodes.py -q` ✅（25 passed）
+  - `python3 -m pytest tests/ -x -q` ✅（2 passed, 1 skipped）
+  - `npm --prefix frontend run build` ✅（成功）
+  - Merge Checklist grep + 首页保护 ✅（`as any`/`mock|fake|dummy`/`coming soon`/`alert(`/`window.location.reload` 零命中；`frontend/app/page.tsx` 无改动）
+- 发布状态：当前为工作树改动，`main...origin/main` 无 ahead commit；按流程本轮不触发慢羊羊复审，不 push / 不 deploy。
+
+## 当前状态（17:42 更新）
+- 本轮动作（1-2项已完成）：
+  - 第二批 P2-9 社区契约回归补强：`platform/tests/test_regression_matrix.py` 新增 `test_community_post_best_answer_contract_persists_post_and_comment_fields`，覆盖 `POST /community/posts/{id}/best-answer` 后帖子详情字段与评论最佳答案标记的一致性。
+  - 运营增长补充：`docs/community/seed-posts.md` 新增 Post 36（Best-answer 契约闭环复盘）。
+- 验证结果：
+  - `JWT_SECRET_KEY=test-secret python3 -m pytest platform/tests/test_regression_matrix.py -q` ✅（23 passed）
+  - `python3 -m pytest tests/ -x -q` ✅（2 passed, 1 skipped）
+  - `npm --prefix frontend run build` ✅（成功）
+  - 首页保护：`frontend/app/page.tsx` 无改动
+- 发布状态：当前仅工作树改动，`main...origin/main` 无 ahead commit；按流程本轮不触发慢羊羊复审，不 push / 不 deploy。
