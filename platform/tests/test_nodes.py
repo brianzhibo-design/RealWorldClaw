@@ -161,6 +161,25 @@ class TestNodeMap:
         assert "health_score" in node
         assert node["health_score"] >= 0
         assert "owner_id" not in node  # Owner should not be exposed
+
+    def test_get_map_backfills_country_code_for_legacy_nodes(self, mock_agent):
+        """Test map response backfills missing country_code for legacy rows."""
+        headers = {"Authorization": f"Bearer {mock_agent['api_key']}"}
+        register_response = client.post("/api/v1/nodes/register", json=SAMPLE_NODE_DATA, headers=headers)
+        node_id = register_response.json()["id"]
+
+        with get_db() as db:
+            db.execute("UPDATE nodes SET country_code = NULL WHERE id = ?", (node_id,))
+
+        response = client.get("/api/v1/nodes/map")
+        assert response.status_code == 200
+        data = response.json()
+        assert len(data) == 1
+        assert data[0]["country_code"] == "CN"
+
+        with get_db() as db:
+            row = db.execute("SELECT country_code FROM nodes WHERE id = ?", (node_id,)).fetchone()
+            assert row["country_code"] == "CN"
     
     def test_map_health_metrics_computed(self, mock_agent):
         """Test online_duration_hours and health_score in map response."""

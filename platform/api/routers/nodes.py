@@ -129,6 +129,19 @@ def _row_to_node_response(row: dict) -> NodeResponse:
     online_duration_hours = _compute_online_duration_hours(row.get("created_at"), row.get("last_heartbeat"))
     health_score = round(min(100.0, (online_duration_hours / 24.0) * 100.0), 2)
 
+    # Backfill country_code dynamically if missing
+    country_code = row.get("country_code")
+    if not country_code and row.get("latitude") and row.get("longitude"):
+        country_code = _infer_country_code(row["latitude"], row["longitude"])
+        # Opportunistically update DB (best effort)
+        try:
+            if country_code:
+                with get_db() as db:
+                    db.execute("UPDATE nodes SET country_code = ? WHERE id = ? AND country_code IS NULL", (country_code, row["id"]))
+                    db.commit()
+        except Exception:
+            pass
+
     return NodeResponse(
         id=row["id"],
         name=row["name"],
@@ -141,7 +154,7 @@ def _row_to_node_response(row: dict) -> NodeResponse:
         build_volume_y=row["build_volume_y"],
         build_volume_z=row["build_volume_z"],
         description=row["description"],
-        country_code=row.get("country_code"),
+        country_code=country_code,
         region_code=row.get("region_code"),
         verification_level=row.get("verification_level") or 0,
         verification_score=row.get("verification_score") or 0.0,
