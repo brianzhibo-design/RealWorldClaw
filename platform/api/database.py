@@ -156,6 +156,7 @@ def init_db():
                 "CREATE TABLE IF NOT EXISTS space_members (space_id TEXT NOT NULL, user_id TEXT NOT NULL, role TEXT DEFAULT 'member', joined_at TEXT NOT NULL, PRIMARY KEY(space_id, user_id))",
                 "CREATE TABLE IF NOT EXISTS direct_messages (id TEXT PRIMARY KEY, sender_id TEXT NOT NULL, recipient_id TEXT NOT NULL, content TEXT NOT NULL, read INTEGER NOT NULL DEFAULT 0, created_at TEXT NOT NULL)",
                 "CREATE TABLE IF NOT EXISTS messages (id TEXT PRIMARY KEY, from_user TEXT NOT NULL, to_user TEXT NOT NULL, content TEXT NOT NULL, read INTEGER DEFAULT 0, created_at TEXT NOT NULL)",
+                "CREATE TABLE IF NOT EXISTS reports (id TEXT PRIMARY KEY, reporter_id TEXT NOT NULL, target_type TEXT NOT NULL, target_id TEXT NOT NULL, reason TEXT NOT NULL, description TEXT, status TEXT DEFAULT 'pending', resolved_by TEXT, resolution_action TEXT, resolution_notes TEXT, created_at TEXT NOT NULL, resolved_at TEXT)",
                 "CREATE INDEX IF NOT EXISTS idx_dm_sender_recipient ON direct_messages(sender_id, recipient_id)",
                 "CREATE INDEX IF NOT EXISTS idx_dm_created_at ON direct_messages(created_at)",
                 "CREATE INDEX IF NOT EXISTS idx_dm_recipient_read ON direct_messages(recipient_id, read, created_at)",
@@ -187,6 +188,11 @@ def init_db():
             callback_url TEXT,
             avatar_url TEXT,
             hardware_inventory TEXT,  -- JSON array
+            bio TEXT,
+            capabilities_tags TEXT,  -- JSON array
+            verification_badge TEXT NOT NULL DEFAULT 'none',
+            total_jobs_completed INTEGER NOT NULL DEFAULT 0,
+            success_rate REAL NOT NULL DEFAULT 0,
             location_city TEXT,
             location_country TEXT,
             claim_token TEXT,
@@ -534,6 +540,17 @@ def init_db():
             db.execute("ALTER TABLE agents ADD COLUMN avatar_url TEXT")
         except Exception:
             pass
+        for stmt in [
+            "ALTER TABLE agents ADD COLUMN bio TEXT",
+            "ALTER TABLE agents ADD COLUMN capabilities_tags TEXT",
+            "ALTER TABLE agents ADD COLUMN verification_badge TEXT NOT NULL DEFAULT 'none'",
+            "ALTER TABLE agents ADD COLUMN total_jobs_completed INTEGER NOT NULL DEFAULT 0",
+            "ALTER TABLE agents ADD COLUMN success_rate REAL NOT NULL DEFAULT 0",
+        ]:
+            try:
+                db.execute(stmt)
+            except Exception:
+                pass
 
         try:
             db.execute("ALTER TABLE orders ADD COLUMN file_id TEXT")
@@ -618,6 +635,23 @@ def init_db():
                 content TEXT NOT NULL,
                 read INTEGER DEFAULT 0,
                 created_at TEXT NOT NULL
+            )
+        """)
+
+        db.execute("""
+            CREATE TABLE IF NOT EXISTS reports (
+                id TEXT PRIMARY KEY,
+                reporter_id TEXT NOT NULL,
+                target_type TEXT NOT NULL,
+                target_id TEXT NOT NULL,
+                reason TEXT NOT NULL,
+                description TEXT,
+                status TEXT DEFAULT 'pending',
+                resolved_by TEXT,
+                resolution_action TEXT,
+                resolution_notes TEXT,
+                created_at TEXT NOT NULL,
+                resolved_at TEXT
             )
         """)
 

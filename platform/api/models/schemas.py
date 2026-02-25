@@ -116,6 +116,11 @@ class AgentResponse(BaseModel):
     reputation: int = 0
     tier: AgentTier = AgentTier.newcomer
     callback_url: Optional[str] = None
+    bio: Optional[str] = None
+    capabilities_tags: list[str] = []
+    verification_badge: Literal["none", "verified", "trusted"] = "none"
+    total_jobs_completed: int = 0
+    success_rate: float = 0.0
     created_at: datetime
     updated_at: datetime
 

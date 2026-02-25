@@ -37,6 +37,12 @@ def _tier_for_rep(rep: int) -> str:
 
 
 def _row_to_agent(row) -> AgentResponse:
+    capabilities_tags_raw = row["capabilities_tags"] if "capabilities_tags" in row.keys() else None
+    try:
+        capabilities_tags = json.loads(capabilities_tags_raw) if capabilities_tags_raw else []
+    except Exception:
+        capabilities_tags = []
+
     return AgentResponse(
         id=row["id"],
         name=row["name"],
@@ -47,6 +53,11 @@ def _row_to_agent(row) -> AgentResponse:
         reputation=row["reputation"],
         tier=row["tier"],
         callback_url=row["callback_url"],
+        bio=row["bio"] if "bio" in row.keys() else None,
+        capabilities_tags=capabilities_tags,
+        verification_badge=row["verification_badge"] if "verification_badge" in row.keys() and row["verification_badge"] else "none",
+        total_jobs_completed=row["total_jobs_completed"] if "total_jobs_completed" in row.keys() and row["total_jobs_completed"] is not None else 0,
+        success_rate=float(row["success_rate"]) if "success_rate" in row.keys() and row["success_rate"] is not None else 0.0,
         created_at=datetime.fromisoformat(row["created_at"]),
         updated_at=datetime.fromisoformat(row["updated_at"]),
     )
