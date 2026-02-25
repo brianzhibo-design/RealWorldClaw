@@ -91,6 +91,10 @@ def _row_to_node_response(row: dict) -> NodeResponse:
         build_volume_y=row["build_volume_y"],
         build_volume_z=row["build_volume_z"],
         description=row["description"],
+        country_code=row.get("country_code"),
+        region_code=row.get("region_code"),
+        verification_level=row.get("verification_level") or 0,
+        verification_score=row.get("verification_score") or 0.0,
         status=NodeStatus(row["status"]),
         online_status=_compute_online_status(row.get("last_heartbeat")),
         last_heartbeat=row["last_heartbeat"],
@@ -171,23 +175,50 @@ def register_node(request: NodeRegisterRequest, identity: dict = Depends(get_aut
     return _row_to_node_detail(dict(row))
 
 
-@router.get("/map", response_model=List[NodeResponse])
-def get_map_nodes():
-    """Get all nodes for world map display (public, anonymized)"""
+@router.get("/map")
+async def get_map_nodes(level: str = "node", country_code: str = None):
+    """Get map data. level=node returns node list; level=region returns country aggregation."""
     with get_db() as db:
-        # Only return nodes that have sent heartbeat within timeout period
+        if level == "region":
+            rows = db.execute(
+                """
+                SELECT
+                    country_code,
+                    COUNT(*) AS node_count,
+                    SUM(CASE WHEN status IN ('online','idle') THEN 1 ELSE 0 END) AS online_count
+                FROM nodes
+                WHERE country_code IS NOT NULL
+                GROUP BY country_code
+                ORDER BY node_count DESC
+                """
+            ).fetchall()
+            return [
+                {
+                    "country_code": row["country_code"],
+                    "node_count": row["node_count"],
+                    "online_count": row["online_count"] or 0,
+                }
+                for row in rows
+            ]
+
+        # Default node-level response
         cutoff_time = datetime.now(timezone.utc) - timedelta(minutes=HEARTBEAT_TIMEOUT_MINUTES)
-        
-        rows = db.execute("""
-            SELECT * FROM nodes 
+
+        query = """
+            SELECT * FROM nodes
             WHERE last_heartbeat IS NULL OR last_heartbeat > ?
-            ORDER BY created_at DESC
-        """, (cutoff_time.isoformat(),)).fetchall()
-        
-        # Update offline status for nodes that haven't sent heartbeat
+        """
+        params = [cutoff_time.isoformat()]
+        if country_code:
+            query += " AND country_code = ?"
+            params.append(country_code)
+        query += " ORDER BY created_at DESC"
+
+        rows = db.execute(query, params).fetchall()
+
         nodes_to_mark_offline = []
         result = []
-        
+
         for row in rows:
             row_dict = dict(row)
             if row_dict["last_heartbeat"]:
@@ -195,14 +226,13 @@ def get_map_nodes():
                 if last_heartbeat < cutoff_time:
                     nodes_to_mark_offline.append(row_dict["id"])
                     row_dict["status"] = NodeStatus.offline.value
-            
+
             result.append(_row_to_node_response(row_dict))
-        
-        # Mark timed-out nodes as offline
+
         if nodes_to_mark_offline:
             placeholders = ",".join(["?" for _ in nodes_to_mark_offline])
             db.execute(f"UPDATE nodes SET status = 'offline' WHERE id IN ({placeholders})", nodes_to_mark_offline)
-        
+
         return result
 
 

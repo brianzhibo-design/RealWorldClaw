@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { WorldMap } from '@/components/WorldMap';
 import { MapFilters } from '@/components/MapFilters';
 import { NodeDetails } from '@/components/NodeDetails';
-import { ManufacturingNode, fetchMapNodes } from '@/lib/nodes';
+import { ManufacturingNode, MapRegionSummary, fetchMapNodes, fetchMapRegions } from '@/lib/nodes';
 import { EmptyState } from '@/components/EmptyState';
 import { ErrorState } from '@/components/ErrorState';
 
@@ -37,11 +37,13 @@ export default function MapPage() {
   }, []);
 
   const [nodes, setNodes] = useState<ManufacturingNode[]>([]);
+  const [regions, setRegions] = useState<MapRegionSummary[]>([]);
   const [selectedNode, setSelectedNode] = useState<ManufacturingNode | null>(null);
   const [hoveredNode, setHoveredNode] = useState<ManufacturingNode | null>(null);
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
   const [selectedMaterials, setSelectedMaterials] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [activeMode, setActiveMode] = useState<'nodes' | 'community'>('nodes');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -50,8 +52,9 @@ export default function MapPage() {
       try {
         setLoading(true);
         setError(null);
-        const data = await fetchMapNodes();
-        setNodes(data);
+        const [nodeData, regionData] = await Promise.all([fetchMapNodes(), fetchMapRegions()]);
+        setNodes(nodeData);
+        setRegions(regionData);
       } catch (err: unknown) {
         console.error('Failed to fetch map nodes:', err);
         setError(err instanceof Error ? err.message : 'Failed to load');
@@ -112,6 +115,25 @@ export default function MapPage() {
               <span className="text-cyan-300">Claw</span> Global Fabrication Grid
             </h1>
           </Link>
+
+          <div className="ml-2 sm:ml-4 rounded-lg border border-slate-700/80 bg-[#0f1720]/85 p-1 flex items-center gap-1">
+            <button
+              onClick={() => setActiveMode('nodes')}
+              className={`px-2.5 sm:px-3 py-1.5 rounded-md text-xs sm:text-sm font-medium transition-colors ${
+                activeMode === 'nodes' ? 'bg-emerald-500/25 text-emerald-200 border border-emerald-400/40' : 'text-slate-300 hover:text-white'
+              }`}
+            >
+              Nodes
+            </button>
+            <button
+              onClick={() => setActiveMode('community')}
+              className={`px-2.5 sm:px-3 py-1.5 rounded-md text-xs sm:text-sm font-medium transition-colors ${
+                activeMode === 'community' ? 'bg-cyan-500/20 text-cyan-200 border border-cyan-400/40' : 'text-slate-300 hover:text-white'
+              }`}
+            >
+              Community
+            </button>
+          </div>
         </div>
 
         <div className="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm">
@@ -128,53 +150,65 @@ export default function MapPage() {
         </div>
       </header>
 
-      <div className="absolute top-[3.6rem] left-3 right-3 sm:left-6 sm:right-auto z-30">
-        <div className="grid grid-cols-3 gap-2 sm:gap-3 rounded-xl border border-emerald-400/20 bg-[#0f1720]/78 backdrop-blur-md p-2.5 sm:p-3 shadow-[0_0_26px_rgba(16,185,129,0.12)]">
-          {stats.map((s) => (
-            <div key={s.label} className="rounded-md border border-slate-700/70 bg-slate-900/45 px-2.5 py-2 sm:px-3">
-              <div className="text-[10px] sm:text-[11px] uppercase tracking-[0.18em] text-slate-400">{s.label}</div>
-              <div className={`text-sm sm:text-xl font-semibold mt-0.5 ${s.accent || 'text-white'}`}>{s.value}</div>
+      {activeMode === 'nodes' ? (
+        <>
+          <div className="absolute top-[3.6rem] left-3 right-3 sm:left-6 sm:right-auto z-30">
+            <div className="grid grid-cols-3 gap-2 sm:gap-3 rounded-xl border border-emerald-400/20 bg-[#0f1720]/78 backdrop-blur-md p-2.5 sm:p-3 shadow-[0_0_26px_rgba(16,185,129,0.12)]">
+              {stats.map((s) => (
+                <div key={s.label} className="rounded-md border border-slate-700/70 bg-slate-900/45 px-2.5 py-2 sm:px-3">
+                  <div className="text-[10px] sm:text-[11px] uppercase tracking-[0.18em] text-slate-400">{s.label}</div>
+                  <div className={`text-sm sm:text-xl font-semibold mt-0.5 ${s.accent || 'text-white'}`}>{s.value}</div>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
-      </div>
+          </div>
 
-      <div className="absolute inset-0 pt-14">
-        <WorldMap
-          nodes={nodes}
-          selectedTypes={selectedTypes}
-          selectedMaterials={selectedMaterials}
-          searchQuery={searchQuery}
-          onNodeClick={(node) => setSelectedNode(node)}
-          hoveredNode={hoveredNode}
-          onNodeHover={setHoveredNode}
-        />
-      </div>
+          <div className="absolute inset-0 pt-14">
+            <WorldMap
+              nodes={nodes}
+              regions={regions}
+              selectedTypes={selectedTypes}
+              selectedMaterials={selectedMaterials}
+              searchQuery={searchQuery}
+              onNodeClick={(node) => setSelectedNode(node)}
+              hoveredNode={hoveredNode}
+              onNodeHover={setHoveredNode}
+            />
+          </div>
 
-      <div className="absolute top-40 left-2 sm:top-40 sm:left-4 z-20">
-        <MapFilters
-          selectedTypes={selectedTypes}
-          onTypesChange={setSelectedTypes}
-          selectedMaterials={selectedMaterials}
-          onMaterialsChange={setSelectedMaterials}
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
-        />
-      </div>
+          <div className="absolute top-40 left-2 sm:top-40 sm:left-4 z-20">
+            <MapFilters
+              selectedTypes={selectedTypes}
+              onTypesChange={setSelectedTypes}
+              selectedMaterials={selectedMaterials}
+              onMaterialsChange={setSelectedMaterials}
+              searchQuery={searchQuery}
+              onSearchChange={setSearchQuery}
+            />
+          </div>
 
-      {selectedNode && (
-        <div className="absolute bottom-2 right-2 sm:bottom-4 sm:right-4 z-30">
-          <NodeDetails node={selectedNode} onClose={() => setSelectedNode(null)} />
-        </div>
-      )}
+          {selectedNode && (
+            <div className="absolute bottom-2 right-2 sm:bottom-4 sm:right-4 z-30">
+              <NodeDetails node={selectedNode} onClose={() => setSelectedNode(null)} />
+            </div>
+          )}
 
-      {!loading && nodes.length === 0 && (
-        <div className="absolute inset-0 flex items-center justify-center z-10 px-4">
-          <EmptyState
-            icon="🌍"
-            title="Be the first to register a node"
-            description="No manufacturing nodes online yet. Start the global network by registering your machine."
-          />
+          {!loading && nodes.length === 0 && (
+            <div className="absolute inset-0 flex items-center justify-center z-10 px-4">
+              <EmptyState
+                icon="🌍"
+                title="Be the first to register a node"
+                description="No manufacturing nodes online yet. Start the global network by registering your machine."
+              />
+            </div>
+          )}
+        </>
+      ) : (
+        <div className="absolute inset-0 pt-14 flex items-center justify-center px-4">
+          <div className="w-full max-w-xl rounded-2xl border border-cyan-400/20 bg-[#0f1720]/88 backdrop-blur-md p-8 text-center shadow-[0_0_30px_rgba(34,211,238,0.12)]">
+            <div className="text-cyan-300 text-lg font-semibold mb-2">Community</div>
+            <div className="text-slate-300 text-sm">Coming Soon</div>
+          </div>
         </div>
       )}
     </div>

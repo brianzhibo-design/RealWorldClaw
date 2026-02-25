@@ -24,6 +24,16 @@ export interface ManufacturingNode {
   created_at: string;
 }
 
+export interface MapRegionSummary {
+  country?: string;
+  country_code?: string;
+  region?: string;
+  latitude?: number;
+  longitude?: number;
+  online_count?: number;
+  total_count?: number;
+}
+
 // Display helpers
 export const NODE_TYPE_INFO: Record<string, { name: string; icon: string; color: string }> = {
   '3d_printer': { name: '3D Printer', icon: '🖨️', color: '#38bdf8' },
@@ -44,6 +54,17 @@ export const STATUS_COLORS: Record<string, string> = {
 export async function fetchMapNodes(): Promise<ManufacturingNode[]> {
   try {
     const res = await fetch(`${API_BASE}/nodes/map`, { cache: 'no-store' });
+    if (!res.ok) return [];
+    return await res.json();
+  } catch {
+    return [];
+  }
+}
+
+/** Fetch region/country aggregation for the world map */
+export async function fetchMapRegions(): Promise<MapRegionSummary[]> {
+  try {
+    const res = await fetch(`${API_BASE}/nodes/map?level=region`, { cache: 'no-store' });
     if (!res.ok) return [];
     return await res.json();
   } catch {

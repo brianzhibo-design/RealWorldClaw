@@ -1,13 +1,14 @@
 "use client";
 
-import { useState, useMemo, useRef, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { ComposableMap, Geographies, Geography, Marker, ZoomableGroup } from 'react-simple-maps';
-import { ManufacturingNode, NODE_TYPE_INFO, STATUS_COLORS } from '@/lib/nodes';
+import { ManufacturingNode, MapRegionSummary, NODE_TYPE_INFO, STATUS_COLORS } from '@/lib/nodes';
 
 const geoUrl = '/world-110m.json';
 
 interface WorldMapProps {
   nodes: ManufacturingNode[];
+  regions?: MapRegionSummary[];
   selectedTypes?: string[];
   selectedMaterials?: string[];
   searchQuery?: string;
@@ -16,8 +17,43 @@ interface WorldMapProps {
   onNodeHover?: (node: ManufacturingNode | null) => void;
 }
 
+interface CountrySummary {
+  key: string;
+  label: string;
+  online: number;
+  total: number;
+  center: [number, number];
+}
+
+function normalizeCountryValue(value: string): string {
+  return value.trim().toLowerCase();
+}
+
+function getNodeCountryKeys(node: ManufacturingNode): string[] {
+  const keys: string[] = [];
+
+  if (typeof node.country === 'string' && node.country.trim()) {
+    keys.push(normalizeCountryValue(node.country));
+  }
+
+  if (typeof node.country_code === 'string' && node.country_code.trim()) {
+    keys.push(normalizeCountryValue(node.country_code));
+  }
+
+  return keys;
+}
+
+function getGeoCountryKeys(geo: any): string[] {
+  const props = geo?.properties || {};
+  const values = [props.NAME, props.NAME_LONG, props.ADMIN, props.ISO_A2, props.ISO_A3];
+  return values
+    .filter((v) => typeof v === 'string' && v.trim())
+    .map((v) => normalizeCountryValue(v));
+}
+
 export function WorldMap({
   nodes,
+  regions = [],
   selectedTypes = [],
   selectedMaterials = [],
   searchQuery = '',
@@ -27,13 +63,9 @@ export function WorldMap({
 }: WorldMapProps) {
   const [zoom, setZoom] = useState(1);
   const [center, setCenter] = useState<[number, number]>([0, 20]);
-  const animatingRef = useRef<number | null>(null);
+  const [selectedNode, setSelectedNode] = useState<ManufacturingNode | null>(null);
 
-  useEffect(() => {
-    return () => {
-      if (animatingRef.current) cancelAnimationFrame(animatingRef.current);
-    };
-  }, []);
+  const level = zoom < 2 ? 1 : zoom < 5 ? 2 : 3;
 
   const filteredNodes = useMemo(() => {
     return nodes.filter((node) => {
@@ -50,43 +82,106 @@ export function WorldMap({
     });
   }, [nodes, selectedTypes, selectedMaterials, searchQuery]);
 
-  const getNodeSize = (node: ManufacturingNode) => {
-    const vol = (node.build_volume_x || 200) * (node.build_volume_y || 200) * (node.build_volume_z || 200);
-    const base = Math.max(7, Math.min(20, Math.log(vol) * 2));
-    return Math.max(4, base / Math.sqrt(zoom));
+  const countrySummaries = useMemo(() => {
+    if (regions.length > 0) {
+      const map = new Map<string, CountrySummary>();
+      regions.forEach((region) => {
+        const keySource = region.country_code || region.country;
+        if (!keySource) return;
+        const key = normalizeCountryValue(keySource);
+
+        const online = Number(region.online_count ?? 0);
+        const total = Number(region.total_count ?? 0);
+        const lat = Number(region.latitude ?? 0);
+        const lng = Number(region.longitude ?? 0);
+        const hasCoord = Number.isFinite(lat) && Number.isFinite(lng) && !(lat === 0 && lng === 0);
+
+        map.set(key, {
+          key,
+          label: region.country_code || region.country || key.toUpperCase(),
+          online,
+          total,
+          center: hasCoord ? [lng, lat] : [0, 0],
+        });
+      });
+      return map;
+    }
+
+    const map = new Map<
+      string,
+      {
+        label: string;
+        online: number;
+        total: number;
+        sumLat: number;
+        sumLng: number;
+        count: number;
+      }
+    >();
+
+    filteredNodes.forEach((node) => {
+      const key = normalizeCountryValue(node.country_code || node.country || '');
+      if (!key) return;
+      const current = map.get(key) || {
+        label: node.country_code || node.country || key.toUpperCase(),
+        online: 0,
+        total: 0,
+        sumLat: 0,
+        sumLng: 0,
+        count: 0,
+      };
+
+      current.total += 1;
+      if (node.status === 'online' || node.status === 'idle') current.online += 1;
+      current.sumLat += node.fuzzy_latitude;
+      current.sumLng += node.fuzzy_longitude;
+      current.count += 1;
+
+      map.set(key, current);
+    });
+
+    const result = new Map<string, CountrySummary>();
+    map.forEach((value, key) => {
+      result.set(key, {
+        key,
+        label: value.label,
+        online: value.online,
+        total: value.total,
+        center: [value.sumLng / value.count, value.sumLat / value.count],
+      });
+    });
+    return result;
+  }, [regions, filteredNodes]);
+
+  const countryKeysWithNodes = useMemo(() => {
+    const set = new Set<string>();
+    countrySummaries.forEach((summary, key) => {
+      if (summary.total > 0) set.add(key);
+    });
+    filteredNodes.forEach((node) => {
+      getNodeCountryKeys(node).forEach((key) => set.add(key));
+    });
+    return set;
+  }, [countrySummaries, filteredNodes]);
+
+  const getNodeSize = () => {
+    if (level === 2) return 4;
+    return 5.5;
   };
 
-  const smoothMoveTo = (targetCenter: [number, number], targetZoom: number) => {
-    if (animatingRef.current) cancelAnimationFrame(animatingRef.current);
-
-    const startCenter = center;
-    const startZoom = zoom;
-    const duration = 550;
-    const start = performance.now();
-
-    const easeInOutCubic = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
-
-    const tick = (now: number) => {
-      const elapsed = now - start;
-      const progress = Math.min(1, elapsed / duration);
-      const eased = easeInOutCubic(progress);
-
-      setCenter([
-        startCenter[0] + (targetCenter[0] - startCenter[0]) * eased,
-        startCenter[1] + (targetCenter[1] - startCenter[1]) * eased,
-      ]);
-      setZoom(startZoom + (targetZoom - startZoom) * eased);
-
-      if (progress < 1) {
-        animatingRef.current = requestAnimationFrame(tick);
-      }
-    };
-
-    animatingRef.current = requestAnimationFrame(tick);
+  const updateView = (targetCenter: [number, number], targetZoom: number) => {
+    setCenter(targetCenter);
+    setZoom(targetZoom);
   };
 
   return (
-    <div className="relative w-full h-full bg-[#131921] overflow-hidden">
+    <div
+      className="relative w-full h-full bg-[#131921] overflow-hidden"
+      onClick={() => {
+        setSelectedNode(null);
+        onNodeHover?.(null);
+      }}
+    >
       <div className="absolute inset-0 opacity-80 pointer-events-none">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_35%,rgba(16,185,129,0.14),rgba(19,25,33,0.96)_52%,rgba(8,13,20,1)_100%)]" />
         <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(16,185,129,0.08)_1px,transparent_1px),linear-gradient(to_bottom,rgba(34,211,238,0.06)_1px,transparent_1px)] bg-[size:64px_64px]" />
@@ -95,15 +190,18 @@ export function WorldMap({
 
       <div className="absolute top-4 right-4 z-20 flex flex-col gap-2">
         {[
-          { label: '+', action: () => zoom < 8 && smoothMoveTo(center, Math.min(8, zoom * 1.4)), ariaLabel: 'Zoom in' },
-          { label: '−', action: () => zoom > 1 && smoothMoveTo(center, Math.max(1, zoom / 1.4)), ariaLabel: 'Zoom out' },
-          { label: '⌂', action: () => smoothMoveTo([0, 20], 1), ariaLabel: 'Reset view' },
+          { label: '+', action: () => zoom < 8 && updateView(center, Math.min(8, zoom * 1.4)), ariaLabel: 'Zoom in' },
+          { label: '−', action: () => zoom > 1 && updateView(center, Math.max(1, zoom / 1.4)), ariaLabel: 'Zoom out' },
+          { label: '⌂', action: () => updateView([0, 20], 1), ariaLabel: 'Reset view' },
         ].map(({ label, action, ariaLabel }) => (
           <button
             key={label}
-            onClick={action}
+            onClick={(e) => {
+              e.stopPropagation();
+              action();
+            }}
             aria-label={ariaLabel}
-            className="w-10 h-10 rounded-lg border border-emerald-400/30 bg-[#101821]/90 backdrop-blur-md text-emerald-200 text-lg font-bold flex items-center justify-center hover:bg-[#15222f] hover:border-emerald-300/50 transition-all"
+            className="w-10 h-10 rounded-lg border border-emerald-400/30 bg-[#101821]/90 backdrop-blur-md text-emerald-200 text-lg font-bold flex items-center justify-center hover:bg-[#15222f] hover:border-emerald-300/50 transition-colors"
           >
             {label}
           </button>
@@ -111,25 +209,6 @@ export function WorldMap({
       </div>
 
       <ComposableMap width={1200} height={600} projectionConfig={{ scale: 150 }} style={{ width: '100%', height: '100%' }}>
-        <defs>
-          <linearGradient id="landGradient" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="#0f2a2d" />
-            <stop offset="45%" stopColor="#174a45" />
-            <stop offset="100%" stopColor="#0d3a4f" />
-          </linearGradient>
-          <radialGradient id="landGlow" cx="50%" cy="50%" r="70%">
-            <stop offset="0%" stopColor="rgba(16,185,129,0.16)" />
-            <stop offset="100%" stopColor="rgba(16,185,129,0)" />
-          </radialGradient>
-          <filter id="mapGlow" x="-20%" y="-20%" width="140%" height="140%">
-            <feGaussianBlur stdDeviation="1.2" result="blur" />
-            <feMerge>
-              <feMergeNode in="blur" />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
-          </filter>
-        </defs>
-
         <ZoomableGroup
           zoom={zoom}
           center={center}
@@ -140,124 +219,121 @@ export function WorldMap({
         >
           <Geographies geography={geoUrl}>
             {({ geographies }) =>
-              geographies.map((geo, index) => (
-                <Geography
-                  key={geo.rsmKey}
-                  geography={geo}
-                  fill={index % 3 === 0 ? '#13343a' : 'url(#landGradient)'}
-                  stroke="#1d5b63"
-                  strokeWidth={0.48}
-                  filter="url(#mapGlow)"
-                  style={{
-                    default: { outline: 'none' },
-                    hover: { outline: 'none', fill: '#1b4f53' },
-                    pressed: { outline: 'none' },
-                  }}
-                />
-              ))
+              geographies.map((geo) => {
+                const geoKeys = getGeoCountryKeys(geo);
+                const countrySummary = geoKeys.map((k) => countrySummaries.get(k)).find(Boolean);
+                const hasNode = geoKeys.some((key) => countryKeysWithNodes.has(key));
+
+                return (
+                  <Geography
+                    key={geo.rsmKey}
+                    geography={geo}
+                    fill={hasNode ? '#31465e' : '#1e293b'}
+                    stroke="#334155"
+                    strokeWidth={0.4}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedNode(null);
+                      onNodeHover?.(null);
+                      if (level === 1 && countrySummary) {
+                        updateView(countrySummary.center, 3);
+                      }
+                    }}
+                    style={{
+                      default: { outline: 'none' },
+                      hover: { outline: 'none', fill: hasNode ? '#3b5877' : '#243244' },
+                      pressed: { outline: 'none' },
+                    }}
+                  />
+                );
+              })
             }
           </Geographies>
-          <rect x={-600} y={-320} width={1200} height={620} fill="url(#landGlow)" pointerEvents="none" />
 
-          {filteredNodes.map((node) => {
-            const isHovered = hoveredNode?.id === node.id;
-            const isOnline = node.status === 'online' || node.status === 'idle';
-            const isOffline = node.status === 'offline';
-            const baseSize = getNodeSize(node);
-            const scale = isHovered ? 1.28 : 1;
-            const dotColor = STATUS_COLORS[node.status] || '#64748b';
-
-            return (
-              <Marker key={node.id} coordinates={[node.fuzzy_longitude, node.fuzzy_latitude]}>
-                <g
-                  onClick={() => {
-                    smoothMoveTo([node.fuzzy_longitude, node.fuzzy_latitude], Math.max(2.4, zoom));
-                    onNodeClick?.(node);
-                  }}
-                  onMouseEnter={() => onNodeHover?.(node)}
-                  onMouseLeave={() => onNodeHover?.(null)}
-                  style={{ cursor: 'pointer', transformOrigin: 'center' }}
-                  className="transition-transform duration-300"
-                  transform={`scale(${scale})`}
-                >
-                  <circle r={baseSize + 7} fill={dotColor} fillOpacity={isOffline ? 0.08 : 0.16}>
-                    {!isOffline && (
-                      <animate attributeName="r" values={`${baseSize + 4};${baseSize + 12};${baseSize + 4}`} dur="2.4s" repeatCount="indefinite" />
-                    )}
-                    {!isOffline && <animate attributeName="fill-opacity" values="0.24;0.05;0.24" dur="2.4s" repeatCount="indefinite" />}
-                  </circle>
-
-                  <circle
-                    r={baseSize + 3}
-                    fill={isOnline ? '#10b981' : dotColor}
-                    fillOpacity={isOffline ? 0.2 : 0.3}
-                    stroke={isOnline ? '#6ee7b7' : '#64748b'}
-                    strokeWidth={1.2}
-                  >
-                    {isOnline && <animate attributeName="fill-opacity" values="0.28;0.5;0.28" dur="1.6s" repeatCount="indefinite" />}
-                  </circle>
-
-                  <circle
-                    r={baseSize}
-                    fill={isOnline ? '#10b981' : dotColor}
-                    fillOpacity={isOffline ? 0.45 : hoveredNode && hoveredNode.id !== node.id ? 0.45 : 0.95}
-                    stroke={isOnline ? '#a7f3d0' : NODE_TYPE_INFO[node.node_type]?.color || '#22d3ee'}
-                    strokeWidth={2}
-                  />
-
-                  {baseSize > 8 && (
-                    <text
-                      textAnchor="middle"
-                      dominantBaseline="middle"
-                      fontSize={Math.max(8, baseSize * 0.66)}
-                      fill="white"
-                      style={{ pointerEvents: 'none', textShadow: '0 0 8px rgba(0,0,0,0.5)' }}
-                    >
-                      {NODE_TYPE_INFO[node.node_type]?.icon || '⚙️'}
+          {level === 1 &&
+            Array.from(countrySummaries.values())
+              .filter((country) => country.total > 0)
+              .map((country) => (
+                <Marker key={`badge-${country.key}`} coordinates={country.center}>
+                  <g style={{ pointerEvents: 'none' }}>
+                    <rect x={-18} y={-11} rx={6} width={36} height={18} fill="rgba(15,23,32,0.9)" stroke="rgba(34,211,238,0.55)" strokeWidth={0.8} />
+                    <text textAnchor="middle" y={2} fontSize={8.5} fill="#a5f3fc" fontWeight={700}>
+                      {country.online}/{country.total}
                     </text>
-                  )}
-                </g>
-              </Marker>
-            );
-          })}
+                  </g>
+                </Marker>
+              ))}
+
+          {level >= 2 &&
+            filteredNodes.map((node) => {
+              const isHovered = hoveredNode?.id === node.id || selectedNode?.id === node.id;
+              const isOffline = node.status === 'offline';
+              const baseSize = getNodeSize();
+              const dotColor = STATUS_COLORS[node.status] || '#64748b';
+
+              return (
+                <Marker key={node.id} coordinates={[node.fuzzy_longitude, node.fuzzy_latitude]}>
+                  <g
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedNode(node);
+                      if (level === 2) {
+                        updateView([node.fuzzy_longitude, node.fuzzy_latitude], Math.max(5, zoom));
+                      }
+                    }}
+                    onMouseEnter={() => onNodeHover?.(node)}
+                    onMouseLeave={() => onNodeHover?.(null)}
+                    style={{ cursor: 'pointer', transformOrigin: 'center' }}
+                    transform={`scale(${isHovered ? 1.12 : 1})`}
+                  >
+                    <circle
+                      r={baseSize}
+                      fill={dotColor}
+                      fillOpacity={isOffline ? 0.45 : hoveredNode && hoveredNode.id !== node.id ? 0.55 : 0.96}
+                      stroke={isHovered ? '#a7f3d0' : '#d1d5db'}
+                      strokeWidth={0.75}
+                    />
+                  </g>
+                </Marker>
+              );
+            })}
         </ZoomableGroup>
       </ComposableMap>
 
-      {hoveredNode && (
-        <div className="absolute bottom-4 left-4 z-20 max-w-sm rounded-xl border border-emerald-400/30 bg-[#0f1720]/90 backdrop-blur-md p-4 shadow-[0_0_30px_rgba(16,185,129,0.2)] animate-[fadeIn_220ms_ease-out]">
+      {selectedNode && level >= 2 && (
+        <div
+          className="absolute bottom-4 left-4 z-20 w-[320px] max-w-[calc(100%-2rem)] rounded-xl border border-emerald-400/25 bg-[#0f1720]/92 p-4 shadow-lg transition-opacity duration-150"
+          onClick={(e) => e.stopPropagation()}
+        >
           <div className="flex items-center gap-2 mb-2">
-            <span className="text-lg">{NODE_TYPE_INFO[hoveredNode.node_type]?.icon || '⚙️'}</span>
+            <span className="text-lg">{NODE_TYPE_INFO[selectedNode.node_type]?.icon || '⚙️'}</span>
             <div>
-              <div className="text-sm font-semibold text-white">{hoveredNode.name}</div>
+              <div className="text-sm font-semibold text-white">{selectedNode.name}</div>
               <div className="text-xs text-slate-300">
-                {NODE_TYPE_INFO[hoveredNode.node_type]?.name || hoveredNode.node_type} ·{' '}
-                <span style={{ color: STATUS_COLORS[hoveredNode.status] || '#94a3b8' }}>{hoveredNode.status}</span>
+                {NODE_TYPE_INFO[selectedNode.node_type]?.name || selectedNode.node_type} ·{' '}
+                <span style={{ color: STATUS_COLORS[selectedNode.status] || '#94a3b8' }}>{selectedNode.status}</span>
               </div>
             </div>
           </div>
-          <div className="text-xs text-slate-300 space-y-1">
-            {hoveredNode.materials.length > 0 && <div>Materials: {hoveredNode.materials.join(', ').toUpperCase()}</div>}
-            {hoveredNode.build_volume_x && (
-              <div>
-                Build: {hoveredNode.build_volume_x}×{hoveredNode.build_volume_y}×{hoveredNode.build_volume_z}mm
-              </div>
-            )}
+
+          <div className="text-xs text-slate-300 mb-3">
+            Materials:{' '}
+            {selectedNode.materials.length > 0
+              ? selectedNode.materials
+                  .slice(0, 3)
+                  .map((m) => m.toUpperCase())
+                  .join(', ')
+              : '—'}
           </div>
+
+          <button
+            onClick={() => onNodeClick?.(selectedNode)}
+            className="rounded-md border border-emerald-400/40 bg-emerald-500/15 px-3 py-1.5 text-xs font-medium text-emerald-200 hover:bg-emerald-500/25 transition-colors"
+          >
+            Details
+          </button>
         </div>
       )}
-
-      <style jsx>{`
-        @keyframes fadeIn {
-          from {
-            opacity: 0;
-            transform: translateY(6px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-      `}</style>
     </div>
   );
 }

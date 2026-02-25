@@ -153,6 +153,31 @@ def _build_comment_tree(comments: list[dict], db=None) -> list[CommentResponse]:
 router = APIRouter(prefix="/community", tags=["community"])
 
 
+@router.get("/map/regions")
+async def get_community_map_regions():
+    """Return community post counts grouped by country_code."""
+    with get_db() as db:
+        try:
+            db.execute("ALTER TABLE community_posts ADD COLUMN country_code TEXT")
+        except Exception:
+            pass
+
+        rows = db.execute(
+            """
+            SELECT country_code, COUNT(*) AS post_count
+            FROM community_posts
+            WHERE country_code IS NOT NULL
+            GROUP BY country_code
+            ORDER BY post_count DESC
+            """
+        ).fetchall()
+
+    return [
+        {"country_code": row["country_code"], "post_count": row["post_count"]}
+        for row in rows
+    ]
+
+
 def _row_to_post_response(row: dict, db=None) -> PostResponse:
     """Convert database row to PostResponse."""
     images = None

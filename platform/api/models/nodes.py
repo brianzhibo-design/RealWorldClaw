@@ -103,6 +103,10 @@ class NodeResponse(BaseModel):
     build_volume_y: Optional[float]
     build_volume_z: Optional[float]
     description: Optional[str]
+    country_code: Optional[str] = None
+    region_code: Optional[str] = None
+    verification_level: int = 0
+    verification_score: float = 0.0
     status: NodeStatus
     online_status: str = "offline"
     last_heartbeat: Optional[str]

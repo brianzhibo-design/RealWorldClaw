@@ -548,6 +548,18 @@ def init_db():
         except Exception:
             pass  # Column already exists
 
+        # Node geo / verification fields
+        for stmt in [
+            "ALTER TABLE nodes ADD COLUMN country_code TEXT",
+            "ALTER TABLE nodes ADD COLUMN region_code TEXT",
+            "ALTER TABLE nodes ADD COLUMN verification_level INTEGER DEFAULT 0",
+            "ALTER TABLE nodes ADD COLUMN verification_score REAL DEFAULT 0",
+            "ALTER TABLE community_posts ADD COLUMN country_code TEXT",
+        ]:
+            try:
+                db.execute(stmt)
+            except Exception:
+                pass
 
         # Enable foreign keys and add protective indexes
         db.execute("PRAGMA foreign_keys = ON")
