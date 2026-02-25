@@ -26,6 +26,11 @@ class MessageSendRequest(BaseModel):
     content: str = Field(..., max_length=5000)
 
 
+class NewMessageSendRequest(BaseModel):
+    to_user: str = Field(..., min_length=1)
+    content: str = Field(..., max_length=5000)
+
+
 @router.post("")
 async def send_message(
     request: MessageSendRequest,
@@ -85,6 +90,142 @@ async def send_message(
         "read": False,
         "created_at": now,
     }
+
+
+@router.post("/send")
+def send_message_v1(
+    request: NewMessageSendRequest,
+    identity: dict = Depends(get_messages_identity),
+):
+    sender_id = identity["identity_id"]
+    if sender_id == request.to_user:
+        raise HTTPException(status_code=400, detail="Cannot message yourself")
+
+    content = request.content.strip()
+    if not content:
+        raise HTTPException(status_code=400, detail="Message content cannot be empty")
+
+    now = datetime.now(timezone.utc).isoformat()
+    message_id = str(uuid.uuid4())
+
+    with get_db() as db:
+        recipient = db.execute(
+            "SELECT id FROM users WHERE id = ?",
+            (request.to_user,),
+        ).fetchone()
+        if not recipient:
+            raise HTTPException(status_code=404, detail="Recipient not found")
+
+        db.execute(
+            """
+            INSERT INTO messages (id, from_user, to_user, content, read, created_at)
+            VALUES (?, ?, ?, ?, ?, ?)
+            """,
+            (message_id, sender_id, request.to_user, content, 0, now),
+        )
+
+    return {
+        "id": message_id,
+        "from_user": sender_id,
+        "to_user": request.to_user,
+        "content": content,
+        "read": False,
+        "created_at": now,
+    }
+
+
+@router.get("/inbox")
+def get_inbox(identity: dict = Depends(get_messages_identity)):
+    current_user_id = identity["identity_id"]
+
+    with get_db() as db:
+        rows = db.execute(
+            """
+            SELECT id, from_user, to_user, content, read, created_at
+            FROM messages
+            WHERE to_user = ?
+            ORDER BY created_at DESC
+            """,
+            (current_user_id,),
+        ).fetchall()
+
+    return {
+        "messages": [
+            {
+                "id": row["id"],
+                "from_user": row["from_user"],
+                "to_user": row["to_user"],
+                "content": row["content"],
+                "read": bool(row["read"]),
+                "created_at": row["created_at"],
+            }
+            for row in rows
+        ]
+    }
+
+
+@router.get("/conversation/{user_id}")
+def get_conversation_v1(
+    user_id: str,
+    identity: dict = Depends(get_messages_identity),
+):
+    current_user_id = identity["identity_id"]
+
+    with get_db() as db:
+        other_user = db.execute(
+            "SELECT id FROM users WHERE id = ?",
+            (user_id,),
+        ).fetchone()
+        if not other_user:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        rows = db.execute(
+            """
+            SELECT id, from_user, to_user, content, read, created_at
+            FROM messages
+            WHERE (from_user = ? AND to_user = ?)
+               OR (from_user = ? AND to_user = ?)
+            ORDER BY created_at ASC
+            """,
+            (current_user_id, user_id, user_id, current_user_id),
+        ).fetchall()
+
+    return {
+        "messages": [
+            {
+                "id": row["id"],
+                "from_user": row["from_user"],
+                "to_user": row["to_user"],
+                "content": row["content"],
+                "read": bool(row["read"]),
+                "created_at": row["created_at"],
+            }
+            for row in rows
+        ]
+    }
+
+
+@router.post("/read/{message_id}")
+def mark_message_read(
+    message_id: str,
+    identity: dict = Depends(get_messages_identity),
+):
+    current_user_id = identity["identity_id"]
+
+    with get_db() as db:
+        row = db.execute(
+            "SELECT id FROM messages WHERE id = ? AND to_user = ?",
+            (message_id, current_user_id),
+        ).fetchone()
+        if not row:
+            raise HTTPException(status_code=404, detail="Message not found")
+
+        db.execute(
+            "UPDATE messages SET read = 1 WHERE id = ?",
+            (message_id,),
+        )
+
+    return {"id": message_id, "read": True}
 
 
 @router.get("")

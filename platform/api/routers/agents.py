@@ -5,8 +5,9 @@ from __future__ import annotations
 import json
 import secrets
 from datetime import datetime, timedelta, timezone
+from pathlib import Path
 
-from fastapi import APIRouter, Depends, Header, HTTPException
+from fastapi import APIRouter, Depends, File, Header, HTTPException, UploadFile
 
 from ..api_keys import find_agent_by_api_key, hash_api_key
 from ..database import get_db
@@ -20,6 +21,7 @@ from ..models.schemas import (
 router = APIRouter(prefix="/agents", tags=["agents"])
 
 VERSION = "0.1.0"
+AVATAR_UPLOAD_DIR = Path(__file__).resolve().parents[2] / "uploads" / "avatars"
 
 
 def _tier_for_rep(rep: int) -> str:
@@ -180,6 +182,43 @@ def update_me(req: AgentUpdateRequest, agent: dict = Depends(get_current_agent))
 
 
 # ─── GET /agents/{agent_id} ─────────────────────────────
+
+@router.post("/{agent_id}/avatar")
+async def upload_agent_avatar(
+    agent_id: str,
+    avatar: UploadFile = File(...),
+    agent: dict = Depends(get_current_agent),
+):
+    if agent["id"] != agent_id:
+        raise HTTPException(403, "Forbidden")
+
+    if not avatar.content_type or not avatar.content_type.startswith("image/"):
+        raise HTTPException(400, "Avatar must be an image")
+
+    suffix = Path(avatar.filename or "avatar.png").suffix.lower() or ".png"
+    if suffix not in {".png", ".jpg", ".jpeg", ".gif", ".webp"}:
+        suffix = ".png"
+
+    AVATAR_UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+    avatar_name = f"{agent_id}_{secrets.token_hex(8)}{suffix}"
+    avatar_path = AVATAR_UPLOAD_DIR / avatar_name
+
+    content = await avatar.read()
+    if not content:
+        raise HTTPException(400, "Empty avatar file")
+
+    avatar_path.write_bytes(content)
+    avatar_url = f"/uploads/avatars/{avatar_name}"
+    now = datetime.now(timezone.utc).isoformat()
+
+    with get_db() as db:
+        db.execute(
+            "UPDATE agents SET avatar_url = ?, updated_at = ? WHERE id = ?",
+            (avatar_url, now, agent_id),
+        )
+
+    return {"agent_id": agent_id, "avatar_url": avatar_url, "updated_at": now}
+
 
 @router.post("/{agent_id}/rotate-key")
 def rotate_agent_key(agent_id: str, agent: dict = Depends(get_current_agent)):
