@@ -7,7 +7,7 @@ import secrets
 import pytest
 from fastapi.testclient import TestClient
 
-from api.database import init_db
+from api.database import get_db, init_db
 from api.main import app
 
 client = TestClient(app)
@@ -49,6 +49,17 @@ class TestAgentRegister:
         client.post("/api/v1/agents/register", json=REGISTER_BODY)
         resp = client.post("/api/v1/agents/register", json=REGISTER_BODY)
         assert resp.status_code == 409
+
+    def test_register_stores_hashed_api_key(self):
+        resp = client.post("/api/v1/agents/register", json={
+            **REGISTER_BODY, "name": f"agent-{secrets.token_hex(3)}"
+        })
+        data = resp.json()
+        with get_db() as db:
+            row = db.execute("SELECT api_key FROM agents WHERE id = ?", (data["agent"]["id"],)).fetchone()
+        assert row is not None
+        assert row["api_key"] != data["api_key"]
+        assert row["api_key"].startswith("sha256$")
 
     def test_register_invalid_name(self):
         resp = client.post("/api/v1/agents/register", json={
@@ -150,3 +161,36 @@ class TestAgentUpdate:
     def test_update_no_auth(self):
         resp = client.patch("/api/v1/agents/me", json={"display_name": "X"})
         assert resp.status_code in (401, 422)
+
+
+class TestAgentRotateKey:
+    def _make_active_agent(self) -> tuple[str, str]:
+        reg = client.post("/api/v1/agents/register", json={
+            **REGISTER_BODY, "name": f"agent-{secrets.token_hex(3)}"
+        }).json()
+        claim_token = reg["claim_url"].split("token=")[1]
+        client.post("/api/v1/agents/claim",
+                     params={"claim_token": claim_token, "human_email": "t@t.com"})
+        return reg["agent"]["id"], reg["api_key"]
+
+    def test_rotate_key_success(self):
+        agent_id, old_key = self._make_active_agent()
+        resp = client.post(f"/api/v1/agents/{agent_id}/rotate-key", headers=_auth(old_key))
+        assert resp.status_code == 200
+        new_key = resp.json()["api_key"]
+        assert new_key.startswith("rwc_sk_live_")
+        assert new_key != old_key
+
+        old_me = client.get("/api/v1/agents/me", headers=_auth(old_key))
+        assert old_me.status_code == 401
+
+        new_me = client.get("/api/v1/agents/me", headers=_auth(new_key))
+        assert new_me.status_code == 200
+        assert new_me.json()["id"] == agent_id
+
+    def test_rotate_key_forbidden_other_agent(self):
+        agent_a_id, key_a = self._make_active_agent()
+        agent_b_id, _ = self._make_active_agent()
+        resp = client.post(f"/api/v1/agents/{agent_b_id}/rotate-key", headers=_auth(key_a))
+        assert agent_a_id != agent_b_id
+        assert resp.status_code == 403

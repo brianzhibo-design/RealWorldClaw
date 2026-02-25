@@ -7,6 +7,7 @@ from typing import Callable
 from fastapi import Depends, Header, HTTPException
 from jose import JWTError
 
+from .api_keys import find_agent_by_api_key
 from .database import get_db
 from .security import decode_token
 
@@ -77,7 +78,7 @@ def get_authenticated_identity(authorization: str = Header(...)) -> dict:
 
     # Fall back to agent API key
     with get_db() as db:
-        row = db.execute("SELECT * FROM agents WHERE api_key = ?", (token,)).fetchone()
+        row = find_agent_by_api_key(db, token)
     if row:
         result = dict(row)
         result["identity_type"] = "agent"

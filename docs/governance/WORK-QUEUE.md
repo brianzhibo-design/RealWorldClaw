@@ -104,3 +104,23 @@
   - 首页保护：`frontend/app/page.tsx` 无改动
   - 约束复核：本轮新增代码未引入 `as any`，未引入 mock/coming soon
 - 发布状态：当前为工作树改动，`main...origin/main` 无 ahead commit；按流程本轮不触发慢羊羊复审，不 push / 不 deploy。
+
+## 当前状态（14:30 更新）
+- 本轮动作（1-2项已完成）：
+  - 第二批 P2-9 回归矩阵补强：`platform/tests/test_regression_matrix.py` 新增 `test_ws_accepts_printer_subscription_for_token_owner`，补齐 printer 频道正向鉴权覆盖，与既有跨用户拒绝(4003)用例形成双向契约。
+  - 运营增长补充：`docs/community/seed-posts.md` 新增 Post 31（Printer 频道鉴权“允许+拒绝”闭环复盘）。
+- 验证结果：
+  - `JWT_SECRET_KEY=test-secret python3 -m pytest platform/tests/test_regression_matrix.py -q` ✅（21 passed）
+  - 首页保护：`frontend/app/page.tsx` 无改动
+  - 约束复核：本轮新增代码未引入 `as any`/`Coming Soon`
+- 发布状态：`main...origin/main` 无 ahead commit；按流程本轮不触发慢羊羊复审，不 push / 不 deploy。
+
+## 当前状态（14:40 更新）
+- 本轮动作（1-2项已完成）：
+  - 第二批 P2-9 安全回归补强：完成 agent key 存储与校验链路复核（哈希存储 + 兼容旧明文回退），并验证 `platform/tests/test_agents.py`、`platform/tests/test_ws_manager.py` 与回归矩阵联测。
+  - 运营增长补充：`docs/community/seed-posts.md` 新增 Post 32（Agent API key 哈希化与 rotation 权限闭环复盘）。
+- 验证结果：
+  - `JWT_SECRET_KEY=test-secret python3 -m pytest platform/tests/test_ws_manager.py platform/tests/test_agents.py platform/tests/test_regression_matrix.py -q` ✅（38 passed）
+  - `npm --prefix frontend run build` ✅（成功）
+  - Merge Checklist grep + 首页保护 ✅（零命中，`frontend/app/page.tsx` 无改动）
+- 发布状态：`main...origin/main` 无 ahead commit；按流程本轮不触发慢羊羊复审，不 push / 不 deploy。

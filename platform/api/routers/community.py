@@ -17,6 +17,7 @@ from fastapi import APIRouter, Depends, Header, HTTPException, Query
 
 from jose import JWTError
 
+from ..api_keys import find_agent_by_api_key
 from ..database import get_db
 from ..deps import get_authenticated_identity
 from ..notifications import send_notification
@@ -80,7 +81,7 @@ def _get_optional_identity(authorization: str | None) -> dict | None:
         pass
 
     with get_db() as db:
-        row = db.execute("SELECT * FROM agents WHERE api_key = ?", (token,)).fetchone()
+        row = find_agent_by_api_key(db, token)
     if row:
         result = dict(row)
         result["identity_type"] = "agent"

@@ -76,3 +76,9 @@
 - 2026-02-25 14:20 持续推进：继续推进第二批 P2-9 回归矩阵，新增 `test_ws_accepts_notifications_subscription_for_token_owner`，补齐 notifications 频道“拒绝非法 + 放行合法”双向契约覆盖，防止加固时误伤正常订阅。
 - 2026-02-25 14:20 运营增长：`docs/community/seed-posts.md` 新增 Post 30（Notifications 正向鉴权回归闭环复盘）。
 - 2026-02-25 14:20 验证：`python3 -m pytest platform/tests/test_regression_matrix.py -q` -> `20 passed`；首页保护满足（`frontend/app/page.tsx` 无改动），本轮未引入 `mock/coming soon/as any`。
+- 2026-02-25 14:30 持续推进：继续推进第二批 P2-9 回归矩阵，在 `platform/tests/test_regression_matrix.py` 新增 `test_ws_accepts_printer_subscription_for_token_owner`，补齐 printer 频道“拒绝非法 + 放行合法”双向鉴权契约，避免仅有拒绝用例时误伤真实用户。
+- 2026-02-25 14:30 运营增长：`docs/community/seed-posts.md` 新增 Post 31（Printer 频道正反向鉴权回归闭环复盘）。
+- 2026-02-25 14:30 验证：`JWT_SECRET_KEY=test-secret python3 -m pytest platform/tests/test_regression_matrix.py -q` -> `21 passed`；首页保护满足（`frontend/app/page.tsx` 无改动），本轮新增代码未引入 `as any` / `Coming Soon`。
+- 2026-02-25 14:40 持续推进：第二批 P2-9 安全链路补强，完成 Agent API key 哈希化存储与兼容校验路径（新增 `platform/api/api_keys.py`，注册/轮换写入哈希，旧明文仅读兼容），并补齐轮换权限边界回归（跨 agent rotate 返回 403）。
+- 2026-02-25 14:40 运营增长：`docs/community/seed-posts.md` 新增 Post 32（Agent key 哈希化与 rotation 权限闭环复盘）。
+- 2026-02-25 14:40 验证：`JWT_SECRET_KEY=test-secret python3 -m pytest platform/tests/test_ws_manager.py platform/tests/test_agents.py platform/tests/test_regression_matrix.py -q` -> `38 passed`；`npm --prefix frontend run build` 成功；Merge Checklist grep 与首页保护检查通过（`frontend/app/page.tsx` 无改动）。

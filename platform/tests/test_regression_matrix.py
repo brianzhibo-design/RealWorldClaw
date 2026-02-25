@@ -324,3 +324,15 @@ def test_ws_rejects_cross_user_printer_subscription(client):
             pass
 
     assert exc.value.code == 4003
+
+
+def test_ws_accepts_printer_subscription_for_token_owner(client):
+    headers, user_id = _register_and_get_headers(
+        client,
+        email="wsprinterok@test.com",
+        username="ws_printer_ok_user",
+    )
+    token = headers["Authorization"].split(" ", 1)[1]
+
+    with client.websocket_connect(f"{API}/ws/printer/{user_id}?token={token}") as ws:
+        ws.send_json({"type": "pong"})

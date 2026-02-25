@@ -1,6 +1,7 @@
 """Test configuration."""
 import os
 os.environ["TESTING"] = "1"
+os.environ.setdefault("JWT_SECRET_KEY", "test-jwt-secret-key")
 
 import pytest
 import uuid

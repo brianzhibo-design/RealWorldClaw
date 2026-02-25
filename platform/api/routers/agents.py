@@ -8,6 +8,7 @@ from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, Header, HTTPException
 
+from ..api_keys import find_agent_by_api_key, hash_api_key
 from ..database import get_db
 from ..models.schemas import (
     AgentRegisterRequest,
@@ -55,7 +56,7 @@ def get_current_agent(authorization: str = Header(...)):
         raise HTTPException(401, "Invalid authorization header")
     api_key = authorization[7:]
     with get_db() as db:
-        row = db.execute("SELECT * FROM agents WHERE api_key = ?", (api_key,)).fetchone()
+        row = find_agent_by_api_key(db, api_key)
     if not row:
         raise HTTPException(401, "Invalid API key")
     return dict(row)
@@ -81,6 +82,7 @@ def register_agent(req: AgentRegisterRequest):
     now = datetime.now(timezone.utc).isoformat()
     agent_id = f"ag_{secrets.token_hex(4)}"
     api_key = f"rwc_sk_live_{secrets.token_hex(16)}"
+    api_key_hash = hash_api_key(api_key)
     claim_token = secrets.token_hex(12)
     claim_expires = (datetime.now(timezone.utc) + timedelta(days=7)).isoformat()
 
@@ -95,7 +97,7 @@ def register_agent(req: AgentRegisterRequest):
                created_at, updated_at)
                VALUES (?, ?, ?, ?, ?, 'pending_claim', 0, 'newcomer', ?, ?, ?, ?, ?, ?)""",
             (agent_id, req.name, req.display_name, req.description, req.type.value,
-             api_key, req.callback_url, claim_token, claim_expires, now, now),
+             api_key_hash, req.callback_url, claim_token, claim_expires, now, now),
         )
 
     agent = AgentResponse(
@@ -178,6 +180,24 @@ def update_me(req: AgentUpdateRequest, agent: dict = Depends(get_current_agent))
 
 
 # ─── GET /agents/{agent_id} ─────────────────────────────
+
+@router.post("/{agent_id}/rotate-key")
+def rotate_agent_key(agent_id: str, agent: dict = Depends(get_current_agent)):
+    if agent["id"] != agent_id:
+        raise HTTPException(403, "Forbidden")
+
+    now = datetime.now(timezone.utc).isoformat()
+    new_api_key = f"rwc_sk_live_{secrets.token_hex(16)}"
+    new_api_key_hash = hash_api_key(new_api_key)
+
+    with get_db() as db:
+        db.execute(
+            "UPDATE agents SET api_key = ?, updated_at = ? WHERE id = ?",
+            (new_api_key_hash, now, agent_id),
+        )
+
+    return {"agent_id": agent_id, "api_key": new_api_key, "rotated_at": now}
+
 
 @router.get("/{agent_id}", response_model=AgentResponse)
 def get_agent(agent_id: str):

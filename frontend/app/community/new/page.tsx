@@ -121,9 +121,11 @@ export default function NewPostPage() {
         const formDataUpload = new FormData();
         formDataUpload.append("file", file);
 
-        const authToken = token || (typeof window !== "undefined" ? localStorage.getItem("auth_token") : null);
+        // Prefer backend-set HttpOnly cookie; bearer token is legacy fallback only.
+        const authToken = token;
         const res = await fetch(`${API_BASE}/files/upload`, {
           method: "POST",
+          credentials: "include",
           headers: authToken ? { Authorization: `Bearer ${authToken}` } : {},
           body: formDataUpload,
         });

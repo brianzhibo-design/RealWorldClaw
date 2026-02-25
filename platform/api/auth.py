@@ -6,6 +6,7 @@ import os
 
 from fastapi import Header, HTTPException
 
+from .api_keys import find_agent_by_api_key
 from .database import get_db
 
 _RWC_API_KEY = os.environ.get("RWC_API_KEY")
@@ -32,7 +33,7 @@ def require_auth(authorization: str = Header(...)) -> str:
         return token
     # Then check database for agent API keys
     with get_db() as db:
-        row = db.execute("SELECT id FROM agents WHERE api_key = ?", (token,)).fetchone()
+        row = find_agent_by_api_key(db, token)
         if row:
             return token
     raise HTTPException(status_code=401, detail="Invalid or expired API key")

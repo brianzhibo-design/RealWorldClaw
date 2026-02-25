@@ -13,7 +13,8 @@ from starlette.websockets import WebSocketState
 
 logger = logging.getLogger(__name__)
 
-HEARTBEAT_INTERVAL = 30  # seconds
+HEARTBEAT_INTERVAL = 15  # seconds
+HEARTBEAT_PONG_TIMEOUT = 30  # seconds
 
 
 @dataclass
@@ -84,20 +85,38 @@ class ConnectionManager:
         if self._heartbeat_task and not self._heartbeat_task.done():
             self._heartbeat_task.cancel()
 
+    async def _heartbeat_once(self) -> None:
+        now = time.time()
+        dead: list[Connection] = []
+        stale: list[Connection] = []
+
+        # Iterate over a snapshot to avoid mutating while iterating.
+        for channel_targets in list(self._connections.values()):
+            for conns in list(channel_targets.values()):
+                for conn in list(conns):
+                    if (now - conn.last_pong) > HEARTBEAT_PONG_TIMEOUT:
+                        stale.append(conn)
+                        continue
+                    try:
+                        await conn.websocket.send_json({"type": "ping", "ts": now})
+                    except Exception:
+                        dead.append(conn)
+
+        for conn in stale:
+            try:
+                if conn.websocket.client_state == WebSocketState.CONNECTED:
+                    await conn.websocket.close(code=4008, reason="Pong timeout")
+            except Exception:
+                pass
+            self.disconnect(conn)
+
+        for conn in dead:
+            self.disconnect(conn)
+
     async def _heartbeat_loop(self) -> None:
         while True:
             await asyncio.sleep(HEARTBEAT_INTERVAL)
-            now = time.time()
-            dead: list[Connection] = []
-            for channel_targets in self._connections.values():
-                for conns in channel_targets.values():
-                    for conn in conns:
-                        try:
-                            await conn.websocket.send_json({"type": "ping", "ts": now})
-                        except Exception:
-                            dead.append(conn)
-            for c in dead:
-                self.disconnect(c)
+            await self._heartbeat_once()
 
     @property
     def connection_count(self) -> int:
