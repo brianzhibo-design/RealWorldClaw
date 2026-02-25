@@ -72,6 +72,13 @@ def test_spaces_create_contract_includes_display_name(client):
     assert data["name"] == payload["name"]
     assert data["display_name"] == payload["display_name"]
 
+    listed = client.get(f"{API}/spaces")
+    assert listed.status_code == 200
+    listed_spaces = listed.json()["spaces"]
+    created_space = next((space for space in listed_spaces if space["name"] == payload["name"]), None)
+    assert created_space is not None
+    assert created_space["display_name"] == payload["display_name"]
+
     # display_name is required by contract
     bad = client.post(
         f"{API}/spaces",
