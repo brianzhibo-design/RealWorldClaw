@@ -137,3 +137,56 @@
   - `npm --prefix frontend run build` → 成功（warning 不阻断）
   - Merge Checklist grep 项零命中；首页 `frontend/app/page.tsx` 无改动
 - 当前状态：已完成蛋蛋审查，下一步触发慢羊羊复审；复审通过前不 push / 不 deploy。
+
+## 2026-02-25 13:30 持续推进
+- 流程检查：已先读取完美标准与公司流程；`git status --short --branch` 为 `## main...origin/main`，当前无未发布本地 commit。
+- 执行动作（1-2项）：
+  1) 清理遗留迁移页空目录 `frontend/app/devices`、`frontend/app/maker-orders`，降低旧路由复活风险。
+  2) 新增社区运营素材 Post 25（`docs/community/seed-posts.md`），输出真实工程进展内容。
+- 文档更新：`perfection-standard.md` 第一批已闭环项状态同步（1/4/5/6），`WORK-QUEUE.md` 增加 13:30 进展。
+- 发布状态：本轮无本地 ahead commit，不触发慢羊羊复审，不 push / 不 deploy。
+
+## 2026-02-25 13:40 持续推进
+- 流程检查：继续按优先级推进 P2-9 回归矩阵，仓库仍 `## main...origin/main`（无 ahead commit）。
+- 执行动作（1-2项）：
+  1) 在 `platform/tests/test_regression_matrix.py` 新增 `test_ws_rejects_cross_user_orders_subscription`，补齐订单频道跨用户订阅拒绝（4003）边界覆盖。
+  2) 在 `docs/community/seed-posts.md` 新增 Post 26（WS 订单频道授权闭环复盘），完成一条真实社区增长素材。
+- 验证：`python3 -m pytest platform/tests/test_regression_matrix.py -q` -> `16 passed`。
+- 文档更新：同步更新 `perfection-standard.md` 与 `WORK-QUEUE.md` 的 13:40 执行记录。
+- 发布状态：无未发布本地 commit，本轮不触发慢羊羊复审，不 push / 不 deploy。
+
+## 2026-02-25 13:50 持续推进
+- 流程检查：先读完美标准与公司流程后继续推进 P2-9；`git status --short --branch` 仍为 `## main...origin/main`（无 ahead commit）。
+- 执行动作（1-2项）：
+  1) 在 `platform/tests/test_regression_matrix.py` 新增 `test_ws_rejects_cross_user_printer_subscription`，补齐 printer 频道跨用户订阅拒绝（4003）测试。
+  2) 在 `docs/community/seed-posts.md` 新增 Post 27（打印机频道授权回归闭环复盘）作为真实社区增长素材。
+- 验证：`python3 -m pytest platform/tests/test_regression_matrix.py -q` -> `17 passed`；首页保护满足（`frontend/app/page.tsx` 无改动）。
+- 文档更新：同步更新 `perfection-standard.md` 与 `WORK-QUEUE.md` 的 13:50 记录。
+- 发布状态：无未发布本地 commit，本轮不触发慢羊羊复审，不 push / 不 deploy。
+
+## 2026-02-25 14:00 持续推进
+- 流程检查：先读 `perfection-standard.md` 与 `company-process.md`，并确认 `git status --short --branch` 为 `## main...origin/main`（无 ahead commit）。
+- 执行动作（1-2项）：
+  1) 在 `platform/tests/test_regression_matrix.py` 新增 `test_social_follow_lifecycle_updates_is_following_state`，补齐 social 关注状态流转回归覆盖（false→true→false）。
+  2) 在 `docs/community/seed-posts.md` 新增 Post 28（社交状态契约回归闭环复盘）作为运营增长素材。
+- 验证：`python3 -m pytest platform/tests/test_regression_matrix.py -q` -> `18 passed`；首页保护满足（`frontend/app/page.tsx` 无改动）。
+- 文档更新：同步更新 `perfection-standard.md`、`WORK-QUEUE.md`、`memory/2026-02-25.md`。
+- 发布状态：当前仅工作树改动、无未发布本地 commit；按流程本轮不触发慢羊羊复审，不 push / 不 deploy。
+
+## 2026-02-25 14:10 持续推进
+- 流程检查：先读 `perfection-standard.md` 与 `company-process.md`，并确认 `git status --short --branch` 为 `## main...origin/main`（无 ahead commit）。
+- 执行动作（1-2项）：
+  1) 在 `platform/tests/test_regression_matrix.py` 新增 `test_search_type_node_only_excludes_posts_and_users`，锁定 `type=node` 搜索过滤契约（仅 spaces，posts/users 为空，total 与 spaces 对齐）。
+  2) 在 `docs/community/seed-posts.md` 新增 Post 29（Search filter contract 回归闭环复盘）作为运营增长素材。
+- 验证：`python3 -m pytest platform/tests/test_regression_matrix.py -q` -> `19 passed`；首页保护满足（`frontend/app/page.tsx` 无改动）。
+- 文档更新：同步更新 `perfection-standard.md`、`WORK-QUEUE.md`、`memory/2026-02-25.md`。
+- 发布状态：当前仅工作树改动、无未发布本地 commit；按流程本轮不触发慢羊羊复审，不 push / 不 deploy。
+
+## 2026-02-25 14:20 持续推进
+- 流程检查：先读 `perfection-standard.md` 与 `company-process.md`，并确认 `git status --short --branch` 仍为 `## main...origin/main`（无 ahead commit）。
+- 执行动作（1-2项）：
+  1) 在 `platform/tests/test_regression_matrix.py` 新增 `test_ws_accepts_notifications_subscription_for_token_owner`，补齐 notifications 频道正向鉴权覆盖（合法 token owner 可订阅）。
+  2) 在 `docs/community/seed-posts.md` 新增 Post 30（Notifications 正向鉴权回归闭环复盘）作为运营增长素材。
+- 验证：`python3 -m pytest platform/tests/test_regression_matrix.py -q` -> `20 passed`；首页保护满足（`frontend/app/page.tsx` 无改动）。
+- 文档更新：同步更新 `perfection-standard.md`、`WORK-QUEUE.md`、`memory/2026-02-25.md`。
+- 发布状态：当前仅工作树改动、无未发布本地 commit；按流程本轮不触发慢羊羊复审，不 push / 不 deploy。

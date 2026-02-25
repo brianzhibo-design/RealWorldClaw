@@ -13,12 +13,12 @@
 ## 差距清单（按优先级）
 
 ### 第一批（P0/P1，立即修）
-1. Spaces创建契约不一致（前端缺display_name）
+1. Spaces创建契约不一致（前端缺display_name）✅
 2. WS鉴权协议不统一（前端auth message vs 后端query token）✅
 3. 文件下载鉴权与所有权校验（/files/{id}/download）✅
-4. any类型残留（agents/register, GoogleOAuthButton）
-5. DB作用域问题（community.create_post连接关闭后使用db）
-6. 遗留迁移页清理（devices→map, maker-orders→orders用路由重写替代）
+4. any类型残留（agents/register, GoogleOAuthButton）✅
+5. DB作用域问题（community.create_post连接关闭后使用db）✅
+6. 遗留迁移页清理（devices→map, maker-orders→orders用路由重写替代）✅
 
 ### 第二批（P2，3-5天）
 7. 错误处理标准化（前端统一Error Model）✅
@@ -59,3 +59,20 @@
 - 2026-02-25 13:20 持续推进：继续闭环第一批 P0/P1-3 文件下载安全项，在 `platform/api/routers/files.py` 对 `/files/{id}/download` 增加上传者作用域校验（`uploader_id + uploader_type`），阻断“任意已认证用户读取他人文件”。
 - 2026-02-25 13:20 持续推进：回归矩阵新增 `test_files_download_forbidden_for_non_uploader`，覆盖跨用户下载拒绝(403)边界；同步新增社区真实进展素材 Post 24（文件所有权鉴权修复复盘）。
 - 2026-02-25 13:20 验证：`python3 -m pytest platform/tests/test_regression_matrix.py -q` -> `15 passed`；`python3 -m pytest tests/ -x -q` -> `2 passed, 1 skipped`；`npm --prefix frontend run build` 成功；Merge Checklist grep 与首页保护检查通过（`frontend/app/page.tsx` 无diff）。
+- 2026-02-25 13:30 持续推进：完成遗留迁移页目录清理，移除空目录 `frontend/app/devices` 与 `frontend/app/maker-orders`，与既有整族重定向规则保持一致，避免后续误回填旧路由页面。
+- 2026-02-25 13:30 持续推进：第一批状态对齐——将 P0/P1-1、4、5、6 在标准清单中统一标记为已闭环（基于现有回归与代码检视结论）。
+- 2026-02-25 13:40 持续推进：继续推进第二批 P2-9 回归矩阵，在 `platform/tests/test_regression_matrix.py` 新增 `test_ws_rejects_cross_user_orders_subscription`，补齐订单频道跨用户订阅拒绝(4003)边界覆盖，实现 notifications/orders 权限校验测试对齐。
+- 2026-02-25 13:40 运营增长：`docs/community/seed-posts.md` 新增 Post 26（WS 订单频道授权闭环复盘）。
+- 2026-02-25 13:40 验证：`python3 -m pytest platform/tests/test_regression_matrix.py -q` -> `16 passed`；首页保护约束满足（`frontend/app/page.tsx` 无改动），未引入 `mock/coming soon/as any`。
+- 2026-02-25 13:50 持续推进：继续推进第二批 P2-9 回归矩阵，新增 `test_ws_rejects_cross_user_printer_subscription`，补齐 printer 频道跨用户订阅拒绝(4003)覆盖，形成 notifications/orders/printer 三频道授权回归闭环。
+- 2026-02-25 13:50 运营增长：`docs/community/seed-posts.md` 新增 Post 27（打印机频道授权回归闭环复盘）。
+- 2026-02-25 13:50 验证：`python3 -m pytest platform/tests/test_regression_matrix.py -q` -> `17 passed`；首页保护满足（`frontend/app/page.tsx` 无改动），本轮未在变更文件引入 `mock/coming soon/as any`。
+- 2026-02-25 14:00 持续推进：继续推进第二批 P2-9 回归矩阵，在 `platform/tests/test_regression_matrix.py` 新增 `test_social_follow_lifecycle_updates_is_following_state`，补齐 social 主链路（follow → is-following=true → unfollow → is-following=false）状态回归覆盖。
+- 2026-02-25 14:00 运营增长：`docs/community/seed-posts.md` 新增 Post 28（社交链路状态契约回归闭环复盘）。
+- 2026-02-25 14:00 验证：`python3 -m pytest platform/tests/test_regression_matrix.py -q` -> `18 passed`；首页保护满足（`frontend/app/page.tsx` 无改动）。
+- 2026-02-25 14:10 持续推进：继续推进第二批 P2-9 回归矩阵，在 `platform/tests/test_regression_matrix.py` 新增 `test_search_type_node_only_excludes_posts_and_users`，锁定 `GET /search?type=node` 的窄过滤契约（仅 spaces，posts/users 为空，total 与 spaces 数量一致）。
+- 2026-02-25 14:10 运营增长：`docs/community/seed-posts.md` 新增 Post 29（Search filter contract 回归闭环复盘）。
+- 2026-02-25 14:10 验证：`python3 -m pytest platform/tests/test_regression_matrix.py -q` -> `19 passed`；首页保护满足（`frontend/app/page.tsx` 无改动）。
+- 2026-02-25 14:20 持续推进：继续推进第二批 P2-9 回归矩阵，新增 `test_ws_accepts_notifications_subscription_for_token_owner`，补齐 notifications 频道“拒绝非法 + 放行合法”双向契约覆盖，防止加固时误伤正常订阅。
+- 2026-02-25 14:20 运营增长：`docs/community/seed-posts.md` 新增 Post 30（Notifications 正向鉴权回归闭环复盘）。
+- 2026-02-25 14:20 验证：`python3 -m pytest platform/tests/test_regression_matrix.py -q` -> `20 passed`；首页保护满足（`frontend/app/page.tsx` 无改动），本轮未引入 `mock/coming soon/as any`。

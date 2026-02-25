@@ -57,6 +57,70 @@ def test_social_following_requires_auth_401(client):
     assert r.status_code == 401
 
 
+def test_social_follow_lifecycle_updates_is_following_state(client):
+    follower_headers, _ = _register_and_get_headers(
+        client,
+        email="social_follower@test.com",
+        username="social_follower",
+    )
+    _, target_user_id = _register_and_get_headers(
+        client,
+        email="social_target@test.com",
+        username="social_target",
+    )
+
+    before = client.get(f"{API}/social/is-following/{target_user_id}", headers=follower_headers)
+    assert before.status_code == 200
+    assert before.json()["is_following"] is False
+
+    follow = client.post(f"{API}/social/follow/{target_user_id}", headers=follower_headers)
+    assert follow.status_code == 200
+
+    after_follow = client.get(f"{API}/social/is-following/{target_user_id}", headers=follower_headers)
+    assert after_follow.status_code == 200
+    assert after_follow.json()["is_following"] is True
+
+    unfollow = client.delete(f"{API}/social/follow/{target_user_id}", headers=follower_headers)
+    assert unfollow.status_code == 200
+
+    after_unfollow = client.get(f"{API}/social/is-following/{target_user_id}", headers=follower_headers)
+    assert after_unfollow.status_code == 200
+    assert after_unfollow.json()["is_following"] is False
+
+
+def test_search_type_node_only_excludes_posts_and_users(client):
+    headers, _ = _register_and_get_headers(client, email="searchnode@test.com", username="search_node_user")
+
+    client.post(
+        f"{API}/community/posts",
+        json={"title": "node-only-keyword post", "content": "body", "post_type": "showcase"},
+        headers=headers,
+    )
+    node_resp = client.post(
+        f"{API}/nodes/register",
+        json={
+            "name": "node-only-keyword node",
+            "node_type": "3d_printer",
+            "latitude": 31.23,
+            "longitude": 121.47,
+            "capabilities": ["print"],
+            "materials": ["pla"],
+        },
+        headers=headers,
+    )
+    assert node_resp.status_code in (200, 201)
+
+    r = client.get(f"{API}/search", params={"q": "node-only-keyword", "type": "node"})
+    assert r.status_code == 200
+    data = r.json()
+
+    assert data["posts"] == []
+    assert data["users"] == []
+    assert len(data["spaces"]) >= 1
+    assert all(item["type"] == "node" for item in data["spaces"])
+    assert data["total"] == len(data["spaces"])
+
+
 def test_spaces_create_contract_includes_display_name(client):
     headers, _ = _register_and_get_headers(client, email="spaces@test.com", username="spaces_user")
 
@@ -149,6 +213,18 @@ def test_ws_accepts_connection_with_valid_query_token(client):
         ws.send_json({"type": "pong"})
 
 
+def test_ws_accepts_notifications_subscription_for_token_owner(client):
+    headers, user_id = _register_and_get_headers(
+        client,
+        email="wsnotifyok@test.com",
+        username="ws_notify_ok_user",
+    )
+    token = headers["Authorization"].split(" ", 1)[1]
+
+    with client.websocket_connect(f"{API}/ws/notifications/{user_id}?token={token}") as ws:
+        ws.send_json({"type": "pong"})
+
+
 def test_ws_accepts_connection_with_first_auth_message_token(client):
     headers, user_id = _register_and_get_headers(client, email="wsauth@test.com", username="ws_auth_user")
     token = headers["Authorization"].split(" ", 1)[1]
@@ -221,6 +297,30 @@ def test_ws_rejects_cross_user_notifications_subscription(client):
 
     with pytest.raises(WebSocketDisconnect) as exc:
         with client.websocket_connect(f"{API}/ws/notifications/{user_b}?token={token_a}"):
+            pass
+
+    assert exc.value.code == 4003
+
+
+def test_ws_rejects_cross_user_orders_subscription(client):
+    headers_a, _ = _register_and_get_headers(client, email="wsordera@test.com", username="ws_order_user_a")
+    _, user_b = _register_and_get_headers(client, email="wsorderb@test.com", username="ws_order_user_b")
+    token_a = headers_a["Authorization"].split(" ", 1)[1]
+
+    with pytest.raises(WebSocketDisconnect) as exc:
+        with client.websocket_connect(f"{API}/ws/orders/{user_b}?token={token_a}"):
+            pass
+
+    assert exc.value.code == 4003
+
+
+def test_ws_rejects_cross_user_printer_subscription(client):
+    headers_a, _ = _register_and_get_headers(client, email="wsprintera@test.com", username="ws_printer_user_a")
+    _, user_b = _register_and_get_headers(client, email="wsprinterb@test.com", username="ws_printer_user_b")
+    token_a = headers_a["Authorization"].split(" ", 1)[1]
+
+    with pytest.raises(WebSocketDisconnect) as exc:
+        with client.websocket_connect(f"{API}/ws/printer/{user_b}?token={token_a}"):
             pass
 
     assert exc.value.code == 4003
