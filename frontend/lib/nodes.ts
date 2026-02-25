@@ -20,8 +20,13 @@ export interface ManufacturingNode {
   build_volume_z: number | null;
   description: string | null;
   status: string;
+  online_status?: string;
   last_heartbeat: string | null;
   created_at: string;
+  verification_level?: number;
+  verification_score?: number;
+  online_duration_hours?: number;
+  health_score?: number;
 }
 
 export interface MapRegionSummary {
