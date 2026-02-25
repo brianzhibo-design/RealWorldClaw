@@ -124,3 +124,14 @@
   - `npm --prefix frontend run build` ✅（成功）
   - Merge Checklist grep + 首页保护 ✅（零命中，`frontend/app/page.tsx` 无改动）
 - 发布状态：`main...origin/main` 无 ahead commit；按流程本轮不触发慢羊羊复审，不 push / 不 deploy。
+
+## 当前状态（15:36 更新）
+- 本轮动作（1-2项已完成）：
+  - 代码质量补强（地图链路）：`frontend/lib/nodes.ts` 为 `ManufacturingNode` 增补 `country/country_code` 可选字段，`frontend/app/map/page.tsx` 去除临时类型断言，国家统计逻辑改为基于显式类型字段推导。
+  - 稳定性补强（地图动效）：`frontend/components/WorldMap.tsx` 新增 `requestAnimationFrame` 卸载清理，避免页面离开后残留动画句柄。
+  - 运营增长补充：`docs/community/seed-posts.md` 新增 Post 33（地图 UX + 类型契约 + 动画清理复盘）。
+- 验证结果：
+  - `npm --prefix frontend run build` ✅（成功）
+  - `python3 -m pytest tests/ -x -q` ✅（2 passed, 1 skipped）
+  - 约束复核：未引入 `as any` / `Coming Soon` / `mock|MOCK|fake|dummy`；首页保护满足（`frontend/app/page.tsx` 无改动）
+- 发布状态：当前仅工作树改动，`main...origin/main` 无 ahead commit；按流程本轮不触发慢羊羊复审，不 push / 不 deploy。

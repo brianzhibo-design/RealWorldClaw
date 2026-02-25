@@ -11,6 +11,8 @@ export interface ManufacturingNode {
   node_type: string;
   fuzzy_latitude: number;
   fuzzy_longitude: number;
+  country?: string;
+  country_code?: string;
   capabilities: string[];
   materials: string[];
   build_volume_x: number | null;

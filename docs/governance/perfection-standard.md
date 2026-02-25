@@ -82,3 +82,6 @@
 - 2026-02-25 14:40 持续推进：第二批 P2-9 安全链路补强，完成 Agent API key 哈希化存储与兼容校验路径（新增 `platform/api/api_keys.py`，注册/轮换写入哈希，旧明文仅读兼容），并补齐轮换权限边界回归（跨 agent rotate 返回 403）。
 - 2026-02-25 14:40 运营增长：`docs/community/seed-posts.md` 新增 Post 32（Agent key 哈希化与 rotation 权限闭环复盘）。
 - 2026-02-25 14:40 验证：`JWT_SECRET_KEY=test-secret python3 -m pytest platform/tests/test_ws_manager.py platform/tests/test_agents.py platform/tests/test_regression_matrix.py -q` -> `38 passed`；`npm --prefix frontend run build` 成功；Merge Checklist grep 与首页保护检查通过（`frontend/app/page.tsx` 无改动）。
+- 2026-02-25 15:36 持续推进：在地图链路做类型契约与前端稳定性补强——`frontend/lib/nodes.ts` 为 `ManufacturingNode` 补充可选字段 `country/country_code`，`frontend/app/map/page.tsx` 移除临时类型断言并统一国家统计推导；`frontend/components/WorldMap.tsx` 新增 `requestAnimationFrame` 卸载清理，避免地图平滑缩放动画在页面切换后残留。
+- 2026-02-25 15:36 运营增长：`docs/community/seed-posts.md` 新增 Post 33（地图 UX + 类型安全 + 动画清理复盘）。
+- 2026-02-25 15:36 验证：`npm --prefix frontend run build` 成功；`python3 -m pytest tests/ -x -q` -> `2 passed, 1 skipped`；未引入 `as any` / `Coming Soon` / `mock|fake|dummy`；首页保护满足（`frontend/app/page.tsx` 无改动）。
