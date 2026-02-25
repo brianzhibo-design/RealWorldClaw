@@ -283,15 +283,14 @@ export function WorldMap({
                     }}
                     onMouseEnter={() => onNodeHover?.(node)}
                     onMouseLeave={() => onNodeHover?.(null)}
-                    style={{ cursor: 'pointer', transformOrigin: 'center' }}
-                    transform={`scale(${isHovered ? 1.12 : 1})`}
+                    style={{ cursor: 'pointer' }}
                   >
                     <circle
                       r={baseSize}
                       fill={dotColor}
                       fillOpacity={isOffline ? 0.45 : hoveredNode && hoveredNode.id !== node.id ? 0.55 : 0.96}
                       stroke={isHovered ? '#a7f3d0' : '#d1d5db'}
-                      strokeWidth={0.75}
+                      strokeWidth={isHovered ? 1.5 : 0.75}
                     />
                   </g>
                 </Marker>
