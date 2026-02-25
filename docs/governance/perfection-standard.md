@@ -85,3 +85,6 @@
 - 2026-02-25 15:36 持续推进：在地图链路做类型契约与前端稳定性补强——`frontend/lib/nodes.ts` 为 `ManufacturingNode` 补充可选字段 `country/country_code`，`frontend/app/map/page.tsx` 移除临时类型断言并统一国家统计推导；`frontend/components/WorldMap.tsx` 新增 `requestAnimationFrame` 卸载清理，避免地图平滑缩放动画在页面切换后残留。
 - 2026-02-25 15:36 运营增长：`docs/community/seed-posts.md` 新增 Post 33（地图 UX + 类型安全 + 动画清理复盘）。
 - 2026-02-25 15:36 验证：`npm --prefix frontend run build` 成功；`python3 -m pytest tests/ -x -q` -> `2 passed, 1 skipped`；未引入 `as any` / `Coming Soon` / `mock|fake|dummy`；首页保护满足（`frontend/app/page.tsx` 无改动）。
+- 2026-02-25 16:39 持续推进：继续补强第二批 P2-9 回归矩阵，在 `platform/tests/test_regression_matrix.py` 新增 `test_ws_accepts_notifications_subscription_with_first_auth_message_token`，验证 notifications 频道在不带 query token 时可通过首帧 `{"type":"auth","token":...}` 完成鉴权并维持连接。
+- 2026-02-25 16:39 运营增长：`docs/community/seed-posts.md` 新增 Post 34（notifications 首帧鉴权契约闭环复盘）。
+- 2026-02-25 16:39 验证：`JWT_SECRET_KEY=test-secret python3 -m pytest platform/tests/test_regression_matrix.py -q` -> `22 passed`；首页保护满足（`frontend/app/page.tsx` 无改动），本轮未引入 `as any` / `Coming Soon` / `mock|fake|dummy`。

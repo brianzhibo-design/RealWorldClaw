@@ -135,3 +135,13 @@
   - `python3 -m pytest tests/ -x -q` ✅（2 passed, 1 skipped）
   - 约束复核：未引入 `as any` / `Coming Soon` / `mock|MOCK|fake|dummy`；首页保护满足（`frontend/app/page.tsx` 无改动）
 - 发布状态：当前仅工作树改动，`main...origin/main` 无 ahead commit；按流程本轮不触发慢羊羊复审，不 push / 不 deploy。
+
+## 当前状态（16:39 更新）
+- 本轮动作（1-2项已完成）：
+  - 第二批 P2-9 回归矩阵补强：`platform/tests/test_regression_matrix.py` 新增 `test_ws_accepts_notifications_subscription_with_first_auth_message_token`，补齐 notifications 频道“query token / 首帧 auth / 跨用户拒绝”三角契约覆盖。
+  - 运营增长补充：`docs/community/seed-posts.md` 新增 Post 34（notifications 首帧鉴权契约闭环复盘）。
+- 验证结果：
+  - `JWT_SECRET_KEY=test-secret python3 -m pytest platform/tests/test_regression_matrix.py -q` ✅（22 passed）
+  - 首页保护：`frontend/app/page.tsx` 无改动
+  - 约束复核：本轮新增代码未引入 `as any` / `Coming Soon` / `mock|MOCK|fake|dummy`
+- 发布状态：当前为工作树改动，`main...origin/main` 无 ahead commit；按流程本轮不触发慢羊羊复审，不 push / 不 deploy。

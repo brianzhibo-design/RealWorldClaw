@@ -225,6 +225,19 @@ def test_ws_accepts_notifications_subscription_for_token_owner(client):
         ws.send_json({"type": "pong"})
 
 
+def test_ws_accepts_notifications_subscription_with_first_auth_message_token(client):
+    headers, user_id = _register_and_get_headers(
+        client,
+        email="wsnotifyauth@test.com",
+        username="ws_notify_auth_user",
+    )
+    token = headers["Authorization"].split(" ", 1)[1]
+
+    with client.websocket_connect(f"{API}/ws/notifications/{user_id}") as ws:
+        ws.send_json({"type": "auth", "token": token})
+        ws.send_json({"type": "pong"})
+
+
 def test_ws_accepts_connection_with_first_auth_message_token(client):
     headers, user_id = _register_and_get_headers(client, email="wsauth@test.com", username="ws_auth_user")
     token = headers["Authorization"].split(" ", 1)[1]
