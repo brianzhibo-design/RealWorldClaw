@@ -4,7 +4,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Globe, Package, Settings, PlusCircle, LogOut, MessageSquare, LayoutDashboard, Bot, ChevronDown, Compass, Bell } from "lucide-react";
+import { Globe, Package, Settings, PlusCircle, LogOut, MessageSquare, LayoutDashboard, Bot, ChevronDown, Compass, Bell, Shield } from "lucide-react";
 import { useAuthStore } from "@/stores/authStore";
 import { Button } from "@/components/ui/button";
 import {
@@ -23,6 +23,7 @@ const navItems = [
 ];
 
 const exploreItems = [
+  { href: "/proof", label: "Proof", icon: Shield },
   { href: "/orders", label: "Orders", icon: Package },
   { href: "/agents", label: "Agents", icon: Bot },
   { href: "/search", label: "Search", icon: Compass },
