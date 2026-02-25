@@ -233,8 +233,9 @@ export function WorldMap({
                   : geoHasNodeCache.current.has(geo.rsmKey)
                     ? geoHasNodeCache.current.get(geo.rsmKey)!
                     : (() => {
+                        const geoFeature = geo.type === 'Feature' ? geo : { type: 'Feature' as const, geometry: geo.geometry || geo, properties: {} };
                         const result = filteredNodes.some((node) =>
-                          geoContains(geo, [node.fuzzy_longitude, node.fuzzy_latitude])
+                          geoContains(geoFeature, [node.fuzzy_longitude, node.fuzzy_latitude])
                         );
                         geoHasNodeCache.current.set(geo.rsmKey, result);
                         return result;
@@ -253,8 +254,9 @@ export function WorldMap({
                       onNodeHover?.(null);
                       if (level === 1) {
                         // Find center from nodes in this country
+                        const geoF = geo.type === 'Feature' ? geo : { type: 'Feature' as const, geometry: geo.geometry || geo, properties: {} };
                         const nodesInGeo = filteredNodes.filter((n) =>
-                          geoContains(geo, [n.fuzzy_longitude, n.fuzzy_latitude])
+                          geoContains(geoF, [n.fuzzy_longitude, n.fuzzy_latitude])
                         );
                         if (nodesInGeo.length > 0) {
                           const avgLng = nodesInGeo.reduce((s, n) => s + n.fuzzy_longitude, 0) / nodesInGeo.length;

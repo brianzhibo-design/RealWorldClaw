@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { WorldMap } from '@/components/WorldMap';
 import { MapFilters } from '@/components/MapFilters';
 import { NodeDetails } from '@/components/NodeDetails';
-import { ManufacturingNode, MapRegionSummary, fetchMapNodes, fetchMapRegions } from '@/lib/nodes';
+import { ManufacturingNode, MapRegionSummary, NODE_TYPE_INFO, fetchMapNodes, fetchMapRegions } from '@/lib/nodes';
 import { EmptyState } from '@/components/EmptyState';
 import { ErrorState } from '@/components/ErrorState';
 
@@ -165,6 +165,44 @@ export default function MapPage() {
               searchQuery={searchQuery}
               onSearchChange={setSearchQuery}
             />
+          </div>
+
+          {/* Left sidebar - Node list */}
+          <div className="absolute top-[10.5rem] left-2 sm:left-4 z-20 w-[220px] max-h-[calc(100vh-12rem)] overflow-y-auto rounded-xl border border-slate-700/60 bg-[#0f1720]/90 backdrop-blur-md">
+            <div className="px-3 py-2 border-b border-slate-700/50">
+              <div className="text-[10px] uppercase tracking-widest text-slate-400">Nodes ({nodes.length})</div>
+            </div>
+            <div className="divide-y divide-slate-800/50">
+              {nodes.map((node) => {
+                const isOnline = node.status === 'online' || node.status === 'idle';
+                const isSelected = selectedNode?.id === node.id;
+                return (
+                  <button
+                    key={node.id}
+                    onClick={() => setSelectedNode(node)}
+                    onMouseEnter={() => setHoveredNode(node)}
+                    onMouseLeave={() => setHoveredNode(null)}
+                    className={`w-full text-left px-3 py-2.5 transition-colors ${
+                      isSelected ? 'bg-emerald-500/15' : 'hover:bg-slate-800/50'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs">{NODE_TYPE_INFO[node.node_type]?.icon || '⚙️'}</span>
+                      <div className="min-w-0 flex-1">
+                        <div className="text-xs font-medium text-white truncate">{node.name}</div>
+                        <div className="flex items-center gap-1.5 mt-0.5">
+                          <span className={`w-1.5 h-1.5 rounded-full ${isOnline ? 'bg-emerald-400' : 'bg-slate-500'}`} />
+                          <span className="text-[10px] text-slate-400">{NODE_TYPE_INFO[node.node_type]?.name || node.node_type}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
+              {nodes.length === 0 && !loading && (
+                <div className="px-3 py-4 text-xs text-slate-500 text-center">No nodes registered</div>
+              )}
+            </div>
           </div>
 
           {selectedNode && (
