@@ -236,3 +236,33 @@
   - `npm --prefix frontend run build` -> success
   - 首页保护满足（`frontend/app/page.tsx` 无改动）
 - 发布状态：当前仅工作树改动，`main...origin/main` 无 ahead commit；按流程本轮不触发慢羊羊复审，不 push / 不 deploy。
+
+## 2026-02-25 17:49 持续推进
+- 第二批 P2-9 回归矩阵继续补强：`platform/tests/test_regression_matrix.py` 新增 `test_community_feed_prioritizes_followed_author_posts`，覆盖“关注作者内容在个性化 feed 中优先出现”的契约，防止排序策略重构时个性化权重失真。
+- 运营增长任务同步完成：`docs/community/seed-posts.md` 新增 Post 41（feed follow-priority 回归闭环复盘）。
+- 验证执行：`JWT_SECRET_KEY=test-secret python3 -m pytest platform/tests/test_regression_matrix.py -q`，结果 `24 passed`。
+- 流程状态：`git status --short --branch` 为 `## main...origin/main`，当前无未发布本地 commit；按公司流程本轮不触发慢羊羊复审，不 push / 不 deploy。
+
+## 2026-02-25 18:00 持续推进
+- 流程检查：先读 `docs/governance/perfection-standard.md` 与 `docs/governance/company-process.md`，并确认 `git status --short --branch` 为 `## main...origin/main`（无 ahead commit）。
+- 执行动作（1-2项）：
+  1) 在 `platform/tests/test_regression_matrix.py` 新增 `test_community_post_best_answer_rejects_non_author_and_keeps_fields_unset`，锁定非作者调用 `POST /community/posts/{id}/best-answer` 的 403 拒绝与“无副作用”契约。
+  2) 在 `docs/community/seed-posts.md` 新增 Post 42，沉淀本轮社区治理边界修复为真实运营素材。
+- 验证：`JWT_SECRET_KEY=test-secret python3 -m pytest platform/tests/test_regression_matrix.py -q` -> `25 passed`；首页 `frontend/app/page.tsx` 无改动。
+- 发布状态：本轮未形成本地 commit（无 ahead），按流程不触发慢羊羊复审，不 push / 不 deploy。
+
+## 2026-02-25 18:09 持续推进
+- 流程检查：先读 `docs/governance/perfection-standard.md` 与 `docs/governance/company-process.md`，并确认 `git rev-list --left-right --count origin/main...HEAD` 为 `0 0`（无未发布本地 commit）。
+- 执行动作（1-2项）：
+  1) 第二批 P2-9 回归矩阵补强：`platform/tests/test_regression_matrix.py` 新增 `test_community_post_best_answer_switch_clears_previous_flag`，覆盖“最佳答案从评论A切换到评论B”后的状态收敛（帖子字段指向B，A回落 false，B 为 true）。
+  2) 运营增长任务：`docs/community/seed-posts.md` 新增 Post 43（best-answer 改选一致性复盘）。
+- 验证：`JWT_SECRET_KEY=test-secret python3 -m pytest platform/tests/test_regression_matrix.py -q` -> `26 passed`；Merge Checklist grep 在 `frontend/app` 零命中；`frontend/app/page.tsx` 无改动。
+- 发布状态：当前仅工作树改动且无 ahead commit；按公司流程本轮不触发慢羊羊复审，不 push / 不 deploy。
+
+## 2026-02-25 18:19 持续推进
+- 流程检查：先读 `docs/governance/perfection-standard.md` 与 `docs/governance/company-process.md`，并确认 `git rev-list --left-right --count origin/main...HEAD` 为 `0 0`（无未发布本地 commit）。
+- 执行动作（1-2项）：
+  1) 第二批 P2-9 回归矩阵补强：`platform/tests/test_regression_matrix.py` 新增 `test_community_post_best_answer_rejects_comment_from_another_post`，锁定“跨帖子 comment_id 不可被设为当前帖子最佳答案”的契约（返回 404 + 无副作用）。
+  2) 运营增长任务：`docs/community/seed-posts.md` 新增 Post 44（跨帖子 best-answer 防污染复盘）。
+- 验证：`JWT_SECRET_KEY=test-secret python3 -m pytest platform/tests/test_regression_matrix.py -q` -> `27 passed`；首页 `frontend/app/page.tsx` 无改动。
+- 发布状态：当前仅工作树改动且无 ahead commit；按公司流程本轮不触发慢羊羊复审，不 push / 不 deploy。

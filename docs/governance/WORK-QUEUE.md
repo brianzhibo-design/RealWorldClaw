@@ -12,6 +12,16 @@
    - [x] 设备流在后端未启用 `/devices/register` 时自动 skip，避免误阻断
    - [x] 新增 WS 正向鉴权用例（query token）并通过
 
+## 当前状态（17:49 更新）
+- 本轮动作（1-2项已完成）：
+  - 第二批 P2-9 回归矩阵补强：`platform/tests/test_regression_matrix.py` 新增 `test_community_feed_prioritizes_followed_author_posts`，锁定 `/community/feed` 的 follow-priority 契约（关注作者内容需进入推荐前列）。
+  - 运营增长补充：`docs/community/seed-posts.md` 新增 Post 41（个性化 feed 关注权重回归闭环复盘）。
+- 验证结果：
+  - `JWT_SECRET_KEY=test-secret python3 -m pytest platform/tests/test_regression_matrix.py -q` ✅（24 passed）
+  - 首页保护：`frontend/app/page.tsx` 无改动
+  - 约束复核：本轮未引入 `as any` / `Coming Soon` / `mock|fake|dummy`
+- 发布状态：`git status --short --branch` 当前为 `## main...origin/main`（无未发布本地 commit）；按流程本轮不触发慢羊羊复审，不 push / 不 deploy。
+
 ## 当前状态
 - 本轮动作：
   - 清理第一批遗留迁移页问题（P0/P1-6 子项）：`frontend/app/makers/register/page.tsx` 注册成功跳转从 `/maker-orders` 统一为 `/orders`，避免历史路由污染 IA。
@@ -179,3 +189,33 @@
   - `npm --prefix frontend run build` ✅（成功）
   - 首页保护：`frontend/app/page.tsx` 无改动
 - 发布状态：当前仅工作树改动，`main...origin/main` 无 ahead commit；按流程本轮不触发慢羊羊复审，不 push / 不 deploy。
+
+## 当前状态（18:00 更新）
+- 本轮动作（1-2项已完成）：
+  - 第二批 P2-9 回归矩阵补强：`platform/tests/test_regression_matrix.py` 新增 `test_community_post_best_answer_rejects_non_author_and_keeps_fields_unset`，覆盖非作者越权设最佳答案时的 403 拒绝与字段不变性（`best_answer_comment_id/best_comment_id/resolved_at` 维持 `null`、评论 `is_best_answer=false`）。
+  - 运营增长补充：`docs/community/seed-posts.md` 新增 Post 42（best-answer 权限边界回归闭环复盘）。
+- 验证结果：
+  - `JWT_SECRET_KEY=test-secret python3 -m pytest platform/tests/test_regression_matrix.py -q` ✅（25 passed）
+  - 首页保护：`frontend/app/page.tsx` 无改动
+  - 约束复核：本轮代码改动未引入 `as any` / `Coming Soon` / `mock|fake|dummy`
+- 发布状态：`git status --short --branch` 当前为 `## main...origin/main`（无未发布本地 commit）；按流程本轮不触发慢羊羊复审，不 push / 不 deploy。
+
+## 当前状态（18:09 更新）
+- 本轮动作（1-2项已完成）：
+  - 第二批 P2-9 回归矩阵补强：`platform/tests/test_regression_matrix.py` 新增 `test_community_post_best_answer_switch_clears_previous_flag`，覆盖“最佳答案二次改选”状态一致性（A→B 改选后，帖子字段指向 B，A 的 `is_best_answer` 回落为 `false`）。
+  - 运营增长补充：`docs/community/seed-posts.md` 新增 Post 43（best-answer 改选状态一致性复盘）。
+- 验证结果：
+  - `JWT_SECRET_KEY=test-secret python3 -m pytest platform/tests/test_regression_matrix.py -q` ✅（26 passed）
+  - Merge Checklist grep（`as any` / `mock|MOCK|fake|dummy` / `alert(` / `window.location.reload`）在 `frontend/app` 零命中
+  - 首页保护：`frontend/app/page.tsx` 无改动
+- 发布状态：当前仅工作树改动，`main...origin/main` 无 ahead commit；按流程本轮不触发慢羊羊复审，不 push / 不 deploy。
+
+## 当前状态（18:19 更新）
+- 本轮动作（1-2项已完成）：
+  - 第二批 P2-9 回归矩阵补强：`platform/tests/test_regression_matrix.py` 新增 `test_community_post_best_answer_rejects_comment_from_another_post`，覆盖“comment_id 属于其他帖子”时 `POST /community/posts/{id}/best-answer` 返回 404 且目标帖子 `best_answer_comment_id/best_comment_id/resolved_at` 保持未设置的契约。
+  - 运营增长补充：`docs/community/seed-posts.md` 新增 Post 44（跨帖子 best-answer 防污染复盘）。
+- 验证结果：
+  - `JWT_SECRET_KEY=test-secret python3 -m pytest platform/tests/test_regression_matrix.py -q` ✅（27 passed）
+  - 首页保护：`frontend/app/page.tsx` 无改动
+  - 约束复核：本轮未引入 `as any` / `Coming Soon` / `mock|fake|dummy`
+- 发布状态：`git rev-list --left-right --count origin/main...HEAD` 为 `0 0`（无未发布本地 commit）；按流程本轮不触发慢羊羊复审，不 push / 不 deploy。

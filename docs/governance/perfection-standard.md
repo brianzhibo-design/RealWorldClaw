@@ -100,3 +100,15 @@
 - 2026-02-25 17:42 持续推进：继续补强第二批 P2-9 回归矩阵，在 `platform/tests/test_regression_matrix.py` 新增 `test_community_post_best_answer_contract_persists_post_and_comment_fields`，锁定最佳答案接口写入后在帖子详情（`best_answer_comment_id`/`best_comment_id`/`resolved_at`）与评论 `is_best_answer` 的一致性契约。
 - 2026-02-25 17:42 运营增长：`docs/community/seed-posts.md` 新增 Post 36（Best-answer 契约闭环复盘）。
 - 2026-02-25 17:42 验证：`JWT_SECRET_KEY=test-secret python3 -m pytest platform/tests/test_regression_matrix.py -q` -> `23 passed`；`python3 -m pytest tests/ -x -q` -> `2 passed, 1 skipped`；`npm --prefix frontend run build` 成功；首页保护满足（`frontend/app/page.tsx` 无改动）。
+- 2026-02-25 17:49 持续推进：继续推进第二批 P2-9 回归矩阵，新增 `test_community_feed_prioritizes_followed_author_posts`，锁定 `/community/feed` 关注权重契约（关注作者内容需进入推荐前列），避免后续排序重构导致个性化失真。
+- 2026-02-25 17:49 运营增长：`docs/community/seed-posts.md` 新增 Post 41（feed follow-priority 回归闭环复盘）。
+- 2026-02-25 17:49 验证：`JWT_SECRET_KEY=test-secret python3 -m pytest platform/tests/test_regression_matrix.py -q` -> `24 passed`；首页保护满足（`frontend/app/page.tsx` 无改动），本轮未引入 `as any` / `Coming Soon` / `mock|fake|dummy`。
+- 2026-02-25 18:00 持续推进：继续补强第二批 P2-9 回归矩阵，在 `platform/tests/test_regression_matrix.py` 新增 `test_community_post_best_answer_rejects_non_author_and_keeps_fields_unset`，锁定社区治理边界——非帖子作者调用 `POST /community/posts/{id}/best-answer` 必须返回 403，且帖子/评论状态不被污染。
+- 2026-02-25 18:00 运营增长：`docs/community/seed-posts.md` 新增 Post 42（best-answer 作者权限边界与数据一致性复盘）。
+- 2026-02-25 18:00 验证：`JWT_SECRET_KEY=test-secret python3 -m pytest platform/tests/test_regression_matrix.py -q` -> `25 passed`；首页保护满足（`frontend/app/page.tsx` 无改动），本轮未在代码改动中引入 `as any` / `Coming Soon` / `mock|fake|dummy`。
+- 2026-02-25 18:09 持续推进：继续补强第二批 P2-9 回归矩阵，在 `platform/tests/test_regression_matrix.py` 新增 `test_community_post_best_answer_switch_clears_previous_flag`，锁定“最佳答案二次改选”状态收敛契约（后标记评论生效，旧评论自动取消 `is_best_answer`）。
+- 2026-02-25 18:09 运营增长：`docs/community/seed-posts.md` 新增 Post 43（best-answer 改选状态一致性复盘）。
+- 2026-02-25 18:09 验证：`JWT_SECRET_KEY=test-secret python3 -m pytest platform/tests/test_regression_matrix.py -q` -> `26 passed`；Merge Checklist grep（`as any` / `mock|MOCK|fake|dummy` / `alert(` / `window.location.reload`）在 `frontend/app` 零命中；首页保护满足（`frontend/app/page.tsx` 无改动）。
+- 2026-02-25 18:19 持续推进：继续补强第二批 P2-9 回归矩阵，在 `platform/tests/test_regression_matrix.py` 新增 `test_community_post_best_answer_rejects_comment_from_another_post`，锁定“跨帖子评论不可被设为当前帖子最佳答案”的结构一致性契约（返回 404，且目标帖子 best_* 字段保持未设置）。
+- 2026-02-25 18:19 运营增长：`docs/community/seed-posts.md` 新增 Post 44（跨帖子 best-answer 防污染回归闭环复盘）。
+- 2026-02-25 18:19 验证：`JWT_SECRET_KEY=test-secret python3 -m pytest platform/tests/test_regression_matrix.py -q` -> `27 passed`；首页保护满足（`frontend/app/page.tsx` 无改动），本轮未引入 `as any` / `Coming Soon` / `mock|fake|dummy`。

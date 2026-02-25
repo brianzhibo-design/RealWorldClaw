@@ -394,6 +394,172 @@ def test_ws_accepts_printer_subscription_for_token_owner(client):
         ws.send_json({"type": "pong"})
 
 
+def test_community_post_best_answer_rejects_non_author_and_keeps_fields_unset(client):
+    author_headers, _ = _register_and_get_headers(
+        client,
+        email="bestanswerowner@test.com",
+        username="best_answer_owner",
+    )
+    other_headers, _ = _register_and_get_headers(
+        client,
+        email="bestanswerother@test.com",
+        username="best_answer_other",
+    )
+
+    post_resp = client.post(
+        f"{API}/community/posts",
+        json={"title": "Need help", "content": "How to tune extrusion?", "post_type": "discussion"},
+        headers=author_headers,
+    )
+    assert post_resp.status_code in (200, 201)
+    post_id = post_resp.json()["id"]
+
+    comment_resp = client.post(
+        f"{API}/community/posts/{post_id}/comments",
+        json={"content": "Try lowering print speed and recalibrate E-steps."},
+        headers=other_headers,
+    )
+    assert comment_resp.status_code in (200, 201)
+    comment_id = comment_resp.json()["id"]
+
+    forbidden = client.post(
+        f"{API}/community/posts/{post_id}/best-answer",
+        json={"comment_id": comment_id},
+        headers=other_headers,
+    )
+    assert forbidden.status_code == 403
+
+    post_detail = client.get(f"{API}/community/posts/{post_id}")
+    assert post_detail.status_code == 200
+    detail_payload = post_detail.json()
+    assert detail_payload["best_answer_comment_id"] is None
+    assert detail_payload["best_comment_id"] is None
+    assert detail_payload["resolved_at"] is None
+
+    comments = client.get(f"{API}/community/posts/{post_id}/comments")
+    assert comments.status_code == 200
+    payload = comments.json()
+    matched = next(item for item in payload if item["id"] == comment_id)
+    assert matched["is_best_answer"] is False
+
+
+def test_community_post_best_answer_switch_clears_previous_flag(client):
+    author_headers, _ = _register_and_get_headers(
+        client,
+        email="bestanswerswitchauthor@test.com",
+        username="best_answer_switch_author",
+    )
+    helper_headers, _ = _register_and_get_headers(
+        client,
+        email="bestanswerswitchhelper@test.com",
+        username="best_answer_switch_helper",
+    )
+
+    post_resp = client.post(
+        f"{API}/community/posts",
+        json={"title": "Need slicer settings", "content": "How to reduce ringing?", "post_type": "discussion"},
+        headers=author_headers,
+    )
+    assert post_resp.status_code in (200, 201)
+    post_id = post_resp.json()["id"]
+
+    first_comment = client.post(
+        f"{API}/community/posts/{post_id}/comments",
+        json={"content": "Lower acceleration and tune input shaping."},
+        headers=helper_headers,
+    )
+    assert first_comment.status_code in (200, 201)
+    first_comment_id = first_comment.json()["id"]
+
+    second_comment = client.post(
+        f"{API}/community/posts/{post_id}/comments",
+        json={"content": "Also reduce outer wall speed for cleaner surfaces."},
+        headers=helper_headers,
+    )
+    assert second_comment.status_code in (200, 201)
+    second_comment_id = second_comment.json()["id"]
+
+    first_mark = client.post(
+        f"{API}/community/posts/{post_id}/best-answer",
+        json={"comment_id": first_comment_id},
+        headers=author_headers,
+    )
+    assert first_mark.status_code == 200
+
+    second_mark = client.post(
+        f"{API}/community/posts/{post_id}/best-answer",
+        json={"comment_id": second_comment_id},
+        headers=author_headers,
+    )
+    assert second_mark.status_code == 200
+
+    post_detail = client.get(f"{API}/community/posts/{post_id}")
+    assert post_detail.status_code == 200
+    payload = post_detail.json()
+    assert payload["best_answer_comment_id"] == second_comment_id
+    assert payload["best_comment_id"] == second_comment_id
+    assert payload["resolved_at"] is not None
+
+    comments = client.get(f"{API}/community/posts/{post_id}/comments")
+    assert comments.status_code == 200
+    items = comments.json()
+    first_item = next(item for item in items if item["id"] == first_comment_id)
+    second_item = next(item for item in items if item["id"] == second_comment_id)
+    assert first_item["is_best_answer"] is False
+    assert second_item["is_best_answer"] is True
+
+
+def test_community_post_best_answer_rejects_comment_from_another_post(client):
+    author_headers, _ = _register_and_get_headers(
+        client,
+        email="bestanswercrosspostauthor@test.com",
+        username="best_answer_cross_post_author",
+    )
+    helper_headers, _ = _register_and_get_headers(
+        client,
+        email="bestanswercrossposthelper@test.com",
+        username="best_answer_cross_post_helper",
+    )
+
+    source_post = client.post(
+        f"{API}/community/posts",
+        json={"title": "Printer profile", "content": "Need profile tips", "post_type": "discussion"},
+        headers=author_headers,
+    )
+    assert source_post.status_code in (200, 201)
+    source_post_id = source_post.json()["id"]
+
+    foreign_post = client.post(
+        f"{API}/community/posts",
+        json={"title": "Different issue", "content": "Bed adhesion issue", "post_type": "discussion"},
+        headers=helper_headers,
+    )
+    assert foreign_post.status_code in (200, 201)
+    foreign_post_id = foreign_post.json()["id"]
+
+    foreign_comment = client.post(
+        f"{API}/community/posts/{foreign_post_id}/comments",
+        json={"content": "Clean the plate with IPA and slow first layer."},
+        headers=helper_headers,
+    )
+    assert foreign_comment.status_code in (200, 201)
+    foreign_comment_id = foreign_comment.json()["id"]
+
+    invalid_mark = client.post(
+        f"{API}/community/posts/{source_post_id}/best-answer",
+        json={"comment_id": foreign_comment_id},
+        headers=author_headers,
+    )
+    assert invalid_mark.status_code == 404
+
+    source_detail = client.get(f"{API}/community/posts/{source_post_id}")
+    assert source_detail.status_code == 200
+    payload = source_detail.json()
+    assert payload["best_answer_comment_id"] is None
+    assert payload["best_comment_id"] is None
+    assert payload["resolved_at"] is None
+
+
 def test_community_post_best_answer_contract_persists_post_and_comment_fields(client):
     author_headers, _ = _register_and_get_headers(
         client,
