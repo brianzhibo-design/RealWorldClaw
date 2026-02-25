@@ -503,6 +503,20 @@ def init_db():
             db.execute("ALTER TABLE community_comments ADD COLUMN parent_id TEXT DEFAULT NULL")
         except Exception:
             pass  # Column already exists
+
+        # Community governance + template + tags
+        for stmt in [
+            "ALTER TABLE community_posts ADD COLUMN template_type TEXT",
+            "ALTER TABLE community_posts ADD COLUMN is_resolved INTEGER NOT NULL DEFAULT 0",
+            "ALTER TABLE community_posts ADD COLUMN best_answer_comment_id TEXT",
+            "ALTER TABLE community_posts ADD COLUMN is_pinned INTEGER NOT NULL DEFAULT 0",
+            "ALTER TABLE community_posts ADD COLUMN is_locked INTEGER NOT NULL DEFAULT 0",
+            "ALTER TABLE community_comments ADD COLUMN is_best_answer INTEGER NOT NULL DEFAULT 0",
+        ]:
+            try:
+                db.execute(stmt)
+            except Exception:
+                pass
         
         # Add new columns to existing orders table if they don't exist
         # OAuth columns
@@ -607,6 +621,23 @@ def init_db():
             db.execute("ALTER TABLE community_posts ADD COLUMN space_id TEXT DEFAULT NULL")
         except Exception:
             pass
+
+        # Seed default tags
+        default_tags = {
+            "craft": ["3D Printing", "CNC", "Laser Cut", "Injection Molding"],
+            "material": ["PLA", "ABS", "PETG", "Resin", "Metal", "Wood"],
+            "equipment": ["FDM", "SLA", "SLS"],
+            "scene": ["Robotics", "IoT", "Wearable", "Home", "Industrial"],
+        }
+        for category, names in default_tags.items():
+            for name in names:
+                try:
+                    db.execute(
+                        "INSERT INTO tags (id, name, category, created_at) VALUES (?, ?, ?, datetime('now'))",
+                        (f"tag-{category}-{name.lower().replace(' ', '-').replace('/', '-')}", name, category),
+                    )
+                except Exception:
+                    pass
 
 
 if __name__ == "__main__":

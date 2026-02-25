@@ -19,48 +19,147 @@ interface UploadedFile {
   size?: number;
 }
 
-const POST_TYPES = [
+type TemplateKey = "free" | "request" | "engineering_log" | "showcase";
+
+type TemplateField = {
+  key: string;
+  label: string;
+  placeholder: string;
+  required?: boolean;
+  type?: "text" | "textarea" | "date";
+};
+
+const POST_TEMPLATES: Array<{
+  key: TemplateKey;
+  label: string;
+  icon: string;
+  description: string;
+  postType: "discussion" | "request" | "showcase";
+  color: string;
+  fields: TemplateField[];
+}> = [
   {
-    key: "discussion",
-    label: "Discussion",
-    icon: "💬",
-    color: "bg-blue-500/20 text-blue-300 border-blue-500/30",
-    description: "Share insights, ask questions, or start conversations about AI, manufacturing, and design",
-    examples: ["What's the best material for outdoor robots?", "Energy Core sensor integration tips"]
+    key: "free",
+    label: "Free Post",
+    icon: "🪐",
+    description: "完全自由创作，适合随笔、提问、灵感分享",
+    postType: "discussion",
+    color: "bg-slate-500/15 text-slate-200 border-slate-500/40",
+    fields: [
+      { key: "title", label: "标题", placeholder: "给你的帖子起个清晰有吸引力的标题", required: true },
+      {
+        key: "content",
+        label: "内容",
+        type: "textarea",
+        required: true,
+        placeholder: "自由描述你的想法、问题、经验。支持 Markdown。",
+      },
+    ],
   },
   {
     key: "request",
-    label: "Request",
-    icon: "🙋",
-    color: "bg-green-500/20 text-green-300 border-green-500/30",
-    description: "Request a design, part, or service from the community",
-    examples: ["I need a waterproof case for my ESP32", "Looking for a custom hexapod frame"]
+    label: "需求单 Request",
+    icon: "📌",
+    description: "发布清晰需求，快速让社区理解你的目标",
+    postType: "request",
+    color: "bg-emerald-500/15 text-emerald-200 border-emerald-500/40",
+    fields: [
+      { key: "title", label: "标题", placeholder: "例：需要一个可防水的 IoT 传感器外壳", required: true },
+      {
+        key: "description",
+        label: "描述",
+        type: "textarea",
+        placeholder: "背景、目标、使用场景、尺寸/限制等",
+        required: true,
+      },
+      { key: "materials", label: "材料要求", placeholder: "例：PETG / ABS，耐温 80°C" },
+      { key: "budget", label: "预算范围", placeholder: "例：¥300 - ¥1000" },
+      { key: "deadline", label: "截止日期", type: "date" },
+    ],
   },
   {
-    key: "task",
-    label: "Task",
-    icon: "📋",
-    color: "bg-orange-500/20 text-orange-300 border-orange-500/30",
-    description: "Post a paid task or job for makers and designers",
-    examples: ["Design a robot arm mount for me", "3D print 10 phone cases, PLA material"]
+    key: "engineering_log",
+    label: "工程复盘 Engineering Log",
+    icon: "🛠️",
+    description: "记录问题、方案和数据，让经验可复用",
+    postType: "discussion",
+    color: "bg-cyan-500/15 text-cyan-200 border-cyan-500/40",
+    fields: [
+      { key: "title", label: "标题", placeholder: "例：FDM 打印翘边问题排查复盘", required: true },
+      {
+        key: "problem",
+        label: "问题描述",
+        type: "textarea",
+        placeholder: "问题是什么、出现条件、影响范围",
+        required: true,
+      },
+      {
+        key: "solution",
+        label: "解决方案",
+        type: "textarea",
+        placeholder: "尝试了什么，最终怎么解决",
+        required: true,
+      },
+      {
+        key: "metrics",
+        label: "关键数据",
+        type: "textarea",
+        placeholder: "例：翘边率 35% → 4%，打印时间 +8%",
+      },
+      {
+        key: "lessons",
+        label: "经验教训",
+        type: "textarea",
+        placeholder: "哪些方法有效，哪些坑要避免",
+      },
+    ],
   },
   {
     key: "showcase",
-    label: "Showcase",
+    label: "成果展示 Showcase",
     icon: "🏆",
-    color: "bg-purple-500/20 text-purple-300 border-purple-500/30",
-    description: "Show off your completed projects, designs, or manufacturing success stories",
-    examples: ["My AI got its first body!", "Printed 50 desk organizers this week"]
+    description: "展示项目成果与关键指标，吸引合作与反馈",
+    postType: "showcase",
+    color: "bg-fuchsia-500/15 text-fuchsia-200 border-fuchsia-500/40",
+    fields: [
+      { key: "title", label: "标题", placeholder: "例：可穿戴健康监测设备 v2 量产版", required: true },
+      {
+        key: "project",
+        label: "项目描述",
+        type: "textarea",
+        placeholder: "项目做了什么、解决了什么问题",
+        required: true,
+      },
+      {
+        key: "kpis",
+        label: "关键指标",
+        type: "textarea",
+        placeholder: "例：成本 -22%，组装效率 +40%，良率 98.7%",
+      },
+      {
+        key: "assets",
+        label: "图片/文件说明",
+        type: "textarea",
+        placeholder: "说明你上传了哪些图纸、照片、文件",
+      },
+      {
+        key: "links",
+        label: "相关链接",
+        type: "textarea",
+        placeholder: "例：https://demo.com\nhttps://github.com/org/repo",
+      },
+    ],
   },
-  {
-    key: "manufacture_request",
-    label: "🏭 Manufacture Request",
-    icon: "🏭",
-    color: "bg-amber-500/20 text-amber-300 border-amber-500/30",
-    description: "Request the community to help manufacture something",
-    examples: ["Need 100 custom brackets in aluminum", "Looking for CNC shop to mill steel parts"]
-  }
 ];
+
+const TAG_GROUPS = [
+  { name: "工艺", tags: ["3D Printing", "CNC", "Laser Cut", "Injection Molding"] },
+  { name: "材料", tags: ["PLA", "ABS", "PETG", "Resin", "Metal", "Wood"] },
+  { name: "设备", tags: ["FDM", "SLA", "SLS"] },
+  { name: "场景", tags: ["Robotics", "IoT", "Wearable", "Home", "Industrial"] },
+];
+
+const MAX_TAGS = 5;
 
 export default function NewPostPage() {
   const router = useRouter();
@@ -73,38 +172,41 @@ export default function NewPostPage() {
     }
   }, [isAuthenticated, router]);
 
-  const [selectedType, setSelectedType] = useState<string>("");
-  const [formData, setFormData] = useState({
+  const [selectedTemplate, setSelectedTemplate] = useState<TemplateKey>("free");
+  const [templateData, setTemplateData] = useState<Record<string, string>>({
     title: "",
     content: "",
-    tags: "",
+    description: "",
     materials: "",
     budget: "",
     deadline: "",
-    mfg_material: "",
-    mfg_quantity: "",
-    mfg_budget_hint: "",
+    problem: "",
+    solution: "",
+    metrics: "",
+    lessons: "",
+    project: "",
+    kpis: "",
+    assets: "",
+    links: "",
   });
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Node selection
   const [myNodes, setMyNodes] = useState<MyNode[]>([]);
   const [selectedNodeId, setSelectedNodeId] = useState<string>("");
   const [nodesLoading, setNodesLoading] = useState(false);
 
-  // File upload
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Fetch user's nodes
   useEffect(() => {
     if (!isAuthenticated) return;
     setNodesLoading(true);
     apiFetch<MyNode[] | { nodes: MyNode[] }>("/nodes/my-nodes")
       .then((data) => {
-        const nodes = Array.isArray(data) ? data : (data.nodes || []);
+        const nodes = Array.isArray(data) ? data : data.nodes || [];
         setMyNodes(nodes);
       })
       .catch(() => setMyNodes([]))
@@ -121,7 +223,6 @@ export default function NewPostPage() {
         const formDataUpload = new FormData();
         formDataUpload.append("file", file);
 
-        // Prefer backend-set HttpOnly cookie; bearer token is legacy fallback only.
         const authToken = token;
         const res = await fetch(`${API_BASE}/files/upload`, {
           method: "POST",
@@ -157,10 +258,92 @@ export default function NewPostPage() {
     setUploadedFiles((prev) => prev.filter((f) => f.file_id !== fileId));
   };
 
+  const activeTemplate = POST_TEMPLATES.find((t) => t.key === selectedTemplate) || POST_TEMPLATES[0];
+
+  const updateField = (key: string, value: string) => {
+    setTemplateData((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const toggleTag = (tag: string) => {
+    setSelectedTags((prev) => {
+      if (prev.includes(tag)) return prev.filter((t) => t !== tag);
+      if (prev.length >= MAX_TAGS) {
+        setError(`最多选择 ${MAX_TAGS} 个标签`);
+        return prev;
+      }
+      setError(null);
+      return [...prev, tag];
+    });
+  };
+
+  const buildContentByTemplate = () => {
+    if (selectedTemplate === "free") {
+      return templateData.content.trim();
+    }
+
+    if (selectedTemplate === "request") {
+      return [
+        "## Description",
+        templateData.description.trim() || "(Please describe your request)",
+        "",
+        "## Material Requirements",
+        templateData.materials.trim() || "(Add material requirements)",
+        "",
+        "## Budget Range",
+        templateData.budget.trim() || "(Add budget range)",
+        "",
+        "## Deadline",
+        templateData.deadline ? new Date(templateData.deadline).toLocaleDateString() : "(No deadline specified)",
+      ].join("\n");
+    }
+
+    if (selectedTemplate === "engineering_log") {
+      return [
+        "## Problem",
+        templateData.problem.trim() || "(Describe the problem)",
+        "",
+        "## Solution",
+        templateData.solution.trim() || "(Describe your solution)",
+        "",
+        "## Key Metrics",
+        templateData.metrics.trim() || "(Add measurable results)",
+        "",
+        "## Lessons Learned",
+        templateData.lessons.trim() || "(What should others learn?)",
+      ].join("\n");
+    }
+
+    return [
+      "## Project Description",
+      templateData.project.trim() || "(Describe your project)",
+      "",
+      "## Key Metrics",
+      templateData.kpis.trim() || "(Add key outcomes)",
+      "",
+      "## Images / Files",
+      templateData.assets.trim() || "(Describe attached assets)",
+      "",
+      "## Links",
+      templateData.links.trim() || "(Add useful links)",
+    ].join("\n");
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedType || !formData.title.trim() || !formData.content.trim()) {
-      setError("Please fill in all required fields");
+
+    if (!templateData.title.trim()) {
+      setError("Title is required");
+      return;
+    }
+
+    if (selectedTemplate === "free" && !templateData.content.trim()) {
+      setError("Content is required");
+      return;
+    }
+
+    const requiredField = activeTemplate.fields.find((field) => field.required && !templateData[field.key]?.trim());
+    if (requiredField) {
+      setError(`请填写：${requiredField.label}`);
       return;
     }
 
@@ -168,54 +351,34 @@ export default function NewPostPage() {
     setError(null);
 
     try {
-      const tags = formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
-      const materials = (selectedType === "request" || selectedType === "task") && formData.materials
-        ? formData.materials.split(',').map(m => m.trim()).filter(m => m.length > 0)
-        : undefined;
-      const budget = selectedType === "task" && formData.budget ? parseFloat(formData.budget) : undefined;
-      const deadline = (selectedType === "request" || selectedType === "task") && formData.deadline
-        ? formData.deadline
-        : undefined;
+      const content = buildContentByTemplate();
+      const postData: Record<string, unknown> = {
+        title: templateData.title.trim(),
+        content,
+        post_type: activeTemplate.postType,
+        tags: selectedTags,
+      };
 
-      // For manufacture_request, prepend specs table to content and use discussion type
-      let finalTitle = formData.title.trim();
-      let finalContent = formData.content.trim();
-      let finalPostType = selectedType;
-
-      if (selectedType === "manufacture_request") {
-        finalPostType = "discussion";
-        finalTitle = `[Manufacture Request] ${finalTitle}`;
-        const specRows = [
-          `| Field | Value |`,
-          `|-------|-------|`,
-          formData.mfg_material ? `| Material | ${formData.mfg_material.trim()} |` : null,
-          formData.mfg_quantity ? `| Quantity | ${formData.mfg_quantity.trim()} |` : null,
-          formData.mfg_budget_hint ? `| Budget | ${formData.mfg_budget_hint.trim()} |` : null,
-        ].filter(Boolean).join("\n");
-        if (specRows.split("\n").length > 2) {
-          finalContent = specRows + "\n\n" + finalContent;
+      if (selectedTemplate === "request") {
+        const parsedBudget = Number(templateData.budget.replace(/[^\d.]/g, ""));
+        if (!Number.isNaN(parsedBudget) && parsedBudget > 0) {
+          postData.budget = parsedBudget;
+        }
+        if (templateData.materials.trim()) {
+          postData.materials = templateData.materials
+            .split(",")
+            .map((m) => m.trim())
+            .filter(Boolean);
+        }
+        if (templateData.deadline) {
+          postData.deadline = templateData.deadline;
         }
       }
 
-      const postData: Record<string, unknown> = {
-        title: finalTitle,
-        content: finalContent,
-        post_type: finalPostType,
-        tags,
-        materials,
-        budget,
-        deadline,
-      };
-
-      if (selectedNodeId) {
-        postData.node_id = selectedNodeId;
-      }
-      if (uploadedFiles.length > 0) {
-        postData.file_ids = uploadedFiles.map((f) => f.file_id);
-      }
+      if (selectedNodeId) postData.node_id = selectedNodeId;
+      if (uploadedFiles.length > 0) postData.file_ids = uploadedFiles.map((f) => f.file_id);
 
       const result = await createCommunityPost(postData as Parameters<typeof createCommunityPost>[0]);
-      
       if (result.success) {
         router.push(`/community/${result.post_id}`);
       } else {
@@ -228,11 +391,8 @@ export default function NewPostPage() {
     }
   };
 
-  const selectedTypeData = POST_TYPES.find(t => t.key === selectedType);
-
   return (
     <div className="min-h-screen bg-slate-950 text-white">
-      {/* Navigation */}
       <nav className="px-6 py-4 bg-slate-950/95 backdrop-blur-sm border-b border-slate-800/50">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <Link href="/" className="flex items-center gap-3">
@@ -245,15 +405,6 @@ export default function NewPostPage() {
               RealWorld<span className="text-sky-400">Claw</span>
             </span>
           </Link>
-          
-          <div className="hidden md:flex items-center gap-8">
-            <Link href="/" className="text-slate-300 hover:text-white transition-colors">Feed</Link>
-            <Link href="/map" className="text-slate-300 hover:text-white transition-colors">Map</Link>
-            <Link href="/community" className="text-slate-300 hover:text-white transition-colors">Community</Link>
-            <Link href="/orders/new" className="text-slate-300 hover:text-white transition-colors">Submit</Link>
-            <Link href="https://realworldclaw-api.fly.dev/docs" target="_blank" className="text-slate-300 hover:text-white transition-colors">Docs</Link>
-          </div>
-
           <div className="flex items-center gap-4">
             <Link href="/community" className="text-slate-300 hover:text-white transition-colors">Cancel</Link>
           </div>
@@ -263,283 +414,156 @@ export default function NewPostPage() {
       <div className="max-w-4xl mx-auto px-6 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2">Create New Post</h1>
-          <p className="text-slate-400">
-            Share your ideas, requests, tasks, or showcases with the RealWorldClaw community
-          </p>
+          <p className="text-slate-400">先选模板再发帖，结构清晰更容易获得回应。</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-8">
-          {/* Post Type Selection */}
           <div>
-            <label className="block text-lg font-semibold mb-4">Post Type</label>
+            <label className="block text-lg font-semibold mb-4">Post Template</label>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {POST_TYPES.map((type) => (
+              {POST_TEMPLATES.map((template) => (
                 <button
-                  key={type.key}
+                  key={template.key}
                   type="button"
-                  onClick={() => setSelectedType(type.key)}
-                  className={`p-6 rounded-xl border-2 text-left transition-all ${
-                    selectedType === type.key
-                      ? type.color + " transform scale-105"
-                      : "border-slate-700 bg-slate-800 hover:border-slate-600"
+                  onClick={() => setSelectedTemplate(template.key)}
+                  className={`p-5 rounded-xl border text-left transition-all ${
+                    selectedTemplate === template.key
+                      ? `${template.color} shadow-[0_0_24px_rgba(56,189,248,0.12)] border-sky-500/40`
+                      : "border-slate-700 bg-slate-900/60 hover:border-slate-600"
                   }`}
                 >
-                  <div className="flex items-center gap-3 mb-3">
-                    <span className="text-2xl">{type.icon}</span>
-                    <span className="text-xl font-semibold">{type.label}</span>
+                  <div className="flex items-center gap-3 mb-2">
+                    <span className="text-xl">{template.icon}</span>
+                    <span className="text-base font-semibold">{template.label}</span>
                   </div>
-                  <p className="text-slate-300 text-sm mb-3">{type.description}</p>
-                  <div className="text-xs text-slate-400">
-                    <strong>Examples:</strong> {type.examples.join(", ")}
-                  </div>
+                  <p className="text-sm text-slate-300">{template.description}</p>
                 </button>
               ))}
             </div>
           </div>
 
-          {selectedType && (
-            <>
-              {/* Title */}
-              <div>
+          <div className="bg-slate-900/60 border border-slate-800 rounded-xl p-6 space-y-5">
+            {activeTemplate.fields.map((field) => (
+              <div key={field.key}>
                 <label className="block text-sm font-medium mb-2">
-                  Title <span className="text-red-400">*</span>
+                  {field.label} {field.required && <span className="text-red-400">*</span>}
                 </label>
-                <input
-                  type="text"
-                  value={formData.title}
-                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg focus:outline-none focus:border-sky-500 transition-colors"
-                  placeholder={selectedTypeData?.examples[0] || "Enter a descriptive title..."}
-                  required
-                />
-              </div>
-
-              {/* Content */}
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  Content <span className="text-red-400">*</span>
-                </label>
-                <textarea
-                  value={formData.content}
-                  onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-                  rows={8}
-                  className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg focus:outline-none focus:border-sky-500 transition-colors resize-vertical"
-                  placeholder="Provide details about your post. You can use markdown formatting..."
-                  required
-                />
-                <p className="text-xs text-slate-400 mt-2">
-                  Markdown supported. You can also embed images: <code className="text-sky-300">![alt](url)</code>
-                </p>
-              </div>
-
-              {/* Tags */}
-              <div>
-                <label className="block text-sm font-medium mb-2">Tags</label>
-                <input
-                  type="text"
-                  value={formData.tags}
-                  onChange={(e) => setFormData({ ...formData, tags: e.target.value })}
-                  className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg focus:outline-none focus:border-sky-500 transition-colors"
-                  placeholder="esp32, 3d-printing, hexapod, energy-core (comma-separated)"
-                />
-              </div>
-
-              {/* Associated Node */}
-              <div>
-                <label className="block text-sm font-medium mb-2">🔗 Associated Device (optional)</label>
-                <select
-                  value={selectedNodeId}
-                  onChange={(e) => setSelectedNodeId(e.target.value)}
-                  className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg focus:outline-none focus:border-sky-500 transition-colors"
-                >
-                  <option value="">None — no device linked</option>
-                  {nodesLoading && <option disabled>Loading nodes...</option>}
-                  {myNodes.map((node) => (
-                    <option key={node.id} value={node.id}>
-                      {node.name} ({node.node_type}) — {node.status}
-                    </option>
-                  ))}
-                </select>
-                <p className="text-xs text-slate-400 mt-2">
-                  Link a registered node/device to this post
-                </p>
-              </div>
-
-              {/* File Upload */}
-              <div className="bg-slate-800 border border-slate-700 rounded-lg p-6">
-                <h3 className="text-lg font-semibold mb-3">📸 Attachments</h3>
-                <p className="text-slate-400 text-sm mb-4">
-                  Upload images or files to accompany your post
-                </p>
-
-                {/* Uploaded files list */}
-                {uploadedFiles.length > 0 && (
-                  <div className="mb-4 space-y-2">
-                    {uploadedFiles.map((f) => (
-                      <div key={f.file_id} className="flex items-center justify-between bg-slate-700/50 rounded-lg px-4 py-2">
-                        <span className="text-sm text-slate-300 truncate">
-                          📄 {f.filename}
-                          {f.size && <span className="text-slate-500 ml-2">({(f.size / 1024).toFixed(1)} KB)</span>}
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => removeFile(f.file_id)}
-                          className="text-red-400 hover:text-red-300 text-sm ml-3"
-                        >
-                          ✕
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  multiple
-                  accept="image/*,.pdf,.stl,.3mf,.step"
-                  onChange={handleFileUpload}
-                  className="hidden"
-                />
-
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={uploading}
-                  className="border-2 border-dashed border-slate-600 hover:border-sky-500 rounded-lg p-6 text-center w-full transition-colors cursor-pointer"
-                >
-                  {uploading ? (
-                    <div className="flex items-center justify-center gap-2 text-slate-400">
-                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-sky-400"></div>
-                      Uploading...
-                    </div>
-                  ) : (
-                    <>
-                      <div className="text-3xl mb-2">📁</div>
-                      <p className="text-slate-400 text-sm">Click to upload images, STL, 3MF, STEP, or PDF</p>
-                    </>
-                  )}
-                </button>
-              </div>
-
-              {/* Type-specific fields */}
-              {(selectedType === "request" || selectedType === "task") && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Materials Needed</label>
-                    <input
-                      type="text"
-                      value={formData.materials}
-                      onChange={(e) => setFormData({ ...formData, materials: e.target.value })}
-                      className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg focus:outline-none focus:border-sky-500 transition-colors"
-                      placeholder="PLA, ABS, Steel, Aluminum (comma-separated)"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Deadline</label>
-                    <input
-                      type="date"
-                      value={formData.deadline}
-                      onChange={(e) => setFormData({ ...formData, deadline: e.target.value })}
-                      className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg focus:outline-none focus:border-sky-500 transition-colors"
-                    />
-                  </div>
-                </div>
-              )}
-
-              {selectedType === "task" && (
-                <div>
-                  <label className="block text-sm font-medium mb-2">Budget (USD)</label>
-                  <input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={formData.budget}
-                    onChange={(e) => setFormData({ ...formData, budget: e.target.value })}
-                    className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg focus:outline-none focus:border-sky-500 transition-colors"
-                    placeholder="50.00"
+                {field.type === "textarea" ? (
+                  <textarea
+                    value={templateData[field.key] || ""}
+                    onChange={(e) => updateField(field.key, e.target.value)}
+                    rows={field.key === "content" ? 8 : 5}
+                    className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg focus:outline-none focus:border-sky-500 transition-colors resize-vertical"
+                    placeholder={field.placeholder}
                   />
-                  <p className="text-xs text-slate-400 mt-2">
-                    Specify your budget to attract serious makers
-                  </p>
-                </div>
-              )}
-
-              {/* Manufacture Request fields */}
-              {selectedType === "manufacture_request" && (
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Material</label>
-                    <input
-                      type="text"
-                      value={formData.mfg_material}
-                      onChange={(e) => setFormData({ ...formData, mfg_material: e.target.value })}
-                      className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg focus:outline-none focus:border-sky-500 transition-colors"
-                      placeholder="e.g. Aluminum, Steel, PLA"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Quantity</label>
-                    <input
-                      type="text"
-                      value={formData.mfg_quantity}
-                      onChange={(e) => setFormData({ ...formData, mfg_quantity: e.target.value })}
-                      className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg focus:outline-none focus:border-sky-500 transition-colors"
-                      placeholder="e.g. 100 units"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Budget Hint</label>
-                    <input
-                      type="text"
-                      value={formData.mfg_budget_hint}
-                      onChange={(e) => setFormData({ ...formData, mfg_budget_hint: e.target.value })}
-                      className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg focus:outline-none focus:border-sky-500 transition-colors"
-                      placeholder="e.g. $500-1000"
-                    />
-                  </div>
-                </div>
-              )}
-
-              {/* Error display */}
-              {error && (
-                <div className="bg-red-900/20 border border-red-500/50 rounded-lg p-4">
-                  <p className="text-red-300">{error}</p>
-                </div>
-              )}
-
-              {/* Submit */}
-              <div className="flex justify-end gap-4">
-                <Link
-                  href="/community"
-                  className="px-6 py-3 text-slate-400 hover:text-white transition-colors"
-                >
-                  Cancel
-                </Link>
-                <button
-                  type="submit"
-                  disabled={submitting || !selectedType}
-                  className={`px-8 py-3 rounded-lg font-medium transition-all flex items-center gap-2 ${
-                    submitting || !selectedType
-                      ? "bg-slate-700 text-slate-400 cursor-not-allowed"
-                      : "bg-sky-600 hover:bg-sky-500 text-white shadow-lg"
-                  }`}
-                >
-                  {submitting ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                      Publishing...
-                    </>
-                  ) : (
-                    <>
-                      <span>✨</span>
-                      Publish Post
-                    </>
-                  )}
-                </button>
+                ) : (
+                  <input
+                    type={field.type === "date" ? "date" : "text"}
+                    value={templateData[field.key] || ""}
+                    onChange={(e) => updateField(field.key, e.target.value)}
+                    className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg focus:outline-none focus:border-sky-500 transition-colors"
+                    placeholder={field.placeholder}
+                  />
+                )}
               </div>
-            </>
+            ))}
+          </div>
+
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <label className="block text-sm font-medium">标签体系（最多 {MAX_TAGS} 个）</label>
+              <span className="text-xs text-slate-400">{selectedTags.length}/{MAX_TAGS}</span>
+            </div>
+            <div className="space-y-4">
+              {TAG_GROUPS.map((group) => (
+                <div key={group.name} className="bg-slate-900/50 border border-slate-800 rounded-lg p-4">
+                  <div className="text-xs uppercase tracking-wider text-slate-400 mb-3">{group.name}</div>
+                  <div className="flex flex-wrap gap-2">
+                    {group.tags.map((tag) => {
+                      const active = selectedTags.includes(tag);
+                      return (
+                        <button
+                          key={tag}
+                          type="button"
+                          onClick={() => toggleTag(tag)}
+                          className={`px-3 py-1.5 rounded-full text-sm border transition-all ${
+                            active
+                              ? "bg-sky-500/20 border-sky-400 text-sky-200"
+                              : "bg-slate-800 border-slate-700 text-slate-300 hover:border-slate-500"
+                          }`}
+                        >
+                          {tag}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-2">🔗 Associated Device (optional)</label>
+            <select
+              value={selectedNodeId}
+              onChange={(e) => setSelectedNodeId(e.target.value)}
+              className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg focus:outline-none focus:border-sky-500 transition-colors"
+            >
+              <option value="">None — no device linked</option>
+              {nodesLoading && <option disabled>Loading nodes...</option>}
+              {myNodes.map((node) => (
+                <option key={node.id} value={node.id}>
+                  {node.name} ({node.node_type}) — {node.status}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="bg-slate-800 border border-slate-700 rounded-lg p-6">
+            <h3 className="text-lg font-semibold mb-3">📸 Attachments</h3>
+            {uploadedFiles.length > 0 && (
+              <div className="mb-4 space-y-2">
+                {uploadedFiles.map((f) => (
+                  <div key={f.file_id} className="flex items-center justify-between bg-slate-700/50 rounded-lg px-4 py-2">
+                    <span className="text-sm text-slate-300 truncate">
+                      📄 {f.filename}
+                      {f.size && <span className="text-slate-500 ml-2">({(f.size / 1024).toFixed(1)} KB)</span>}
+                    </span>
+                    <button type="button" onClick={() => removeFile(f.file_id)} className="text-red-400 hover:text-red-300 text-sm ml-3">✕</button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <input ref={fileInputRef} type="file" multiple accept="image/*,.pdf,.stl,.3mf,.step" onChange={handleFileUpload} className="hidden" />
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploading}
+              className="border-2 border-dashed border-slate-600 hover:border-sky-500 rounded-lg p-6 text-center w-full transition-colors"
+            >
+              {uploading ? "Uploading..." : "Click to upload images, STL, 3MF, STEP, or PDF"}
+            </button>
+          </div>
+
+          {error && (
+            <div className="bg-red-900/20 border border-red-500/50 rounded-lg p-4">
+              <p className="text-red-300">{error}</p>
+            </div>
           )}
+
+          <div className="flex justify-end gap-4">
+            <Link href="/community" className="px-6 py-3 text-slate-400 hover:text-white transition-colors">Cancel</Link>
+            <button
+              type="submit"
+              disabled={submitting}
+              className={`px-8 py-3 rounded-lg font-medium transition-all flex items-center gap-2 ${
+                submitting ? "bg-slate-700 text-slate-400 cursor-not-allowed" : "bg-sky-600 hover:bg-sky-500 text-white shadow-lg"
+              }`}
+            >
+              {submitting ? "Publishing..." : "✨ Publish Post"}
+            </button>
+          </div>
         </form>
       </div>
     </div>

@@ -1,65 +1,114 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { fetchCommunityPost, fetchPostComments, createComment, CommunityPost, CommunityComment } from "@/lib/api-client";
 import VoteButtons from "@/components/VoteButtons";
+import { useAuthStore } from "@/stores/authStore";
 
-// Calculate total comments including nested replies
+const BEST_ANSWER_KEY = "rwc-best-answers";
+
 function getTotalCommentCount(comments: CommunityComment[]): number {
-  return comments.reduce((total, comment) => {
-    return total + 1 + (comment.replies ? getTotalCommentCount(comment.replies) : 0);
-  }, 0);
+  return comments.reduce((total, comment) => total + 1 + (comment.replies ? getTotalCommentCount(comment.replies) : 0), 0);
 }
 
-// Recursive comment component
-function CommentItem({ 
-  comment, 
-  depth = 0, 
-  onReply 
-}: { 
-  comment: CommunityComment; 
-  depth?: number; 
+function findCommentById(comments: CommunityComment[], id: string): CommunityComment | null {
+  for (const comment of comments) {
+    if (comment.id === id) return comment;
+    if (comment.replies?.length) {
+      const found = findCommentById(comment.replies, id);
+      if (found) return found;
+    }
+  }
+  return null;
+}
+
+function removeCommentById(comments: CommunityComment[], id: string): CommunityComment[] {
+  return comments
+    .filter((comment) => comment.id !== id)
+    .map((comment) => ({
+      ...comment,
+      replies: comment.replies ? removeCommentById(comment.replies, id) : [],
+    }));
+}
+
+function CommentItem({
+  comment,
+  depth = 0,
+  onReply,
+  canMarkBestAnswer,
+  bestAnswerId,
+  onMarkBestAnswer,
+}: {
+  comment: CommunityComment;
+  depth?: number;
   onReply: (commentId: string) => void;
+  canMarkBestAnswer: boolean;
+  bestAnswerId: string | null;
+  onMarkBestAnswer: (commentId: string) => void;
 }) {
+  const isBestAnswer = bestAnswerId === comment.id;
   const formatTimeAgo = (dateString: string) => {
     const now = new Date();
     const date = new Date(dateString);
     const diff = now.getTime() - date.getTime();
     const hours = Math.floor(diff / (1000 * 60 * 60));
     const days = Math.floor(hours / 24);
-    
+
     if (days > 0) return `${days}d ago`;
     if (hours > 0) return `${hours}h ago`;
     return "Just now";
   };
 
   return (
-    <div className={`${depth > 0 ? 'ml-4 md:ml-8 border-l-2 border-sky-500/20 pl-4' : ''}`}>
-      <div className="bg-slate-800/40 rounded-xl p-4 border border-slate-700/40 mb-3 hover:border-slate-600/60 transition-colors">
+    <div className={`${depth > 0 ? "ml-4 md:ml-8 border-l-2 border-sky-500/20 pl-4" : ""}`}>
+      <div
+        className={`rounded-xl p-4 border mb-3 transition-colors ${
+          isBestAnswer
+            ? "bg-emerald-500/10 border-emerald-400/50 shadow-[0_0_24px_rgba(16,185,129,0.14)]"
+            : "bg-slate-800/40 border-slate-700/40 hover:border-slate-600/60"
+        }`}
+      >
         <div className="flex items-center gap-2 text-sm text-slate-400 mb-2">
           <span className="font-medium text-slate-300">{comment.author_name || comment.author}</span>
-          <span title={comment.author_type === 'agent' ? 'AI Agent' : 'Human'}>
-            {comment.author_type === 'agent' ? '🤖' : '👤'}
-          </span>
+          <span title={comment.author_type === "agent" ? "AI Agent" : "Human"}>{comment.author_type === "agent" ? "🤖" : "👤"}</span>
           <span>·</span>
           <span>{formatTimeAgo(comment.created_at)}</span>
+          {isBestAnswer && <span className="ml-2 px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-200 text-xs border border-emerald-400/40">✅ Best Answer</span>}
         </div>
-        <div className="text-slate-300 mb-2 prose prose-invert prose-sm max-w-none prose-pre:bg-slate-900 prose-pre:border prose-pre:border-slate-700 prose-pre:rounded-lg prose-pre:p-4 prose-pre:overflow-x-auto prose-code:text-sky-300 prose-a:text-sky-400 prose-img:rounded-lg prose-img:max-w-full">
+
+        <div className="text-slate-300 mb-3 prose prose-invert prose-sm max-w-none prose-pre:bg-slate-900 prose-pre:border prose-pre:border-slate-700 prose-pre:rounded-lg prose-pre:p-4 prose-pre:overflow-x-auto prose-code:text-sky-300 prose-a:text-sky-400 prose-img:rounded-lg prose-img:max-w-full">
           <ReactMarkdown remarkPlugins={[remarkGfm]}>{comment.content}</ReactMarkdown>
         </div>
-        <button 
-          onClick={() => onReply(comment.id)}
-          className="text-xs text-sky-400 hover:text-sky-300 transition-colors"
-        >
-          Reply
-        </button>
+
+        <div className="flex items-center gap-4">
+          <button onClick={() => onReply(comment.id)} className="text-xs text-sky-400 hover:text-sky-300 transition-colors">
+            Reply
+          </button>
+          {canMarkBestAnswer && (
+            <button
+              onClick={() => onMarkBestAnswer(comment.id)}
+              className={`text-xs transition-colors ${isBestAnswer ? "text-emerald-300 hover:text-emerald-200" : "text-amber-300 hover:text-amber-200"}`}
+            >
+              {isBestAnswer ? "Best Answer Selected" : "Mark as Best Answer"}
+            </button>
+          )}
+        </div>
       </div>
-      {comment.replies && comment.replies.map(reply => (
-        <CommentItem key={reply.id} comment={reply} depth={depth + 1} onReply={onReply} />
+
+      {comment.replies?.map((reply) => (
+        <CommentItem
+          key={reply.id}
+          comment={reply}
+          depth={depth + 1}
+          onReply={onReply}
+          canMarkBestAnswer={canMarkBestAnswer}
+          bestAnswerId={bestAnswerId}
+          onMarkBestAnswer={onMarkBestAnswer}
+        />
       ))}
     </div>
   );
@@ -67,6 +116,7 @@ function CommentItem({
 
 export default function PostDetailPage() {
   const params = useParams();
+  const me = useAuthStore((s) => s.user);
   const [post, setPost] = useState<CommunityPost | null>(null);
   const [comments, setComments] = useState<CommunityComment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -75,39 +125,69 @@ export default function PostDetailPage() {
   const [submitting, setSubmitting] = useState(false);
   const [toastError, setToastError] = useState<string | null>(null);
   const [replyTo, setReplyTo] = useState<string | null>(null);
+  const [bestAnswerId, setBestAnswerId] = useState<string | null>(null);
+
+  const postId = params.id as string | undefined;
+
+  useEffect(() => {
+    if (!postId) return;
+    try {
+      const map = JSON.parse(localStorage.getItem(BEST_ANSWER_KEY) || "{}") as Record<string, string>;
+      setBestAnswerId(map[postId] || null);
+    } catch {
+      setBestAnswerId(null);
+    }
+  }, [postId]);
+
+  const persistBestAnswer = (commentId: string) => {
+    if (!postId) return;
+    const map = JSON.parse(localStorage.getItem(BEST_ANSWER_KEY) || "{}") as Record<string, string>;
+    map[postId] = commentId;
+    localStorage.setItem(BEST_ANSWER_KEY, JSON.stringify(map));
+    setBestAnswerId(commentId);
+  };
 
   const fetchPost = useCallback(async () => {
-    if (!params.id) return;
+    if (!postId) return;
     try {
-      const data = await fetchCommunityPost(params.id as string);
-      if (data) {
-        setPost(data);
-      } else {
-        setError("Post not found");
-      }
-    } catch (err) {
+      const data = await fetchCommunityPost(postId);
+      if (data) setPost(data);
+      else setError("Post not found");
+    } catch {
       setError("Failed to load post");
     } finally {
       setLoading(false);
     }
-  }, [params.id]);
+  }, [postId]);
 
   const fetchComments = useCallback(async () => {
-    if (!params.id) return;
+    if (!postId) return;
     try {
-      const data = await fetchPostComments(params.id as string);
+      const data = await fetchPostComments(postId);
       setComments(data);
     } catch (err) {
       console.error("Failed to load comments:", err);
     }
-  }, [params.id]);
+  }, [postId]);
 
   useEffect(() => {
-    if (params.id) {
+    if (postId) {
       fetchPost();
       fetchComments();
     }
-  }, [params.id, fetchPost, fetchComments]);
+  }, [postId, fetchPost, fetchComments]);
+
+  const canMarkBestAnswer = useMemo(() => !!(post && me && post.author_id === me.id), [post, me]);
+
+  const bestAnswerComment = useMemo(() => {
+    if (!bestAnswerId) return null;
+    return findCommentById(comments, bestAnswerId);
+  }, [comments, bestAnswerId]);
+
+  const visibleComments = useMemo(() => {
+    if (!bestAnswerId) return comments;
+    return removeCommentById(comments, bestAnswerId);
+  }, [comments, bestAnswerId]);
 
   const showErrorToast = (message: string) => {
     setToastError(message);
@@ -116,26 +196,24 @@ export default function PostDetailPage() {
 
   const handleSubmitComment = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newComment.trim() || !params.id) return;
+    if (!newComment.trim() || !postId) return;
 
     setSubmitting(true);
     try {
-      const result = await createComment(params.id as string, newComment.trim(), replyTo || undefined);
+      const result = await createComment(postId, newComment.trim(), replyTo || undefined);
       if (result.success) {
         setNewComment("");
         setReplyTo(null);
-        fetchComments(); // Refresh comments
+        fetchComments();
       } else {
         showErrorToast(result.error || "Failed to post comment");
       }
-    } catch (err) {
+    } catch {
       showErrorToast("Failed to post comment");
     } finally {
       setSubmitting(false);
     }
   };
-
-  // Markdown rendering is now handled by ReactMarkdown component
 
   const formatTimeAgo = (dateString: string) => {
     const now = new Date();
@@ -143,7 +221,7 @@ export default function PostDetailPage() {
     const diff = now.getTime() - date.getTime();
     const hours = Math.floor(diff / (1000 * 60 * 60));
     const days = Math.floor(hours / 24);
-    
+
     if (days > 0) return `${days}d ago`;
     if (hours > 0) return `${hours}h ago`;
     return "Just now";
@@ -167,85 +245,14 @@ export default function PostDetailPage() {
     }
   };
 
-  const getTypeLabel = (type: string) => {
-    switch (type) {
-      case "design_share": return "Design Share";
-      default: return type.charAt(0).toUpperCase() + type.slice(1);
-    }
-  };
-
-  const getActionButton = () => {
-    if (!post) return null;
-
-    if (post.post_type === "showcase" || post.post_type === "design_share") {
-      return (
-        <Link
-          href={`/submit?fork=${post.id}`}
-          className="px-6 py-3 bg-sky-600 hover:bg-sky-500 hover:shadow-[0_0_20px_rgba(56,189,248,0.35)] rounded-lg font-medium transition-all flex items-center gap-2 shadow-lg"
-        >
-          Fork This Design
-        </Link>
-      );
-    }
-    return null;
-  };
+  const getTypeLabel = (type: string) => (type === "design_share" ? "Design Share" : type.charAt(0).toUpperCase() + type.slice(1));
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-slate-950 text-white">
-        {/* Navigation */}
-        <nav className="px-6 py-4 bg-slate-950/95 backdrop-blur-sm border-b border-slate-800/50">
-          <div className="max-w-7xl mx-auto flex items-center justify-between">
-            <Link href="/" className="flex items-center gap-3">
-              <svg viewBox="0 0 130 130" className="w-8 h-8">
-                <path d="M 25 105 V 35 H 55 A 15 15 0 0 1 55 65 H 25 M 40 65 L 60 105" fill="none" stroke="#38bdf8" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M 70 35 L 80 105 L 95 65 L 110 105 L 120 35" fill="none" stroke="#38bdf8" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round"/>
-                <circle cx="25" cy="35" r="4" fill="#fff"/><circle cx="55" cy="50" r="4" fill="#fff"/><circle cx="95" cy="65" r="4" fill="#fff"/>
-              </svg>
-              <span className="text-xl font-bold">
-                RealWorld<span className="text-sky-400">Claw</span>
-              </span>
-            </Link>
-          </div>
-        </nav>
-        <div className="flex items-center justify-center py-20">
-          <div className="text-slate-400 flex items-center gap-3">
-            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-sky-400"></div>
-            Loading post...
-          </div>
-        </div>
-      </div>
-    );
+    return <div className="min-h-screen bg-slate-950 text-white"><div className="flex items-center justify-center py-20"><div className="text-slate-400">Loading post...</div></div></div>;
   }
 
   if (error || !post) {
-    return (
-      <div className="min-h-screen bg-slate-950 text-white">
-        {/* Navigation */}
-        <nav className="px-6 py-4 bg-slate-950/95 backdrop-blur-sm border-b border-slate-800/50">
-          <div className="max-w-7xl mx-auto flex items-center justify-between">
-            <Link href="/" className="flex items-center gap-3">
-              <svg viewBox="0 0 130 130" className="w-8 h-8">
-                <path d="M 25 105 V 35 H 55 A 15 15 0 0 1 55 65 H 25 M 40 65 L 60 105" fill="none" stroke="#38bdf8" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M 70 35 L 80 105 L 95 65 L 110 105 L 120 35" fill="none" stroke="#38bdf8" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round"/>
-                <circle cx="25" cy="35" r="4" fill="#fff"/><circle cx="55" cy="50" r="4" fill="#fff"/><circle cx="95" cy="65" r="4" fill="#fff"/>
-              </svg>
-              <span className="text-xl font-bold">
-                RealWorld<span className="text-sky-400">Claw</span>
-              </span>
-            </Link>
-          </div>
-        </nav>
-        <div className="flex items-center justify-center py-20">
-          <div className="text-center">
-            <h2 className="text-xl font-bold mb-2">{error || "Post not found"}</h2>
-            <Link href="/community" className="text-sky-400 hover:text-sky-300 transition-colors">
-              ← Back to community
-            </Link>
-          </div>
-        </div>
-      </div>
-    );
+    return <div className="min-h-screen bg-slate-950 text-white"><div className="flex items-center justify-center py-20"><div className="text-center"><h2 className="text-xl font-bold mb-2">{error || "Post not found"}</h2><Link href="/community" className="text-sky-400">← Back to community</Link></div></div></div>;
   }
 
   return (
@@ -255,7 +262,7 @@ export default function PostDetailPage() {
           <div className="p-3 bg-red-900/50 border border-red-800 rounded-lg text-red-200 text-sm">{toastError}</div>
         </div>
       )}
-      {/* Navigation */}
+
       <nav className="px-6 py-4 bg-slate-950/95 backdrop-blur-sm border-b border-slate-800/50">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <Link href="/" className="flex items-center gap-3">
@@ -264,124 +271,63 @@ export default function PostDetailPage() {
               <path d="M 70 35 L 80 105 L 95 65 L 110 105 L 120 35" fill="none" stroke="#38bdf8" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round"/>
               <circle cx="25" cy="35" r="4" fill="#fff"/><circle cx="55" cy="50" r="4" fill="#fff"/><circle cx="95" cy="65" r="4" fill="#fff"/>
             </svg>
-            <span className="text-xl font-bold">
-              RealWorld<span className="text-sky-400">Claw</span>
-            </span>
+            <span className="text-xl font-bold">RealWorld<span className="text-sky-400">Claw</span></span>
           </Link>
-          
-          <div className="hidden md:flex items-center gap-8">
-            <Link href="/" className="text-slate-300 hover:text-white transition-colors">
-              Feed
-            </Link>
-            <Link href="/map" className="text-slate-300 hover:text-white transition-colors">
-              Map
-            </Link>
-            <Link href="/community" className="text-white font-medium">
-              Community
-            </Link>
-            <Link href="/orders/new" className="text-slate-300 hover:text-white transition-colors">
-              Submit
-            </Link>
-            <Link href="https://realworldclaw-api.fly.dev/docs" target="_blank" className="text-slate-300 hover:text-white transition-colors">
-              Docs
-            </Link>
-          </div>
-
-          <div className="flex items-center gap-4">
-            <Link href="/auth/login" className="text-slate-300 hover:text-white transition-colors">
-              Sign In
-            </Link>
-            <Link
-              href="/register-node"
-              className="px-4 py-2 bg-sky-500 hover:bg-sky-400 hover:shadow-[0_0_18px_rgba(56,189,248,0.35)] text-white rounded-lg transition-all font-medium"
-            >
-              Register Your Machine
-            </Link>
-          </div>
+          <Link href="/community" className="text-slate-300 hover:text-white">Community</Link>
         </div>
       </nav>
 
       <div className="max-w-5xl mx-auto px-6 py-8">
-        {/* Breadcrumb */}
-        <div className="mb-6">
-          <Link href="/community" className="text-sky-400 hover:text-sky-300 text-sm flex items-center gap-1">
-            ← Back to community
-          </Link>
-        </div>
-
+        <div className="mb-6"><Link href="/community" className="text-sky-400 hover:text-sky-300 text-sm">← Back to community</Link></div>
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          {/* Main content */}
           <div className="lg:col-span-3">
-            {/* Post header */}
             <div className="mb-8">
               <div className="flex items-center gap-3 mb-4">
                 <div className={`px-3 py-1 rounded-full text-sm font-medium border ${getTypeColor(post.post_type)}`}>
-                  <span className="mr-1">{getTypeIcon(post.post_type)}</span>
-                  {getTypeLabel(post.post_type)}
+                  <span className="mr-1">{getTypeIcon(post.post_type)}</span>{getTypeLabel(post.post_type)}
                 </div>
-              </div>
-
-              <h1 className="text-3xl font-bold mb-4 leading-tight">{post.title}</h1>
-
-              <div className="flex items-center gap-6 text-sm text-slate-400 mb-6">
-                <div className="flex items-center gap-2">
-                  <span className="font-medium text-white">{post.author_name || 'Anonymous'}</span>
-                  <span title={post.author_type === 'agent' ? 'AI Agent' : 'Human'}>
-                    {post.author_type === 'agent' ? '🤖' : '👤'}
-                  </span>
-                </div>
-                <span>•</span>
-                <span>{formatTimeAgo(post.created_at)}</span>
-                {post.deadline && (
-                  <>
-                    <span>•</span>
-                    <span className="text-sky-400">
-                      📅 Due {new Date(post.deadline).toLocaleDateString()}
-                    </span>
-                  </>
+                {bestAnswerComment && (
+                  <span className="px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/15 text-emerald-200 border border-emerald-400/40">Resolved</span>
                 )}
               </div>
-
-              {/* Action buttons */}
-              <div className="flex items-center gap-4 mb-8">
-                {getActionButton()}
-                <div className="flex items-center gap-4 text-sm">
-                  <VoteButtons postId={post.id} upvotes={post.upvotes} downvotes={post.downvotes} size="sm" />
-                  <div className="flex items-center gap-1">
-                    <span>💬</span>
-                    <span>{getTotalCommentCount(comments)}</span>
-                  </div>
-                </div>
+              <h1 className="text-3xl font-bold mb-4 leading-tight">{post.title}</h1>
+              <div className="flex items-center gap-6 text-sm text-slate-400 mb-6">
+                <span className="font-medium text-white">{post.author_name || "Anonymous"}</span>
+                <span>•</span><span>{formatTimeAgo(post.created_at)}</span>
+              </div>
+              <div className="flex items-center gap-4 text-sm mb-8">
+                <VoteButtons postId={post.id} upvotes={post.upvotes} downvotes={post.downvotes} size="sm" />
+                <div className="flex items-center gap-1"><span>💬</span><span>{getTotalCommentCount(comments)}</span></div>
               </div>
             </div>
 
-            {/* Post content */}
-            <div className="prose prose-invert max-w-none mb-12 prose-pre:bg-slate-900 prose-pre:border prose-pre:border-slate-700 prose-pre:rounded-lg prose-pre:p-4 prose-pre:overflow-x-auto prose-code:text-sky-300 prose-code:font-mono prose-img:rounded-lg prose-img:max-w-full prose-headings:text-white prose-a:text-sky-400 prose-strong:text-white prose-blockquote:border-sky-500/50">
+            <div className="prose prose-invert max-w-none mb-12 prose-pre:bg-slate-900 prose-pre:border prose-pre:border-slate-700 prose-pre:rounded-lg prose-pre:p-4 prose-pre:overflow-x-auto prose-code:text-sky-300 prose-img:rounded-lg prose-img:max-w-full prose-headings:text-white prose-a:text-sky-400 prose-strong:text-white prose-blockquote:border-sky-500/50">
               <div className="bg-slate-800/50 rounded-xl p-6 border border-slate-700">
                 <ReactMarkdown remarkPlugins={[remarkGfm]}>{post.content}</ReactMarkdown>
               </div>
             </div>
 
-            {/* Comments section */}
             <div className="border-t border-slate-800 pt-8">
-              <h2 className="text-2xl font-bold mb-6">
-                Comments ({getTotalCommentCount(comments)})
-              </h2>
+              <h2 className="text-2xl font-bold mb-6">Comments ({getTotalCommentCount(comments)})</h2>
 
-              {/* Comment form */}
+              {bestAnswerComment && (
+                <div className="mb-6">
+                  <div className="text-xs uppercase tracking-[0.18em] text-emerald-300 mb-2">Pinned Best Answer</div>
+                  <CommentItem
+                    comment={bestAnswerComment}
+                    onReply={setReplyTo}
+                    canMarkBestAnswer={canMarkBestAnswer}
+                    bestAnswerId={bestAnswerId}
+                    onMarkBestAnswer={persistBestAnswer}
+                  />
+                </div>
+              )}
+
               <form onSubmit={handleSubmitComment} className="mb-8">
                 {replyTo && (
                   <div className="mb-3 p-3 bg-slate-800/50 rounded-lg border border-slate-700 flex items-center justify-between">
-                    <span className="text-sm text-slate-400">
-                      Replying to comment...
-                    </span>
-                    <button 
-                      type="button"
-                      onClick={() => setReplyTo(null)}
-                      className="text-slate-400 hover:text-slate-300 transition-colors"
-                    >
-                      ✕
-                    </button>
+                    <span className="text-sm text-slate-400">Replying to comment...</span>
+                    <button type="button" onClick={() => setReplyTo(null)} className="text-slate-400 hover:text-slate-300">✕</button>
                   </div>
                 )}
                 <textarea
@@ -391,43 +337,29 @@ export default function PostDetailPage() {
                   className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:border-sky-500 transition-colors resize-none"
                   rows={4}
                 />
-                <div className="flex justify-between items-center mt-3">
-                  {replyTo && (
-                    <button
-                      type="button"
-                      onClick={() => {setReplyTo(null); setNewComment("");}}
-                      className="px-4 py-2 text-slate-400 hover:text-slate-300 text-sm transition-colors"
-                    >
-                      Cancel Reply
-                    </button>
-                  )}
-                  <div className="flex-1"></div>
+                <div className="flex justify-end mt-3">
                   <button
                     type="submit"
                     disabled={submitting || !newComment.trim()}
-                    className={`px-6 py-2 rounded-md text-sm font-medium transition-all ${
-                      submitting || !newComment.trim()
-                        ? "bg-slate-700 text-slate-400 cursor-not-allowed"
-                        : "bg-sky-600 hover:bg-sky-500 hover:shadow-[0_0_18px_rgba(56,189,248,0.35)] text-white"
-                    }`}
+                    className={`px-6 py-2 rounded-md text-sm font-medium transition-all ${submitting || !newComment.trim() ? "bg-slate-700 text-slate-400 cursor-not-allowed" : "bg-sky-600 hover:bg-sky-500 text-white"}`}
                   >
-                    {submitting ? "Posting..." : (replyTo ? "Post Reply" : "Post Comment")}
+                    {submitting ? "Posting..." : replyTo ? "Post Reply" : "Post Comment"}
                   </button>
                 </div>
               </form>
 
-              {/* Comments list */}
               <div className="space-y-4">
-                {comments.length === 0 ? (
-                  <div className="text-center py-12 text-slate-500">
-                    <p className="text-sm">No comments yet. Be the first to share your thoughts.</p>
-                  </div>
+                {visibleComments.length === 0 ? (
+                  <div className="text-center py-12 text-slate-500"><p className="text-sm">No comments yet. Be the first to share your thoughts.</p></div>
                 ) : (
-                  comments.map((comment) => (
-                    <CommentItem 
-                      key={comment.id} 
-                      comment={comment} 
+                  visibleComments.map((comment) => (
+                    <CommentItem
+                      key={comment.id}
+                      comment={comment}
                       onReply={setReplyTo}
+                      canMarkBestAnswer={canMarkBestAnswer}
+                      bestAnswerId={bestAnswerId}
+                      onMarkBestAnswer={persistBestAnswer}
                     />
                   ))
                 )}
@@ -435,75 +367,13 @@ export default function PostDetailPage() {
             </div>
           </div>
 
-          {/* Right sidebar */}
           <div className="lg:col-span-1">
-            <div className="space-y-6">
-              {/* Post meta */}
-              <div className="bg-slate-800 rounded-xl p-6">
-                <h3 className="text-lg font-semibold mb-4">Post Details</h3>
-                <div className="space-y-3 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-slate-400">Type</span>
-                    <span className="text-white capitalize">{post.post_type}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-400">Author</span>
-                    <span className="text-white">{post.author_name || 'Anonymous'}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-400">Created</span>
-                    <span className="text-white">{new Date(post.created_at).toLocaleDateString()}</span>
-                  </div>
-                  {post.materials && post.materials.length > 0 && (
-                    <div>
-                      <span className="text-slate-400 block mb-2">Materials</span>
-                      <div className="flex flex-wrap gap-1">
-                        {post.materials.map((material: string, i: number) => (
-                          <span key={i} className="px-2 py-1 bg-slate-700 rounded text-xs">
-                            {material}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Tags */}
-              {post.tags && post.tags.length > 0 && (
-                <div className="bg-slate-800 rounded-xl p-6">
-                  <h3 className="text-lg font-semibold mb-4">Tags</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {post.tags.map((tag, i) => (
-                      <Link
-                        key={i}
-                        href={`/community?tag=${tag}`}
-                        className="px-3 py-1 bg-slate-700 hover:bg-slate-600 rounded-full text-sm transition-colors"
-                      >
-                        #{tag}
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Quick actions */}
-              <div className="bg-slate-800 rounded-xl p-6">
-                <h3 className="text-lg font-semibold mb-4">Actions</h3>
-                <div className="space-y-3">
-                  <Link
-                    href="/community/new"
-                    className="block w-full px-4 py-2 bg-sky-600 hover:bg-sky-500 hover:shadow-[0_0_18px_rgba(56,189,248,0.35)] rounded-lg text-center text-sm font-medium transition-all"
-                  >
-                    New Post
-                  </Link>
-                  <Link
-                    href="/community"
-                    className="block w-full px-4 py-2 bg-slate-700 hover:bg-sky-500 hover:shadow-[0_0_18px_rgba(56,189,248,0.35)] rounded-lg text-center text-sm font-medium transition-all"
-                  >
-                    Back to Community
-                  </Link>
-                </div>
+            <div className="bg-slate-800 rounded-xl p-6">
+              <h3 className="text-lg font-semibold mb-4">Post Details</h3>
+              <div className="space-y-3 text-sm">
+                <div className="flex justify-between"><span className="text-slate-400">Type</span><span className="text-white capitalize">{post.post_type}</span></div>
+                <div className="flex justify-between"><span className="text-slate-400">Status</span><span className={bestAnswerComment ? "text-emerald-300" : "text-slate-300"}>{bestAnswerComment ? "Resolved" : "Open"}</span></div>
+                <div className="flex justify-between"><span className="text-slate-400">Author</span><span className="text-white">{post.author_name || "Anonymous"}</span></div>
               </div>
             </div>
           </div>

@@ -14,6 +14,20 @@ class PostType(str, enum.Enum):
     discussion = "discussion"
 
 
+class PostTemplateType(str, enum.Enum):
+    request = "request"
+    engineering_log = "engineering_log"
+    showcase = "showcase"
+    free = "free"
+
+
+class TagCategory(str, enum.Enum):
+    craft = "craft"
+    material = "material"
+    equipment = "equipment"
+    scene = "scene"
+
+
 class PostSortType(str, enum.Enum):
     newest = "newest"
     popular = "popular"
@@ -30,6 +44,8 @@ class PostCreateRequest(BaseModel):
     post_type: PostType
     file_id: Optional[str] = None
     images: Optional[list[str]] = None  # JSON array of image URLs/paths
+    tags: list[str] = Field(default_factory=list)
+    template_type: Optional[PostTemplateType] = None
 
 
 class PostListQuery(BaseModel):
@@ -53,6 +69,7 @@ class CommentResponse(BaseModel):
     parent_id: Optional[str] = None
     author_name: Optional[str] = None
     replies: Optional[list['CommentResponse']] = None
+    is_best_answer: bool = False
     created_at: str
     updated_at: str
 
@@ -70,6 +87,17 @@ class VoteResponse(BaseModel):
     user_vote: Optional[str] = None  # "up", "down", or null
 
 
+class ReportPostRequest(BaseModel):
+    reason: str = Field(..., min_length=1, max_length=500)
+
+
+class TagResponse(BaseModel):
+    id: str
+    name: str
+    category: TagCategory
+    created_at: str
+
+
 class PostResponse(BaseModel):
     id: str
     title: str
@@ -80,6 +108,12 @@ class PostResponse(BaseModel):
     author_name: Optional[str] = None
     file_id: Optional[str] = None
     images: Optional[list[str]] = None
+    tags: list[str] = Field(default_factory=list)
+    template_type: Optional[PostTemplateType] = None
+    is_resolved: bool = False
+    is_pinned: bool = False
+    is_locked: bool = False
+    best_answer_comment_id: Optional[str] = None
     comment_count: int
     likes_count: int
     upvotes: int = 0
@@ -112,6 +146,11 @@ CREATE TABLE IF NOT EXISTS community_posts (
     author_type TEXT NOT NULL,  -- 'user' or 'agent'
     file_id TEXT,
     images TEXT,  -- JSON array
+    template_type TEXT,
+    is_resolved INTEGER NOT NULL DEFAULT 0,
+    best_answer_comment_id TEXT,
+    is_pinned INTEGER NOT NULL DEFAULT 0,
+    is_locked INTEGER NOT NULL DEFAULT 0,
     comment_count INTEGER NOT NULL DEFAULT 0,
     likes_count INTEGER NOT NULL DEFAULT 0,
     created_at TEXT NOT NULL,
@@ -124,9 +163,35 @@ CREATE TABLE IF NOT EXISTS community_comments (
     content TEXT NOT NULL,
     author_id TEXT NOT NULL,
     author_type TEXT NOT NULL,  -- 'user' or 'agent'
+    is_best_answer INTEGER NOT NULL DEFAULT 0,
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL,
     FOREIGN KEY (post_id) REFERENCES community_posts (id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS tags (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL UNIQUE,
+    category TEXT NOT NULL,
+    created_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS post_tags (
+    post_id TEXT NOT NULL,
+    tag_id TEXT NOT NULL,
+    PRIMARY KEY (post_id, tag_id),
+    FOREIGN KEY (post_id) REFERENCES community_posts (id) ON DELETE CASCADE,
+    FOREIGN KEY (tag_id) REFERENCES tags (id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS community_reports (
+    id TEXT PRIMARY KEY,
+    post_id TEXT NOT NULL,
+    reporter_id TEXT NOT NULL,
+    reason TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    FOREIGN KEY (post_id) REFERENCES community_posts (id) ON DELETE CASCADE,
+    UNIQUE(post_id, reporter_id)
 );
 
 CREATE INDEX IF NOT EXISTS idx_community_posts_author ON community_posts(author_id, author_type);
@@ -134,6 +199,10 @@ CREATE INDEX IF NOT EXISTS idx_community_posts_type ON community_posts(post_type
 CREATE INDEX IF NOT EXISTS idx_community_posts_created_at ON community_posts(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_community_comments_post_id ON community_comments(post_id);
 CREATE INDEX IF NOT EXISTS idx_community_comments_author ON community_comments(author_id, author_type);
+CREATE INDEX IF NOT EXISTS idx_tags_category ON tags(category);
+CREATE INDEX IF NOT EXISTS idx_post_tags_post_id ON post_tags(post_id);
+CREATE INDEX IF NOT EXISTS idx_post_tags_tag_id ON post_tags(tag_id);
+CREATE INDEX IF NOT EXISTS idx_community_reports_post_id ON community_reports(post_id);
 
 CREATE TABLE IF NOT EXISTS community_votes (
     id TEXT PRIMARY KEY,

@@ -497,6 +497,12 @@ def init_db():
             "ALTER TABLE community_posts ADD COLUMN IF NOT EXISTS upvotes INTEGER NOT NULL DEFAULT 0",
             "ALTER TABLE community_posts ADD COLUMN IF NOT EXISTS downvotes INTEGER NOT NULL DEFAULT 0", 
             "ALTER TABLE community_comments ADD COLUMN IF NOT EXISTS parent_id VARCHAR(255) DEFAULT NULL",
+            "ALTER TABLE community_posts ADD COLUMN IF NOT EXISTS template_type VARCHAR(50)",
+            "ALTER TABLE community_posts ADD COLUMN IF NOT EXISTS is_resolved INTEGER NOT NULL DEFAULT 0",
+            "ALTER TABLE community_posts ADD COLUMN IF NOT EXISTS best_answer_comment_id VARCHAR(255)",
+            "ALTER TABLE community_posts ADD COLUMN IF NOT EXISTS is_pinned INTEGER NOT NULL DEFAULT 0",
+            "ALTER TABLE community_posts ADD COLUMN IF NOT EXISTS is_locked INTEGER NOT NULL DEFAULT 0",
+            "ALTER TABLE community_comments ADD COLUMN IF NOT EXISTS is_best_answer INTEGER NOT NULL DEFAULT 0",
             "ALTER TABLE users ADD COLUMN IF NOT EXISTS oauth_provider VARCHAR(255)",
             "ALTER TABLE users ADD COLUMN IF NOT EXISTS oauth_id VARCHAR(255)",
             "ALTER TABLE orders ADD COLUMN IF NOT EXISTS file_id VARCHAR(255)",
@@ -538,6 +544,23 @@ def init_db():
                 executescript_cross_db(db, idx_sql)
             except Exception:
                 pass
+
+        default_tags = {
+            "craft": ["3D Printing", "CNC", "Laser Cut", "Injection Molding"],
+            "material": ["PLA", "ABS", "PETG", "Resin", "Metal", "Wood"],
+            "equipment": ["FDM", "SLA", "SLS"],
+            "scene": ["Robotics", "IoT", "Wearable", "Home", "Industrial"],
+        }
+        for category, names in default_tags.items():
+            for name in names:
+                try:
+                    execute_sql(
+                        db,
+                        "INSERT INTO tags (id, name, category, created_at) VALUES (?, ?, ?, CURRENT_TIMESTAMP)",
+                        (f"tag-{category}-{name.lower().replace(' ', '-').replace('/', '-')}", name, category),
+                    )
+                except Exception:
+                    pass
 
 
 if __name__ == "__main__":

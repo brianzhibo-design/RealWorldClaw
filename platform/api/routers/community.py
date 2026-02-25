@@ -33,6 +33,8 @@ from ..models.community import (
     PostType,
     VoteRequest,
     VoteResponse,
+    ReportPostRequest,
+    PostTemplateType,
 )
 
 # Lightweight HTML sanitizer (no extra dependency)
@@ -132,6 +134,7 @@ def _build_comment_tree(comments: list[dict], db=None) -> list[CommentResponse]:
             parent_id=row.get("parent_id"),
             author_name=author_name,
             replies=[],
+            is_best_answer=bool(row.get("is_best_answer", 0)),
             created_at=row["created_at"],
             updated_at=row["updated_at"]
         )
@@ -158,8 +161,8 @@ def _row_to_post_response(row: dict, db=None) -> PostResponse:
             images = json.loads(row["images"])
         except json.JSONDecodeError:
             images = None
-    
-    # Handle upvotes/downvotes columns that may not exist yet
+
+    # Handle optional columns for compatibility with old schema
     keys = row.keys() if hasattr(row, 'keys') else row
     upvotes = row["upvotes"] if "upvotes" in keys else 0
     downvotes = row["downvotes"] if "downvotes" in keys else 0
@@ -174,8 +177,25 @@ def _row_to_post_response(row: dict, db=None) -> PostResponse:
                 author_name = user_row["username"]
         except Exception as e:
             logger.exception("Unexpected error in _row_to_post_response: %s", e)
-            pass
-    
+
+    tags: list[str] = []
+    if db:
+        try:
+            tag_rows = db.execute(
+                """
+                SELECT t.name FROM tags t
+                JOIN post_tags pt ON pt.tag_id = t.id
+                WHERE pt.post_id = ?
+                ORDER BY t.name ASC
+                """,
+                (row["id"],),
+            ).fetchall()
+            tags = [tr["name"] for tr in tag_rows]
+        except Exception:
+            tags = []
+
+    template_type = row["template_type"] if "template_type" in keys else None
+
     return PostResponse(
         id=row["id"],
         title=row["title"],
@@ -186,12 +206,18 @@ def _row_to_post_response(row: dict, db=None) -> PostResponse:
         author_name=author_name,
         file_id=row["file_id"],
         images=images,
+        tags=tags,
+        template_type=PostTemplateType(template_type) if template_type else None,
+        is_resolved=bool(row["is_resolved"]) if "is_resolved" in keys else False,
+        is_pinned=bool(row["is_pinned"]) if "is_pinned" in keys else False,
+        is_locked=bool(row["is_locked"]) if "is_locked" in keys else False,
+        best_answer_comment_id=row["best_answer_comment_id"] if "best_answer_comment_id" in keys else None,
         comment_count=row["comment_count"],
         likes_count=row["likes_count"],
         upvotes=upvotes,
         downvotes=downvotes,
         created_at=row["created_at"],
-        updated_at=row["updated_at"]
+        updated_at=row["updated_at"],
     )
 
 
@@ -228,8 +254,9 @@ async def create_post(
         db.execute("""
             INSERT INTO community_posts (
                 id, title, content, post_type, author_id, author_type,
-                file_id, images, comment_count, likes_count, created_at, updated_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0, 0, ?, ?)
+                file_id, images, template_type,
+                comment_count, likes_count, created_at, updated_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, ?, ?)
         """, (
             post_id,
             post.title,
@@ -239,9 +266,21 @@ async def create_post(
             identity["identity_type"],
             post.file_id,
             images_json,
+            post.template_type.value if post.template_type else None,
             now,
             now
         ))
+
+        for raw_tag in post.tags:
+            tag_name = raw_tag.strip()
+            if not tag_name:
+                continue
+            tag_row = db.execute("SELECT id FROM tags WHERE LOWER(name)=LOWER(?)", (tag_name,)).fetchone()
+            if tag_row:
+                db.execute(
+                    "INSERT OR IGNORE INTO post_tags (post_id, tag_id) VALUES (?, ?)",
+                    (post_id, tag_row["id"]),
+                )
 
         # Fetch + map created post before db context exits
         row = db.execute("""
@@ -257,6 +296,7 @@ async def create_post(
 async def get_posts(
     type: PostType = Query(None, description="Filter by post type"),
     author_id: str | None = Query(None, description="Filter by author id"),
+    tag: str | None = Query(None, description="Filter by tag name"),
     page: int = Query(1, ge=1, description="Page number"),
     limit: int = Query(20, ge=1, le=100, description="Posts per page"),
     sort: PostSortType = Query(PostSortType.newest, description="Sort order"),
@@ -295,8 +335,14 @@ async def get_posts(
         conditions.append(f"author_id IN ({placeholders})")
         params.extend(following_ids)
 
+    joins = ""
+    if tag:
+        joins += " JOIN post_tags pt ON pt.post_id = community_posts.id JOIN tags t ON t.id = pt.tag_id "
+        conditions.append("LOWER(t.name) = LOWER(?)")
+        params.append(tag)
+
     where_clause = "WHERE " + " AND ".join(conditions) if conditions else ""
-    
+
     # Build sort clause
     if sort == PostSortType.newest:
         order_clause = "ORDER BY created_at DESC"
@@ -315,13 +361,14 @@ async def get_posts(
     
     with get_db() as db:
         # Get total count
-        count_query = f"SELECT COUNT(*) FROM community_posts {where_clause}"
+        count_query = f"SELECT COUNT(DISTINCT community_posts.id) FROM community_posts {joins} {where_clause}"
         total = db.execute(count_query, params).fetchone()[0]
-        
+
         # Get posts
         posts_query = f"""
-            SELECT * FROM community_posts 
-            {where_clause} 
+            SELECT DISTINCT community_posts.* FROM community_posts
+            {joins}
+            {where_clause}
             {order_clause}
             LIMIT ? OFFSET ?
         """
@@ -370,11 +417,13 @@ async def create_comment(
     # Verify post exists
     with get_db() as db:
         post_row = db.execute("""
-            SELECT id, author_id FROM community_posts WHERE id = ?
+            SELECT id, author_id, is_locked FROM community_posts WHERE id = ?
         """, (post_id,)).fetchone()
 
         if not post_row:
             raise HTTPException(status_code=404, detail="Post not found")
+        if bool(post_row["is_locked"]):
+            raise HTTPException(status_code=403, detail="Post is locked")
 
         parent_row = None
         if comment.parent_id:
@@ -458,6 +507,7 @@ async def create_comment(
         content=comment_row["content"],
         author_id=comment_row["author_id"],
         author_type=comment_author_type,
+        is_best_answer=bool(comment_row["is_best_answer"]) if "is_best_answer" in comment_row.keys() else False,
         created_at=comment_row["created_at"],
         updated_at=comment_row["updated_at"]
     )
@@ -494,6 +544,79 @@ async def get_post_comments(
         nested_comments = _build_comment_tree(comments, db)
     
     return nested_comments
+
+
+@router.post("/posts/{post_id}/resolve")
+async def resolve_post(post_id: str, identity: dict = Depends(get_authenticated_identity)):
+    with get_db() as db:
+        post_row = db.execute("SELECT id, author_id FROM community_posts WHERE id = ?", (post_id,)).fetchone()
+        if not post_row:
+            raise HTTPException(status_code=404, detail="Post not found")
+        if post_row["author_id"] != identity["identity_id"]:
+            raise HTTPException(status_code=403, detail="Only post author can resolve")
+        db.execute("UPDATE community_posts SET is_resolved = 1, updated_at = ? WHERE id = ?", (datetime.now(timezone.utc).isoformat(), post_id))
+    return {"ok": True, "post_id": post_id, "is_resolved": True}
+
+
+@router.post("/comments/{comment_id}/best-answer")
+async def mark_best_answer(comment_id: str, identity: dict = Depends(get_authenticated_identity)):
+    with get_db() as db:
+        comment_row = db.execute("SELECT id, post_id FROM community_comments WHERE id = ?", (comment_id,)).fetchone()
+        if not comment_row:
+            raise HTTPException(status_code=404, detail="Comment not found")
+        post_row = db.execute("SELECT id, author_id FROM community_posts WHERE id = ?", (comment_row["post_id"],)).fetchone()
+        if not post_row:
+            raise HTTPException(status_code=404, detail="Post not found")
+        if post_row["author_id"] != identity["identity_id"]:
+            raise HTTPException(status_code=403, detail="Only post author can mark best answer")
+
+        now = datetime.now(timezone.utc).isoformat()
+        db.execute("UPDATE community_comments SET is_best_answer = 0 WHERE post_id = ?", (comment_row["post_id"],))
+        db.execute("UPDATE community_comments SET is_best_answer = 1, updated_at = ? WHERE id = ?", (now, comment_id))
+        db.execute("UPDATE community_posts SET best_answer_comment_id = ?, updated_at = ? WHERE id = ?", (comment_id, now, comment_row["post_id"]))
+
+    return {"ok": True, "comment_id": comment_id, "is_best_answer": True}
+
+
+@router.post("/posts/{post_id}/report")
+async def report_post(post_id: str, body: ReportPostRequest, identity: dict = Depends(get_authenticated_identity)):
+    now = datetime.now(timezone.utc).isoformat()
+    with get_db() as db:
+        post_row = db.execute("SELECT id FROM community_posts WHERE id = ?", (post_id,)).fetchone()
+        if not post_row:
+            raise HTTPException(status_code=404, detail="Post not found")
+        db.execute(
+            "INSERT OR REPLACE INTO community_reports (id, post_id, reporter_id, reason, created_at) VALUES (?, ?, ?, ?, ?)",
+            (f"report-{post_id}-{identity['identity_id']}", post_id, identity["identity_id"], _sanitize(body.reason), now),
+        )
+    return {"ok": True, "post_id": post_id}
+
+
+def _require_admin(identity: dict) -> None:
+    if identity.get("identity_type") != "user" or identity.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Admin required")
+
+
+@router.post("/posts/{post_id}/pin")
+async def pin_post(post_id: str, identity: dict = Depends(get_authenticated_identity)):
+    _require_admin(identity)
+    with get_db() as db:
+        row = db.execute("SELECT id FROM community_posts WHERE id = ?", (post_id,)).fetchone()
+        if not row:
+            raise HTTPException(status_code=404, detail="Post not found")
+        db.execute("UPDATE community_posts SET is_pinned = 1, updated_at = ? WHERE id = ?", (datetime.now(timezone.utc).isoformat(), post_id))
+    return {"ok": True, "post_id": post_id, "is_pinned": True}
+
+
+@router.post("/posts/{post_id}/lock")
+async def lock_post(post_id: str, identity: dict = Depends(get_authenticated_identity)):
+    _require_admin(identity)
+    with get_db() as db:
+        row = db.execute("SELECT id FROM community_posts WHERE id = ?", (post_id,)).fetchone()
+        if not row:
+            raise HTTPException(status_code=404, detail="Post not found")
+        db.execute("UPDATE community_posts SET is_locked = 1, updated_at = ? WHERE id = ?", (datetime.now(timezone.utc).isoformat(), post_id))
+    return {"ok": True, "post_id": post_id, "is_locked": True}
 
 
 @router.post("/posts/{post_id}/vote", response_model=VoteResponse)
