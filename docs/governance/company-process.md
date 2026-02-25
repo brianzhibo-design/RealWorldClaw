@@ -17,7 +17,7 @@
 - [ ] `grep -rn "mock\|MOCK\|fake\|dummy" app/ --include="*.tsx"` 零命中
 - [ ] `grep -rn "alert(" app/ --include="*.tsx"` 零命中
 - [ ] `grep -rn "window.location.reload" app/ --include="*.tsx"` 零命中
-- [ ] 首页 `app/page.tsx` 无改动（除非大人批准）
+- [ ] 首页 `app/page.tsx` 无改动（除非大人批准）— **2/25大人已批准首页改造为社区定位**
 
 ### 1.2 审查流程（必须按序执行）
 ```
@@ -60,6 +60,7 @@
 
 ### 3.1 标准发布流程
 ```
+0. 确认部署架构（哪个服务/文件实际服务于线上域名）
 1. 开发完成，本地验证
 2. git commit（不push）
 3. 蛋蛋审查（Merge Checklist）
@@ -67,8 +68,21 @@
 5. 双方通过 → git push
 6. 后端：fly deploy --remote-only
 7. 前端：vercel --prod
-8. 线上验证（关键页面截图确认）
+8. 线上验证（curl线上域名 + 关键内容grep确认）
 ```
+
+### 3.1.1 前置确认（每次改动前必做）
+**任何涉及前端/页面的改动，必须先确认：**
+1. `curl -s <线上域名> | head -20` — 确认当前线上跑的是哪个服务
+2. 确认要改的文件是否是线上实际服务的文件
+3. 确认部署管道（Vercel项目指向哪个目录）
+
+**部署架构备忘：**
+- `realworldclaw.com` → Vercel → `frontend/`（Next.js，app/page.tsx是首页）
+- `landing/` → 独立Vercel项目，vercel.json redirect到realworldclaw.com
+- `realworldclaw-api.fly.dev` → Fly.io → `platform/`（FastAPI）
+
+**违反后果：改错文件导致白费一轮工作，记录到errors.md。**
 
 ### 3.2 紧急修复（Hotfix）
 仅限P0级别线上故障：
@@ -180,6 +194,8 @@
 | 代码含mock数据 | P0打回 |
 | GM亲自写业务代码 | 慢羊羊提醒纠正 |
 | 跳过复审直接deploy | 记录 + 事后补审 |
+| 未确认部署架构就改文件 | 记录 + 重新分配正确目标 |
+| push后未curl线上验证 | 补验证 + 记录 |
 
 ---
 
