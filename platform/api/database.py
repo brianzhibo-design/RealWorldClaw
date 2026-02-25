@@ -599,6 +599,19 @@ def init_db():
             except Exception:
                 pass
 
+        # Backfill country_code for existing nodes using bounding boxes
+        try:
+            from api.routers.nodes import _infer_country_code
+            rows = db.execute("SELECT id, latitude, longitude FROM nodes WHERE country_code IS NULL AND latitude IS NOT NULL").fetchall()
+            for row in rows:
+                code = _infer_country_code(row["latitude"], row["longitude"])
+                if code:
+                    db.execute("UPDATE nodes SET country_code = ? WHERE id = ?", (code, row["id"]))
+            if rows:
+                db.commit()
+        except Exception:
+            pass  # Non-critical, will be filled on next registration
+
         # Enable foreign keys and add protective indexes
         db.execute("PRAGMA foreign_keys = ON")
 
