@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
+import asyncio
+import json
 import logging
 
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Query
+from fastapi import APIRouter, Query, WebSocket, WebSocketDisconnect
 from jose import JWTError
 
 from ..security import decode_token
@@ -12,6 +14,16 @@ from ..ws_manager import manager
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/ws", tags=["websocket"])
+
+AUTH_FIRST_MSG_TIMEOUT_SECONDS = 5
+
+
+async def _safe_close(ws: WebSocket, *, code: int, reason: str) -> None:
+    try:
+        await ws.close(code=code, reason=reason)
+    except Exception:
+        # Ignore second-close / disconnected socket errors.
+        pass
 
 
 async def _authenticate_ws(ws: WebSocket, token: str | None) -> dict | None:
@@ -26,34 +38,81 @@ async def _authenticate_ws(ws: WebSocket, token: str | None) -> dict | None:
     if not incoming_token:
         await ws.accept()
         try:
-            first_msg = await ws.receive_json()
-        except Exception:
-            await ws.close(code=4001, reason="Missing token")
+            first_msg = await asyncio.wait_for(
+                ws.receive_json(),
+                timeout=AUTH_FIRST_MSG_TIMEOUT_SECONDS,
+            )
+        except WebSocketDisconnect:
+            return None
+        except asyncio.TimeoutError:
+            await _safe_close(ws, code=4001, reason="Auth timeout")
+            return None
+        except (json.JSONDecodeError, ValueError):
+            await _safe_close(ws, code=4001, reason="Invalid auth payload")
             return None
 
-        if first_msg.get("type") != "auth" or not first_msg.get("token"):
-            await ws.close(code=4001, reason="Missing token")
+        if not isinstance(first_msg, dict):
+            await _safe_close(ws, code=4001, reason="Invalid auth payload")
             return None
+
+        if first_msg.get("type") != "auth":
+            await _safe_close(ws, code=4001, reason="Invalid auth payload")
+            return None
+
+        if not first_msg.get("token"):
+            await _safe_close(ws, code=4001, reason="Missing token")
+            return None
+
         incoming_token = first_msg["token"]
 
     try:
         payload = decode_token(incoming_token)
     except JWTError:
-        await ws.close(code=4001, reason="Invalid token")
+        await _safe_close(ws, code=4001, reason="Invalid token")
         return None
+
     if payload.get("type") != "access":
-        await ws.close(code=4001, reason="Invalid token type")
+        await _safe_close(ws, code=4001, reason="Invalid token type")
         return None
+
     if not payload.get("sub"):
-        await ws.close(code=4001, reason="Invalid token payload")
+        await _safe_close(ws, code=4001, reason="Invalid token payload")
         return None
+
     return payload
+
+
+async def _check_ws_authorization(ws: WebSocket, channel: str, target_id: str, payload: dict) -> bool:
+    """IDOR防护：校验 token 身份与目标资源关系。"""
+    sub = payload.get("sub")
+    role = payload.get("role")
+    is_admin = role == "admin"
+
+    if channel == "notifications":
+        allowed = sub == target_id
+    elif channel == "orders":
+        allowed = (sub == target_id) or is_admin
+    elif channel == "printer":
+        # 简化版：按用户身份校验，防止跨用户越权订阅。
+        allowed = sub == target_id
+    else:
+        allowed = True
+
+    if not allowed:
+        await _safe_close(ws, code=4003, reason="Forbidden")
+        return False
+
+    return True
 
 
 async def _ws_loop(ws: WebSocket, channel: str, target_id: str, token: str | None) -> None:
     payload = await _authenticate_ws(ws, token)
     if not payload:
         return
+
+    if not await _check_ws_authorization(ws, channel, target_id, payload):
+        return
+
     user_id = payload["sub"]
     conn = await manager.connect(ws, channel, target_id, user_id)
     try:
@@ -62,6 +121,7 @@ async def _ws_loop(ws: WebSocket, channel: str, target_id: str, token: str | Non
             # Handle pong responses
             if data.get("type") == "pong":
                 import time
+
                 conn.last_pong = time.time()
     except WebSocketDisconnect:
         pass

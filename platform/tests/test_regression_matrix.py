@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import io
+import time
 
 import pytest
 from starlette.websockets import WebSocketDisconnect
@@ -143,3 +144,60 @@ def test_ws_rejects_connection_with_invalid_first_auth_message(client):
             ws.receive_json()
 
     assert exc.value.code == 4001
+
+
+def test_ws_rejects_connection_when_first_auth_message_times_out(client, monkeypatch):
+    from api.routers import ws as ws_router
+
+    monkeypatch.setattr(ws_router, "AUTH_FIRST_MSG_TIMEOUT_SECONDS", 0.01)
+    _, user_id = _register_and_get_headers(client, email="wstimeout@test.com", username="ws_timeout_user")
+
+    with client.websocket_connect(f"{API}/ws/orders/{user_id}") as ws:
+        time.sleep(0.05)
+        with pytest.raises(WebSocketDisconnect) as exc:
+            ws.receive_json()
+
+    assert exc.value.code == 4001
+
+
+def test_ws_rejects_connection_when_first_auth_message_is_not_dict(client):
+    headers, user_id = _register_and_get_headers(client, email="wstype@test.com", username="ws_type_user")
+    token = headers["Authorization"].split(" ", 1)[1]
+
+    with client.websocket_connect(f"{API}/ws/orders/{user_id}") as ws:
+        ws.send_json(["auth", token])
+        with pytest.raises(WebSocketDisconnect) as exc:
+            ws.receive_json()
+
+    assert exc.value.code == 4001
+
+
+def test_ws_rejects_connection_when_first_auth_message_dict_missing_type_and_token(client):
+    _, user_id = _register_and_get_headers(client, email="wsdictbad@test.com", username="ws_dict_bad_user")
+
+    with client.websocket_connect(f"{API}/ws/orders/{user_id}") as ws:
+        ws.send_json({})
+        with pytest.raises(WebSocketDisconnect) as exc:
+            ws.receive_json()
+
+    assert exc.value.code == 4001
+
+
+def test_ws_client_disconnects_before_first_auth_message_no_server_exception(client):
+    _, user_id = _register_and_get_headers(client, email="wsearlydisc@test.com", username="ws_early_disc_user")
+
+    # Should not raise even if server sees disconnect before first auth payload.
+    with client.websocket_connect(f"{API}/ws/orders/{user_id}") as ws:
+        ws.close()
+
+
+def test_ws_rejects_cross_user_notifications_subscription(client):
+    headers_a, _ = _register_and_get_headers(client, email="wsusera@test.com", username="ws_user_a")
+    _, user_b = _register_and_get_headers(client, email="wsuserb@test.com", username="ws_user_b")
+    token_a = headers_a["Authorization"].split(" ", 1)[1]
+
+    with pytest.raises(WebSocketDisconnect) as exc:
+        with client.websocket_connect(f"{API}/ws/notifications/{user_b}?token={token_a}"):
+            pass
+
+    assert exc.value.code == 4003

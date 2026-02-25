@@ -43,6 +43,7 @@
 - 2026-02-25 02:05 持续推进：按公司流程对 `ahead 1` 状态再次执行发布门禁（`python3 -m pytest tests/ -x -q`、`npm --prefix frontend run build`、Merge Checklist grep + 首页保护）全部通过；已触发慢羊羊复审会话 `agent:main:subagent:e446d8ce-0c1f-43a2-9940-05922b9b7f3b`，结论返回前继续不 push / 不 deploy。
 - 2026-02-25 02:15 持续推进：再次对 `main...origin/main [ahead 1]` 执行完整发布门禁，结果全部通过（`tests/`、`frontend build`、Merge Checklist grep、首页保护）；已触发慢羊羊复审新会话 `agent:main:subagent:147042d9-83aa-4dba-ba88-ddb3d698b6aa`，复审通过前保持不 push / 不 deploy。
 - 2026-02-25 12:20 持续推进：修复 E2E 回归断言漂移（`tests/e2e/test_full_flow.py` 兼容 `/auth/register` 的 `AuthResponse.user` 结构）并将遗留社区路径 `/posts` 对齐为 `/community/posts`，同步适配 `post_type` 与列表返回结构；发布门禁复跑通过（`python3 -m pytest tests/ -x -q` -> `2 passed, 1 skipped`，`npm --prefix frontend run build` 成功，Merge Checklist grep 与首页保护通过），已触发慢羊羊复审会话 `agent:main:subagent:8c74806e-577c-447a-886e-898f870d9da4`，结论返回前不 push / 不 deploy。
+- 2026-02-25 12:30 持续推进：补强 P2-9 WebSocket 回归矩阵与鉴权边界，后端新增首帧鉴权超时（5s）与非法负载防护，并加上通知/订单/打印机频道最小权限校验（防跨用户订阅）；新增 5 条回归用例覆盖超时、payload 类型错误、空字典、客户端提前断开、跨用户订阅拒绝。验证 `python3 -m pytest platform/tests/test_regression_matrix.py -q` -> `14 passed`；并复跑发布门禁（`python3 -m pytest tests/ -x -q`、`npm --prefix frontend run build`、Merge Checklist grep + 首页保护）全部通过。
 
 ### 第三批（长期）
 11. SLO+观测体系

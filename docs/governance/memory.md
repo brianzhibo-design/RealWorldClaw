@@ -126,3 +126,14 @@
   - Merge Checklist grep 项零命中；首页 `frontend/app/page.tsx` 无改动
 - 已触发慢羊羊复审会话：`agent:main:subagent:8c74806e-577c-447a-886e-898f870d9da4`。
 - 当前状态：等待复审结论，结论前不 push / 不 deploy。
+
+## 2026-02-25 12:30 持续推进
+- 完成 1 个代码任务：补强 WebSocket 鉴权异常分支与频道权限边界（IDOR 防护）。
+  - `platform/api/routers/ws.py`：增加 `AUTH_FIRST_MSG_TIMEOUT_SECONDS`、`_safe_close`、首帧 `receive_json` 超时/非法负载处理、以及 notifications/orders/printer 的最小权限校验。
+  - `platform/tests/test_regression_matrix.py`：新增 5 个回归用例覆盖超时、payload 类型错误、空 payload、客户端提前断开、跨用户订阅拒绝（4003）。
+- 验证结果：
+  - `python3 -m pytest platform/tests/test_regression_matrix.py -q` → `14 passed`
+  - `python3 -m pytest tests/ -x -q` → `2 passed, 1 skipped`
+  - `npm --prefix frontend run build` → 成功（warning 不阻断）
+  - Merge Checklist grep 项零命中；首页 `frontend/app/page.tsx` 无改动
+- 当前状态：已完成蛋蛋审查，下一步触发慢羊羊复审；复审通过前不 push / 不 deploy。
