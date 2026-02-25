@@ -92,6 +92,10 @@ class TestNodeRegistration:
         assert data["queue_length"] == 0
         assert data["total_jobs"] == 0
         assert data["success_rate"] == 0.0
+
+        with get_db() as db:
+            row = db.execute("SELECT country_code FROM nodes WHERE id = ?", (data["id"],)).fetchone()
+            assert row["country_code"] == "CN"
     
     def test_register_node_duplicate_name(self, mock_agent):
         """Test registration with duplicate name fails."""
@@ -153,8 +157,31 @@ class TestNodeMap:
         assert "longitude" not in node
         assert "fuzzy_latitude" in node  # Only fuzzy location
         assert "fuzzy_longitude" in node
+        assert "online_duration_hours" in node
+        assert "health_score" in node
+        assert node["health_score"] >= 0
         assert "owner_id" not in node  # Owner should not be exposed
     
+    def test_map_health_metrics_computed(self, mock_agent):
+        """Test online_duration_hours and health_score in map response."""
+        headers = {"Authorization": f"Bearer {mock_agent['api_key']}"}
+        register_response = client.post("/api/v1/nodes/register", json=SAMPLE_NODE_DATA, headers=headers)
+        node_id = register_response.json()["id"]
+
+        with get_db() as db:
+            created_at = (datetime.now(timezone.utc) - timedelta(hours=12)).isoformat()
+            last_heartbeat = datetime.now(timezone.utc).isoformat()
+            db.execute(
+                "UPDATE nodes SET created_at = ?, last_heartbeat = ?, status = 'online' WHERE id = ?",
+                (created_at, last_heartbeat, node_id),
+            )
+
+        response = client.get("/api/v1/nodes/map")
+        assert response.status_code == 200
+        node = response.json()[0]
+        assert node["online_duration_hours"] >= 11.9
+        assert 49 <= node["health_score"] <= 51
+
     def test_map_excludes_offline_nodes(self, mock_agent):
         """Test that map excludes nodes that haven't sent heartbeat."""
         headers = {"Authorization": f"Bearer {mock_agent['api_key']}"}

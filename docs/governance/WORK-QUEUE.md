@@ -145,3 +145,14 @@
   - 首页保护：`frontend/app/page.tsx` 无改动
   - 约束复核：本轮新增代码未引入 `as any` / `Coming Soon` / `mock|MOCK|fake|dummy`
 - 发布状态：当前为工作树改动，`main...origin/main` 无 ahead commit；按流程本轮不触发慢羊羊复审，不 push / 不 deploy。
+
+## 当前状态（17:19 更新）
+- 本轮动作（1-2项已完成）：
+  - 节点国家元数据闭环：`platform/api/routers/nodes.py` 在节点注册时推断并写入 `country_code`，并新增回填迁移 `platform/alembic/versions/20260225_171500_backfill_node_country_code.py` 补齐历史数据。
+  - 社区契约补强：`platform/api/routers/community.py` 新增个性化 feed 与按 post 维度设置最佳答案接口；同步持久化 `best_comment_id/resolved_at`，避免详情页字段漂移。
+- 验证结果：
+  - `JWT_SECRET_KEY=test-secret python3 -m pytest platform/tests/test_nodes.py platform/tests/test_community.py -q` ✅（36 passed）
+  - `python3 -m pytest tests/ -x -q` ✅（2 passed, 1 skipped）
+  - `npm --prefix frontend run build` ✅（成功）
+  - Merge Checklist grep + 首页保护 ✅（零命中，`frontend/app/page.tsx` 无改动）
+- 发布状态：已提交 `c661e83`，当前 `main...origin/main [ahead 1]`；已按流程触发慢羊羊复审 `agent:main:subagent:2d4d1fa8-1802-484a-8811-f98742f20472`，结论返回前不 push / 不 deploy。

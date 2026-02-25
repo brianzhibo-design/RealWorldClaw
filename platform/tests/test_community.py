@@ -147,3 +147,39 @@ class TestCreatePostCompatibility:
         r = _create_post(authenticated_user, file_id=sample_file_id)
         assert r.status_code == 200
         assert r.json()["file_id"] == sample_file_id
+
+
+class TestPersonalizedFeedAndBestAnswer:
+    def test_personalized_feed_requires_auth(self):
+        r = client.get("/api/v1/community/feed")
+        assert r.status_code == 422
+
+    def test_personalized_feed_returns_posts(self, authenticated_user):
+        _create_post(authenticated_user, title="Feed A", content="A")
+        _create_post(authenticated_user, title="Feed B", content="B")
+
+        r = client.get("/api/v1/community/feed?page=1&limit=10", headers=authenticated_user)
+        assert r.status_code == 200
+        data = r.json()
+        assert data["total"] >= 2
+        assert len(data["posts"]) >= 2
+
+    def test_set_best_answer_by_post_endpoint_persists_fields(self, authenticated_user):
+        p = _create_post(authenticated_user).json()
+        c = client.post(
+            f"/api/v1/community/posts/{p['id']}/comments",
+            headers=authenticated_user,
+            json={"content": "best"},
+        ).json()
+
+        r = client.post(
+            f"/api/v1/community/posts/{p['id']}/best-answer",
+            headers=authenticated_user,
+            json={"comment_id": c["id"]},
+        )
+        assert r.status_code == 200
+
+        detail = client.get(f"/api/v1/community/posts/{p['id']}").json()
+        assert detail["best_answer_comment_id"] == c["id"]
+        assert detail["best_comment_id"] == c["id"]
+        assert detail["resolved_at"] is not None

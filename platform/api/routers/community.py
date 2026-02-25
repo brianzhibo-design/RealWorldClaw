@@ -11,7 +11,7 @@ import re
 import time
 import uuid
 from collections import defaultdict
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Query
 
@@ -34,6 +34,7 @@ from ..models.community import (
     VoteRequest,
     VoteResponse,
     ReportPostRequest,
+    BestAnswerRequest,
     PostTemplateType,
 )
 
@@ -237,6 +238,8 @@ def _row_to_post_response(row: dict, db=None) -> PostResponse:
         is_pinned=bool(row["is_pinned"]) if "is_pinned" in keys else False,
         is_locked=bool(row["is_locked"]) if "is_locked" in keys else False,
         best_answer_comment_id=row["best_answer_comment_id"] if "best_answer_comment_id" in keys else None,
+        best_comment_id=row["best_comment_id"] if "best_comment_id" in keys else None,
+        resolved_at=row["resolved_at"] if "resolved_at" in keys else None,
         comment_count=row["comment_count"],
         likes_count=row["likes_count"],
         upvotes=upvotes,
@@ -411,6 +414,73 @@ async def get_posts(
     )
 
 
+def _table_exists(db, table_name: str) -> bool:
+    try:
+        row = db.execute(
+            "SELECT 1 FROM sqlite_master WHERE type='table' AND name = ?",
+            (table_name,),
+        ).fetchone()
+        return bool(row)
+    except Exception:
+        return False
+
+
+@router.get("/feed", response_model=PostListResponse)
+async def get_personalized_feed(
+    page: int = Query(1, ge=1, description="Page number"),
+    limit: int = Query(20, ge=1, le=100, description="Posts per page"),
+    identity: dict = Depends(get_authenticated_identity),
+):
+    """Personalized feed for authenticated users."""
+    offset = (page - 1) * limit
+    now = datetime.now(timezone.utc)
+    recent_cutoff = (now - timedelta(hours=24)).isoformat()
+
+    with get_db() as db:
+        follow_ids: list[str] = []
+        if _table_exists(db, "follows"):
+            try:
+                follow_rows = db.execute(
+                    "SELECT following_id FROM follows WHERE follower_id = ?",
+                    (identity["identity_id"],),
+                ).fetchall()
+                follow_ids = [r["following_id"] for r in follow_rows]
+            except Exception:
+                follow_ids = []
+
+        score_expr = """
+            (
+                (CASE WHEN created_at >= ? THEN 1.5 ELSE 1.0 END)
+                * (CASE WHEN comment_count > 0 THEN 1.2 ELSE 1.0 END)
+                {follow_weight}
+            )
+        """
+
+        if follow_ids:
+            placeholders = ",".join(["?" for _ in follow_ids])
+            follow_weight = f"* (CASE WHEN author_id IN ({placeholders}) THEN 2.0 ELSE 1.0 END)"
+            score_sql = score_expr.format(follow_weight=follow_weight)
+            score_params = [recent_cutoff, *follow_ids]
+        else:
+            score_sql = score_expr.format(follow_weight="")
+            score_params = [recent_cutoff]
+
+        count_row = db.execute("SELECT COUNT(*) AS cnt FROM community_posts").fetchone()
+        total = int(count_row["cnt"] if count_row else 0)
+
+        query = f"""
+            SELECT *, {score_sql} AS ranking_score
+            FROM community_posts
+            ORDER BY ranking_score DESC, comment_count DESC, created_at DESC
+            LIMIT ? OFFSET ?
+        """
+        rows = db.execute(query, score_params + [limit, offset]).fetchall()
+        posts = [_row_to_post_response(dict(row), db) for row in rows]
+
+    has_next = offset + len(posts) < total
+    return PostListResponse(posts=posts, total=total, page=page, limit=limit, has_next=has_next)
+
+
 @router.get("/posts/{post_id}", response_model=PostDetailResponse)
 async def get_post_detail(post_id: str):
     """Get detailed information about a specific post."""
@@ -583,24 +653,52 @@ async def resolve_post(post_id: str, identity: dict = Depends(get_authenticated_
     return {"ok": True, "post_id": post_id, "is_resolved": True}
 
 
+def _set_post_best_answer(post_id: str, comment_id: str, identity: dict) -> dict:
+    with get_db() as db:
+        post_row = db.execute("SELECT id, author_id FROM community_posts WHERE id = ?", (post_id,)).fetchone()
+        if not post_row:
+            raise HTTPException(status_code=404, detail="Post not found")
+        if post_row["author_id"] != identity["identity_id"]:
+            raise HTTPException(status_code=403, detail="Only post author can mark best answer")
+
+        comment_row = db.execute(
+            "SELECT id FROM community_comments WHERE id = ? AND post_id = ?",
+            (comment_id, post_id),
+        ).fetchone()
+        if not comment_row:
+            raise HTTPException(status_code=404, detail="Comment not found")
+
+        now = datetime.now(timezone.utc).isoformat()
+        db.execute("UPDATE community_comments SET is_best_answer = 0 WHERE post_id = ?", (post_id,))
+        db.execute("UPDATE community_comments SET is_best_answer = 1, updated_at = ? WHERE id = ?", (now, comment_id))
+        db.execute(
+            """
+            UPDATE community_posts
+            SET best_answer_comment_id = ?, best_comment_id = ?, resolved_at = ?, updated_at = ?
+            WHERE id = ?
+            """,
+            (comment_id, comment_id, now, now, post_id),
+        )
+
+    return {"ok": True, "post_id": post_id, "comment_id": comment_id, "is_best_answer": True}
+
+
+@router.post("/posts/{post_id}/best-answer")
+async def set_post_best_answer(
+    post_id: str,
+    body: BestAnswerRequest,
+    identity: dict = Depends(get_authenticated_identity),
+):
+    return _set_post_best_answer(post_id, body.comment_id, identity)
+
+
 @router.post("/comments/{comment_id}/best-answer")
 async def mark_best_answer(comment_id: str, identity: dict = Depends(get_authenticated_identity)):
     with get_db() as db:
         comment_row = db.execute("SELECT id, post_id FROM community_comments WHERE id = ?", (comment_id,)).fetchone()
         if not comment_row:
             raise HTTPException(status_code=404, detail="Comment not found")
-        post_row = db.execute("SELECT id, author_id FROM community_posts WHERE id = ?", (comment_row["post_id"],)).fetchone()
-        if not post_row:
-            raise HTTPException(status_code=404, detail="Post not found")
-        if post_row["author_id"] != identity["identity_id"]:
-            raise HTTPException(status_code=403, detail="Only post author can mark best answer")
-
-        now = datetime.now(timezone.utc).isoformat()
-        db.execute("UPDATE community_comments SET is_best_answer = 0 WHERE post_id = ?", (comment_row["post_id"],))
-        db.execute("UPDATE community_comments SET is_best_answer = 1, updated_at = ? WHERE id = ?", (now, comment_id))
-        db.execute("UPDATE community_posts SET best_answer_comment_id = ?, updated_at = ? WHERE id = ?", (comment_id, now, comment_row["post_id"]))
-
-    return {"ok": True, "comment_id": comment_id, "is_best_answer": True}
+    return _set_post_best_answer(comment_row["post_id"], comment_id, identity)
 
 
 @router.post("/posts/{post_id}/report")

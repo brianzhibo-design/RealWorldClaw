@@ -91,6 +91,10 @@ class ReportPostRequest(BaseModel):
     reason: str = Field(..., min_length=1, max_length=500)
 
 
+class BestAnswerRequest(BaseModel):
+    comment_id: str = Field(..., min_length=1)
+
+
 class TagResponse(BaseModel):
     id: str
     name: str
@@ -114,6 +118,8 @@ class PostResponse(BaseModel):
     is_pinned: bool = False
     is_locked: bool = False
     best_answer_comment_id: Optional[str] = None
+    best_comment_id: Optional[str] = None
+    resolved_at: Optional[str] = None
     comment_count: int
     likes_count: int
     upvotes: int = 0
@@ -149,6 +155,8 @@ CREATE TABLE IF NOT EXISTS community_posts (
     template_type TEXT,
     is_resolved INTEGER NOT NULL DEFAULT 0,
     best_answer_comment_id TEXT,
+    best_comment_id TEXT,
+    resolved_at TEXT,
     is_pinned INTEGER NOT NULL DEFAULT 0,
     is_locked INTEGER NOT NULL DEFAULT 0,
     comment_count INTEGER NOT NULL DEFAULT 0,

@@ -536,6 +536,8 @@ def init_db():
             "ALTER TABLE community_posts ADD COLUMN template_type TEXT",
             "ALTER TABLE community_posts ADD COLUMN is_resolved INTEGER NOT NULL DEFAULT 0",
             "ALTER TABLE community_posts ADD COLUMN best_answer_comment_id TEXT",
+            "ALTER TABLE community_posts ADD COLUMN best_comment_id TEXT",
+            "ALTER TABLE community_posts ADD COLUMN resolved_at TEXT",
             "ALTER TABLE community_posts ADD COLUMN is_pinned INTEGER NOT NULL DEFAULT 0",
             "ALTER TABLE community_posts ADD COLUMN is_locked INTEGER NOT NULL DEFAULT 0",
             "ALTER TABLE community_comments ADD COLUMN is_best_answer INTEGER NOT NULL DEFAULT 0",

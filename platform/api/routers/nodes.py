@@ -39,6 +39,42 @@ LOCATION_FUZZ_DEGREES = 0.01  # ~1km radius
 HEARTBEAT_TIMEOUT_MINUTES = 5
 EARTH_RADIUS_KM = 6371.0
 
+# Simple offline reverse-geocoding using coarse country bounding boxes.
+# ORDER MATTERS: small/specific countries MUST come before overlapping large ones
+# (first-match-wins). (min_lat, min_lng, max_lat, max_lng)
+COUNTRY_BOUNDING_BOXES: dict[str, tuple[float, float, float, float]] = {
+    # --- Small / specific first (would be swallowed by larger neighbours) ---
+    "LU": (49.4, 5.7, 50.2, 6.5),
+    "KR": (33.0, 124.0, 39.5, 132.0),
+    "JP": (24.0, 123.0, 46.0, 146.0),
+    "VN": (8.0, 102.0, 24.0, 110.0),
+    "TH": (5.0, 97.0, 21.0, 106.0),
+    "MY": (0.0, 99.0, 8.0, 120.0),
+    "PL": (49.0, 14.0, 55.0, 24.0),
+    "IT": (35.0, 6.0, 47.5, 19.0),
+    "TR": (35.0, 25.0, 43.0, 45.0),
+    "GB": (49.0, -8.0, 61.0, 2.0),
+    "DE": (47.0, 5.0, 55.0, 16.0),
+    "FR": (41.0, -5.0, 51.5, 9.7),
+    "MX": (14.0, -118.0, 33.0, -86.0),
+    # --- Large countries last ---
+    "CN": (18.0, 73.0, 54.0, 122.0),   # lng upper tightened to exclude KR/JP
+    "IN": (6.0, 68.0, 37.0, 97.0),
+    "ID": (-11.0, 95.0, 6.0, 141.0),
+    "US": (24.0, -125.0, 50.0, -66.0),
+    "CA": (41.0, -141.0, 84.0, -52.0),
+    "BR": (-34.0, -74.0, 6.0, -34.0),
+    "RU": (41.0, 19.0, 82.0, 180.0),
+}
+
+
+def _infer_country_code(latitude: float, longitude: float) -> str | None:
+    """Infer ISO country code from coarse lat/lng bounding boxes."""
+    for country_code, (min_lat, min_lng, max_lat, max_lng) in COUNTRY_BOUNDING_BOXES.items():
+        if min_lat <= latitude <= max_lat and min_lng <= longitude <= max_lng:
+            return country_code
+    return None
+
 
 def _fuzz_location(latitude: float, longitude: float) -> tuple[float, float]:
     """Add random noise to coordinates for privacy"""
@@ -74,10 +110,24 @@ def _compute_online_status(last_heartbeat: str | None) -> str:
     return "online" if heartbeat_at >= cutoff else "offline"
 
 
+def _compute_online_duration_hours(created_at: str | None, last_heartbeat: str | None) -> float:
+    if not created_at or not last_heartbeat:
+        return 0.0
+    try:
+        created_dt = datetime.fromisoformat(created_at.replace('Z', '+00:00'))
+        heartbeat_dt = datetime.fromisoformat(last_heartbeat.replace('Z', '+00:00'))
+    except Exception:
+        return 0.0
+    seconds = max(0.0, (heartbeat_dt - created_dt).total_seconds())
+    return round(seconds / 3600.0, 2)
+
+
 def _row_to_node_response(row: dict) -> NodeResponse:
     """Convert DB row to public NodeResponse"""
     materials = json.loads(row["materials"]) if isinstance(row["materials"], str) else row["materials"]
     capabilities = json.loads(row["capabilities"]) if isinstance(row["capabilities"], str) else row["capabilities"]
+    online_duration_hours = _compute_online_duration_hours(row.get("created_at"), row.get("last_heartbeat"))
+    health_score = round(min(100.0, (online_duration_hours / 24.0) * 100.0), 2)
 
     return NodeResponse(
         id=row["id"],
@@ -97,6 +147,8 @@ def _row_to_node_response(row: dict) -> NodeResponse:
         verification_score=row.get("verification_score") or 0.0,
         status=NodeStatus(row["status"]),
         online_status=_compute_online_status(row.get("last_heartbeat")),
+        online_duration_hours=online_duration_hours,
+        health_score=health_score,
         last_heartbeat=row["last_heartbeat"],
         created_at=row["created_at"],
     )
@@ -140,7 +192,8 @@ def register_node(request: NodeRegisterRequest, identity: dict = Depends(get_aut
     
     # Generate fuzzy location for public display
     fuzzy_lat, fuzzy_lng = _fuzz_location(request.latitude, request.longitude)
-    
+    country_code = _infer_country_code(request.latitude, request.longitude)
+
     with get_db() as db:
         # Check if agent already has a node with this name
         existing = db.execute(
@@ -157,15 +210,15 @@ def register_node(request: NodeRegisterRequest, identity: dict = Depends(get_aut
                 id, owner_id, name, node_type, latitude, longitude,
                 fuzzy_latitude, fuzzy_longitude, capabilities, materials,
                 build_volume_x, build_volume_y, build_volume_z, description,
-                status, queue_length, total_jobs, success_rate,
+                country_code, status, queue_length, total_jobs, success_rate,
                 created_at, updated_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
             node_id, identity["identity_id"], request.name, request.node_type.value,
             request.latitude, request.longitude, fuzzy_lat, fuzzy_lng,
             json.dumps(request.capabilities), json.dumps([m.value for m in request.materials]),
             request.build_volume_x, request.build_volume_y, request.build_volume_z,
-            request.description, NodeStatus.offline.value, 0, 0, 0.0, now, now
+            request.description, country_code, NodeStatus.offline.value, 0, 0, 0.0, now, now
         ))
         
         # Fetch and return the created node

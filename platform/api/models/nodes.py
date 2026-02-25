@@ -109,6 +109,8 @@ class NodeResponse(BaseModel):
     verification_score: float = 0.0
     status: NodeStatus
     online_status: str = "offline"
+    online_duration_hours: float = 0.0
+    health_score: float = 0.0
     last_heartbeat: Optional[str]
     created_at: str
 

@@ -199,3 +199,15 @@
 - 运营增长：`docs/community/seed-posts.md` 新增 Post 33（地图 UX + 类型契约 + 动画清理复盘）。
 - 验证：`npm --prefix frontend run build` -> success；`python3 -m pytest tests/ -x -q` -> `2 passed, 1 skipped`；首页 `frontend/app/page.tsx` 无改动，且未引入 `as any` / `Coming Soon` / `mock|fake|dummy`。
 - 流程遵守：本轮无 ahead commit，按流程不触发慢羊羊复审，不 push / 不 deploy。
+
+## 2026-02-25 17:19 持续推进
+- 按引擎要求先读 `docs/governance/perfection-standard.md` 与 `docs/governance/company-process.md`，随后确认仓库初始状态为工作树改动（无 ahead commit）。
+- 完成 2 个代码任务并收敛为提交 `c661e83`：
+  1) 节点国家元数据：注册链路新增 `country_code` 推断，落库字段统一；新增 Alembic 回填迁移补齐存量节点。
+  2) 社区契约增强：新增 `GET /community/feed` 个性化排序、`POST /community/posts/{id}/best-answer`，并统一 `best_answer_comment_id / best_comment_id / resolved_at` 持久化行为。
+- 回归与门禁验证：
+  - `JWT_SECRET_KEY=test-secret python3 -m pytest platform/tests/test_nodes.py platform/tests/test_community.py -q` -> `36 passed`
+  - `python3 -m pytest tests/ -x -q` -> `2 passed, 1 skipped`
+  - `npm --prefix frontend run build` -> success
+  - Merge Checklist grep + 首页保护（`frontend/app/page.tsx` 无改动）全部通过
+- 流程遵守：因形成未发布本地 commit（`main...origin/main [ahead 1]`），已触发慢羊羊复审会话 `agent:main:subagent:2d4d1fa8-1802-484a-8811-f98742f20472`；复审通过前严格不 push / 不 deploy。

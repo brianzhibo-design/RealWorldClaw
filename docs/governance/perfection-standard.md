@@ -88,3 +88,8 @@
 - 2026-02-25 16:39 持续推进：继续补强第二批 P2-9 回归矩阵，在 `platform/tests/test_regression_matrix.py` 新增 `test_ws_accepts_notifications_subscription_with_first_auth_message_token`，验证 notifications 频道在不带 query token 时可通过首帧 `{"type":"auth","token":...}` 完成鉴权并维持连接。
 - 2026-02-25 16:39 运营增长：`docs/community/seed-posts.md` 新增 Post 34（notifications 首帧鉴权契约闭环复盘）。
 - 2026-02-25 16:39 验证：`JWT_SECRET_KEY=test-secret python3 -m pytest platform/tests/test_regression_matrix.py -q` -> `22 passed`；首页保护满足（`frontend/app/page.tsx` 无改动），本轮未引入 `as any` / `Coming Soon` / `mock|fake|dummy`。
+- 2026-02-25 17:19 持续推进：围绕第二批稳定性与契约一致性完成 2 项收敛任务：
+  1) 节点国家元数据闭环：`platform/api/routers/nodes.py` 新增离线 country_code 推断并在注册时落库；新增迁移 `platform/alembic/versions/20260225_171500_backfill_node_country_code.py` 对存量节点进行回填。
+  2) 社区契约补强：`platform/api/routers/community.py` 新增个性化 feed（关注权重 + 新鲜度 + 互动因子）与 `POST /community/posts/{id}/best-answer`，并确保 `best_comment_id/resolved_at` 持久化字段一致。
+- 2026-02-25 17:19 验证：`JWT_SECRET_KEY=test-secret python3 -m pytest platform/tests/test_nodes.py platform/tests/test_community.py -q` -> `36 passed`；`python3 -m pytest tests/ -x -q` -> `2 passed, 1 skipped`；`npm --prefix frontend run build` 成功；Merge Checklist grep 与首页保护检查通过（`frontend/app/page.tsx` 无diff）。
+- 2026-02-25 17:19 流程：已形成本地提交 `c661e83`（`main...origin/main [ahead 1]`），已触发慢羊羊复审会话 `agent:main:subagent:2d4d1fa8-1802-484a-8811-f98742f20472`；复审结论返回前保持不 push / 不 deploy。
