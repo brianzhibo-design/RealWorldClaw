@@ -43,7 +43,6 @@ export default function MapPage() {
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
   const [selectedMaterials, setSelectedMaterials] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeMode, setActiveMode] = useState<'nodes' | 'community'>('nodes');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -116,24 +115,7 @@ export default function MapPage() {
             </h1>
           </Link>
 
-          <div className="ml-2 sm:ml-4 rounded-lg border border-slate-700/80 bg-[#0f1720]/85 p-1 flex items-center gap-1">
-            <button
-              onClick={() => setActiveMode('nodes')}
-              className={`px-2.5 sm:px-3 py-1.5 rounded-md text-xs sm:text-sm font-medium transition-colors ${
-                activeMode === 'nodes' ? 'bg-emerald-500/25 text-emerald-200 border border-emerald-400/40' : 'text-slate-300 hover:text-white'
-              }`}
-            >
-              Nodes
-            </button>
-            <button
-              onClick={() => setActiveMode('community')}
-              className={`px-2.5 sm:px-3 py-1.5 rounded-md text-xs sm:text-sm font-medium transition-colors ${
-                activeMode === 'community' ? 'bg-cyan-500/20 text-cyan-200 border border-cyan-400/40' : 'text-slate-300 hover:text-white'
-              }`}
-            >
-              Community
-            </button>
-          </div>
+
         </div>
 
         <div className="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm">
@@ -150,8 +132,6 @@ export default function MapPage() {
         </div>
       </header>
 
-      {activeMode === 'nodes' ? (
-        <>
           <div className="absolute top-[3.6rem] left-3 right-3 sm:left-6 sm:right-auto z-30">
             <div className="grid grid-cols-3 gap-2 sm:gap-3 rounded-xl border border-emerald-400/20 bg-[#0f1720]/78 backdrop-blur-md p-2.5 sm:p-3 shadow-[0_0_26px_rgba(16,185,129,0.12)]">
               {stats.map((s) => (
@@ -202,15 +182,7 @@ export default function MapPage() {
               />
             </div>
           )}
-        </>
-      ) : (
-        <div className="absolute inset-0 pt-14 flex items-center justify-center px-4">
-          <div className="w-full max-w-xl rounded-2xl border border-cyan-400/20 bg-[#0f1720]/88 backdrop-blur-md p-8 text-center shadow-[0_0_30px_rgba(34,211,238,0.12)]">
-            <div className="text-cyan-300 text-lg font-semibold mb-2">Community</div>
-            <div className="text-slate-300 text-sm">Coming Soon</div>
-          </div>
-        </div>
-      )}
+
     </div>
   );
 }
