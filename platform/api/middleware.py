@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import time
+import traceback
 from typing import Callable, Optional
 
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -37,6 +38,7 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
                 client_ip=request.client.host if request.client else None,
                 error=str(exc),
                 error_type=type(exc).__name__,
+                traceback=traceback.format_exc(),
             )
             raise
 

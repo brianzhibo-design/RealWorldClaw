@@ -2,12 +2,15 @@
 
 from __future__ import annotations
 
+import logging
 import os
+import traceback
 from datetime import datetime, timezone
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
 from .audit import init_audit_table
 from .database import get_db, init_db
@@ -79,6 +82,19 @@ app.include_router(tags.router, prefix="/api/v1")
 app.include_router(community.router, prefix="/api/v1")
 app.include_router(messages.router, prefix="/api/v1")
 app.include_router(moderation.router, prefix="/api/v1")
+
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    """Log full traceback for unhandled exceptions instead of silent 500."""
+    logging.getLogger("uvicorn.error").error(
+        "Unhandled exception on %s %s: %s\n%s",
+        request.method,
+        request.url.path,
+        exc,
+        traceback.format_exc(),
+    )
+    return JSONResponse(status_code=500, content={"detail": "Internal Server Error"})
 
 
 @app.get("/")
