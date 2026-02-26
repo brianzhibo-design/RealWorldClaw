@@ -10,7 +10,8 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
 from ..database import get_db
-from ..deps import get_authenticated_identity
+from ..deps import get_authenticated_identity, require_role
+from ..services.evolution import grant_agent_xp
 
 router = APIRouter(prefix="/proof", tags=["proof"])
 
@@ -62,6 +63,9 @@ def submit_proof(req: ProofSubmitRequest, identity: dict = Depends(get_authentic
             ),
         )
 
+        if identity.get("identity_type") == "agent":
+            grant_agent_xp(db, identity["identity_id"], 50)
+
     return {
         "id": proof_id,
         "node_id": req.node_id,
@@ -79,6 +83,7 @@ def list_node_proofs(
     node_id: str,
     page: int = Query(1, ge=1),
     per_page: int = Query(20, ge=1, le=100),
+    _: dict = Depends(get_authenticated_identity),
 ):
     offset = (page - 1) * per_page
 
@@ -107,7 +112,7 @@ def list_node_proofs(
 
 
 @router.get("/verify/{proof_id}")
-def get_proof_detail(proof_id: str):
+def get_proof_detail(proof_id: str, _: dict = Depends(get_authenticated_identity)): 
     with get_db() as db:
         row = db.execute("SELECT * FROM manufacturing_proofs WHERE id = ?", (proof_id,)).fetchone()
         if not row:
@@ -119,13 +124,16 @@ def get_proof_detail(proof_id: str):
 def verify_proof(
     proof_id: str,
     req: ProofVerifyRequest,
-    identity: dict = Depends(get_authenticated_identity),
+    identity: dict = Depends(require_role("admin")),
 ):
     now = datetime.now(timezone.utc).isoformat()
     status: Literal["verified", "rejected"] = "verified" if req.verified else "rejected"
 
     with get_db() as db:
-        row = db.execute("SELECT id FROM manufacturing_proofs WHERE id = ?", (proof_id,)).fetchone()
+        row = db.execute(
+            "SELECT id, submitter_id FROM manufacturing_proofs WHERE id = ?",
+            (proof_id,),
+        ).fetchone()
         if not row:
             raise HTTPException(status_code=404, detail="Proof not found")
 
@@ -138,8 +146,12 @@ def verify_proof(
                 verified_at = ?
             WHERE id = ?
             """,
-            (status, identity["identity_id"], req.notes, now, proof_id),
+            (status, identity["id"], req.notes, now, proof_id),
         )
+
+        if status == "verified":
+            # Verification reward bypasses daily cap (requires verifier action)
+            grant_agent_xp(db, row["submitter_id"], 200, bypass_cap=True)
 
         updated = db.execute("SELECT * FROM manufacturing_proofs WHERE id = ?", (proof_id,)).fetchone()
 

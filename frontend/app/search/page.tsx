@@ -1,308 +1,255 @@
 "use client";
 
-import { useState, useEffect, useCallback, Suspense } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
+import { Search } from "lucide-react";
 import { apiFetch } from "@/lib/api-client";
 
-interface PostResult {
+type SearchTab = "posts" | "agents" | "nodes";
+
+type PostItem = {
   id: string;
-  title: string;
-  content: string;
-  post_type: string;
-  author_name?: string;
-  author_type?: string;
+  title?: string;
+  content?: string;
   created_at?: string;
-  comment_count?: number;
-  upvotes?: number;
-}
+};
 
-interface SpaceResult {
+type AgentItem = {
   id: string;
-  name: string;
+  name?: string;
+  display_name?: string;
+  bio?: string;
   description?: string;
-  member_count?: number;
-  slug?: string;
-}
+  created_at?: string;
+};
 
-interface UserResult {
+type NodeItem = {
   id: string;
-  username: string;
-  avatar_url?: string;
-  karma?: number;
-  user_type?: string; // "agent" | "human"
+  name?: string;
+  description?: string;
+  created_at?: string;
+};
+
+type CommunitySearchResponse = {
+  posts?: PostItem[];
+  agents?: AgentItem[];
+  nodes?: NodeItem[];
+};
+
+type CommunityPostsFallback = {
+  posts?: PostItem[];
+};
+
+function formatTime(date?: string) {
+  if (!date) return "";
+  const d = new Date(date);
+  if (Number.isNaN(d.getTime())) return "";
+  return d.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
 }
 
-interface SearchResponse {
-  posts?: PostResult[];
-  spaces?: SpaceResult[];
-  users?: UserResult[];
-  // Legacy flat format
-  results?: { type: string; id: string; title?: string; name?: string; snippet?: string; created_at?: string; metadata?: Record<string, unknown> }[];
-  total?: number;
-  query?: string;
-}
-
-type Tab = "all" | "posts" | "spaces" | "users";
-
-function formatTimeAgo(dateString?: string) {
-  if (!dateString) return "";
-  const diff = Date.now() - new Date(dateString).getTime();
-  const hours = Math.floor(diff / (1000 * 60 * 60));
-  const days = Math.floor(hours / 24);
-  if (days > 0) return `${days}d ago`;
-  if (hours > 0) return `${hours}h ago`;
-  return "just now";
+function Card({
+  href,
+  title,
+  summary,
+  time,
+}: {
+  href: string;
+  title: string;
+  summary: string;
+  time?: string;
+}) {
+  return (
+    <Link
+      href={href}
+      className="block rounded-xl border border-slate-800 bg-slate-900/70 p-4 transition-colors hover:border-sky-500/40"
+    >
+      <h3 className="line-clamp-1 text-base font-semibold text-slate-100">{title}</h3>
+      <p className="mt-2 line-clamp-2 text-sm text-slate-400">{summary}</p>
+      {time ? <p className="mt-3 text-xs text-slate-500">{time}</p> : null}
+    </Link>
+  );
 }
 
 function SearchContent() {
-  useEffect(() => {
-    document.title = "Search — RealWorldClaw";
-  }, []);
-
   const searchParams = useSearchParams();
-  const query = searchParams?.get("q") || "";
+  const router = useRouter();
+  const initialQuery = searchParams?.get("q") || "";
 
-  const [searchQuery, setSearchQuery] = useState(query);
-  const [posts, setPosts] = useState<PostResult[]>([]);
-  const [spaces, setSpaces] = useState<SpaceResult[]>([]);
-  const [users, setUsers] = useState<UserResult[]>([]);
+  const [query, setQuery] = useState(initialQuery);
+  const [activeTab, setActiveTab] = useState<SearchTab>("posts");
+  const [posts, setPosts] = useState<PostItem[]>([]);
+  const [agents, setAgents] = useState<AgentItem[]>([]);
+  const [nodes, setNodes] = useState<NodeItem[]>([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<Tab>("all");
 
-  const doSearch = useCallback(async (q: string) => {
-    if (!q.trim()) {
+  // Sync URL when query changes
+  const updateUrl = useCallback(
+    (q: string) => {
+      const trimmed = q.trim();
+      const url = trimmed ? `/search?q=${encodeURIComponent(trimmed)}` : "/search";
+      router.replace(url, { scroll: false });
+    },
+    [router]
+  );
+
+  useEffect(() => {
+    const keyword = query.trim();
+    if (!keyword) {
       setPosts([]);
-      setSpaces([]);
-      setUsers([]);
+      setAgents([]);
+      setNodes([]);
+      setLoading(false);
       return;
     }
-    setLoading(true);
-    setError(null);
-    try {
-      const data: SearchResponse = await apiFetch(`/search?q=${encodeURIComponent(q)}&limit=50`);
 
-      // Handle both new {posts, spaces, users} and legacy {results} format
-      if (data.posts || data.spaces || data.users) {
-        setPosts(data.posts || []);
-        setSpaces(data.spaces || []);
-        setUsers(data.users || []);
-      } else if (data.results) {
-        // Legacy: map flat results to categories
-        const legacyPosts = data.results
-          .filter((r) => r.type === "post")
-          .map((r) => ({ id: r.id, title: r.title || r.name || "", content: r.snippet || "", post_type: "discussion", created_at: r.created_at } as PostResult));
-        setPosts(legacyPosts);
-        setSpaces([]);
-        setUsers([]);
+    const timer = setTimeout(async () => {
+      setLoading(true);
+      updateUrl(keyword);
+
+      try {
+        const searchData = await apiFetch<CommunitySearchResponse>(
+          `/community/search?q=${encodeURIComponent(keyword)}`
+        );
+        setPosts(Array.isArray(searchData.posts) ? searchData.posts : []);
+        setAgents(Array.isArray(searchData.agents) ? searchData.agents : []);
+        setNodes(Array.isArray(searchData.nodes) ? searchData.nodes : []);
+      } catch {
+        try {
+          const fallbackData = await apiFetch<CommunityPostsFallback>(
+            `/community/posts?search=${encodeURIComponent(keyword)}`
+          );
+          setPosts(Array.isArray(fallbackData.posts) ? fallbackData.posts : []);
+          setAgents([]);
+          setNodes([]);
+        } catch {
+          setPosts([]);
+          setAgents([]);
+          setNodes([]);
+        }
+      } finally {
+        setLoading(false);
       }
-    } catch (err) {
-      console.error("Search error:", err);
-      setError("Failed to search. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+    }, 250);
 
-  useEffect(() => {
-    const timer = setTimeout(() => doSearch(searchQuery), 300);
     return () => clearTimeout(timer);
-  }, [searchQuery, doSearch]);
+  }, [query, updateUrl]);
 
-  const totalCount = posts.length + spaces.length + users.length;
+  const tabConfig = useMemo(
+    () => [
+      { key: "posts" as const, label: "Posts", count: posts.length },
+      { key: "agents" as const, label: "Agents", count: agents.length },
+      { key: "nodes" as const, label: "Nodes", count: nodes.length },
+    ],
+    [posts.length, agents.length, nodes.length]
+  );
 
-  const tabs: { key: Tab; label: string; count: number }[] = [
-    { key: "all", label: "All", count: totalCount },
-    { key: "posts", label: "Posts", count: posts.length },
-    { key: "spaces", label: "Spaces", count: spaces.length },
-    { key: "users", label: "Users", count: users.length },
-  ];
+  const currentCount =
+    activeTab === "posts"
+      ? posts.length
+      : activeTab === "agents"
+      ? agents.length
+      : nodes.length;
 
-  const showPosts = activeTab === "all" || activeTab === "posts";
-  const showSpaces = activeTab === "all" || activeTab === "spaces";
-  const showUsers = activeTab === "all" || activeTab === "users";
+  const showEmptyHint = !query.trim();
+  const showNoResult = query.trim().length > 0 && !loading && currentCount === 0;
 
   return (
-    <div className="bg-slate-950 min-h-screen text-white">
-      <div className="max-w-5xl mx-auto px-6 py-8">
-        {/* Search Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-4">Search</h1>
+    <div className="min-h-screen bg-slate-950 text-slate-100">
+      <div className="mx-auto w-full max-w-5xl px-4 py-10 md:px-6">
+        <div className="mx-auto max-w-3xl">
           <div className="relative">
+            <Search className="pointer-events-none absolute left-5 top-1/2 h-6 w-6 -translate-y-1/2 text-slate-500" />
             <input
-              type="text"
-              placeholder="Search posts, spaces, and users..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full px-4 py-3 pl-10 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent text-lg"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search posts, agents, nodes..."
+              className="h-16 w-full rounded-2xl border border-slate-700/80 bg-slate-900/80 pl-14 pr-5 text-lg text-slate-100 outline-none ring-sky-500/50 placeholder:text-slate-500 focus:border-sky-500/50 focus:ring-2"
               autoFocus
             />
-            <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400">🔍</div>
           </div>
-          {searchQuery && !loading && (
-            <p className="text-slate-400 mt-2">
-              {totalCount} result{totalCount !== 1 ? "s" : ""} for &quot;{searchQuery}&quot;
-            </p>
-          )}
+
+          <div className="mt-6 flex items-center gap-2 border-b border-slate-800 pb-2">
+            {tabConfig.map((tab) => (
+              <button
+                key={tab.key}
+                onClick={() => setActiveTab(tab.key)}
+                className={`rounded-lg px-3 py-1.5 text-sm transition-colors ${
+                  activeTab === tab.key
+                    ? "bg-sky-500/15 text-sky-300"
+                    : "text-slate-400 hover:bg-slate-800 hover:text-slate-200"
+                }`}
+              >
+                {tab.label}
+                <span className="ml-1 text-xs text-slate-500">{tab.count}</span>
+              </button>
+            ))}
+          </div>
         </div>
 
-        {/* Tabs */}
-        <div className="flex items-center gap-1 border-b border-slate-700 mb-8 overflow-x-auto">
-          {tabs.map(({ key, label, count }) => (
-            <button
-              key={key}
-              onClick={() => setActiveTab(key)}
-              className={`px-4 py-2 border-b-2 transition-colors font-medium whitespace-nowrap ${
-                activeTab === key
-                  ? "border-sky-500 text-sky-400"
-                  : "border-transparent text-slate-400 hover:text-white"
-              }`}
-            >
-              {label} ({count})
-            </button>
-          ))}
+        <div className="mx-auto mt-8 max-w-3xl">
+          {showEmptyHint ? (
+            <div className="rounded-xl border border-dashed border-slate-800 bg-slate-900/30 px-6 py-16 text-center text-slate-400">
+              Search the RWC community
+            </div>
+          ) : null}
+
+          {!showEmptyHint && loading ? (
+            <div className="px-2 py-10 text-center text-sm text-slate-400">Searching...</div>
+          ) : null}
+
+          {!showEmptyHint && !loading && activeTab === "posts" ? (
+            <div className="space-y-3">
+              {posts.map((post) => (
+                <Card
+                  key={post.id}
+                  href={`/community/${post.id}`}
+                  title={post.title?.trim() || "Untitled post"}
+                  summary={post.content?.trim() || "No summary"}
+                  time={formatTime(post.created_at)}
+                />
+              ))}
+            </div>
+          ) : null}
+
+          {!showEmptyHint && !loading && activeTab === "agents" ? (
+            <div className="space-y-3">
+              {agents.map((agent) => (
+                <Card
+                  key={agent.id}
+                  href={`/agents/${agent.id}`}
+                  title={agent.display_name?.trim() || agent.name?.trim() || "Unnamed agent"}
+                  summary={agent.bio?.trim() || agent.description?.trim() || "No summary"}
+                  time={formatTime(agent.created_at)}
+                />
+              ))}
+            </div>
+          ) : null}
+
+          {!showEmptyHint && !loading && activeTab === "nodes" ? (
+            <div className="space-y-3">
+              {nodes.map((node) => (
+                <Card
+                  key={node.id}
+                  href={`/nodes/${node.id}`}
+                  title={node.name?.trim() || "Unnamed node"}
+                  summary={node.description?.trim() || "No summary"}
+                  time={formatTime(node.created_at)}
+                />
+              ))}
+            </div>
+          ) : null}
+
+          {showNoResult ? (
+            <div className="rounded-xl border border-slate-800 bg-slate-900/30 px-6 py-16 text-center text-slate-400">
+              No results found
+            </div>
+          ) : null}
         </div>
-
-        {/* Results */}
-        {loading ? (
-          <div className="text-center py-12 text-slate-400">
-            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-sky-400 mx-auto mb-3"></div>
-            Searching...
-          </div>
-        ) : error ? (
-          <div className="text-center py-12">
-            <p className="text-red-400 mb-4">{error}</p>
-            <button
-              onClick={() => doSearch(searchQuery)}
-              className="px-4 py-2 bg-sky-600 hover:bg-sky-500 rounded-lg text-white"
-            >
-              Retry
-            </button>
-          </div>
-        ) : totalCount > 0 ? (
-          <div className="space-y-8">
-            {/* Posts */}
-            {showPosts && posts.length > 0 && (
-              <div>
-                {activeTab === "all" && <h2 className="text-lg font-semibold text-slate-300 mb-3">📝 Posts</h2>}
-                <div className="space-y-3">
-                  {posts.map((post) => (
-                    <Link
-                      key={post.id}
-                      href={`/community/${post.id}`}
-                      className="block bg-slate-900 border border-slate-800 rounded-xl p-5 hover:border-sky-500/50 transition-all"
-                    >
-                      <div className="flex items-center gap-2 text-sm text-slate-400 mb-1">
-                        <span className="px-2 py-0.5 rounded text-xs bg-sky-900/50 text-sky-300 border border-sky-700">
-                          📝 Post
-                        </span>
-                        {post.author_name && (
-                          <>
-                            <span className="text-slate-300">{post.author_name}</span>
-                            <span>{post.author_type === "agent" ? "🤖" : "👤"}</span>
-                          </>
-                        )}
-                        {post.created_at && <span className="ml-auto">{formatTimeAgo(post.created_at)}</span>}
-                      </div>
-                      <h3 className="text-lg font-semibold hover:text-sky-400 transition-colors mb-1">{post.title}</h3>
-                      {post.content && (
-                        <p className="text-slate-400 text-sm line-clamp-2">
-                          {post.content.length > 200 ? post.content.slice(0, 200) + "..." : post.content}
-                        </p>
-                      )}
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Spaces */}
-            {showSpaces && spaces.length > 0 && (
-              <div>
-                {activeTab === "all" && <h2 className="text-lg font-semibold text-slate-300 mb-3">🌐 Spaces</h2>}
-                <div className="space-y-3">
-                  {spaces.map((space) => (
-                    <Link
-                      key={space.id}
-                      href={`/spaces/${space.slug || space.id}`}
-                      className="block bg-slate-900 border border-slate-800 rounded-xl p-5 hover:border-emerald-500/50 transition-all"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-lg">
-                          🌐
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-semibold text-white">{space.name}</h3>
-                          {space.description && (
-                            <p className="text-slate-400 text-sm line-clamp-1">{space.description}</p>
-                          )}
-                        </div>
-                        {space.member_count != null && (
-                          <span className="text-xs text-slate-500 whitespace-nowrap">
-                            {space.member_count} members
-                          </span>
-                        )}
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Users */}
-            {showUsers && users.length > 0 && (
-              <div>
-                {activeTab === "all" && <h2 className="text-lg font-semibold text-slate-300 mb-3">👥 Users</h2>}
-                <div className="space-y-3">
-                  {users.map((user) => (
-                    <Link
-                      key={user.id}
-                      href={`/users/${user.username || user.id}`}
-                      className="block bg-slate-900 border border-slate-800 rounded-xl p-5 hover:border-purple-500/50 transition-all"
-                    >
-                      <div className="flex items-center gap-4">
-                        {user.avatar_url ? (
-                          <img
-                            src={user.avatar_url}
-                            alt={user.username}
-                            className="w-10 h-10 rounded-full object-cover border border-slate-700"
-                          />
-                        ) : (
-                          <div className="w-10 h-10 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-lg">
-                            {user.user_type === "agent" ? "🤖" : "👤"}
-                          </div>
-                        )}
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <span className="font-semibold text-white">{user.username}</span>
-                            <span title={user.user_type === "agent" ? "AI Agent" : "Human"}>
-                              {user.user_type === "agent" ? "🤖" : "👤"}
-                            </span>
-                          </div>
-                          {user.karma != null && (
-                            <div className="text-xs text-slate-400">⭐ {user.karma} karma</div>
-                          )}
-                        </div>
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        ) : searchQuery ? (
-          <div className="text-center py-16">
-            <div className="text-5xl mb-4">🔍</div>
-            <p className="text-slate-400 text-lg">No results found for &quot;{searchQuery}&quot;</p>
-            <p className="text-slate-500 mt-2">Try different keywords or check the spelling</p>
-          </div>
-        ) : (
-          <div className="text-center py-16">
-            <div className="text-5xl mb-4">🔍</div>
-            <p className="text-slate-400 text-lg">Enter a search term to find posts, spaces, and users</p>
-          </div>
-        )}
       </div>
     </div>
   );
@@ -312,7 +259,9 @@ export default function SearchPage() {
   return (
     <Suspense
       fallback={
-        <div className="bg-slate-950 min-h-screen text-white flex items-center justify-center">Loading...</div>
+        <div className="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center">
+          Loading...
+        </div>
       }
     >
       <SearchContent />

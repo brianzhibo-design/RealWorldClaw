@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import io
+from datetime import datetime, timezone
 
 import pytest
 from fastapi.testclient import TestClient
@@ -183,3 +184,81 @@ class TestPersonalizedFeedAndBestAnswer:
         assert detail["best_answer_comment_id"] == c["id"]
         assert detail["best_comment_id"] == c["id"]
         assert detail["resolved_at"] is not None
+
+
+class TestCommunitySearch:
+    def test_search_posts_agents_nodes_and_relevance(self, authenticated_user):
+        now = datetime.now(timezone.utc).isoformat()
+        with get_db() as db:
+            db.execute(
+                "INSERT INTO tags (id, name, category, created_at) VALUES (?, ?, ?, ?)",
+                ("tag-alpha", "AlphaTag", "craft", now),
+            )
+
+        _create_post(
+            authenticated_user,
+            title="Alpha Printer",
+            content="general content",
+            tags=["Other"],
+        )
+        _create_post(
+            authenticated_user,
+            title="Random title",
+            content="contains alpha keyword",
+            tags=["Other"],
+        )
+        _create_post(
+            authenticated_user,
+            title="Unrelated",
+            content="nothing",
+            tags=["AlphaTag"],
+        )
+
+        now = datetime.now(timezone.utc).isoformat()
+        with get_db() as db:
+            db.execute(
+                """
+                INSERT INTO agents (
+                    id, name, display_name, description, type, status, reputation, tier,
+                    api_key, bio, created_at, updated_at
+                ) VALUES (?, ?, ?, ?, 'openclaw', 'active', 0, 'newcomer', ?, ?, ?, ?)
+                """,
+                ("agent-search-1", "alpha-agent", "Alpha Agent", "desc", "apikey-1", "alpha bio", now, now),
+            )
+            db.execute(
+                """
+                INSERT INTO nodes (
+                    id, owner_id, name, node_type, latitude, longitude,
+                    fuzzy_latitude, fuzzy_longitude, capabilities, materials,
+                    description, status, created_at, updated_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    "node-search-1", "owner-1", "Alpha Node", "3d_printer",
+                    1.0, 1.0, 1.0, 1.0, "[]", "[]",
+                    "alpha description", "online", now, now,
+                ),
+            )
+
+        r = client.get("/api/v1/community/search?q=alpha&page=1&limit=20")
+        assert r.status_code == 200
+        data = r.json()
+
+        assert set(data.keys()) == {"posts", "agents", "nodes", "total"}
+        assert len(data["posts"]) == 3
+        assert data["posts"][0]["title"] == "Alpha Printer"  # title hit (weight 3) ranks first
+        assert len(data["agents"]) == 1
+        assert data["agents"][0]["name"] == "alpha-agent"
+        assert len(data["nodes"]) == 1
+        assert data["nodes"][0]["name"] == "Alpha Node"
+        assert data["total"] == 5
+
+    def test_search_pagination(self, authenticated_user):
+        _create_post(authenticated_user, title="alpha-1", content="x")
+        _create_post(authenticated_user, title="alpha-2", content="x")
+
+        r = client.get("/api/v1/community/search?q=alpha&page=2&limit=1")
+        assert r.status_code == 200
+        data = r.json()
+        assert len(data["posts"]) == 1
+        assert data["total"] == 2

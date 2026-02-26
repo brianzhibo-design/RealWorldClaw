@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from 'react';
+import Link from 'next/link';
 import { WorldMap } from '@/components/WorldMap';
 import { NodeDetails } from '@/components/NodeDetails';
 import { ManufacturingNode, MapRegionSummary, NODE_TYPE_INFO, STATUS_COLORS, fetchMapNodes, fetchMapRegions } from '@/lib/nodes';
@@ -50,7 +51,13 @@ export default function MapPage() {
       {/* Left sidebar — normal flow, no absolute positioning */}
       <div className="hidden sm:flex flex-col w-[240px] shrink-0 border-r border-slate-800/60 bg-[#0f1720]/95 z-20 overflow-hidden">
         {/* Stats */}
-        <div className="px-3 py-3 border-b border-slate-800/50">
+        <div className="px-3 py-3 border-b border-slate-800/50 space-y-3">
+          <Link
+            href="/register-node"
+            className="inline-flex w-full items-center justify-center rounded-lg bg-sky-600 px-3 py-2 text-xs font-medium text-white transition-colors hover:bg-sky-500"
+          >
+            Register Node
+          </Link>
           <div className="flex items-center justify-between text-xs text-slate-400 mb-2">
             <span className="uppercase tracking-widest text-[10px]">Network</span>
             {loading && <span className="animate-pulse">Loading...</span>}
@@ -153,7 +160,13 @@ export default function MapPage() {
             <div className="text-center">
               <div className="text-4xl mb-3">🌍</div>
               <div className="text-lg font-semibold text-white mb-1">Be the first to register a node</div>
-              <div className="text-sm text-slate-400">No manufacturing nodes online yet.</div>
+              <div className="text-sm text-slate-400 mb-4">No manufacturing nodes online yet.</div>
+              <Link
+                href="/register-node"
+                className="inline-flex items-center justify-center rounded-lg bg-sky-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-sky-500"
+              >
+                Register your first node
+              </Link>
             </div>
           </div>
         )}
@@ -161,9 +174,17 @@ export default function MapPage() {
 
       {/* Mobile: bottom sheet node list (small screens only) */}
       <div className="sm:hidden absolute bottom-0 left-0 right-0 z-20 bg-[#0f1720]/95 border-t border-slate-800/60 max-h-[30vh] overflow-y-auto">
-        <div className="px-3 py-2 flex items-center justify-between border-b border-slate-800/40">
+        <div className="px-3 py-2 flex items-center justify-between border-b border-slate-800/40 gap-2">
           <span className="text-[10px] uppercase tracking-widest text-slate-500">Nodes ({nodes.length})</span>
-          <span className="text-[10px] text-emerald-300">{onlineCount} online</span>
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] text-emerald-300">{onlineCount} online</span>
+            <Link
+              href="/register-node"
+              className="rounded-md bg-sky-600 px-2 py-1 text-[10px] font-medium text-white transition-colors hover:bg-sky-500"
+            >
+              Register Node
+            </Link>
+          </div>
         </div>
         {nodes.map((node) => {
           const isOnline = node.status === 'online' || node.status === 'idle';

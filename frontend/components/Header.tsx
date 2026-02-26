@@ -190,7 +190,7 @@ export default function Header() {
           <DropdownMenu>
             <DropdownMenuTrigger
               className={`flex items-center gap-1 md:gap-1.5 rounded-lg px-2 md:px-3 py-1.5 text-xs md:text-sm font-medium transition-colors whitespace-nowrap ${
-                ["/orders", "/agents", "/search"].some(p => pathname.startsWith(p))
+                ["/proof", "/orders", "/agents", "/search"].some(p => pathname.startsWith(p))
                   ? "bg-sky-500/10 text-sky-400"
                   : "text-slate-400 hover:text-white hover:bg-slate-800"
               }`}

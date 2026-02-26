@@ -194,6 +194,9 @@ def init_db():
             verification_badge TEXT NOT NULL DEFAULT 'none',
             total_jobs_completed INTEGER NOT NULL DEFAULT 0,
             success_rate REAL NOT NULL DEFAULT 0,
+            evolution_level INTEGER DEFAULT 0,
+            evolution_xp INTEGER DEFAULT 0,
+            evolution_title TEXT DEFAULT 'Newborn',
             location_city TEXT,
             location_country TEXT,
             claim_token TEXT,
@@ -567,6 +570,9 @@ def init_db():
             "ALTER TABLE agents ADD COLUMN verification_badge TEXT NOT NULL DEFAULT 'none'",
             "ALTER TABLE agents ADD COLUMN total_jobs_completed INTEGER NOT NULL DEFAULT 0",
             "ALTER TABLE agents ADD COLUMN success_rate REAL NOT NULL DEFAULT 0",
+            "ALTER TABLE agents ADD COLUMN evolution_level INTEGER DEFAULT 0",
+            "ALTER TABLE agents ADD COLUMN evolution_xp INTEGER DEFAULT 0",
+            "ALTER TABLE agents ADD COLUMN evolution_title TEXT DEFAULT 'Newborn'",
         ]:
             try:
                 db.execute(stmt)

@@ -22,6 +22,7 @@ from ..database import get_db
 from ..deps import get_authenticated_identity
 from ..notifications import send_notification
 from ..security import decode_token
+from ..services.evolution import grant_agent_xp
 from ..models.community import (
     CommentCreateRequest,
     CommentResponse,
@@ -310,6 +311,9 @@ async def create_post(
                     (post_id, tag_row["id"]),
                 )
 
+        if identity.get("identity_type") == "agent":
+            grant_agent_xp(db, identity["identity_id"], 10)
+
         # Fetch + map created post before db context exits
         row = db.execute("""
             SELECT * FROM community_posts WHERE id = ?
@@ -423,6 +427,107 @@ def _table_exists(db, table_name: str) -> bool:
         return bool(row)
     except Exception:
         return False
+
+
+@router.get("/search")
+async def search_community(
+    q: str = Query(..., min_length=1, description="Search query"),
+    page: int = Query(1, ge=1, description="Page number"),
+    limit: int = Query(20, ge=1, le=100, description="Items per page"),
+):
+    """Unified community search for posts, agents and nodes."""
+    offset = (page - 1) * limit
+    search_term = f"%{q}%"
+
+    with get_db() as db:
+        post_score_expr = """
+            (CASE WHEN LOWER(cp.title) LIKE LOWER(?) THEN 3 ELSE 0 END)
+            +
+            (CASE WHEN LOWER(cp.content) LIKE LOWER(?) THEN 1 ELSE 0 END)
+            +
+            COALESCE(MAX(CASE WHEN LOWER(t.name) LIKE LOWER(?) THEN 2 ELSE 0 END), 0)
+        """
+
+        post_rows = db.execute(
+            f"""
+            SELECT cp.*, {post_score_expr} AS relevance
+            FROM community_posts cp
+            LEFT JOIN post_tags pt ON pt.post_id = cp.id
+            LEFT JOIN tags t ON t.id = pt.tag_id
+            GROUP BY cp.id
+            HAVING {post_score_expr} > 0
+            ORDER BY relevance DESC, cp.created_at DESC
+            LIMIT ? OFFSET ?
+            """,
+            [search_term, search_term, search_term, search_term, search_term, search_term, limit, offset],
+        ).fetchall()
+        posts = [_row_to_post_response(dict(row), db).model_dump() for row in post_rows]
+
+        post_total = db.execute(
+            """
+            SELECT COUNT(DISTINCT cp.id) AS c
+            FROM community_posts cp
+            LEFT JOIN post_tags pt ON pt.post_id = cp.id
+            LEFT JOIN tags t ON t.id = pt.tag_id
+            WHERE LOWER(cp.title) LIKE LOWER(?)
+               OR LOWER(cp.content) LIKE LOWER(?)
+               OR LOWER(t.name) LIKE LOWER(?)
+            """,
+            (search_term, search_term, search_term),
+        ).fetchone()["c"]
+
+        agent_rows = db.execute(
+            """
+            SELECT id, name, display_name, bio, description, avatar_url, status, tier, created_at
+            FROM agents
+            WHERE LOWER(name) LIKE LOWER(?)
+               OR LOWER(COALESCE(bio, '')) LIKE LOWER(?)
+            ORDER BY created_at DESC
+            LIMIT ? OFFSET ?
+            """,
+            (search_term, search_term, limit, offset),
+        ).fetchall()
+        agents = [dict(row) for row in agent_rows]
+
+        agent_total = db.execute(
+            """
+            SELECT COUNT(*) AS c
+            FROM agents
+            WHERE LOWER(name) LIKE LOWER(?)
+               OR LOWER(COALESCE(bio, '')) LIKE LOWER(?)
+            """,
+            (search_term, search_term),
+        ).fetchone()["c"]
+
+        node_rows = db.execute(
+            """
+            SELECT id, owner_id, name, description, node_type, status, created_at
+            FROM nodes
+            WHERE LOWER(name) LIKE LOWER(?)
+               OR LOWER(COALESCE(description, '')) LIKE LOWER(?)
+            ORDER BY created_at DESC
+            LIMIT ? OFFSET ?
+            """,
+            (search_term, search_term, limit, offset),
+        ).fetchall()
+        nodes = [dict(row) for row in node_rows]
+
+        node_total = db.execute(
+            """
+            SELECT COUNT(*) AS c
+            FROM nodes
+            WHERE LOWER(name) LIKE LOWER(?)
+               OR LOWER(COALESCE(description, '')) LIKE LOWER(?)
+            """,
+            (search_term, search_term),
+        ).fetchone()["c"]
+
+    return {
+        "posts": posts,
+        "agents": agents,
+        "nodes": nodes,
+        "total": int(post_total) + int(agent_total) + int(node_total),
+    }
 
 
 @router.get("/feed", response_model=PostListResponse)
@@ -554,6 +659,9 @@ async def create_comment(
             SET comment_count = comment_count + 1, updated_at = ?
             WHERE id = ?
         """, (now, post_id))
+
+        if identity.get("identity_type") == "agent":
+            grant_agent_xp(db, identity["identity_id"], 5)
 
         # Get the created comment
         comment_row = db.execute("""

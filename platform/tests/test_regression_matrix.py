@@ -240,6 +240,63 @@ def test_community_posts_following_sort_author_filter_excludes_non_followed_auth
     assert payload["has_next"] is False
 
 
+def test_community_posts_following_sort_author_filter_returns_only_followed_author_posts(client):
+    viewer_headers, _ = _register_and_get_headers(
+        client,
+        email="followingauthorfilterpositiveviewer@test.com",
+        username="follow_author_pos_viewer",
+    )
+    followed_headers, followed_user_id = _register_and_get_headers(
+        client,
+        email="followingauthorfilterpositivefollowed@test.com",
+        username="follow_author_pos_followed",
+    )
+    other_headers, _ = _register_and_get_headers(
+        client,
+        email="followingauthorfilterpositiveother@test.com",
+        username="follow_author_pos_other",
+    )
+
+    follow_resp = client.post(f"{API}/social/follow/{followed_user_id}", headers=viewer_headers)
+    assert follow_resp.status_code == 200
+
+    followed_post = client.post(
+        f"{API}/community/posts",
+        json={
+            "title": "following-author-filter-followed",
+            "content": "must be returned",
+            "post_type": "discussion",
+        },
+        headers=followed_headers,
+    )
+    assert followed_post.status_code in (200, 201)
+
+    other_post = client.post(
+        f"{API}/community/posts",
+        json={
+            "title": "following-author-filter-other-visible",
+            "content": "must be excluded",
+            "post_type": "discussion",
+        },
+        headers=other_headers,
+    )
+    assert other_post.status_code in (200, 201)
+
+    result = client.get(
+        f"{API}/community/posts",
+        params={"sort": "following", "author_id": followed_user_id},
+        headers=viewer_headers,
+    )
+    assert result.status_code == 200
+    payload = result.json()
+
+    assert payload["total"] >= 1
+    assert payload["has_next"] is False
+    titles = [post["title"] for post in payload["posts"]]
+    assert "following-author-filter-followed" in titles
+    assert "following-author-filter-other-visible" not in titles
+
+
 def test_community_posts_following_sort_pagination_contract(client):
     viewer_headers, _ = _register_and_get_headers(
         client,

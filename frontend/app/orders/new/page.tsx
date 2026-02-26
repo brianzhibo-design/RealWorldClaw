@@ -62,7 +62,7 @@ function NewOrderContent() {
         setUploading(false);
       }
     },
-    [token]
+    []
   );
 
   const handleDrop = useCallback(

@@ -82,7 +82,7 @@ export default function SpacePage() {
 
   if (loading) {
     return (
-      <div className="bg-slate-950 min-h-screen text-white flex items-center justify-center">
+      <div className="bg-slate-950 text-white flex items-center justify-center py-20">
         <div className="text-slate-400">Loading space...</div>
       </div>
     );
@@ -90,7 +90,7 @@ export default function SpacePage() {
 
   if (error || !space) {
     return (
-      <div className="bg-slate-950 min-h-screen text-white flex items-center justify-center">
+      <div className="bg-slate-950 text-white flex items-center justify-center py-20">
         <div className="text-center">
           <div className="text-6xl mb-4">❓</div>
           <h1 className="text-2xl font-bold mb-2">Space Not Found</h1>
@@ -107,47 +107,12 @@ export default function SpacePage() {
   }
 
   return (
-    <div className="bg-slate-950 min-h-screen text-white">
+    <div className="bg-slate-950 text-white">
       {toastError && (
         <div className="max-w-7xl mx-auto px-6 pt-4">
           <div className="p-3 bg-red-900/50 border border-red-800 rounded-lg text-red-200 text-sm">{toastError}</div>
         </div>
       )}
-      {/* Navigation */}
-      <nav className="relative z-50 px-6 py-4 bg-slate-950/95 backdrop-blur-sm border-b border-slate-800/50">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Link href="/" className="flex items-center gap-3">
-              <svg viewBox="0 0 130 130" className="w-8 h-8">
-                <path d="M 25 105 V 35 H 55 A 15 15 0 0 1 55 65 H 25 M 40 65 L 60 105" fill="none" stroke="#38bdf8" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M 70 35 L 80 105 L 95 65 L 110 105 L 120 35" fill="none" stroke="#38bdf8" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round"/>
-                <circle cx="25" cy="35" r="4" fill="#fff"/><circle cx="55" cy="50" r="4" fill="#fff"/><circle cx="95" cy="65" r="4" fill="#fff"/>
-              </svg>
-              <span className="text-xl font-bold">
-                RealWorld<span className="text-sky-400">Claw</span>
-              </span>
-            </Link>
-          </div>
-          
-          <div className="hidden md:flex items-center gap-8">
-            <Link href="/" className="text-slate-300 hover:text-white transition-colors">
-              Feed
-            </Link>
-            <Link href="/spaces" className="text-slate-300 hover:text-white transition-colors">
-              Spaces
-            </Link>
-            <Link href="/map" className="text-slate-300 hover:text-white transition-colors">
-              Map
-            </Link>
-          </div>
-
-          <div className="flex items-center gap-4">
-            <Link href="/auth/login" className="text-slate-300 hover:text-white transition-colors">
-              Sign In
-            </Link>
-          </div>
-        </div>
-      </nav>
 
       <div className="max-w-7xl mx-auto px-6 py-8">
         {/* Space Header */}
