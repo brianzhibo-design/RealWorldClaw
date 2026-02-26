@@ -15,6 +15,9 @@ class NodeType(str, enum.Enum):
     laser_cutter = "laser_cutter"
     drill_press = "drill_press"
     assembly_line = "assembly_line"
+    injection_molder = "injection_molder"
+    assembly = "assembly"
+    other = "other"
 
 
 class NodeStatus(str, enum.Enum):
@@ -36,6 +39,8 @@ class MaterialSupport(str, enum.Enum):
     metal = "metal"
     resin = "resin"
     carbon_fiber = "carbon_fiber"
+    nylon = "Nylon"
+    acrylic = "Acrylic"
 
 
 # ─── Request / Response schemas ──────────────────────────

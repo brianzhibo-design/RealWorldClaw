@@ -8,7 +8,7 @@ import confetti from "canvas-confetti";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuthStore } from "@/stores/authStore";
-import { registerAPI } from "@/lib/api-client";
+import { getErrorMessage, registerAPI } from "@/lib/api-client";
 import GitHubOAuthButton from "@/components/oauth/GitHubOAuthButton";
 
 export default function RegisterPage() {
@@ -47,9 +47,9 @@ export default function RegisterPage() {
       });
       setSuccess(true);
       triggerConfetti();
-      setTimeout(() => router.push("/community"), 1200);
-    } catch {
-      setError("Registration failed. Please try again.");
+      setTimeout(() => router.push("/register-node?from=onboarding"), 1200);
+    } catch (err) {
+      setError(getErrorMessage(err, "Registration failed. Please try again."));
     } finally {
       setLoading(false);
     }
@@ -206,6 +206,7 @@ export default function RegisterPage() {
                     </svg>
                   </motion.div>
                   <p className="mt-5 text-lg font-semibold text-white">Welcome to RealWorldClaw!</p>
+                  <p className="mt-2 text-sm text-slate-300">Account created! Let&apos;s register your first node.</p>
                 </motion.div>
               )}
             </AnimatePresence>

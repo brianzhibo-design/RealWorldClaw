@@ -8,7 +8,7 @@ import confetti from "canvas-confetti";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuthStore } from "@/stores/authStore";
-import { loginAPI } from "@/lib/api-client";
+import { getErrorMessage, loginAPI } from "@/lib/api-client";
 import GitHubOAuthButton from "@/components/oauth/GitHubOAuthButton";
 
 export default function LoginPage() {
@@ -53,8 +53,8 @@ export default function LoginPage() {
       setSuccess(true);
       triggerConfetti();
       setTimeout(() => router.push("/"), 1200);
-    } catch {
-      setError("Login failed. Please check your credentials.");
+    } catch (err) {
+      setError(getErrorMessage(err, "Login failed. Please check your credentials."));
     } finally {
       setLoading(false);
     }

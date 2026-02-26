@@ -97,6 +97,36 @@ class TestNodeRegistration:
             row = db.execute("SELECT country_code FROM nodes WHERE id = ?", (data["id"],)).fetchone()
             assert row["country_code"] == "CN"
     
+    @pytest.mark.parametrize("node_type", ["injection_molder", "assembly", "other"])
+    def test_register_node_with_extended_node_types(self, mock_agent, node_type):
+        """Extended node_type enums should be accepted by backend."""
+        headers = {"Authorization": f"Bearer {mock_agent['api_key']}"}
+        extended_data = SAMPLE_NODE_DATA.copy()
+        extended_data.update({"name": f"Extended {node_type}", "node_type": node_type})
+
+        response = client.post("/api/v1/nodes/register", json=extended_data, headers=headers)
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["node_type"] == node_type
+
+    def test_register_node_with_extended_materials(self, mock_agent):
+        """Extended materials enums should be accepted with exact frontend casing."""
+        headers = {"Authorization": f"Bearer {mock_agent['api_key']}"}
+        extended_data = SAMPLE_NODE_DATA.copy()
+        extended_data.update(
+            {
+                "name": "Acrylic Nylon Node",
+                "materials": ["Nylon", "Acrylic"],
+            }
+        )
+
+        response = client.post("/api/v1/nodes/register", json=extended_data, headers=headers)
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["materials"] == ["Nylon", "Acrylic"]
+
     def test_register_node_duplicate_name(self, mock_agent):
         """Test registration with duplicate name fails."""
         headers = {"Authorization": f"Bearer {mock_agent['api_key']}"}

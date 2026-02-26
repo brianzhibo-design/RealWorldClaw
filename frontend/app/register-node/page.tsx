@@ -1,6 +1,7 @@
 "use client";
 import { apiFetch, getErrorMessage } from "@/lib/api-client";
 import { useAuthStore } from "@/stores/authStore";
+import { useToast } from "@/hooks/use-toast";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -33,6 +34,7 @@ const PRESET_CITIES: Record<string, { lat: number; lng: number }> = {
 
 export default function RegisterNodePage() {
   const router = useRouter();
+  const { toast } = useToast();
   const [formData, setFormData] = useState({
     name: "",
     node_type: "3d_printer",
@@ -48,9 +50,8 @@ export default function RegisterNodePage() {
   const [capInput, setCapInput] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
-  const [selectedCity, setSelectedCity] = useState<string>(""); // Empty for custom coordinates
-  const [locationMode, setLocationMode] = useState<"city" | "custom">("city");
+  const [selectedCity, setSelectedCity] = useState<string>("");
+  const [showAdvanced, setShowAdvanced] = useState(false);
 
   const token = useAuthStore((state) => state.token);
 
@@ -94,14 +95,6 @@ export default function RegisterNodePage() {
     }
   };
 
-  const handleLocationModeChange = (mode: "city" | "custom") => {
-    setLocationMode(mode);
-    if (mode === "custom") {
-      setSelectedCity("");
-      // Clear coordinates when switching to custom mode
-      setFormData(prev => ({ ...prev, latitude: "", longitude: "" }));
-    }
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -109,12 +102,11 @@ export default function RegisterNodePage() {
 
     if (!formData.name.trim() || formData.name.trim().length > 100) { setError("Name is required (1-100 chars)"); return; }
     
-    // Validate location based on mode
-    if (locationMode === "city" && !selectedCity) {
-      setError("Please select a city or switch to custom coordinates");
+    if (!selectedCity) {
+      setError("Please select a city");
       return;
     }
-    
+
     const lat = parseFloat(formData.latitude);
     const lng = parseFloat(formData.longitude);
     if (isNaN(lat) || lat < -90 || lat > 90) { setError("Latitude must be between -90 and 90"); return; }
@@ -146,10 +138,11 @@ export default function RegisterNodePage() {
         }),
       });
 
-      setSuccess(true);
-      setTimeout(() => {
-        router.push("/map");
-      }, 3000);
+      toast({
+        title: "Node registered",
+        description: "Your node is now live on the map.",
+      });
+      router.push("/map");
     } catch (err) {
       setError(getErrorMessage(err, "Unable to register node. Please check the form and try again."));
     } finally { setSubmitting(false); }
@@ -169,11 +162,6 @@ export default function RegisterNodePage() {
       <div className="max-w-4xl mx-auto px-6 py-8">
         {error && <div className="mb-6 p-4 bg-red-900/50 border border-red-800 rounded-lg text-red-200">{error}</div>}
 
-        {success && (
-          <div className="mb-6 p-4 bg-green-900/50 border border-green-800 rounded-lg text-green-200">
-            Node registered successfully! Redirecting...
-          </div>
-        )}
 
         <form onSubmit={handleSubmit} className="space-y-8">
           {/* Name */}
@@ -202,149 +190,97 @@ export default function RegisterNodePage() {
           {/* Location */}
           <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-6">
             <h2 className="text-xl font-semibold mb-4">📍 Location *</h2>
-            
-            {/* Location Mode Toggle */}
             <div className="mb-4">
-              <label className="block text-sm font-medium text-slate-300 mb-2">Location Input Method</label>
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => handleLocationModeChange("city")}
-                  className={`px-4 py-2 rounded-lg text-sm transition-colors ${
-                    locationMode === "city" 
-                      ? "bg-sky-600 text-white" 
-                      : "bg-slate-700 text-slate-300 hover:bg-slate-600"
-                  }`}
-                >
-                  Select City
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleLocationModeChange("custom")}
-                  className={`px-4 py-2 rounded-lg text-sm transition-colors ${
-                    locationMode === "custom" 
-                      ? "bg-sky-600 text-white" 
-                      : "bg-slate-700 text-slate-300 hover:bg-slate-600"
-                  }`}
-                >
-                  Custom Coordinates
-                </button>
-              </div>
-            </div>
-
-            {locationMode === "city" ? (
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-slate-300 mb-2">Select City</label>
-                <select
-                  value={selectedCity}
-                  onChange={(e) => handleCityChange(e.target.value)}
-                  required
-                  className={inputCls}
-                >
-                  <option value="">-- Select a city --</option>
-                  {Object.keys(PRESET_CITIES).map(city => (
-                    <option key={city} value={city}>
-                      {city} ({PRESET_CITIES[city].lat.toFixed(4)}, {PRESET_CITIES[city].lng.toFixed(4)})
-                    </option>
-                  ))}
-                </select>
-                {selectedCity && (
-                  <div className="mt-2 text-sm text-slate-400">
-                    Coordinates: {formData.latitude}, {formData.longitude}
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">Latitude * (-90 to 90)</label>
-                  <input 
-                    type="number" 
-                    step="any" 
-                    min="-90" 
-                    max="90" 
-                    value={formData.latitude} 
-                    onChange={e => setFormData(prev => ({ ...prev, latitude: e.target.value }))} 
-                    placeholder="e.g. 22.5431" 
-                    required 
-                    className={inputCls} 
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">Longitude * (-180 to 180)</label>
-                  <input 
-                    type="number" 
-                    step="any" 
-                    min="-180" 
-                    max="180" 
-                    value={formData.longitude} 
-                    onChange={e => setFormData(prev => ({ ...prev, longitude: e.target.value }))} 
-                    placeholder="e.g. 114.0579" 
-                    required 
-                    className={inputCls} 
-                  />
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Build Volume (optional) */}
-          <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-6">
-            <h2 className="text-xl font-semibold mb-4">📐 Build Volume (mm, optional)</h2>
-            <div className="grid grid-cols-3 gap-4">
-              {(["x", "y", "z"] as const).map(axis => (
-                <div key={axis}>
-                  <label className="block text-xs text-slate-400 mb-1">{axis.toUpperCase()}</label>
-                  <input type="number" min="0.1" step="any" value={formData[`build_volume_${axis}`]} onChange={e => setFormData(prev => ({ ...prev, [`build_volume_${axis}`]: e.target.value }))} placeholder="256" className={inputCls} />
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Materials */}
-          <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-6">
-            <h2 className="text-xl font-semibold mb-4">🧪 Materials</h2>
-            <div className="flex flex-wrap gap-2">
-              {COMMON_MATERIALS.map(m => (
-                <button key={m} type="button" onClick={() => handleMaterialToggle(m)}
-                  className={`px-3 py-2 text-sm rounded-full transition-colors ${formData.materials.includes(m) ? "bg-sky-600 text-white" : "bg-slate-700 text-slate-300 hover:bg-slate-600"}`}>
-                  {formData.materials.includes(m) && "✓ "}{m}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Capabilities */}
-          <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-6">
-            <h2 className="text-xl font-semibold mb-4">🎯 Capabilities</h2>
-            <div className="flex gap-2 mb-3">
-              <input type="text" value={capInput} onChange={e => setCapInput(e.target.value)} onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); handleAddCapability(); } }} placeholder="Add a capability and press Enter" className={`${inputCls} flex-1`} />
-              <button type="button" onClick={handleAddCapability} className="px-4 py-3 bg-sky-600 hover:bg-sky-500 rounded-lg text-white text-sm transition-colors">Add</button>
-            </div>
-            {formData.capabilities.length > 0 && (
-              <div className="flex flex-wrap gap-2">
-                {formData.capabilities.map((cap, i) => (
-                  <span key={i} className="inline-flex items-center gap-1 px-3 py-1 bg-slate-700 rounded-full text-sm text-slate-300">
-                    {cap}
-                    <button type="button" onClick={() => setFormData(prev => ({ ...prev, capabilities: prev.capabilities.filter((_, j) => j !== i) }))} className="text-slate-400 hover:text-red-400" aria-label="Remove capability">×</button>
-                  </span>
+              <label className="block text-sm font-medium text-slate-300 mb-2">Select City</label>
+              <select
+                value={selectedCity}
+                onChange={(e) => handleCityChange(e.target.value)}
+                required
+                className={inputCls}
+              >
+                <option value="">-- Select a city --</option>
+                {Object.keys(PRESET_CITIES).map(city => (
+                  <option key={city} value={city}>
+                    {city} ({PRESET_CITIES[city].lat.toFixed(4)}, {PRESET_CITIES[city].lng.toFixed(4)})
+                  </option>
                 ))}
-              </div>
-            )}
+              </select>
+              {selectedCity && (
+                <div className="mt-2 text-sm text-slate-400">
+                  Coordinates: {formData.latitude}, {formData.longitude}
+                </div>
+              )}
+            </div>
           </div>
 
-          {/* Description */}
           <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-6">
-            <h2 className="text-xl font-semibold mb-4">💡 Description (max 500 chars)</h2>
-            <textarea value={formData.description} onChange={e => setFormData(prev => ({ ...prev, description: e.target.value }))} placeholder="Describe your setup, specialties, or capabilities..." rows={4} maxLength={500} className={`${inputCls} resize-none`} />
-            <div className="text-xs text-slate-400 mt-1 text-right">{formData.description.length}/500</div>
+            <button
+              type="button"
+              onClick={() => setShowAdvanced((prev) => !prev)}
+              className="w-full flex items-center justify-between text-left"
+            >
+              <h2 className="text-xl font-semibold">Advanced Options</h2>
+              <span className="text-slate-400 text-sm">{showAdvanced ? "Hide" : "Show"}</span>
+            </button>
+
+            {showAdvanced && (
+              <div className="mt-5 space-y-6">
+                <div>
+                  <h3 className="text-base font-semibold mb-3">📐 Build Volume (mm, optional)</h3>
+                  <div className="grid grid-cols-3 gap-4">
+                    {(["x", "y", "z"] as const).map(axis => (
+                      <div key={axis}>
+                        <label className="block text-xs text-slate-400 mb-1">{axis.toUpperCase()}</label>
+                        <input type="number" min="0.1" step="any" value={formData[`build_volume_${axis}`]} onChange={e => setFormData(prev => ({ ...prev, [`build_volume_${axis}`]: e.target.value }))} placeholder="256" className={inputCls} />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="text-base font-semibold mb-3">🧪 Materials</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {COMMON_MATERIALS.map(m => (
+                      <button key={m} type="button" onClick={() => handleMaterialToggle(m)}
+                        className={`px-3 py-2 text-sm rounded-full transition-colors ${formData.materials.includes(m) ? "bg-sky-600 text-white" : "bg-slate-700 text-slate-300 hover:bg-slate-600"}`}>
+                        {formData.materials.includes(m) && "✓ "}{m}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="text-base font-semibold mb-3">🎯 Capabilities</h3>
+                  <div className="flex gap-2 mb-3">
+                    <input type="text" value={capInput} onChange={e => setCapInput(e.target.value)} onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); handleAddCapability(); } }} placeholder="Add a capability and press Enter" className={`${inputCls} flex-1`} />
+                    <button type="button" onClick={handleAddCapability} className="px-4 py-3 bg-sky-600 hover:bg-sky-500 rounded-lg text-white text-sm transition-colors">Add</button>
+                  </div>
+                  {formData.capabilities.length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                      {formData.capabilities.map((cap, i) => (
+                        <span key={i} className="inline-flex items-center gap-1 px-3 py-1 bg-slate-700 rounded-full text-sm text-slate-300">
+                          {cap}
+                          <button type="button" onClick={() => setFormData(prev => ({ ...prev, capabilities: prev.capabilities.filter((_, j) => j !== i) }))} className="text-slate-400 hover:text-red-400" aria-label="Remove capability">×</button>
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <h3 className="text-base font-semibold mb-3">💡 Description (max 500 chars)</h3>
+                  <textarea value={formData.description} onChange={e => setFormData(prev => ({ ...prev, description: e.target.value }))} placeholder="Describe your setup, specialties, or capabilities..." rows={4} maxLength={500} className={`${inputCls} resize-none`} />
+                  <div className="text-xs text-slate-400 mt-1 text-right">{formData.description.length}/500</div>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Submit */}
           <div className="flex justify-between">
             <button type="button" onClick={() => router.back()} className="px-4 py-2 text-slate-400 hover:text-slate-300 transition-colors">← Cancel</button>
             <button type="submit" disabled={submitting} className="px-8 py-3 bg-sky-600 hover:bg-sky-500 disabled:bg-slate-700 disabled:text-slate-400 text-white rounded-lg font-medium transition-colors">
-              {submitting ? "Registering..." : "Register Node →"}
+              {submitting ? "Registering..." : "Register Node"}
             </button>
           </div>
         </form>

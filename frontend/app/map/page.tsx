@@ -4,6 +4,8 @@ import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { WorldMap } from '@/components/WorldMap';
 import { NodeDetails } from '@/components/NodeDetails';
+import { apiFetch } from '@/lib/api-client';
+import { useAuthStore } from '@/stores/authStore';
 import { ManufacturingNode, MapRegionSummary, NODE_TYPE_INFO, STATUS_COLORS, fetchMapNodes, fetchMapRegions } from '@/lib/nodes';
 
 export default function MapPage() {
@@ -17,6 +19,8 @@ export default function MapPage() {
   const [hoveredNode, setHoveredNode] = useState<ManufacturingNode | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [hasOwnNode, setHasOwnNode] = useState<boolean>(true);
+  const token = useAuthStore((state) => state.token);
 
   useEffect(() => {
     const loadNodes = async () => {
@@ -36,6 +40,23 @@ export default function MapPage() {
     loadNodes();
   }, []);
 
+  useEffect(() => {
+    const loadMyNodes = async () => {
+      if (!token) {
+        setHasOwnNode(true);
+        return;
+      }
+      try {
+        const result = await apiFetch<{ nodes?: Array<{ id: string }> } | Array<{ id: string }>>('/nodes/my-nodes');
+        const myNodes = Array.isArray(result) ? result : result.nodes || [];
+        setHasOwnNode(myNodes.length > 0);
+      } catch {
+        setHasOwnNode(true);
+      }
+    };
+    loadMyNodes();
+  }, [token]);
+
   const onlineCount = nodes.filter((n) => n.status === 'online' || n.status === 'idle').length;
 
   if (error) {
@@ -48,6 +69,16 @@ export default function MapPage() {
 
   return (
     <div className="relative w-full h-[calc(100vh-3.5rem)] overflow-hidden bg-[#131921] text-white flex">
+      {!hasOwnNode && (
+        <div className="absolute top-3 left-1/2 -translate-x-1/2 z-40 w-[calc(100%-1.5rem)] max-w-2xl rounded-lg border border-sky-500/40 bg-sky-500/10 px-4 py-3 backdrop-blur-sm">
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-sm text-sky-100">You don&apos;t have any nodes yet. Register your first node to start joining orders.</p>
+            <Link href="/register-node?from=onboarding" className="shrink-0 rounded-md bg-sky-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-sky-500">
+              Register now
+            </Link>
+          </div>
+        </div>
+      )}
       {/* Left sidebar — normal flow, no absolute positioning */}
       <div className="hidden sm:flex flex-col w-[240px] shrink-0 border-r border-slate-800/60 bg-[#0f1720]/95 z-20 overflow-hidden">
         {/* Stats */}

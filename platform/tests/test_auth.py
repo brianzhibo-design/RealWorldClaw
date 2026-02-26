@@ -53,11 +53,13 @@ class TestRegister:
         _register()
         r = _register(username="other")
         assert r.status_code == 409
+        assert r.json()["detail"] == "Email already registered"
 
     def test_register_duplicate_username(self):
         _register()
         r = _register(email="other@example.com")
         assert r.status_code == 409
+        assert r.json()["detail"] == "Username already taken"
 
     def test_register_short_password(self):
         r = _register(password="short")
@@ -84,10 +86,12 @@ class TestLogin:
         _register()
         r = _login(password="wrongpassword")
         assert r.status_code == 401
+        assert r.json()["detail"] == "Invalid credentials"
 
     def test_login_nonexistent_user(self):
         r = _login()
         assert r.status_code == 401
+        assert r.json()["detail"] == "Invalid credentials"
 
 
 # ─── Token & Me ──────────────────────────────────────────
