@@ -1107,6 +1107,9 @@ async def vote_post(
                 UNIQUE(post_id, user_id)
             )
         """)
+        # Ensure community_votes columns exist (table may predate direction column)
+        _safe_add_column(db, "community_votes", "direction TEXT NOT NULL DEFAULT 'up'")
+        _safe_add_column(db, "community_votes", "created_at TEXT NOT NULL DEFAULT ''")
         # Ensure upvotes/downvotes columns exist on community_posts
         _safe_add_column(db, "community_posts", "upvotes INTEGER NOT NULL DEFAULT 0")
         _safe_add_column(db, "community_posts", "downvotes INTEGER NOT NULL DEFAULT 0")
