@@ -18,7 +18,7 @@ from fastapi import APIRouter, Depends, Header, HTTPException, Query
 from jose import JWTError
 
 from ..api_keys import find_agent_by_api_key
-from ..database import get_db
+from ..database import get_db, _safe_add_column
 from ..deps import get_authenticated_identity
 from ..notifications import send_notification
 from ..security import decode_token
@@ -159,7 +159,7 @@ router = APIRouter(prefix="/community", tags=["community"])
 async def get_community_map_regions():
     """Return community post counts grouped by country_code."""
     with get_db() as db:
-        _safe_add_column_compat(db, "community_posts", "country_code TEXT")
+        _safe_add_column(db, "community_posts", "country_code TEXT")
 
         rows = db.execute(
             """
@@ -462,7 +462,7 @@ def _extract_column_name(column_def: str) -> str:
     return column_def.strip().split()[0].strip('"`[]')
 
 
-def _safe_add_column_compat(db, table: str, column_def: str) -> None:
+def _safe_add_column(db, table: str, column_def: str) -> None:
     """Best-effort ADD COLUMN for both SQLite and PostgreSQL."""
     column_name = _extract_column_name(column_def)
     if _column_exists(db, table, column_name):
@@ -572,17 +572,17 @@ def _ensure_community_schema(db) -> None:
         """
     )
 
-    _safe_add_column_compat(db, "community_posts", "author_type TEXT NOT NULL DEFAULT 'user'")
-    _safe_add_column_compat(db, "community_posts", "template_type TEXT")
-    _safe_add_column_compat(db, "community_posts", "is_resolved INTEGER NOT NULL DEFAULT 0")
-    _safe_add_column_compat(db, "community_posts", "best_answer_comment_id TEXT")
-    _safe_add_column_compat(db, "community_posts", "best_comment_id TEXT")
-    _safe_add_column_compat(db, "community_posts", "resolved_at TEXT")
-    _safe_add_column_compat(db, "community_posts", "is_pinned INTEGER NOT NULL DEFAULT 0")
-    _safe_add_column_compat(db, "community_posts", "is_locked INTEGER NOT NULL DEFAULT 0")
+    _safe_add_column(db, "community_posts", "author_type TEXT NOT NULL DEFAULT 'user'")
+    _safe_add_column(db, "community_posts", "template_type TEXT")
+    _safe_add_column(db, "community_posts", "is_resolved INTEGER NOT NULL DEFAULT 0")
+    _safe_add_column(db, "community_posts", "best_answer_comment_id TEXT")
+    _safe_add_column(db, "community_posts", "best_comment_id TEXT")
+    _safe_add_column(db, "community_posts", "resolved_at TEXT")
+    _safe_add_column(db, "community_posts", "is_pinned INTEGER NOT NULL DEFAULT 0")
+    _safe_add_column(db, "community_posts", "is_locked INTEGER NOT NULL DEFAULT 0")
 
-    _safe_add_column_compat(db, "community_comments", "parent_id TEXT DEFAULT NULL")
-    _safe_add_column_compat(db, "community_comments", "is_best_answer INTEGER NOT NULL DEFAULT 0")
+    _safe_add_column(db, "community_comments", "parent_id TEXT DEFAULT NULL")
+    _safe_add_column(db, "community_comments", "is_best_answer INTEGER NOT NULL DEFAULT 0")
 
 
 @router.get("/search")
@@ -1108,8 +1108,8 @@ async def vote_post(
             )
         """)
         # Ensure upvotes/downvotes columns exist on community_posts
-        _safe_add_column_compat(db, "community_posts", "upvotes INTEGER NOT NULL DEFAULT 0")
-        _safe_add_column_compat(db, "community_posts", "downvotes INTEGER NOT NULL DEFAULT 0")
+        _safe_add_column(db, "community_posts", "upvotes INTEGER NOT NULL DEFAULT 0")
+        _safe_add_column(db, "community_posts", "downvotes INTEGER NOT NULL DEFAULT 0")
         
         # Check post exists
         post_row = db.execute(
