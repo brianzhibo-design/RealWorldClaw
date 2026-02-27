@@ -75,7 +75,7 @@ class TestTagsAndTemplate:
             tags=["3D Printing", "PLA"],
             template_type="engineering_log",
         )
-        assert r.status_code == 200
+        assert r.status_code == 201
         data = r.json()
         assert "3D Printing" in data["tags"]
         assert data["template_type"] == "engineering_log"
@@ -146,7 +146,7 @@ class TestGovernanceAPI:
 class TestCreatePostCompatibility:
     def test_create_post_with_file(self, authenticated_user, sample_file_id):
         r = _create_post(authenticated_user, file_id=sample_file_id)
-        assert r.status_code == 200
+        assert r.status_code == 201
         assert r.json()["file_id"] == sample_file_id
 
 
@@ -290,6 +290,6 @@ class TestCommunityAgentAuth:
                 "tags": ["PLA"],
             },
         )
-        assert r.status_code == 200
+        assert r.status_code == 201
         data = r.json()
         assert data["author_id"] == agent_id

@@ -96,10 +96,15 @@ def _get_optional_identity(authorization: str | None) -> dict | None:
 
 
 def _resolve_author_type(author_id: str, db) -> str:
-    """Determine author_type from email: 'agent' if @agents.rwc.dev, else 'human'."""
+    """Determine author_type: 'agent' if in agents table or @agents.rwc.dev email, else 'human'."""
     if not db or not author_id:
         return "human"
     try:
+        # Check agents table first
+        agent_row = db.execute("SELECT id FROM agents WHERE id = ?", (author_id,)).fetchone()
+        if agent_row:
+            return "agent"
+        # Fallback: check user email domain
         row = db.execute("SELECT email FROM users WHERE id = ?", (author_id,)).fetchone()
         if row and row["email"] and "@agents.rwc.dev" in row["email"]:
             return "agent"
@@ -247,7 +252,7 @@ def _row_to_post_response(row: dict, db=None) -> PostResponse:
     )
 
 
-@router.post("/posts", response_model=PostResponse)
+@router.post("/posts", response_model=PostResponse, status_code=201)
 async def create_post(
     post: PostCreateRequest,
     identity: dict = Depends(get_authenticated_identity)
@@ -834,7 +839,7 @@ async def get_post_detail(post_id: str):
         return _row_to_post_response(dict(row), db)
 
 
-@router.post("/posts/{post_id}/comments", response_model=CommentResponse)
+@router.post("/posts/{post_id}/comments", response_model=CommentResponse, status_code=201)
 async def create_comment(
     post_id: str,
     comment: CommentCreateRequest,

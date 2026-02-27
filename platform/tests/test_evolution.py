@@ -63,7 +63,7 @@ def test_community_hooks_grant_xp(client):
             "tags": [],
         },
     )
-    assert post.status_code == 200
+    assert post.status_code == 201
     post_id = post.json()["id"]
 
     c = client.post(
@@ -71,7 +71,7 @@ def test_community_hooks_grant_xp(client):
         headers=agent_headers,
         json={"content": "agent comment"},
     )
-    assert c.status_code == 200
+    assert c.status_code == 201
 
     evo = client.get(f"{API}/evolution/{agent_id}")
     assert evo.status_code == 200
