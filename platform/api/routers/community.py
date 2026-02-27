@@ -424,24 +424,25 @@ async def get_posts(
 
 
 def _table_exists(db, table_name: str) -> bool:
-    try:
-        row = db.execute(
-            "SELECT 1 FROM sqlite_master WHERE type='table' AND name = ?",
-            (table_name,),
-        ).fetchone()
-        if row:
-            return True
-    except Exception:
-        pass
+    if _is_postgres_connection(db):
+        try:
+            row = db.execute(
+                """
+                SELECT 1
+                FROM information_schema.tables
+                WHERE table_schema = current_schema()
+                  AND table_name = ?
+                LIMIT 1
+                """,
+                (table_name,),
+            ).fetchone()
+            return bool(row)
+        except Exception:
+            return False
 
     try:
         row = db.execute(
-            """
-            SELECT 1
-            FROM information_schema.tables
-            WHERE table_name = ?
-            LIMIT 1
-            """,
+            "SELECT 1 FROM sqlite_master WHERE type='table' AND name = ?",
             (table_name,),
         ).fetchone()
         return bool(row)
@@ -483,37 +484,36 @@ def _safe_add_column(db, table: str, column_def: str) -> None:
 
 
 def _column_exists(db, table_name: str, column_name: str) -> bool:
-    """Check column existence in SQLite first, then PostgreSQL information schema."""
-    try:
-        rows = db.execute(f"PRAGMA table_info({table_name})").fetchall()
-        if rows:
-            sqlite_column_names = []
-            for row in rows:
-                try:
-                    if hasattr(row, "keys") and "name" in row.keys():
-                        sqlite_column_names.append(row["name"])
-                except Exception:
-                    continue
-            if sqlite_column_names:
-                return column_name in sqlite_column_names
-    except Exception:
-        pass
+    """Check column existence — PG uses information_schema, SQLite uses PRAGMA."""
+    if _is_postgres_connection(db):
+        try:
+            row = db.execute(
+                """
+                SELECT 1
+                FROM information_schema.columns
+                WHERE table_schema = current_schema()
+                  AND table_name = ?
+                  AND column_name = ?
+                LIMIT 1
+                """,
+                (table_name, column_name),
+            ).fetchone()
+            return bool(row)
+        except Exception:
+            return False
 
     try:
-        row = db.execute(
-            """
-            SELECT 1
-            FROM information_schema.columns
-            WHERE table_schema = current_schema()
-              AND table_name = ?
-              AND column_name = ?
-            LIMIT 1
-            """,
-            (table_name, column_name),
-        ).fetchone()
-        return bool(row)
+        rows = db.execute(f"PRAGMA table_info({table_name})").fetchall()
+        for row in rows:
+            try:
+                if hasattr(row, "keys") and "name" in row.keys():
+                    if row["name"] == column_name:
+                        return True
+            except Exception:
+                continue
     except Exception:
-        return False
+        pass
+    return False
 
 
 def _ensure_community_schema(db) -> None:
