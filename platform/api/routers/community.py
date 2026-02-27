@@ -595,10 +595,10 @@ async def get_post_detail(post_id: str):
             SELECT * FROM community_posts WHERE id = ?
         """, (post_id,)).fetchone()
     
-    if not row:
-        raise HTTPException(status_code=404, detail="Post not found")
+        if not row:
+            raise HTTPException(status_code=404, detail="Post not found")
     
-    return _row_to_post_response(dict(row), db)
+        return _row_to_post_response(dict(row), db)
 
 
 @router.post("/posts/{post_id}/comments", response_model=CommentResponse)
