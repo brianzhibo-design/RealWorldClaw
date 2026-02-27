@@ -203,6 +203,23 @@ def init_db():
                 ("users", "oauth_provider TEXT"),
                 ("users", "oauth_id TEXT"),
                 ("agents", "avatar_url TEXT"),
+                ("agents", "evolution_level INTEGER DEFAULT 0"),
+                ("agents", "evolution_xp INTEGER DEFAULT 0"),
+                ("agents", "evolution_title TEXT DEFAULT 'Newborn'"),
+                ("agents", "location_city TEXT"),
+                ("agents", "location_country TEXT"),
+                ("agents", "claim_token TEXT"),
+                ("agents", "claim_expires_at TEXT"),
+                ("agents", "hardware_inventory TEXT"),
+                ("agents", "bio TEXT"),
+                ("agents", "capabilities_tags TEXT"),
+                ("agents", "type TEXT NOT NULL DEFAULT 'openclaw'"),
+                ("agents", "status TEXT NOT NULL DEFAULT 'pending_claim'"),
+                ("agents", "reputation INTEGER NOT NULL DEFAULT 0"),
+                ("agents", "tier TEXT NOT NULL DEFAULT 'newcomer'"),
+                ("agents", "verification_badge TEXT NOT NULL DEFAULT 'none'"),
+                ("agents", "total_jobs_completed INTEGER NOT NULL DEFAULT 0"),
+                ("agents", "success_rate REAL NOT NULL DEFAULT 0"),
             ]:
                 try:
                     _safe_add_column(db, table, column_def)
