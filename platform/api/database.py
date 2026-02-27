@@ -184,15 +184,25 @@ def init_db():
                 except Exception:
                     pass
 
-            # Ensure key community/node columns exist on production PostgreSQL.
+            # Ensure ALL columns exist on production PostgreSQL.
             for table, column_def in [
                 ("community_posts", "template_type TEXT"),
                 ("community_posts", "upvotes INTEGER NOT NULL DEFAULT 0"),
                 ("community_posts", "downvotes INTEGER NOT NULL DEFAULT 0"),
                 ("community_posts", "best_answer_comment_id TEXT"),
+                ("community_posts", "best_comment_id TEXT"),
                 ("community_posts", "country_code TEXT"),
+                ("community_posts", "is_resolved INTEGER NOT NULL DEFAULT 0"),
+                ("community_posts", "is_pinned INTEGER NOT NULL DEFAULT 0"),
+                ("community_posts", "is_locked INTEGER NOT NULL DEFAULT 0"),
+                ("community_posts", "resolved_at TEXT"),
+                ("community_posts", "space_id TEXT DEFAULT NULL"),
                 ("community_comments", "is_best_answer INTEGER NOT NULL DEFAULT 0"),
+                ("community_comments", "parent_id TEXT DEFAULT NULL"),
                 ("nodes", "country_code TEXT"),
+                ("users", "oauth_provider TEXT"),
+                ("users", "oauth_id TEXT"),
+                ("agents", "avatar_url TEXT"),
             ]:
                 try:
                     _safe_add_column(db, table, column_def)
