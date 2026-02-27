@@ -145,10 +145,26 @@ def get_db():
         conn.close()
 
 
+def _safe_add_column(db, table: str, column_def: str):
+    """Add a column in a cross-database safe way (SQLite/PostgreSQL)."""
+    if USE_POSTGRES:
+        db.execute(f"ALTER TABLE {table} ADD COLUMN IF NOT EXISTS {column_def}")
+        return
+
+    try:
+        db.execute(f"ALTER TABLE {table} ADD COLUMN {column_def}")
+    except Exception:
+        pass
+
+
 def init_db():
     """创建所有表"""
+    from .models.user import USERS_TABLE_SQL
+    from .models.files import FILES_TABLE_SQL
+    from .models.community import COMMUNITY_TABLES_SQL
+
     if USE_POSTGRES:
-        # PG tables created by migration script; just ensure new tables exist
+        # PG tables created by migration script; ensure schema catches up.
         with get_db() as db:
             for sql in [
                 "CREATE TABLE IF NOT EXISTS follows (id TEXT PRIMARY KEY, follower_id TEXT NOT NULL, following_id TEXT NOT NULL, created_at TEXT NOT NULL, UNIQUE(follower_id, following_id))",
@@ -167,11 +183,22 @@ def init_db():
                     db.execute(sql)
                 except Exception:
                     pass
-        return
 
-    from .models.user import USERS_TABLE_SQL
-    from .models.files import FILES_TABLE_SQL
-    from .models.community import COMMUNITY_TABLES_SQL
+            # Ensure key community/node columns exist on production PostgreSQL.
+            for table, column_def in [
+                ("community_posts", "template_type TEXT"),
+                ("community_posts", "upvotes INTEGER NOT NULL DEFAULT 0"),
+                ("community_posts", "downvotes INTEGER NOT NULL DEFAULT 0"),
+                ("community_posts", "best_answer_comment_id TEXT"),
+                ("community_posts", "country_code TEXT"),
+                ("community_comments", "is_best_answer INTEGER NOT NULL DEFAULT 0"),
+                ("nodes", "country_code TEXT"),
+            ]:
+                try:
+                    _safe_add_column(db, table, column_def)
+                except Exception:
+                    pass
+        return
 
     with get_db() as db:
         db.executescript(USERS_TABLE_SQL)
@@ -519,91 +546,50 @@ def init_db():
         db.executescript(COMMUNITY_TABLES_SQL)
         
         # Migrate community_posts: add upvotes/downvotes if missing
-        try:
-            db.execute("ALTER TABLE community_posts ADD COLUMN upvotes INTEGER NOT NULL DEFAULT 0")
-        except Exception:
-            pass
-        try:
-            db.execute("ALTER TABLE community_posts ADD COLUMN downvotes INTEGER NOT NULL DEFAULT 0")
-        except Exception:
-            pass
+        _safe_add_column(db, "community_posts", "upvotes INTEGER NOT NULL DEFAULT 0")
+        _safe_add_column(db, "community_posts", "downvotes INTEGER NOT NULL DEFAULT 0")
         
         # Add parent_id to community_comments for nested comments
-        try:
-            db.execute("ALTER TABLE community_comments ADD COLUMN parent_id TEXT DEFAULT NULL")
-        except Exception:
-            pass  # Column already exists
+        _safe_add_column(db, "community_comments", "parent_id TEXT DEFAULT NULL")
 
         # Community governance + template + tags
-        for stmt in [
-            "ALTER TABLE community_posts ADD COLUMN template_type TEXT",
-            "ALTER TABLE community_posts ADD COLUMN is_resolved INTEGER NOT NULL DEFAULT 0",
-            "ALTER TABLE community_posts ADD COLUMN best_answer_comment_id TEXT",
-            "ALTER TABLE community_posts ADD COLUMN best_comment_id TEXT",
-            "ALTER TABLE community_posts ADD COLUMN resolved_at TEXT",
-            "ALTER TABLE community_posts ADD COLUMN is_pinned INTEGER NOT NULL DEFAULT 0",
-            "ALTER TABLE community_posts ADD COLUMN is_locked INTEGER NOT NULL DEFAULT 0",
-            "ALTER TABLE community_comments ADD COLUMN is_best_answer INTEGER NOT NULL DEFAULT 0",
+        for table, column_def in [
+            ("community_posts", "template_type TEXT"),
+            ("community_posts", "is_resolved INTEGER NOT NULL DEFAULT 0"),
+            ("community_posts", "best_answer_comment_id TEXT"),
+            ("community_posts", "best_comment_id TEXT"),
+            ("community_posts", "resolved_at TEXT"),
+            ("community_posts", "is_pinned INTEGER NOT NULL DEFAULT 0"),
+            ("community_posts", "is_locked INTEGER NOT NULL DEFAULT 0"),
+            ("community_comments", "is_best_answer INTEGER NOT NULL DEFAULT 0"),
         ]:
-            try:
-                db.execute(stmt)
-            except Exception:
-                pass
+            _safe_add_column(db, table, column_def)
         
         # Add new columns to existing orders table if they don't exist
         # OAuth columns
-        try:
-            db.execute("ALTER TABLE users ADD COLUMN oauth_provider TEXT")
-        except Exception:
-            pass
-        try:
-            db.execute("ALTER TABLE users ADD COLUMN oauth_id TEXT")
-        except Exception:
-            pass
-        try:
-            db.execute("ALTER TABLE agents ADD COLUMN avatar_url TEXT")
-        except Exception:
-            pass
-        for stmt in [
-            "ALTER TABLE agents ADD COLUMN bio TEXT",
-            "ALTER TABLE agents ADD COLUMN capabilities_tags TEXT",
-            "ALTER TABLE agents ADD COLUMN verification_badge TEXT NOT NULL DEFAULT 'none'",
-            "ALTER TABLE agents ADD COLUMN total_jobs_completed INTEGER NOT NULL DEFAULT 0",
-            "ALTER TABLE agents ADD COLUMN success_rate REAL NOT NULL DEFAULT 0",
-            "ALTER TABLE agents ADD COLUMN evolution_level INTEGER DEFAULT 0",
-            "ALTER TABLE agents ADD COLUMN evolution_xp INTEGER DEFAULT 0",
-            "ALTER TABLE agents ADD COLUMN evolution_title TEXT DEFAULT 'Newborn'",
-        ]:
-            try:
-                db.execute(stmt)
-            except Exception:
-                pass
+        _safe_add_column(db, "users", "oauth_provider TEXT")
+        _safe_add_column(db, "users", "oauth_id TEXT")
+        _safe_add_column(db, "agents", "avatar_url TEXT")
 
-        try:
-            db.execute("ALTER TABLE orders ADD COLUMN file_id TEXT")
-        except Exception:
-            pass  # Column already exists
-        try:
-            db.execute("ALTER TABLE orders ADD COLUMN color TEXT")
-        except Exception:
-            pass  # Column already exists
-        try:
-            db.execute("ALTER TABLE orders ADD COLUMN auto_match INTEGER NOT NULL DEFAULT 0")
-        except Exception:
-            pass  # Column already exists
-
-        # Node geo / verification fields
-        for stmt in [
-            "ALTER TABLE nodes ADD COLUMN country_code TEXT",
-            "ALTER TABLE nodes ADD COLUMN region_code TEXT",
-            "ALTER TABLE nodes ADD COLUMN verification_level INTEGER DEFAULT 0",
-            "ALTER TABLE nodes ADD COLUMN verification_score REAL DEFAULT 0",
-            "ALTER TABLE community_posts ADD COLUMN country_code TEXT",
+        for table, column_def in [
+            ("agents", "bio TEXT"),
+            ("agents", "capabilities_tags TEXT"),
+            ("agents", "verification_badge TEXT NOT NULL DEFAULT 'none'"),
+            ("agents", "total_jobs_completed INTEGER NOT NULL DEFAULT 0"),
+            ("agents", "success_rate REAL NOT NULL DEFAULT 0"),
+            ("agents", "evolution_level INTEGER DEFAULT 0"),
+            ("agents", "evolution_xp INTEGER DEFAULT 0"),
+            ("agents", "evolution_title TEXT DEFAULT 'Newborn'"),
+            ("orders", "file_id TEXT"),
+            ("orders", "color TEXT"),
+            ("orders", "auto_match INTEGER NOT NULL DEFAULT 0"),
+            ("nodes", "country_code TEXT"),
+            ("nodes", "region_code TEXT"),
+            ("nodes", "verification_level INTEGER DEFAULT 0"),
+            ("nodes", "verification_score REAL DEFAULT 0"),
+            ("community_posts", "country_code TEXT"),
         ]:
-            try:
-                db.execute(stmt)
-            except Exception:
-                pass
+            _safe_add_column(db, table, column_def)
 
         # Backfill country_code for existing nodes using bounding boxes
         try:
@@ -720,10 +706,7 @@ def init_db():
         """)
 
         # Add space_id to community_posts if not exists
-        try:
-            db.execute("ALTER TABLE community_posts ADD COLUMN space_id TEXT DEFAULT NULL")
-        except Exception:
-            pass
+        _safe_add_column(db, "community_posts", "space_id TEXT DEFAULT NULL")
 
         # Seed default tags
         default_tags = {
