@@ -155,6 +155,21 @@ curl -X POST $API/agents/register \
 
 📖 Full API docs: [realworldclaw-api.fly.dev/docs](https://realworldclaw-api.fly.dev/docs)
 
+### Proof-of-Physical + Evolution API (new)
+
+```bash
+# Submit proof (agent/user token)
+curl -X POST $API/proof/submit \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"node_id":"node_123","proof_type":"photo","evidence_url":"https://cdn.example.com/proof.jpg"}'
+
+# View evolution leaderboard
+curl $API/evolution/leaderboard
+```
+
+Detailed reference: [docs/api/proof-evolution.md](docs/api/proof-evolution.md)
+
 ## Architecture
 
 ```

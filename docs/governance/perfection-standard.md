@@ -133,3 +133,14 @@
 - 2026-02-25 19:29 持续推进：继续补强第二批 P2-9 回归矩阵，在 `platform/tests/test_regression_matrix.py` 新增 `test_community_posts_following_sort_author_filter_excludes_non_followed_author`，锁定 `GET /community/posts?sort=following&author_id=<未关注作者>` 不能穿透关注图约束（应返回空态）。
 - 2026-02-25 19:29 运营增长：`docs/community/seed-posts.md` 新增 Post 51（following + author 组合过滤权限边界回归复盘）。
 - 2026-02-25 19:29 验证：`JWT_SECRET_KEY=test-secret python3 -m pytest platform/tests/test_regression_matrix.py -q` -> `34 passed`；`python3 -m pytest tests/ -x -q` -> `2 passed, 1 skipped`；`npm --prefix frontend run build` 成功；Merge Checklist grep 与首页保护检查通过（`frontend/app/page.tsx` 无改动）。
+- 2026-02-25 19:39 持续推进：继续补强第二批 P2-9 回归矩阵，在 `platform/tests/test_regression_matrix.py` 新增 `test_community_posts_following_sort_author_filter_returns_only_followed_author_posts`，锁定 `GET /community/posts?sort=following&author_id=<已关注作者>` 的正向过滤契约（仅返回被关注作者内容，排除未关注作者）。
+- 2026-02-25 19:39 运营增长：`docs/community/seed-posts.md` 新增 Post 52（following + author_id 正向过滤契约回归复盘）。
+- 2026-02-25 19:39 验证：`JWT_SECRET_KEY=test-secret python3 -m pytest platform/tests/test_regression_matrix.py -q` -> `35 passed`；首页保护满足（`frontend/app/page.tsx` 无改动），本轮未引入 `as any` / `Coming Soon` / `mock|fake|dummy`。
+- 2026-02-25 20:09 持续推进：根据“最近3轮避免同类任务”约束，暂停继续加回归用例，转向 API 文档收敛；新增 `docs/api/proof-evolution.md`，系统化整理 `proof/*` 与 `evolution/*` 契约（鉴权、错误码、XP奖励与等级阈值）。
+- 2026-02-25 20:09 持续推进：更新 `README.md` 增加 Proof-of-Physical + Evolution 快速调用示例与文档入口，补齐外部开发者接入路径。
+- 2026-02-25 20:39 持续推进：继续执行“避免连续同类回归测试”约束，完善 `docs/api/proof-evolution.md`，新增发布前 smoke checklist（proof submit → verify → evolution snapshot/leaderboard）以收敛验收路径。
+- 2026-02-25 20:39 验证：`JWT_SECRET_KEY=test-secret python3 -m pytest platform/tests/test_evolution.py platform/tests/test_community.py platform/tests/test_regression_matrix.py -q` -> `52 passed`；`npm --prefix frontend run build` 成功；Merge Checklist grep 与首页保护检查通过（`frontend/app/page.tsx` 无改动）。
+- 2026-02-25 21:09 持续推进：遵循“最近3轮避免同类回归测试”约束，转向前端 lint warning 治理（非首页）。完成两项技术债清理：
+  1) `frontend/app/orders/new/page.tsx` 移除 `useCallback` 对 `token` 的无效依赖，消除 `react-hooks/exhaustive-deps` 误警告。
+  2) `frontend/components/WorldMap.tsx` 将“清缓存”从 `useMemo` 改为 `useEffect([filteredNodes])`，消除 hooks 依赖告警并保持缓存失效语义。
+- 2026-02-25 21:09 验证：`npm --prefix frontend run lint` 从 4 条 warning 降至 2 条（剩余 `agents/[id] <img>` 与 `app/layout` 自定义字体规则）；`npm --prefix frontend run build` 成功；首页保护满足（`frontend/app/page.tsx` 无改动）。

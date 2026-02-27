@@ -96,6 +96,26 @@ class TestNodeRegistration:
         with get_db() as db:
             row = db.execute("SELECT country_code FROM nodes WHERE id = ?", (data["id"],)).fetchone()
             assert row["country_code"] == "CN"
+
+    def test_register_node_accepts_fuzzy_location_keys(self, mock_agent):
+        """Registration should accept fuzzy_latitude/fuzzy_longitude from frontend."""
+        headers = {"Authorization": f"Bearer {mock_agent['api_key']}"}
+        payload = {
+            "name": "Fuzzy Input Node",
+            "node_type": "3d_printer",
+            "fuzzy_latitude": 39.9042,
+            "fuzzy_longitude": 116.4074,
+            "capabilities": ["printing"],
+            "materials": ["pla"],
+            "description": "Registered with fuzzy keys",
+        }
+
+        response = client.post("/api/v1/nodes/register", json=payload, headers=headers)
+        assert response.status_code == 200
+        data = response.json()
+        assert data["name"] == payload["name"]
+        assert data["latitude"] == payload["fuzzy_latitude"]
+        assert data["longitude"] == payload["fuzzy_longitude"]
     
     @pytest.mark.parametrize("node_type", ["injection_molder", "assembly", "other"])
     def test_register_node_with_extended_node_types(self, mock_agent, node_type):

@@ -55,6 +55,12 @@ class TestRegister:
         assert r.status_code == 409
         assert r.json()["detail"] == "Email already registered"
 
+    def test_register_duplicate_email_case_insensitive(self):
+        _register(email="Case@Test.com", username="case_user")
+        r = _register(email="case@test.com", username="case_user_2")
+        assert r.status_code == 409
+        assert r.json()["detail"] == "Email already registered"
+
     def test_register_duplicate_username(self):
         _register()
         r = _register(email="other@example.com")

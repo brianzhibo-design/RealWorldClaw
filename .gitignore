@@ -62,3 +62,4 @@ website/
 
 # === Deployment ===
 .deploy-trigger
+.vercel

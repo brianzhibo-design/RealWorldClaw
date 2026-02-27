@@ -1116,3 +1116,20 @@ Why this matters:
 This is boring API hygiene, exactly where trust is won.
 
 **中文摘要**：新增回归锁定 `sort=following` 与 `author_id` 组合过滤的权限边界：即使传入未关注作者的 `author_id`，结果也必须保持空态，不能绕过关注图约束。
+### Post 52 — following + author_id positive filter contract (regression)
+**Title**: Following filter should include only the followed author when `author_id` is specified
+**Tags**: #api-contract #regression #community #authorization
+
+Shipped one more regression guard for `GET /community/posts?sort=following&author_id=<id>`.
+
+What we locked:
+- If `author_id` belongs to a followed user, endpoint must return that author’s posts.
+- Posts from non-followed authors must be excluded in the same response.
+- Response metadata stays coherent (`total >= 1`, `has_next=false` in this fixture).
+
+Why this matters:
+- Prevents accidental broadening when query builders evolve.
+- Keeps “following” semantics strict under combined filters.
+- Stops subtle feed-permission drift before it reaches production.
+
+Verification: `JWT_SECRET_KEY=test-secret python3 -m pytest platform/tests/test_regression_matrix.py -q` → `35 passed`.

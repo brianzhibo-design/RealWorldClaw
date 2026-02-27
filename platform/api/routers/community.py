@@ -280,6 +280,8 @@ async def create_post(
     images_json = json.dumps(post.images) if post.images else None
     
     with get_db() as db:
+        _ensure_community_schema(db)
+
         db.execute("""
             INSERT INTO community_posts (
                 id, title, content, post_type, author_id, author_type,
@@ -307,7 +309,11 @@ async def create_post(
             tag_row = db.execute("SELECT id FROM tags WHERE LOWER(name)=LOWER(?)", (tag_name,)).fetchone()
             if tag_row:
                 db.execute(
-                    "INSERT OR IGNORE INTO post_tags (post_id, tag_id) VALUES (?, ?)",
+                    """
+                    INSERT INTO post_tags (post_id, tag_id)
+                    VALUES (?, ?)
+                    ON CONFLICT(post_id, tag_id) DO NOTHING
+                    """,
                     (post_id, tag_row["id"]),
                 )
 
@@ -392,6 +398,8 @@ async def get_posts(
     offset = (page - 1) * limit
     
     with get_db() as db:
+        _ensure_community_schema(db)
+
         # Get total count
         count_query = f"SELECT COUNT(DISTINCT community_posts.id) FROM community_posts {joins} {where_clause}"
         total = db.execute(count_query, params).fetchone()[0]
@@ -424,9 +432,130 @@ def _table_exists(db, table_name: str) -> bool:
             "SELECT 1 FROM sqlite_master WHERE type='table' AND name = ?",
             (table_name,),
         ).fetchone()
+        if row:
+            return True
+    except Exception:
+        pass
+
+    try:
+        row = db.execute(
+            """
+            SELECT 1
+            FROM information_schema.tables
+            WHERE table_name = ?
+            LIMIT 1
+            """,
+            (table_name,),
+        ).fetchone()
         return bool(row)
     except Exception:
         return False
+
+
+def _safe_add_column_compat(db, table: str, column_def: str) -> None:
+    """Best-effort ADD COLUMN for both SQLite and PostgreSQL."""
+    try:
+        db.execute(f"ALTER TABLE {table} ADD COLUMN IF NOT EXISTS {column_def}")
+        return
+    except Exception:
+        pass
+    try:
+        db.execute(f"ALTER TABLE {table} ADD COLUMN {column_def}")
+    except Exception:
+        pass
+
+
+def _column_exists(db, table_name: str, column_name: str) -> bool:
+    """Check column existence in SQLite first, then PostgreSQL information schema."""
+    try:
+        rows = db.execute(f"PRAGMA table_info({table_name})").fetchall()
+        if rows:
+            return any(r["name"] == column_name for r in rows if hasattr(r, "__getitem__"))
+    except Exception:
+        pass
+
+    try:
+        row = db.execute(
+            """
+            SELECT 1
+            FROM information_schema.columns
+            WHERE table_name = ? AND column_name = ?
+            LIMIT 1
+            """,
+            (table_name, column_name),
+        ).fetchone()
+        return bool(row)
+    except Exception:
+        return False
+
+
+def _ensure_community_schema(db) -> None:
+    """Ensure legacy DBs have the minimal community schema for post/search endpoints."""
+    db.execute(
+        """
+        CREATE TABLE IF NOT EXISTS community_posts (
+            id TEXT PRIMARY KEY,
+            title TEXT NOT NULL,
+            content TEXT NOT NULL,
+            post_type TEXT NOT NULL,
+            author_id TEXT NOT NULL,
+            author_type TEXT NOT NULL DEFAULT 'user',
+            file_id TEXT,
+            images TEXT,
+            template_type TEXT,
+            comment_count INTEGER NOT NULL DEFAULT 0,
+            likes_count INTEGER NOT NULL DEFAULT 0,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL
+        )
+        """
+    )
+    db.execute(
+        """
+        CREATE TABLE IF NOT EXISTS community_comments (
+            id TEXT PRIMARY KEY,
+            post_id TEXT NOT NULL,
+            content TEXT NOT NULL,
+            author_id TEXT NOT NULL,
+            author_type TEXT NOT NULL DEFAULT 'user',
+            parent_id TEXT DEFAULT NULL,
+            is_best_answer INTEGER NOT NULL DEFAULT 0,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL
+        )
+        """
+    )
+    db.execute(
+        """
+        CREATE TABLE IF NOT EXISTS tags (
+            id TEXT PRIMARY KEY,
+            name TEXT NOT NULL UNIQUE,
+            category TEXT NOT NULL,
+            created_at TEXT NOT NULL
+        )
+        """
+    )
+    db.execute(
+        """
+        CREATE TABLE IF NOT EXISTS post_tags (
+            post_id TEXT NOT NULL,
+            tag_id TEXT NOT NULL,
+            PRIMARY KEY (post_id, tag_id)
+        )
+        """
+    )
+
+    _safe_add_column_compat(db, "community_posts", "author_type TEXT NOT NULL DEFAULT 'user'")
+    _safe_add_column_compat(db, "community_posts", "template_type TEXT")
+    _safe_add_column_compat(db, "community_posts", "is_resolved INTEGER NOT NULL DEFAULT 0")
+    _safe_add_column_compat(db, "community_posts", "best_answer_comment_id TEXT")
+    _safe_add_column_compat(db, "community_posts", "best_comment_id TEXT")
+    _safe_add_column_compat(db, "community_posts", "resolved_at TEXT")
+    _safe_add_column_compat(db, "community_posts", "is_pinned INTEGER NOT NULL DEFAULT 0")
+    _safe_add_column_compat(db, "community_posts", "is_locked INTEGER NOT NULL DEFAULT 0")
+
+    _safe_add_column_compat(db, "community_comments", "parent_id TEXT DEFAULT NULL")
+    _safe_add_column_compat(db, "community_comments", "is_best_answer INTEGER NOT NULL DEFAULT 0")
 
 
 @router.get("/search")
@@ -440,87 +569,154 @@ async def search_community(
     search_term = f"%{q}%"
 
     with get_db() as db:
-        post_score_expr = """
-            (CASE WHEN LOWER(cp.title) LIKE LOWER(?) THEN 3 ELSE 0 END)
-            +
-            (CASE WHEN LOWER(cp.content) LIKE LOWER(?) THEN 1 ELSE 0 END)
-            +
-            COALESCE(MAX(CASE WHEN LOWER(t.name) LIKE LOWER(?) THEN 2 ELSE 0 END), 0)
-        """
+        _ensure_community_schema(db)
 
-        post_rows = db.execute(
-            f"""
-            SELECT cp.*, {post_score_expr} AS relevance
-            FROM community_posts cp
-            LEFT JOIN post_tags pt ON pt.post_id = cp.id
-            LEFT JOIN tags t ON t.id = pt.tag_id
-            GROUP BY cp.id
-            HAVING {post_score_expr} > 0
-            ORDER BY relevance DESC, cp.created_at DESC
-            LIMIT ? OFFSET ?
-            """,
-            [search_term, search_term, search_term, search_term, search_term, search_term, limit, offset],
-        ).fetchall()
+        has_post_tags = _table_exists(db, "post_tags") and _table_exists(db, "tags")
+
+        if has_post_tags:
+            post_rows = db.execute(
+                """
+                WITH post_relevance AS (
+                    SELECT
+                        cp.id AS post_id,
+                        MAX(CASE WHEN LOWER(cp.title) LIKE LOWER(?) THEN 3 ELSE 0 END)
+                        + MAX(CASE WHEN LOWER(cp.content) LIKE LOWER(?) THEN 1 ELSE 0 END)
+                        + COALESCE(MAX(CASE WHEN LOWER(t.name) LIKE LOWER(?) THEN 2 ELSE 0 END), 0)
+                        AS relevance
+                    FROM community_posts cp
+                    LEFT JOIN post_tags pt ON pt.post_id = cp.id
+                    LEFT JOIN tags t ON t.id = pt.tag_id
+                    GROUP BY cp.id
+                )
+                SELECT cp.*, pr.relevance
+                FROM post_relevance pr
+                JOIN community_posts cp ON cp.id = pr.post_id
+                WHERE pr.relevance > 0
+                ORDER BY pr.relevance DESC, cp.created_at DESC
+                LIMIT ? OFFSET ?
+                """,
+                (search_term, search_term, search_term, limit, offset),
+            ).fetchall()
+            post_total = db.execute(
+                """
+                SELECT COUNT(DISTINCT cp.id) AS c
+                FROM community_posts cp
+                LEFT JOIN post_tags pt ON pt.post_id = cp.id
+                LEFT JOIN tags t ON t.id = pt.tag_id
+                WHERE LOWER(cp.title) LIKE LOWER(?)
+                   OR LOWER(cp.content) LIKE LOWER(?)
+                   OR LOWER(t.name) LIKE LOWER(?)
+                """,
+                (search_term, search_term, search_term),
+            ).fetchone()["c"]
+        else:
+            post_rows = db.execute(
+                """
+                WITH post_relevance AS (
+                    SELECT
+                        cp.id AS post_id,
+                        MAX(CASE WHEN LOWER(cp.title) LIKE LOWER(?) THEN 3 ELSE 0 END)
+                        + MAX(CASE WHEN LOWER(cp.content) LIKE LOWER(?) THEN 1 ELSE 0 END)
+                        AS relevance
+                    FROM community_posts cp
+                    GROUP BY cp.id
+                )
+                SELECT cp.*, pr.relevance
+                FROM post_relevance pr
+                JOIN community_posts cp ON cp.id = pr.post_id
+                WHERE pr.relevance > 0
+                ORDER BY pr.relevance DESC, cp.created_at DESC
+                LIMIT ? OFFSET ?
+                """,
+                (search_term, search_term, limit, offset),
+            ).fetchall()
+            post_total = db.execute(
+                """
+                SELECT COUNT(*) AS c
+                FROM community_posts cp
+                WHERE LOWER(cp.title) LIKE LOWER(?)
+                   OR LOWER(cp.content) LIKE LOWER(?)
+                """,
+                (search_term, search_term),
+            ).fetchone()["c"]
+
         posts = [_row_to_post_response(dict(row), db).model_dump() for row in post_rows]
 
-        post_total = db.execute(
-            """
-            SELECT COUNT(DISTINCT cp.id) AS c
-            FROM community_posts cp
-            LEFT JOIN post_tags pt ON pt.post_id = cp.id
-            LEFT JOIN tags t ON t.id = pt.tag_id
-            WHERE LOWER(cp.title) LIKE LOWER(?)
-               OR LOWER(cp.content) LIKE LOWER(?)
-               OR LOWER(t.name) LIKE LOWER(?)
-            """,
-            (search_term, search_term, search_term),
-        ).fetchone()["c"]
+        agents: list[dict] = []
+        agent_total = 0
+        if _table_exists(db, "agents"):
+            has_display_name = _column_exists(db, "agents", "display_name")
+            has_bio = _column_exists(db, "agents", "bio")
+            has_avatar_url = _column_exists(db, "agents", "avatar_url")
+            has_status = _column_exists(db, "agents", "status")
+            has_tier = _column_exists(db, "agents", "tier")
+            has_created_at = _column_exists(db, "agents", "created_at")
 
-        agent_rows = db.execute(
-            """
-            SELECT id, name, display_name, bio, description, avatar_url, status, tier, created_at
-            FROM agents
-            WHERE LOWER(name) LIKE LOWER(?)
-               OR LOWER(COALESCE(bio, '')) LIKE LOWER(?)
-            ORDER BY created_at DESC
-            LIMIT ? OFFSET ?
-            """,
-            (search_term, search_term, limit, offset),
-        ).fetchall()
-        agents = [dict(row) for row in agent_rows]
+            display_name_col = "display_name" if has_display_name else "name AS display_name"
+            bio_col = "bio" if has_bio else "description AS bio"
+            bio_search_expr = "COALESCE(bio, '')" if has_bio else "COALESCE(description, '')"
+            avatar_col = "avatar_url" if has_avatar_url else "NULL AS avatar_url"
+            status_col = "status" if has_status else "'active' AS status"
+            tier_col = "tier" if has_tier else "'newcomer' AS tier"
+            created_col = "created_at" if has_created_at else "datetime('now') AS created_at"
+            order_col = "created_at DESC" if has_created_at else "name ASC"
 
-        agent_total = db.execute(
-            """
-            SELECT COUNT(*) AS c
-            FROM agents
-            WHERE LOWER(name) LIKE LOWER(?)
-               OR LOWER(COALESCE(bio, '')) LIKE LOWER(?)
-            """,
-            (search_term, search_term),
-        ).fetchone()["c"]
+            agent_rows = db.execute(
+                f"""
+                SELECT id, name, {display_name_col}, {bio_col}, description, {avatar_col}, {status_col}, {tier_col}, {created_col}
+                FROM agents
+                WHERE LOWER(name) LIKE LOWER(?)
+                   OR LOWER({bio_search_expr}) LIKE LOWER(?)
+                ORDER BY {order_col}
+                LIMIT ? OFFSET ?
+                """,
+                (search_term, search_term, limit, offset),
+            ).fetchall()
+            agents = [dict(row) for row in agent_rows]
 
-        node_rows = db.execute(
-            """
-            SELECT id, owner_id, name, description, node_type, status, created_at
-            FROM nodes
-            WHERE LOWER(name) LIKE LOWER(?)
-               OR LOWER(COALESCE(description, '')) LIKE LOWER(?)
-            ORDER BY created_at DESC
-            LIMIT ? OFFSET ?
-            """,
-            (search_term, search_term, limit, offset),
-        ).fetchall()
-        nodes = [dict(row) for row in node_rows]
+            agent_total = db.execute(
+                f"""
+                SELECT COUNT(*) AS c
+                FROM agents
+                WHERE LOWER(name) LIKE LOWER(?)
+                   OR LOWER({bio_search_expr}) LIKE LOWER(?)
+                """,
+                (search_term, search_term),
+            ).fetchone()["c"]
 
-        node_total = db.execute(
-            """
-            SELECT COUNT(*) AS c
-            FROM nodes
-            WHERE LOWER(name) LIKE LOWER(?)
-               OR LOWER(COALESCE(description, '')) LIKE LOWER(?)
-            """,
-            (search_term, search_term),
-        ).fetchone()["c"]
+        nodes: list[dict] = []
+        node_total = 0
+        if _table_exists(db, "nodes"):
+            has_node_description = _column_exists(db, "nodes", "description")
+            has_node_created_at = _column_exists(db, "nodes", "created_at")
+
+            node_description_col = "description" if has_node_description else "'' AS description"
+            node_description_search = "COALESCE(description, '')" if has_node_description else "''"
+            node_created_col = "created_at" if has_node_created_at else "datetime('now') AS created_at"
+            node_order_col = "created_at DESC" if has_node_created_at else "name ASC"
+
+            node_rows = db.execute(
+                f"""
+                SELECT id, owner_id, name, {node_description_col}, node_type, status, {node_created_col}
+                FROM nodes
+                WHERE LOWER(name) LIKE LOWER(?)
+                   OR LOWER({node_description_search}) LIKE LOWER(?)
+                ORDER BY {node_order_col}
+                LIMIT ? OFFSET ?
+                """,
+                (search_term, search_term, limit, offset),
+            ).fetchall()
+            nodes = [dict(row) for row in node_rows]
+
+            node_total = db.execute(
+                f"""
+                SELECT COUNT(*) AS c
+                FROM nodes
+                WHERE LOWER(name) LIKE LOWER(?)
+                   OR LOWER({node_description_search}) LIKE LOWER(?)
+                """,
+                (search_term, search_term),
+            ).fetchone()["c"]
 
     return {
         "posts": posts,

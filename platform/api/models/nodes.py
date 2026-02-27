@@ -5,7 +5,7 @@ from __future__ import annotations
 import enum
 from typing import Optional, List
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 
 class NodeType(str, enum.Enum):
@@ -57,6 +57,18 @@ class NodeRegisterRequest(BaseModel):
     build_volume_y: Optional[float] = Field(None, gt=0)
     build_volume_z: Optional[float] = Field(None, gt=0)
     description: Optional[str] = Field(None, max_length=500)
+
+    @model_validator(mode="before")
+    @classmethod
+    def normalize_location_aliases(cls, data):
+        """Accept legacy/frontend fuzzy_* location keys as registration input."""
+        if not isinstance(data, dict):
+            return data
+        if "latitude" not in data and "fuzzy_latitude" in data:
+            data["latitude"] = data["fuzzy_latitude"]
+        if "longitude" not in data and "fuzzy_longitude" in data:
+            data["longitude"] = data["fuzzy_longitude"]
+        return data
 
     @field_validator("capabilities")
     @classmethod

@@ -340,3 +340,16 @@
   - `npm --prefix frontend run build` -> success
   - Merge Checklist grep 零命中，且 `frontend/app/page.tsx` 无改动。
 - 发布状态：当前无 ahead commit；按流程本轮不触发慢羊羊复审，不 push / 不 deploy。
+
+## 2026-02-25 19:39 持续推进
+- 按引擎流程先读 `docs/governance/perfection-standard.md` 与 `docs/governance/company-process.md`，并确认 `git status --short --branch` 为 `## main...origin/main`（无未发布本地 commit）。
+- 完成 1 个代码任务：在 `platform/tests/test_regression_matrix.py` 新增 `test_community_posts_following_sort_author_filter_returns_only_followed_author_posts`，锁定 `GET /community/posts?sort=following&author_id=<已关注作者>` 的正向过滤契约（返回关注作者内容并排除非关注作者内容）。
+- 完成 1 个运营增长任务：`docs/community/seed-posts.md` 新增 Post 52（following + author_id 正向过滤契约回归复盘）。
+- 验证：`JWT_SECRET_KEY=test-secret python3 -m pytest platform/tests/test_regression_matrix.py -q` -> `35 passed`；首页 `frontend/app/page.tsx` 无改动。
+- 流程遵守：本轮无 ahead commit，按流程不触发慢羊羊复审，不 push / 不 deploy。
+
+## 2026-02-25 20:09 持续推进
+- 已执行方向切换（避免连续回归测试堆叠）：本轮不再新增回归矩阵用例，改做文档债清理。
+- 新增 `docs/api/proof-evolution.md`，沉淀 Proof/Evolution 契约与 XP 规则。
+- 更新 `README.md` 增加 Proof + Evolution API 示例与文档入口，完善外部接入路径。
+- 流程状态：`main...origin/main`（无 ahead commit），不触发复审，不 push / 不 deploy。

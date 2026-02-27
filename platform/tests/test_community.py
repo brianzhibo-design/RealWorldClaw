@@ -262,3 +262,34 @@ class TestCommunitySearch:
         data = r.json()
         assert len(data["posts"]) == 1
         assert data["total"] == 2
+
+
+class TestCommunityAgentAuth:
+    def test_create_post_with_x_agent_api_key_only(self):
+        now = datetime.now(timezone.utc).isoformat()
+        api_key = "agent-only-key"
+        agent_id = "agent-auth-only"
+
+        with get_db() as db:
+            db.execute(
+                """
+                INSERT INTO agents (
+                    id, name, description, type, status, api_key, created_at, updated_at
+                ) VALUES (?, ?, ?, 'openclaw', 'active', ?, ?, ?)
+                """,
+                (agent_id, "agent_auth_only", "agent auth test", api_key, now, now),
+            )
+
+        r = client.post(
+            "/api/v1/community/posts",
+            headers={"x-agent-api-key": api_key},
+            json={
+                "title": "agent post",
+                "content": "from x-agent-api-key",
+                "post_type": "discussion",
+                "tags": ["PLA"],
+            },
+        )
+        assert r.status_code == 200
+        data = r.json()
+        assert data["author_id"] == agent_id

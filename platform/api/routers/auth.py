@@ -29,6 +29,20 @@ def _rate_check(key: str, max_calls: int, window_sec: int) -> bool:
         return False
     bucket.append(now)
     return True
+
+
+def _conflict_from_user_integrity_error(exc: Exception) -> HTTPException | None:
+    """Map DB-level unique constraint violations to stable API conflicts."""
+    msg = str(exc).lower()
+    if "unique" not in msg:
+        return None
+    if "email" in msg:
+        return HTTPException(status_code=409, detail="Email already registered")
+    if "username" in msg:
+        return HTTPException(status_code=409, detail="Username already taken")
+    return HTTPException(status_code=409, detail="User already exists")
+
+
 from fastapi import APIRouter, Depends, HTTPException
 from google.oauth2 import id_token as google_id_token
 from google.auth.transport import requests as google_auth_requests
@@ -71,11 +85,17 @@ def register(req: UserRegisterRequest):
         if db.execute("SELECT 1 FROM users WHERE username = ?", (req.username,)).fetchone():
             raise HTTPException(status_code=409, detail="Username already taken")
 
-        db.execute(
-            """INSERT INTO users (id, email, username, hashed_password, role, is_active, created_at, updated_at)
-               VALUES (?, ?, ?, ?, 'user', 1, ?, ?)""",
-            (user_id, req.email, req.username, hashed, now, now),
-        )
+        try:
+            db.execute(
+                """INSERT INTO users (id, email, username, hashed_password, role, is_active, created_at, updated_at)
+                   VALUES (?, ?, ?, ?, 'user', 1, ?, ?)""",
+                (user_id, req.email, req.username, hashed, now, now),
+            )
+        except Exception as exc:
+            conflict = _conflict_from_user_integrity_error(exc)
+            if conflict:
+                raise conflict
+            raise
         row = db.execute("SELECT * FROM users WHERE id = ?", (user_id,)).fetchone()
 
     token_data = {"sub": user_id, "role": "user"}
