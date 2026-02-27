@@ -1,0 +1,10 @@
+logs/
+__pycache__/
+*.pyc
+tests/
+uploads/
+data/
+.pytest_cache/
+*.db
+*.sqlite
+.git/
