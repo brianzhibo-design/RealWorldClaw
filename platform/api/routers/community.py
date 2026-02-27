@@ -1109,6 +1109,7 @@ async def vote_post(
         """)
         # Ensure community_votes columns exist (table may predate direction column)
         _safe_add_column(db, "community_votes", "direction TEXT NOT NULL DEFAULT 'up'")
+        _safe_add_column(db, "community_votes", "vote_type TEXT NOT NULL DEFAULT 'up'")
         _safe_add_column(db, "community_votes", "created_at TEXT NOT NULL DEFAULT ''")
         # Ensure upvotes/downvotes columns exist on community_posts
         _safe_add_column(db, "community_posts", "upvotes INTEGER NOT NULL DEFAULT 0")
@@ -1138,8 +1139,8 @@ async def vote_post(
             else:
                 # Different direction → switch
                 db.execute(
-                    "UPDATE community_votes SET direction = ?, created_at = ? WHERE id = ?",
-                    (direction, now, existing["id"])
+                    "UPDATE community_votes SET direction = ?, vote_type = ?, created_at = ? WHERE id = ?",
+                    (direction, direction, now, existing["id"])
                 )
                 if direction == "up":
                     db.execute("UPDATE community_posts SET upvotes = upvotes + 1, downvotes = MAX(0, downvotes - 1) WHERE id = ?", (post_id,))
@@ -1150,8 +1151,8 @@ async def vote_post(
             # New vote
             vote_id = str(uuid.uuid4())
             db.execute(
-                "INSERT INTO community_votes (id, post_id, user_id, direction, created_at) VALUES (?, ?, ?, ?, ?)",
-                (vote_id, post_id, user_id, direction, now)
+                "INSERT INTO community_votes (id, post_id, user_id, direction, vote_type, created_at) VALUES (?, ?, ?, ?, ?, ?)",
+                (vote_id, post_id, user_id, direction, direction, now)
             )
             col = "upvotes" if direction == "up" else "downvotes"
             db.execute(f"UPDATE community_posts SET {col} = {col} + 1 WHERE id = ?", (post_id,))
