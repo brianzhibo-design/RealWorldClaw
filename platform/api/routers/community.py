@@ -159,10 +159,7 @@ router = APIRouter(prefix="/community", tags=["community"])
 async def get_community_map_regions():
     """Return community post counts grouped by country_code."""
     with get_db() as db:
-        try:
-            db.execute("ALTER TABLE community_posts ADD COLUMN country_code TEXT")
-        except Exception:
-            pass
+        _safe_add_column_compat(db, "community_posts", "country_code TEXT")
 
         rows = db.execute(
             """
@@ -452,17 +449,37 @@ def _table_exists(db, table_name: str) -> bool:
         return False
 
 
+def _is_postgres_connection(db) -> bool:
+    """Detect PostgreSQL wrapper connections returned by get_db()."""
+    raw_conn = getattr(db, "_conn", None)
+    if raw_conn is None:
+        return False
+    return raw_conn.__class__.__module__.startswith("psycopg2")
+
+
+def _extract_column_name(column_def: str) -> str:
+    """Extract column name from a column definition fragment."""
+    return column_def.strip().split()[0].strip('"`[]')
+
+
 def _safe_add_column_compat(db, table: str, column_def: str) -> None:
     """Best-effort ADD COLUMN for both SQLite and PostgreSQL."""
-    try:
-        db.execute(f"ALTER TABLE {table} ADD COLUMN IF NOT EXISTS {column_def}")
+    column_name = _extract_column_name(column_def)
+    if _column_exists(db, table, column_name):
         return
-    except Exception:
-        pass
+
     try:
         db.execute(f"ALTER TABLE {table} ADD COLUMN {column_def}")
-    except Exception:
-        pass
+    except Exception as e:
+        if _is_postgres_connection(db):
+            try:
+                db.rollback()
+            except Exception:
+                pass
+        # Re-check after rollback for race/partial migration cases.
+        if _column_exists(db, table, column_name):
+            return
+        logger.warning("Failed to add column %s.%s: %s", table, column_name, e)
 
 
 def _column_exists(db, table_name: str, column_name: str) -> bool:
@@ -470,7 +487,15 @@ def _column_exists(db, table_name: str, column_name: str) -> bool:
     try:
         rows = db.execute(f"PRAGMA table_info({table_name})").fetchall()
         if rows:
-            return any(r["name"] == column_name for r in rows if hasattr(r, "__getitem__"))
+            sqlite_column_names = []
+            for row in rows:
+                try:
+                    if hasattr(row, "keys") and "name" in row.keys():
+                        sqlite_column_names.append(row["name"])
+                except Exception:
+                    continue
+            if sqlite_column_names:
+                return column_name in sqlite_column_names
     except Exception:
         pass
 
@@ -479,7 +504,9 @@ def _column_exists(db, table_name: str, column_name: str) -> bool:
             """
             SELECT 1
             FROM information_schema.columns
-            WHERE table_name = ? AND column_name = ?
+            WHERE table_schema = current_schema()
+              AND table_name = ?
+              AND column_name = ?
             LIMIT 1
             """,
             (table_name, column_name),
@@ -569,7 +596,17 @@ async def search_community(
     search_term = f"%{q}%"
 
     with get_db() as db:
-        _ensure_community_schema(db)
+        try:
+            _ensure_community_schema(db)
+        except Exception as e:
+            if not _is_postgres_connection(db):
+                raise
+            try:
+                db.rollback()
+            except Exception:
+                pass
+            logger.warning("Schema ensure failed once in search_community, retrying after rollback: %s", e)
+            _ensure_community_schema(db)
 
         has_post_tags = _table_exists(db, "post_tags") and _table_exists(db, "tags")
 
@@ -1071,16 +1108,8 @@ async def vote_post(
             )
         """)
         # Ensure upvotes/downvotes columns exist on community_posts
-        try:
-            db.execute("ALTER TABLE community_posts ADD COLUMN upvotes INTEGER NOT NULL DEFAULT 0")
-        except Exception as e:
-            logger.exception("Unexpected error adding upvotes column: %s", e)
-            pass
-        try:
-            db.execute("ALTER TABLE community_posts ADD COLUMN downvotes INTEGER NOT NULL DEFAULT 0")
-        except Exception as e:
-            logger.exception("Unexpected error adding downvotes column: %s", e)
-            pass
+        _safe_add_column_compat(db, "community_posts", "upvotes INTEGER NOT NULL DEFAULT 0")
+        _safe_add_column_compat(db, "community_posts", "downvotes INTEGER NOT NULL DEFAULT 0")
         
         # Check post exists
         post_row = db.execute(
