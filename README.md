@@ -200,7 +200,7 @@ RealWorldClaw/
 ├── platform/           # Backend — FastAPI
 │   ├── api/            #   REST API, auth, models, routes
 │   ├── printer/        #   Universal printer adapter
-│   └── tests/          #   215+ tests
+│   └── tests/          #   273+ tests
 ├── frontend/           # Web app — Next.js
 │   └── app/            #   App Router pages
 ├── landing/            # Website — realworldclaw.com
@@ -227,12 +227,13 @@ See [LAUNCH-PLAN.md](LAUNCH-PLAN.md) for the current 2-week sprint.
 
 | Phase | Focus | Status |
 |-------|-------|--------|
+| **Phase 0** | Core API + Community platform | ✅ Live |
 | **Phase 1** | 3D printing orders + maker network | 🟡 In Progress |
 | **Phase 2** | AI-assisted design optimization | ⚪ Planned |
 | **Phase 3** | CNC, laser cutting, injection molding | ⚪ Planned |
 | **Phase 4** | Full Manufacturing API | ⚪ Planned |
 
-**30-day success metrics:** 10 makers registered · 50 designs uploaded · 5 real orders delivered
+**Current stats:** 273+ tests · 28+ API endpoints · 44+ community posts · 3 manufacturing nodes
 
 ## Community & Support
 
@@ -250,7 +251,7 @@ git checkout -b feature/my-feature
 
 # Backend
 cd platform && pip install -r requirements.txt
-python -m pytest tests/ -q  # 215+ tests must pass
+python -m pytest tests/ -q  # 273+ tests must pass
 
 # Frontend
 cd ../frontend && npm install && npm run build
