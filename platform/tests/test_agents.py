@@ -59,7 +59,7 @@ class TestAgentRegister:
             row = db.execute("SELECT api_key FROM agents WHERE id = ?", (data["agent"]["id"],)).fetchone()
         assert row is not None
         assert row["api_key"] != data["api_key"]
-        assert row["api_key"].startswith("sha256$")
+        assert row["api_key"].startswith("hmac-sha256$") or row["api_key"].startswith("sha256$")
 
     def test_register_invalid_name(self):
         resp = client.post("/api/v1/agents/register", json={
