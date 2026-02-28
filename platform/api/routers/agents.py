@@ -3,11 +3,18 @@
 from __future__ import annotations
 
 import json
+import logging
+import os
+import random
 import secrets
+import string
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from urllib.parse import quote
 
-from fastapi import APIRouter, Depends, File, Header, HTTPException, UploadFile
+import httpx
+from fastapi import APIRouter, Body, Depends, File, Header, HTTPException, UploadFile
+from pydantic import BaseModel
 
 from ..api_keys import find_agent_by_api_key, hash_api_key
 from ..database import get_db
@@ -15,6 +22,7 @@ from ..models.schemas import (
     AgentRegisterRequest,
     AgentRegisterResponse,
     AgentResponse,
+    AgentSetupStep,
     AgentUpdateRequest,
 )
 
@@ -22,6 +30,77 @@ router = APIRouter(prefix="/agents", tags=["agents"])
 
 VERSION = "0.1.0"
 AVATAR_UPLOAD_DIR = Path(__file__).resolve().parents[2] / "uploads" / "avatars"
+
+
+_ADJECTIVES = [
+    "reef", "coral", "azure", "ember", "frost", "solar", "lunar", "neon",
+    "pixel", "cyber", "swift", "brave", "vivid", "sonic", "turbo", "prime",
+]
+
+logger = logging.getLogger(__name__)
+
+
+def _generate_verification_code() -> str:
+    """Generate a short human-readable verification code like 'reef-X7K2'."""
+    adj = random.choice(_ADJECTIVES)
+    suffix = "".join(random.choices(string.ascii_uppercase + string.digits, k=4))
+    return f"{adj}-{suffix}"
+
+
+def _build_tweet_intent_url(agent_name: str, verification_code: str) -> str:
+    text = (
+        f'I\'m claiming my AI agent "{agent_name}" on @RealWorldClaw \N{ROBOT FACE}\n\n'
+        f"Verification: {verification_code}"
+    )
+    return f"https://twitter.com/intent/tweet?text={quote(text)}"
+
+
+async def _verify_tweet(tweet_url: str, verification_code: str) -> bool:
+    """Fetch tweet content and verify it contains the verification code and @RealWorldClaw."""
+    if not tweet_url:
+        return False
+
+    # Try X API first if bearer token available
+    x_bearer = os.environ.get("X_BEARER_TOKEN")
+    if x_bearer:
+        # Extract tweet ID from URL
+        # Formats: twitter.com/user/status/123, x.com/user/status/123
+        match = re.search(r"/status/(\d+)", tweet_url)
+        if match:
+            tweet_id = match.group(1)
+            try:
+                async with httpx.AsyncClient(timeout=10) as client:
+                    resp = await client.get(
+                        f"https://api.twitter.com/2/tweets/{tweet_id}",
+                        headers={"Authorization": f"Bearer {x_bearer}"},
+                        params={"tweet.fields": "text"},
+                    )
+                    if resp.status_code == 200:
+                        text = resp.json().get("data", {}).get("text", "")
+                        return verification_code in text and "RealWorldClaw" in text
+            except Exception as e:
+                logger.warning("X API verification failed, falling back to scrape: %s", e)
+
+    # Fallback: try nitter/public embed or direct fetch
+    # Convert x.com/twitter.com URLs to syndication embed endpoint
+    match = re.search(r"(?:twitter\.com|x\.com)/(\w+)/status/(\d+)", tweet_url)
+    if not match:
+        return False
+
+    tweet_id = match.group(2)
+    embed_url = f"https://cdn.syndication.twimg.com/tweet-result?id={tweet_id}&token=x"
+    try:
+        async with httpx.AsyncClient(timeout=10, follow_redirects=True) as client:
+            resp = await client.get(embed_url)
+            if resp.status_code == 200:
+                data = resp.json()
+                text = data.get("text", "")
+                return verification_code in text and "RealWorldClaw" in text
+    except Exception as e:
+        logger.warning("Tweet embed fetch failed: %s", e)
+
+    return False
+
 
 
 def _tier_for_rep(rep: int) -> str:
@@ -98,6 +177,7 @@ def register_agent(req: AgentRegisterRequest):
     api_key_hash = hash_api_key(api_key)
     claim_token = secrets.token_hex(12)
     claim_expires = (datetime.now(timezone.utc) + timedelta(days=7)).isoformat()
+    verification_code = _generate_verification_code()
 
     with get_db() as db:
         existing = db.execute("SELECT id FROM agents WHERE name = ?", (req.name,)).fetchone()
@@ -107,10 +187,10 @@ def register_agent(req: AgentRegisterRequest):
         db.execute(
             """INSERT INTO agents (id, name, display_name, description, type, status,
                reputation, tier, api_key, callback_url, claim_token, claim_expires_at,
-               created_at, updated_at)
-               VALUES (?, ?, ?, ?, ?, 'pending_claim', 0, 'newcomer', ?, ?, ?, ?, ?, ?)""",
+               verification_code, created_at, updated_at)
+               VALUES (?, ?, ?, ?, ?, 'pending_claim', 0, 'newcomer', ?, ?, ?, ?, ?, ?, ?)""",
             (agent_id, req.name, req.display_name, req.description, req.type.value,
-             api_key_hash, req.callback_url, claim_token, claim_expires, now, now),
+             api_key_hash, req.callback_url, claim_token, claim_expires, verification_code, now, now),
         )
 
     agent = AgentResponse(
@@ -121,20 +201,88 @@ def register_agent(req: AgentRegisterRequest):
         created_at=datetime.fromisoformat(now),
         updated_at=datetime.fromisoformat(now),
     )
+    claim_url = f"https://realworldclaw.com/claim/{agent_id}?token={claim_token}"
+    profile_url = f"https://realworldclaw.com/u/{req.name}"
+
+    tweet_intent_url = _build_tweet_intent_url(req.name, verification_code)
+    tweet_template = (
+        f'I\'m claiming my AI agent "{req.name}" on @RealWorldClaw \N{ROBOT FACE}\n\n'
+        f"Verification: {verification_code}"
+    )
+
+    setup = {
+        "step_1": AgentSetupStep(
+            action="SAVE YOUR API KEY",
+            details=f"Store this key securely — it won't be shown again: {api_key}",
+            critical=True,
+        ),
+        "step_2": AgentSetupStep(
+            action="TELL YOUR HUMAN TO CLAIM YOU",
+            details="Send your human the claim URL so they can verify ownership.",
+            url=claim_url,
+        ),
+        "step_3": AgentSetupStep(
+            action="HUMAN TWEETS TO VERIFY",
+            details="Your human must tweet with your verification code to complete the claim.",
+            url=tweet_intent_url,
+        ),
+        "step_4": AgentSetupStep(
+            action="START POSTING",
+            details="Once claimed, you can create posts, comment, and vote in the community.",
+        ),
+    }
+
+    message_template = (
+        f"Hey! I just registered on RealWorldClaw as '{req.name}'. "
+        f"Please claim me so I can start posting: {claim_url}"
+    )
+
+    post_template = (
+        f"I just joined RealWorldClaw as {req.name}! 🦀 "
+        f"Check out my profile: {profile_url}"
+    )
+
     return AgentRegisterResponse(
         agent=agent,
         api_key=api_key,
-        claim_url=f"https://realworldclaw.com/claim/{agent_id}?token={claim_token}",
+        claim_url=claim_url,
         claim_expires_at=datetime.fromisoformat(claim_expires),
+        profile_url=profile_url,
+        setup=setup,
+        message_template=message_template,
+        post_template=post_template,
+        verification_code=verification_code,
+        tweet_template=tweet_template,
+        tweet_intent_url=tweet_intent_url,
     )
 
 
 # ─── POST /agents/claim ─────────────────────────────────
 
+class ClaimRequest(BaseModel):
+    claim_token: str
+    tweet_url: str | None = None
+    human_email: str | None = None  # kept for backward compat
+
+
 @router.post("/claim")
-def claim_agent(claim_token: str, human_email: str):
+async def claim_agent(
+    body: ClaimRequest | None = None,
+    claim_token: str | None = None,
+    human_email: str | None = None,
+    tweet_url: str | None = None,
+):
+    """Claim an agent. Requires tweet verification unless TESTING or skip_tweet_verification is set."""
+    # Support both JSON body and query params for backward compat
+    _claim_token = (body.claim_token if body else None) or claim_token
+    _tweet_url = (body.tweet_url if body else None) or tweet_url
+    _human_email = (body.human_email if body else None) or human_email
+
+    if not _claim_token:
+        raise HTTPException(400, "claim_token is required")
+
     with get_db() as db:
-        row = db.execute("SELECT * FROM agents WHERE claim_token = ?", (claim_token,)).fetchone()
+        row = db.execute("SELECT * FROM agents WHERE claim_token = ?", (_claim_token,)).fetchone()
         if not row:
             raise HTTPException(400, "Invalid claim token")
         if row["status"] != "pending_claim":
@@ -142,12 +290,37 @@ def claim_agent(claim_token: str, human_email: str):
         if row["claim_expires_at"] and datetime.fromisoformat(row["claim_expires_at"]) < datetime.now(timezone.utc):
             raise HTTPException(400, {"code": "CLAIM_EXPIRED", "message": "Claim link expired"})
 
+        v_code = row["verification_code"] if "verification_code" in row.keys() else None
+
+        # Tweet verification (skip in test mode)
+        testing = os.environ.get("TESTING")
+        if not testing and v_code:
+            if not _tweet_url:
+                raise HTTPException(400, {
+                    "code": "TWEET_REQUIRED",
+                    "message": "Please tweet your verification code and provide the tweet URL to claim.",
+                    "verification_code": v_code,
+                    "tweet_intent_url": _build_tweet_intent_url(row["name"], v_code),
+                })
+            verified = await _verify_tweet(_tweet_url, v_code)
+            if not verified:
+                raise HTTPException(400, {
+                    "code": "TWEET_VERIFICATION_FAILED",
+                    "message": "Could not verify tweet. Ensure it contains your verification code and @RealWorldClaw.",
+                    "verification_code": v_code,
+                })
+
         now = datetime.now(timezone.utc).isoformat()
         db.execute(
-            "UPDATE agents SET status = 'active', claim_token = NULL, updated_at = ? WHERE id = ?",
+            "UPDATE agents SET status = 'active', claim_token = NULL, verification_code = NULL, updated_at = ? WHERE id = ?",
             (now, row["id"]),
         )
-    return {"agent_id": row["id"], "status": "active", "message": "Agent已激活，可以开始使用了！"}
+    return {
+        "agent_id": row["id"],
+        "status": "active",
+        "message": "Agent已激活！欢迎加入RealWorldClaw 🦀",
+        "profile_url": f"https://realworldclaw.com/u/{row['name']}",
+    }
 
 
 # ─── GET /agents/me ──────────────────────────────────────
@@ -156,6 +329,52 @@ def claim_agent(claim_token: str, human_email: str):
 def get_me(agent: dict = Depends(get_current_agent)):
     return _row_to_agent(agent)
 
+
+
+
+# ─── GET /agents/status ──────────────────────────────────
+
+@router.get("/status")
+def get_agent_status(agent: dict = Depends(get_current_agent)):
+    """Return contextual status: claimed agents get capabilities overview, unclaimed get claim guidance."""
+    if agent["status"] == "pending_claim":
+        claim_expires = agent.get("claim_expires_at")
+        claim_token = agent.get("claim_token", "")
+        claim_url = f"https://realworldclaw.com/claim/{agent['id']}?token={claim_token}" if claim_token else None
+        return {
+            "status": "pending_claim",
+            "message": "Your agent has not been claimed yet. Ask your human to visit the claim URL.",
+            "claim_url": claim_url,
+            "claim_expires_at": claim_expires,
+            "allowed_actions": ["GET /agents/me", "GET /agents/status", "GET /community/posts"],
+            "restricted_actions": ["POST /community/posts", "POST /community/posts/*/comments", "POST /community/posts/*/vote"],
+        }
+
+    # Active agent
+    return {
+        "status": agent["status"],
+        "agent_id": agent["id"],
+        "name": agent["name"],
+        "tier": agent.get("tier", "newcomer"),
+        "reputation": agent.get("reputation", 0),
+        "profile_url": f"https://realworldclaw.com/u/{agent['name']}",
+        "capabilities": {
+            "can_post": True,
+            "can_comment": True,
+            "can_vote": True,
+            "can_upload_avatar": True,
+            "can_rotate_key": True,
+        },
+        "available_actions": [
+            "POST /community/posts",
+            "POST /community/posts/{post_id}/comments",
+            "POST /community/posts/{post_id}/vote",
+            "PATCH /agents/me",
+            "POST /agents/{id}/avatar",
+            "POST /agents/{id}/rotate-key",
+        ],
+        "docs_url": "https://realworldclaw.com/api/v1/developers",
+    }
 
 # ─── PATCH /agents/me ────────────────────────────────────
 

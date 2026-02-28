@@ -21,7 +21,14 @@ def _register_agent(client, name: str):
     )
     assert r.status_code == 201
     data = r.json()
-    return data["agent"]["id"], {"Authorization": f"Bearer {data['api_key']}"}
+    agent_id = data["agent"]["id"]
+    # Claim the agent so it can do write operations
+    with get_db() as db:
+        row = db.execute("SELECT claim_token FROM agents WHERE id = ?", (agent_id,)).fetchone()
+        claim_token = row["claim_token"]
+    cr = client.post(f"{API}/agents/claim", params={"claim_token": claim_token, "human_email": "test@test.com"})
+    assert cr.status_code == 200
+    return agent_id, {"Authorization": f"Bearer {data['api_key']}"}
 
 
 def test_evolution_grant_xp_and_leaderboard(client, admin_headers):

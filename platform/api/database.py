@@ -3,7 +3,10 @@
 from __future__ import annotations
 
 import os
+import logging
 import sqlite3
+
+logger = logging.getLogger(__name__)
 from contextlib import contextmanager
 from pathlib import Path
 
@@ -112,8 +115,8 @@ if USE_POSTGRES:
                 if stmt:
                     try:
                         self.execute(stmt)
-                    except Exception:
-                        pass
+                    except Exception as exc:
+                        logger.debug("PG init: %s", exc)
 
         def close(self):
             self._conn.close()
@@ -153,8 +156,8 @@ def _safe_add_column(db, table: str, column_def: str):
 
     try:
         db.execute(f"ALTER TABLE {table} ADD COLUMN {column_def}")
-    except Exception:
-        pass
+    except Exception as exc:
+        logger.debug("PG init: %s", exc)
 
 
 def init_db():
@@ -212,8 +215,8 @@ def init_db():
             ]:
                 try:
                     db.execute(sql)
-                except Exception:
-                    pass
+                except Exception as exc:
+                    logger.debug("PG init: %s", exc)
 
             # Ensure ALL columns exist on production PostgreSQL.
             for table, column_def in [
@@ -255,8 +258,8 @@ def init_db():
             ]:
                 try:
                     _safe_add_column(db, table, column_def)
-                except Exception:
-                    pass
+                except Exception as exc:
+                    logger.debug("PG init: %s", exc)
         return
 
     with get_db() as db:
@@ -661,8 +664,8 @@ def init_db():
                     db.execute("UPDATE nodes SET country_code = ? WHERE id = ?", (code, row["id"]))
             if rows:
                 db.commit()
-        except Exception:
-            pass  # Non-critical, will be filled on next registration
+        except Exception as exc:
+            logger.debug("PG init: %s", exc)  # Non-critical, will be filled on next registration
 
         # Enable foreign keys and add protective indexes
         db.execute("PRAGMA foreign_keys = ON")
@@ -683,8 +686,8 @@ def init_db():
         ]:
             try:
                 db.execute(idx_sql)
-            except Exception:
-                pass
+            except Exception as exc:
+                logger.debug("PG init: %s", exc)
 
         # ── Follows table ─────────────────────────────────────────
         db.execute("""
@@ -782,8 +785,8 @@ def init_db():
                         "INSERT INTO tags (id, name, category, created_at) VALUES (?, ?, ?, datetime('now'))",
                         (f"tag-{category}-{name.lower().replace(' ', '-').replace('/', '-')}", name, category),
                     )
-                except Exception:
-                    pass
+                except Exception as exc:
+                    logger.debug("PG init: %s", exc)
 
 
 if __name__ == "__main__":

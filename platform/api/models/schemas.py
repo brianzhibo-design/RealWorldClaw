@@ -125,11 +125,28 @@ class AgentResponse(BaseModel):
     updated_at: datetime
 
 
+class AgentSetupStep(BaseModel):
+    action: str
+    details: str
+    critical: bool = False
+    url: Optional[str] = None
+
+
 class AgentRegisterResponse(BaseModel):
+    success: bool = True
+    message: str = "Welcome to RealWorldClaw! 🦀"
     agent: AgentResponse
     api_key: str
     claim_url: str
     claim_expires_at: datetime
+    profile_url: str
+    setup: dict[str, AgentSetupStep] = {}
+    message_template: str = ""
+    docs_url: str = "https://realworldclaw.com/api/v1/developers"
+    post_template: str = ""
+    verification_code: str = ""
+    tweet_template: str = ""
+    tweet_intent_url: str = ""
 
 
 class AgentUpdateRequest(BaseModel):

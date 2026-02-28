@@ -448,6 +448,14 @@ export default function Home() {
 
           <div className="grid md:grid-cols-2 gap-6">
             <div className="bg-[#1c2333] border border-[#3b4252] rounded-2xl p-7">
+              <video
+                src="/demo-print.mp4"
+                autoPlay
+                muted
+                loop
+                playsInline
+                className="w-full rounded-xl mb-4"
+              />
               <div className="text-2xl mb-3">🎬</div>
               <h3 className="text-xl font-bold mb-2">Hardware Demo</h3>
               <p className="text-sm text-[#b0b8c1] leading-relaxed">Full loop: sensing → decision → execution → telemetry. Uncut recordings preferred.</p>

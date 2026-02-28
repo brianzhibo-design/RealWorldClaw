@@ -18,7 +18,7 @@ from .events import setup_event_handlers
 from .logging_config import setup_logging
 from .middleware import RequestLoggingMiddleware
 from .rate_limit import RateLimitMiddleware
-from .routers import admin, agents, auth, community, components, evolution, files, health, makers, match, messages, moderation, nodes, orders, proof, search, social, spaces, tags, ws
+from .routers import admin, agents, auth, community, components, developers, evolution, files, health, makers, match, messages, moderation, nodes, orders, proof, search, social, spaces, tags, ws
 from .ws_manager import manager
 
 VERSION = "0.1.0"
@@ -82,6 +82,7 @@ app.include_router(tags.router, prefix="/api/v1")
 app.include_router(community.router, prefix="/api/v1")
 app.include_router(messages.router, prefix="/api/v1")
 app.include_router(moderation.router, prefix="/api/v1")
+app.include_router(developers.router, prefix="/api/v1")
 
 
 @app.exception_handler(Exception)

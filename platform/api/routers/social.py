@@ -8,6 +8,12 @@ import sqlite3
 import uuid
 from datetime import datetime, timezone
 
+# Try to import psycopg2 UniqueViolation for PostgreSQL compatibility
+try:
+    from psycopg2.errors import UniqueViolation as PgUniqueViolation
+except ImportError:
+    PgUniqueViolation = None
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 
 from ..database import get_db
@@ -42,8 +48,13 @@ def follow_user(user_id: str, identity: dict = Depends(get_authenticated_identit
                 "INSERT INTO follows (id, follower_id, following_id, created_at) VALUES (?, ?, ?, ?)",
                 (str(uuid.uuid4()), follower_id, user_id, now),
             )
+        except sqlite3.IntegrityError as exc:
+            raise HTTPException(409, "Already following") from exc
         except Exception as exc:
+            if PgUniqueViolation is not None and isinstance(exc, PgUniqueViolation):
+                raise HTTPException(409, "Already following") from exc
             if "unique" in str(exc).lower() or "duplicate" in str(exc).lower() or "integrity" in str(exc).lower():
+                logger.warning("Caught duplicate follow via string match (no typed exception): %s", exc)
                 raise HTTPException(409, "Already following") from exc
             raise
 

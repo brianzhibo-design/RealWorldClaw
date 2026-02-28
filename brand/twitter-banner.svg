@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1500 500">
+  <rect width="1500" height="500" fill="#0f172a"/>
+  <!-- Grid -->
+  <g fill="#475569" opacity="0.15">
+    <circle cx="50" cy="50" r="2"/><circle cx="150" cy="50" r="2"/><circle cx="250" cy="50" r="2"/>
+    <circle cx="1250" cy="50" r="2"/><circle cx="1350" cy="50" r="2"/><circle cx="1450" cy="50" r="2"/>
+    <circle cx="50" cy="450" r="2"/><circle cx="150" cy="450" r="2"/><circle cx="250" cy="450" r="2"/>
+    <circle cx="1250" cy="450" r="2"/><circle cx="1350" cy="450" r="2"/><circle cx="1450" cy="450" r="2"/>
+  </g>
+  <!-- Logo -->
+  <g transform="translate(200, 100)">
+    <path d="M 25 250 V 35 H 100 A 40 40 0 0 1 100 145 H 25 M 60 145 L 120 250" fill="none" stroke="#38bdf8" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M 150 35 L 175 250 L 220 140 L 265 250 L 290 35" fill="none" stroke="#38bdf8" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="25" cy="35" r="8" fill="#fff"/><circle cx="100" cy="90" r="8" fill="#fff"/><circle cx="150" cy="35" r="8" fill="#fff"/><circle cx="220" cy="140" r="8" fill="#fff"/><circle cx="290" cy="35" r="8" fill="#fff"/>
+  </g>
+  <!-- Text -->
+  <text x="580" y="230" font-family="'Inter','Segoe UI',sans-serif" font-size="64" font-weight="800" fill="#f8fafc">RealWorld<tspan fill="#38bdf8">Claw</tspan></text>
+  <text x="580" y="290" font-family="'Inter','Segoe UI',sans-serif" font-size="24" fill="#94a3b8">Turn any idea into reality — distributed manufacturing network</text>
+  <text x="580" y="340" font-family="'Inter','Segoe UI',sans-serif" font-size="18" fill="#64748b">realworldclaw.com</text>
+</svg>

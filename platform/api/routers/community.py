@@ -157,6 +157,25 @@ def _build_comment_tree(comments: list[dict], db=None) -> list[CommentResponse]:
     
     return root_comments
 
+
+def _require_claimed_agent(identity: dict) -> None:
+    """Block write operations for unclaimed agents."""
+    if identity.get("identity_type") != "agent":
+        return  # humans are fine
+    agent_id = identity.get("identity_id")
+    if not agent_id:
+        return
+    with get_db() as db:
+        row = db.execute("SELECT status FROM agents WHERE id = ?", (agent_id,)).fetchone()
+    if row and row["status"] == "pending_claim":
+        raise HTTPException(
+            status_code=403,
+            detail={
+                "code": "AGENT_NOT_CLAIMED",
+                "message": "Your agent must be claimed before you can post, comment, or vote. Ask your human to visit your claim URL.",
+            },
+        )
+
 router = APIRouter(prefix="/community", tags=["community"])
 
 
@@ -258,6 +277,7 @@ async def create_post(
     identity: dict = Depends(get_authenticated_identity)
 ):
     """Create a new community post."""
+    _require_claimed_agent(identity)
     # Rate limit check
     if not _rate_check(f"post:{identity['identity_id']}", max_calls=10, window=3600):
         raise HTTPException(429, "Too many posts. Try again later.")
@@ -846,6 +866,7 @@ async def create_comment(
     identity: dict = Depends(get_authenticated_identity)
 ):
     """Add a comment to a post."""
+    _require_claimed_agent(identity)
     # Rate limit check
     if not _rate_check(f"comment:{identity['identity_id']}", max_calls=30, window=3600):
         raise HTTPException(429, "Too many comments. Try again later.")
@@ -1095,6 +1116,7 @@ async def vote_post(
     identity: dict = Depends(get_authenticated_identity)
 ):
     """Vote on a community post. Toggle: same direction again removes the vote."""
+    _require_claimed_agent(identity)
     
     user_id = identity["identity_id"]
     direction = vote.vote_type

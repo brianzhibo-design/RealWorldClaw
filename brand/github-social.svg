@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 640">
+  <rect width="1280" height="640" fill="#0f172a"/>
+  <!-- Grid -->
+  <g fill="#475569" opacity="0.2">
+    <circle cx="40" cy="40" r="2"/><circle cx="120" cy="40" r="2"/><circle cx="200" cy="40" r="2"/><circle cx="280" cy="40" r="2"/>
+    <circle cx="1000" cy="40" r="2"/><circle cx="1080" cy="40" r="2"/><circle cx="1160" cy="40" r="2"/><circle cx="1240" cy="40" r="2"/>
+    <circle cx="40" cy="600" r="2"/><circle cx="120" cy="600" r="2"/><circle cx="200" cy="600" r="2"/><circle cx="280" cy="600" r="2"/>
+    <circle cx="1000" cy="600" r="2"/><circle cx="1080" cy="600" r="2"/><circle cx="1160" cy="600" r="2"/><circle cx="1240" cy="600" r="2"/>
+  </g>
+  <!-- Logo centered -->
+  <g transform="translate(200, 140)">
+    <!-- R -->
+    <path d="M 25 250 V 35 H 100 A 40 40 0 0 1 100 145 H 25 M 60 145 L 120 250" fill="none" stroke="#38bdf8" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/>
+    <!-- W -->
+    <path d="M 150 35 L 175 250 L 220 140 L 265 250 L 290 35" fill="none" stroke="#38bdf8" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/>
+    <!-- Nodes -->
+    <circle cx="25" cy="35" r="9" fill="#fff"/>
+    <circle cx="100" cy="90" r="9" fill="#fff"/>
+    <circle cx="120" cy="250" r="9" fill="#fff"/>
+    <circle cx="150" cy="35" r="9" fill="#fff"/>
+    <circle cx="220" cy="140" r="9" fill="#fff"/>
+    <circle cx="290" cy="35" r="9" fill="#fff"/>
+  </g>
+  <!-- Text -->
+  <text x="560" y="290" font-family="'Inter','Segoe UI',sans-serif" font-size="72" font-weight="800" fill="#f8fafc">RealWorld</text>
+  <text x="560" y="290" font-family="'Inter','Segoe UI',sans-serif" font-size="72" font-weight="800" fill="#38bdf8" dx="432">Claw</text>
+  <text x="560" y="340" font-family="'Inter','Segoe UI',sans-serif" font-size="22" font-weight="500" fill="#64748b" letter-spacing="0.15em">DISTRIBUTED MANUFACTURING NETWORK</text>
+  <text x="560" y="400" font-family="'Inter','Segoe UI',sans-serif" font-size="20" fill="#94a3b8">Turn any idea into reality</text>
+</svg>
