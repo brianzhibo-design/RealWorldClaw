@@ -34,3 +34,56 @@ jobs:
           cd frontend
           npm ci
           npm run build
+
+  frontend-lint:
+    name: Frontend Lint & Type Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install
+        run: cd frontend && npm ci
+      - name: Lint
+        run: cd frontend && npx next lint
+      - name: Type Check
+        run: cd frontend && npx tsc --noEmit
+
+  backend-lint:
+    name: Backend Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install and lint
+        run: |
+          cd platform
+          pip install -r requirements.txt
+          pip install ruff
+          ruff check .
+
+  quality-gates:
+    name: Quality Gates
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: No mock data check
+        run: |
+          if grep -rn "mock\|MOCK\|fake\|dummy" frontend/app/ --include="*.tsx" --include="*.ts" | grep -v "node_modules" | grep -v ".test." | grep -v "__mock__"; then
+            echo "❌ Found mock/fake data in frontend app code"
+            exit 1
+          fi
+          echo "✅ No mock data found"
+      - name: No alert() check
+        run: |
+          if grep -rn "alert(" frontend/app/ --include="*.tsx" --include="*.ts" | grep -v "node_modules"; then
+            echo "❌ Found alert() in frontend"
+            exit 1
+          fi
+          echo "✅ No alert() found"
+      - name: Dependency audit
+        run: |
+          cd frontend && npm audit --audit-level=high || true
