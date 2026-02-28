@@ -74,7 +74,7 @@ const POST_TEMPLATES: Array<{
       },
       { key: "materials", label: "材料要求", placeholder: "例：PETG / ABS，耐温 80°C" },
       { key: "budget", label: "预算范围", placeholder: "例：¥300 - ¥1000" },
-      { key: "deadline", label: "截止日期", type: "date" },
+      { key: "deadline", label: "截止日期", type: "date", placeholder: "" },
     ],
   },
   {

@@ -54,7 +54,7 @@ function NewOrderContent() {
           method: "POST",
           body: formData,
         });
-        setFileId(data.id || data.file_id);
+        setFileId(data.id || data.file_id || '');
         setFileName(file.name);
       } catch {
         setError("File upload failed. Please try again.");

@@ -55,7 +55,7 @@ export default function SettingsPage() {
 
     const fetchProfile = async () => {
       try {
-        const data = await apiFetch('/auth/me');
+        const data = await apiFetch<UserProfile>('/auth/me');
         setProfile(data);
         setProfileChanges({
           username: data.username || "",
@@ -78,7 +78,7 @@ export default function SettingsPage() {
     setSuccess(null);
 
     try {
-      const updated = await apiFetch('/auth/me', {
+      const updated = await apiFetch<UserProfile>('/auth/me', {
         method: 'PUT',
         body: JSON.stringify(profileChanges)
       });
@@ -171,7 +171,7 @@ export default function SettingsPage() {
                   <button
                     key={tab.key}
                     onClick={() => {
-                      setActiveTab(tab.key as string);
+                      setActiveTab(tab.key as "profile" | "ai" | "password" | "danger");
                       setError(null);
                       setSuccess(null);
                     }}
