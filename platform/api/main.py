@@ -16,9 +16,9 @@ from .audit import init_audit_table
 from .database import get_db, init_db
 from .events import setup_event_handlers
 from .logging_config import setup_logging
-from .middleware import RequestLoggingMiddleware
+from .middleware import RequestLoggingMiddleware, AuditLogMiddleware
 from .rate_limit import RateLimitMiddleware
-from .routers import admin, agents, auth, community, components, developers, evolution, files, health, makers, match, messages, moderation, nodes, orders, proof, search, social, spaces, tags, ws
+from .routers import admin, agents, audit as audit_router, auth, community, components, developers, evolution, files, health, makers, match, messages, moderation, nodes, orders, proof, search, social, spaces, tags, ws
 from .ws_manager import manager
 
 VERSION = "0.1.0"
@@ -59,11 +59,13 @@ app.add_middleware(
 
 # Rate limiting & request logging middleware (order matters: rate limit first)
 app.add_middleware(RequestLoggingMiddleware)
+app.add_middleware(AuditLogMiddleware)
 app.add_middleware(RateLimitMiddleware)
 
 # Register routers under /api/v1
 app.include_router(health.router, prefix="/api/v1")
 app.include_router(admin.router, prefix="/api/v1")
+app.include_router(audit_router.router, prefix="/api/v1")
 app.include_router(auth.router, prefix="/api/v1")
 app.include_router(agents.router, prefix="/api/v1")
 app.include_router(components.router, prefix="/api/v1")
