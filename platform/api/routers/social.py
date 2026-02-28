@@ -42,8 +42,10 @@ def follow_user(user_id: str, identity: dict = Depends(get_authenticated_identit
                 "INSERT INTO follows (id, follower_id, following_id, created_at) VALUES (?, ?, ?, ?)",
                 (str(uuid.uuid4()), follower_id, user_id, now),
             )
-        except sqlite3.IntegrityError as exc:
-            raise HTTPException(409, "Already following") from exc
+        except Exception as exc:
+            if "unique" in str(exc).lower() or "duplicate" in str(exc).lower() or "integrity" in str(exc).lower():
+                raise HTTPException(409, "Already following") from exc
+            raise
 
         target_user = db.execute("SELECT email, username FROM users WHERE id = ?", (user_id,)).fetchone()
 

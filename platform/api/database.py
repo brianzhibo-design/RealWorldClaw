@@ -178,6 +178,37 @@ def init_db():
                 "CREATE INDEX IF NOT EXISTS idx_dm_created_at ON direct_messages(created_at)",
                 "CREATE INDEX IF NOT EXISTS idx_dm_recipient_read ON direct_messages(recipient_id, read, created_at)",
                 "CREATE INDEX IF NOT EXISTS idx_dm_conversation ON direct_messages(sender_id, recipient_id, created_at)",
+                """CREATE TABLE IF NOT EXISTS agents (
+                    id TEXT PRIMARY KEY,
+                    name TEXT UNIQUE NOT NULL,
+                    display_name TEXT,
+                    description TEXT NOT NULL,
+                    type TEXT NOT NULL DEFAULT 'openclaw',
+                    status TEXT NOT NULL DEFAULT 'pending_claim',
+                    reputation INTEGER NOT NULL DEFAULT 0,
+                    tier TEXT NOT NULL DEFAULT 'newcomer',
+                    api_key TEXT UNIQUE NOT NULL,
+                    callback_url TEXT,
+                    avatar_url TEXT,
+                    hardware_inventory TEXT,
+                    bio TEXT,
+                    capabilities_tags TEXT,
+                    verification_badge TEXT NOT NULL DEFAULT 'none',
+                    total_jobs_completed INTEGER NOT NULL DEFAULT 0,
+                    success_rate REAL NOT NULL DEFAULT 0,
+                    evolution_level INTEGER DEFAULT 0,
+                    evolution_xp INTEGER DEFAULT 0,
+                    evolution_title TEXT DEFAULT 'Newborn',
+                    location_city TEXT,
+                    location_country TEXT,
+                    claim_token TEXT,
+                    claim_expires_at TEXT,
+                    verification_code TEXT,
+                    created_at TEXT NOT NULL,
+                    updated_at TEXT NOT NULL
+                )""",
+                "CREATE INDEX IF NOT EXISTS idx_agents_status ON agents(status)",
+                "CREATE INDEX IF NOT EXISTS idx_agents_name ON agents(name)",
             ]:
                 try:
                     db.execute(sql)
@@ -210,6 +241,7 @@ def init_db():
                 ("agents", "location_country TEXT"),
                 ("agents", "claim_token TEXT"),
                 ("agents", "claim_expires_at TEXT"),
+                ("agents", "verification_code TEXT"),
                 ("agents", "hardware_inventory TEXT"),
                 ("agents", "bio TEXT"),
                 ("agents", "capabilities_tags TEXT"),
@@ -255,6 +287,7 @@ def init_db():
             location_country TEXT,
             claim_token TEXT,
             claim_expires_at TEXT,
+            verification_code TEXT,
             created_at TEXT NOT NULL,
             updated_at TEXT NOT NULL
         );
