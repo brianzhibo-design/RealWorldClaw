@@ -236,6 +236,9 @@ def init_db():
                 ("nodes", "country_code TEXT"),
                 ("users", "oauth_provider TEXT"),
                 ("users", "oauth_id TEXT"),
+                ("agents", "display_name TEXT"),
+                ("agents", "callback_url TEXT"),
+                ("agents", "description TEXT NOT NULL DEFAULT ''"),
                 ("agents", "avatar_url TEXT"),
                 ("agents", "evolution_level INTEGER DEFAULT 0"),
                 ("agents", "evolution_xp INTEGER DEFAULT 0"),
@@ -633,6 +636,9 @@ def init_db():
         _safe_add_column(db, "users", "oauth_provider TEXT")
         _safe_add_column(db, "users", "oauth_id TEXT")
         _safe_add_column(db, "agents", "avatar_url TEXT")
+        _safe_add_column(db, "agents", "display_name TEXT")
+        _safe_add_column(db, "agents", "callback_url TEXT")
+        _safe_add_column(db, "agents", "description TEXT NOT NULL DEFAULT ''")
 
         for table, column_def in [
             ("agents", "bio TEXT"),
