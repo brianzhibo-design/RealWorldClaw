@@ -70,3 +70,21 @@ def health_detailed():
         "python": platform.python_version(),
         "pid": os.getpid(),
     }
+
+
+@router.get("/readiness")
+def readiness():
+    """Readiness probe — checks critical dependencies."""
+    checks = {}
+
+    # Database check
+    try:
+        with get_db() as db:
+            db.execute("SELECT 1")
+        checks["database"] = "ok"
+    except Exception as e:
+        logger.exception("Readiness: database check failed: %s", e)
+        checks["database"] = f"error: {e}"
+
+    ready = all(v == "ok" for v in checks.values())
+    return {"ready": ready, "checks": checks}
