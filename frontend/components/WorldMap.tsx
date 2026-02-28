@@ -3,7 +3,7 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { ComposableMap, Geographies, Geography, Marker, ZoomableGroup } from 'react-simple-maps';
 import { geoContains } from 'd3-geo';
-import { ManufacturingNode, MapRegionSummary, NODE_TYPE_INFO, STATUS_COLORS } from '@/lib/nodes';
+import { ManufacturingNode, MapRegionSummary, NODE_TYPE_INFO, STATUS_COLORS, isNodeOnline, resolveNodeStatus } from '@/lib/nodes';
 
 const geoUrl = '/world-110m.json';
 
@@ -138,7 +138,7 @@ export function WorldMap({
       };
 
       current.total += 1;
-      if (node.status === 'online' || node.status === 'idle') current.online += 1;
+      if (isNodeOnline(node)) current.online += 1;
       current.sumLat += node.fuzzy_latitude;
       current.sumLng += node.fuzzy_longitude;
       current.count += 1;
@@ -278,9 +278,10 @@ export function WorldMap({
             {level >= 2 &&
               filteredNodes.map((node) => {
                 const isHovered = hoveredNode?.id === node.id || selectedNode?.id === node.id;
-                const isOffline = node.status === 'offline';
+                const effectiveStatus = resolveNodeStatus(node);
+                const isOffline = effectiveStatus === 'offline';
                 const baseSize = getNodeSize();
-                const dotColor = STATUS_COLORS[node.status] || '#64748b';
+                const dotColor = STATUS_COLORS[effectiveStatus] || '#64748b';
 
                 return (
                   <Marker key={node.id} coordinates={[node.fuzzy_longitude, node.fuzzy_latitude]}>
@@ -322,7 +323,7 @@ export function WorldMap({
               <div className="text-sm font-semibold text-white">{selectedNode.name}</div>
               <div className="text-xs text-slate-300">
                 {NODE_TYPE_INFO[selectedNode.node_type]?.name || selectedNode.node_type} ·{' '}
-                <span style={{ color: STATUS_COLORS[selectedNode.status] || '#94a3b8' }}>{selectedNode.status}</span>
+                <span style={{ color: STATUS_COLORS[resolveNodeStatus(selectedNode)] || '#94a3b8' }}>{resolveNodeStatus(selectedNode)}</span>
               </div>
             </div>
           </div>

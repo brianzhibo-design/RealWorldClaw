@@ -39,6 +39,21 @@ export interface MapRegionSummary {
   total_count?: number;
 }
 
+/**
+ * Resolve effective node status.
+ * The API may return status in `online_status` or `status` field.
+ * Prefer `online_status` if present, then `status`, default to 'offline'.
+ */
+export function resolveNodeStatus(node: ManufacturingNode): string {
+  return node.online_status || node.status || 'offline';
+}
+
+/** Check if a node is considered online (online or idle) */
+export function isNodeOnline(node: ManufacturingNode): boolean {
+  const s = resolveNodeStatus(node);
+  return s === 'online' || s === 'idle';
+}
+
 // Display helpers
 export const NODE_TYPE_INFO: Record<string, { name: string; icon: string; color: string }> = {
   '3d_printer': { name: '3D Printer', icon: '🖨️', color: '#38bdf8' },

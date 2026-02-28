@@ -6,7 +6,7 @@ import { WorldMap } from '@/components/WorldMap';
 import { NodeDetails } from '@/components/NodeDetails';
 import { apiFetch } from '@/lib/api-client';
 import { useAuthStore } from '@/stores/authStore';
-import { ManufacturingNode, MapRegionSummary, NODE_TYPE_INFO, STATUS_COLORS, fetchMapNodes, fetchMapRegions } from '@/lib/nodes';
+import { ManufacturingNode, MapRegionSummary, NODE_TYPE_INFO, STATUS_COLORS, fetchMapNodes, fetchMapRegions, isNodeOnline, resolveNodeStatus } from '@/lib/nodes';
 
 export default function MapPage() {
   useEffect(() => {
@@ -57,7 +57,7 @@ export default function MapPage() {
     loadMyNodes();
   }, [token]);
 
-  const onlineCount = nodes.filter((n) => n.status === 'online' || n.status === 'idle').length;
+  const onlineCount = nodes.filter((n) => isNodeOnline(n)).length;
 
   if (error) {
     return (
@@ -117,7 +117,7 @@ export default function MapPage() {
           ) : (
             <div className="divide-y divide-slate-800/30">
               {nodes.map((node) => {
-                const isOnline = node.status === 'online' || node.status === 'idle';
+                const isOnline = isNodeOnline(node);
                 const isSelected = selectedNode?.id === node.id;
                 const isHovered = hoveredNode?.id === node.id;
                 return (
@@ -218,7 +218,7 @@ export default function MapPage() {
           </div>
         </div>
         {nodes.map((node) => {
-          const isOnline = node.status === 'online' || node.status === 'idle';
+          const isOnline = isNodeOnline(node);
           return (
             <button
               key={node.id}
