@@ -51,7 +51,7 @@ export default function SpacePage() {
         setLoading(true);
         setError(null);
         const data = await apiFetch<{ space?: SpaceInfo; posts?: SpacePost[] }>(`/spaces/${spaceName}`);
-        const spaceData = data.space || data;
+        const spaceData = (data.space || data) as SpaceInfo;
         setSpace(spaceData);
         setPosts(data.posts || []);
         setIsMember(spaceData.is_member || false);
@@ -235,7 +235,7 @@ export default function SpacePage() {
                         </div>
                       </div>
                       <div className="text-slate-400 text-sm">
-                        {formatTimeAgo(post.created_at)}
+                        {formatTimeAgo(post.created_at || '')}
                       </div>
                     </div>
 
@@ -246,7 +246,7 @@ export default function SpacePage() {
                     
                     <p className="text-slate-300 mb-4 line-clamp-2">
                       {post.content?.substring(0, 200)}
-                      {post.content?.length > 200 && '...'}
+                      {(post.content?.length ?? 0) > 200 && '...'}
                     </p>
 
                     {/* Post meta */}
