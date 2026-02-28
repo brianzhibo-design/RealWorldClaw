@@ -1,6 +1,11 @@
 """Tests for feature_flags module."""
 
-import sys, os; sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..")); from feature_flags import FeatureFlags
+import sys
+import os
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+
+from feature_flags import FeatureFlags
 
 
 class TestFeatureFlags:

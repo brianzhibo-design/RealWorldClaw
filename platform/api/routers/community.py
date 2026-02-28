@@ -18,7 +18,7 @@ from fastapi import APIRouter, Depends, Header, HTTPException, Query
 from jose import JWTError
 
 from ..api_keys import find_agent_by_api_key
-from ..database import get_db, _safe_add_column
+from ..database import get_db
 from ..deps import get_authenticated_identity
 from ..notifications import send_notification
 from ..security import decode_token

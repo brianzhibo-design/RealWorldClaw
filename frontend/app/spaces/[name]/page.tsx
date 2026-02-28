@@ -6,12 +6,35 @@ import { useParams } from "next/navigation";
 import { apiFetch } from "@/lib/api-client";
 import { useAuthStore } from "@/stores/authStore";
 
+
+interface SpaceInfo {
+  icon?: string;
+  display_name?: string;
+  description?: string;
+  member_count?: number;
+  is_member?: boolean;
+  created_at?: string;
+  space_type?: string;
+  rules?: string[];
+}
+
+interface SpacePost {
+  id: string;
+  post_type?: string;
+  created_at?: string;
+  title?: string;
+  content?: string;
+  author_name?: string;
+  upvotes?: number;
+  comment_count?: number;
+}
+
 export default function SpacePage() {
   const params = useParams();
   const spaceName = params?.name as string;
   
-  const [space, setSpace] = useState(null);
-  const [posts, setPosts] = useState([]);
+  const [space, setSpace] = useState<SpaceInfo | null>(null);
+  const [posts, setPosts] = useState<SpacePost[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [sortType, setSortType] = useState<'hot' | 'new' | 'top'>('hot');
@@ -27,8 +50,8 @@ export default function SpacePage() {
       try {
         setLoading(true);
         setError(null);
-        const data = await apiFetch(`/spaces/${spaceName}`);
-        const spaceData = data.space || data;
+        const data = await apiFetch<{ space?: SpaceInfo; posts?: SpacePost[] }>(`/spaces/${spaceName}`);
+        const spaceData = (data.space || data) as SpaceInfo;
         setSpace(spaceData);
         setPosts(data.posts || []);
         setIsMember(spaceData.is_member || false);
@@ -212,7 +235,7 @@ export default function SpacePage() {
                         </div>
                       </div>
                       <div className="text-slate-400 text-sm">
-                        {formatTimeAgo(post.created_at)}
+                        {formatTimeAgo(post.created_at || '')}
                       </div>
                     </div>
 
@@ -223,7 +246,7 @@ export default function SpacePage() {
                     
                     <p className="text-slate-300 mb-4 line-clamp-2">
                       {post.content?.substring(0, 200)}
-                      {post.content?.length > 200 && '...'}
+                      {(post.content?.length ?? 0) > 200 && '...'}
                     </p>
 
                     {/* Post meta */}
