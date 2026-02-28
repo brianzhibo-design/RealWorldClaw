@@ -24,6 +24,9 @@ interface Order {
   buyer_id?: string;
   maker_id?: string;
   maker?: { id: string; name: string; rating?: number; avatar?: string };
+  order_number?: string;
+  delivery_province?: string;
+  delivery_city?: string;
 }
 
 interface Message {
@@ -82,7 +85,7 @@ export default function OrderDetailPage() {
     if (!params.id) return;
 
     apiFetch<{ role: string; order: Order } | Order>(`/orders/${params.id}`)
-      .then((res) => setOrder(res.order || res))
+      .then((res) => setOrder('order' in res ? res.order : res))
       .catch((err) => {
         if (err.message?.includes("401")) router.push("/auth/login");
         else setError("Failed to load order");
@@ -108,7 +111,7 @@ export default function OrderDetailPage() {
       await apiFetch(url, opts);
       // Refresh order
       const raw = await apiFetch<{ role: string; order: Order } | Order>(`/orders/${params.id}`);
-      const updated = (raw as Record<string, unknown>).order || raw;
+      const updated = ('order' in raw ? raw.order : raw) as Order;
       setOrder(updated);
     } catch (err) {
       showErrorToast((err as Error).message || "Action failed");
