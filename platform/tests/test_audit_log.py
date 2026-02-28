@@ -7,8 +7,6 @@ os.environ.setdefault("JWT_SECRET_KEY", "test-jwt-secret-key")
 import time
 import uuid
 
-import pytest
-from fastapi.testclient import TestClient
 
 API = "/api/v1"
 
