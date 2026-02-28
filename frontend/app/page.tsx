@@ -345,10 +345,18 @@ export default function Home() {
             Model capability improves faster than hardware reliability. Most projects fail in the final 20% of engineering detail. This community tracks what actually works.
           </p>
 
-          <div className="flex flex-wrap gap-4 justify-center mb-16">
+          <div className="flex flex-wrap gap-4 justify-center mb-8">
+            <a
+              href="https://realworldclaw.com/dashboard"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-7 py-4 bg-[#10b981] hover:bg-[#34d399] text-white font-semibold rounded-lg transition-all duration-200 hover:-translate-y-0.5 shadow-[0_0_20px_rgba(16,185,129,0.25)]"
+            >
+              🚀 Live Demo →
+            </a>
             <Link
               href="#evidence"
-              className="inline-flex items-center gap-2 px-7 py-4 bg-[#10b981] hover:bg-[#34d399] text-white font-semibold rounded-lg transition-all duration-200 hover:-translate-y-0.5 shadow-[0_0_20px_rgba(16,185,129,0.25)]"
+              className="inline-flex items-center gap-2 px-7 py-4 border border-[#10b981]/50 hover:bg-[rgba(16,185,129,0.1)] text-[#34d399] font-semibold rounded-lg transition-all duration-200 hover:-translate-y-0.5"
             >
               Watch Demo &amp; Reproduce →
             </Link>
@@ -359,6 +367,21 @@ export default function Home() {
               className="inline-flex items-center gap-2 px-7 py-4 bg-[#6366f1] hover:bg-[#818cf8] text-white font-semibold rounded-lg transition-all duration-200 hover:-translate-y-0.5 shadow-[0_0_20px_rgba(99,102,241,0.25)]"
             >
               Join Discussion →
+            </a>
+          </div>
+
+          <div className="flex justify-center mb-16">
+            <a
+              href="https://github.com/brianzhibo-design/RealWorldClaw"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="https://img.shields.io/github/stars/brianzhibo-design/RealWorldClaw?style=social"
+                alt="GitHub Stars"
+                className="h-6"
+              />
             </a>
           </div>
 
