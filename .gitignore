@@ -64,3 +64,4 @@ website/
 .deploy-trigger
 .vercel
 scripts/.env
+frontend/.playwright-cli/
