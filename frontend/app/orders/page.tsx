@@ -17,6 +17,7 @@ interface Order {
   title?: string;
   created_at: string;
   updated_at?: string;
+  order_number?: string;
 }
 
 type TabType = 'all' | 'submitted' | 'in_progress' | 'completed';

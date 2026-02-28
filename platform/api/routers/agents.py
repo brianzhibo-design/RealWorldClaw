@@ -6,6 +6,7 @@ import json
 import logging
 import os
 import random
+import re
 import secrets
 import string
 from datetime import datetime, timedelta, timezone
@@ -13,7 +14,7 @@ from pathlib import Path
 from urllib.parse import quote
 
 import httpx
-from fastapi import APIRouter, Body, Depends, File, Header, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, File, Header, HTTPException, UploadFile
 from pydantic import BaseModel
 
 from ..api_keys import find_agent_by_api_key, hash_api_key
