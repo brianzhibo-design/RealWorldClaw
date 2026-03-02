@@ -135,6 +135,8 @@ Create hardware components under `seed-components/` with proper manifests and ST
 ### 📦 Firmware Modules
 Add sensor/actuator modules under `firmware/modules/` — see existing files for the pattern.
 
+- Development guide: [`docs/guides/firmware-modules.md`](docs/guides/firmware-modules.md)
+
 ### 📖 Documentation
 Improve guides, fix typos, add examples. Docs live in `docs/` and `docs-site/`.
 
