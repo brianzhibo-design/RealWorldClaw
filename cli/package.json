@@ -9,9 +9,14 @@
   "main": "src/index.js",
   "scripts": {
     "start": "node bin/rwc.js",
-    "link": "npm link"
+    "link": "npm link",
+    "test": "node --test tests/*.test.js"
   },
-  "keywords": ["3d-printing", "cli", "marketplace"],
+  "keywords": [
+    "3d-printing",
+    "cli",
+    "marketplace"
+  ],
   "license": "MIT",
   "dependencies": {
     "chalk": "^5.3.0",
