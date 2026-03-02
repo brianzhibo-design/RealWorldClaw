@@ -9,33 +9,62 @@ const statusColor = (s) => {
   return chalk.red(s);
 };
 
+export function normalizePrinters(data) {
+  return data.printers || data;
+}
+
+export function formatPrinterListJson(printers) {
+  return {
+    printers: printers.map((p) => ({
+      id: p.id,
+      name: p.name,
+      model: p.model || '-',
+      status: p.status,
+    })),
+  };
+}
+
+async function renderPrinterList(json = false) {
+  const spinner = ora('获取打印机列表...').start();
+  try {
+    const data = await api.get('/printers');
+    const printers = normalizePrinters(data);
+    spinner.stop();
+
+    if (json) {
+      console.log(JSON.stringify(formatPrinterListJson(printers), null, 2));
+      return;
+    }
+
+    if (!printers.length) {
+      heading('🖨️  暂无连接的打印机');
+      return;
+    }
+
+    heading('🖨️  打印机列表');
+    table(
+      ['ID', '名称', '型号', '状态'],
+      printers.map((p) => [p.id, p.name, p.model || '-', statusColor(p.status)])
+    );
+  } catch (err) {
+    spinner.fail('获取失败');
+    handleError(err);
+  }
+}
+
 export function registerPrinterCommand(program) {
-  const cmd = program
-    .command('printer')
-    .description('打印机管理');
+  const cmd = program.command('printer').description('打印机管理').option('--json', '以 JSON 格式输出打印机列表');
+
+  cmd.action(async (options) => {
+    await renderPrinterList(Boolean(options.json));
+  });
 
   cmd
     .command('list')
     .description('列出连接的打印机')
-    .action(async () => {
-      const spinner = ora('获取打印机列表...').start();
-      try {
-        const data = await api.get('/printers');
-        spinner.stop();
-        const printers = data.printers || data;
-        if (!printers.length) {
-          heading('🖨️  暂无连接的打印机');
-          return;
-        }
-        heading('🖨️  打印机列表');
-        table(
-          ['ID', '名称', '型号', '状态'],
-          printers.map(p => [p.id, p.name, p.model || '-', statusColor(p.status)])
-        );
-      } catch (err) {
-        spinner.fail('获取失败');
-        handleError(err);
-      }
+    .option('--json', '以 JSON 格式输出')
+    .action(async (options) => {
+      await renderPrinterList(Boolean(options.json));
     });
 
   cmd
