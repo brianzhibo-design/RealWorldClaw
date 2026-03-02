@@ -10,7 +10,7 @@ lint:
 	cd platform && ruff check .
 
 validate:
-	cd tools/manifest-validator && python validate.py ../../components/clawbie-v4/
+	python3 tools/manifest-validator/validate_seed_components.py
 
 deploy-api:
 	cd platform && fly deploy
