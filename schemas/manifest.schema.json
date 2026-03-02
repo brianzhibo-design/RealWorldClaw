@@ -1,0 +1,271 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://realworldclaw.com/schemas/manifest/v1.0.0",
+  "title": "RealWorldClaw Component Manifest",
+  "description": "RealWorldClaw 组件包元数据规范 v1.0",
+  "type": "object",
+  "required": ["id", "version", "display_name", "description", "author", "license", "hardware", "printing", "physical"],
+  "additionalProperties": false,
+
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]{2,63}$",
+      "description": "全局唯一ID，小写英文+连字符，3-64字符，字母开头"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(-[a-zA-Z0-9.]+)?(\\+[a-zA-Z0-9.]+)?$",
+      "description": "语义化版本号 SemVer 2.0"
+    },
+    "display_name": {
+      "type": "object",
+      "required": ["en"],
+      "properties": {
+        "en": { "type": "string", "minLength": 3, "maxLength": 100 },
+        "zh": { "type": "string", "minLength": 2, "maxLength": 100 }
+      },
+      "additionalProperties": { "type": "string" }
+    },
+    "description": {
+      "type": "object",
+      "required": ["en"],
+      "properties": {
+        "en": { "type": "string", "minLength": 50, "maxLength": 2000 },
+        "zh": { "type": "string", "minLength": 10, "maxLength": 2000 }
+      },
+      "additionalProperties": { "type": "string" }
+    },
+    "author": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64
+    },
+    "license": {
+      "type": "string",
+      "enum": ["MIT", "Apache-2.0", "GPL-3.0", "LGPL-3.0", "BSD-2-Clause", "BSD-3-Clause", "CC-BY-4.0", "CC-BY-SA-4.0", "CC0-1.0", "CERN-OHL-S-2.0", "CERN-OHL-W-2.0", "CERN-OHL-P-2.0"]
+    },
+    "tags": {
+      "type": "array",
+      "items": { "type": "string", "pattern": "^[a-z0-9-]+$" },
+      "minItems": 1,
+      "maxItems": 20,
+      "uniqueItems": true
+    },
+    "capabilities": {
+      "type": "array",
+      "items": { "type": "string", "pattern": "^[a-z_]+$" },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "hardware": {
+      "type": "object",
+      "required": ["compute", "power"],
+      "properties": {
+        "compute": {
+          "type": "string",
+          "enum": ["esp32", "esp32-s3", "esp32-c3", "esp32-c6", "esp8266", "rpi-zero-2w", "rpi-4b", "rpi-5", "rpi-pico", "rpi-pico-w", "arduino-nano", "arduino-uno", "stm32f103", "nrf52840", "custom"]
+        },
+        "sensors": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["model", "interface"],
+            "properties": {
+              "model": { "type": "string" },
+              "interface": { "type": "string", "enum": ["gpio", "i2c", "spi", "uart", "adc", "one-wire", "usb", "csi", "mipi"] },
+              "pin": { "oneOf": [{ "type": "integer" }, { "type": "string" }, { "type": "array", "items": { "type": "integer" } }] },
+              "address": { "type": "string", "pattern": "^0x[0-9a-fA-F]{2}$" },
+              "bus": { "type": "integer" },
+              "voltage": { "type": "string" },
+              "datasheet_url": { "type": "string", "format": "uri" }
+            }
+          }
+        },
+        "actuators": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["model", "type"],
+            "properties": {
+              "model": { "type": "string" },
+              "type": { "type": "string", "enum": ["servo", "stepper", "dc-motor", "relay", "solenoid", "led-strip", "buzzer", "pump", "fan", "heater", "valve", "display", "speaker"] },
+              "interface": { "type": "string" },
+              "pin": { "oneOf": [{ "type": "integer" }, { "type": "string" }] },
+              "voltage": { "type": "string" },
+              "max_current": { "type": "string" }
+            }
+          }
+        },
+        "power": {
+          "type": "object",
+          "required": ["type", "voltage"],
+          "properties": {
+            "type": { "type": "string", "enum": ["usb-c", "usb-micro", "dc-barrel", "battery-lipo", "battery-18650", "battery-aa", "solar", "poe", "screw-terminal"] },
+            "voltage": { "type": "string", "pattern": "^[0-9.]+(V|v)$" },
+            "consumption": { "type": "string" },
+            "peak_consumption": { "type": "string" },
+            "battery_capacity": { "type": "string" },
+            "battery_life": { "type": "string" },
+            "sleep_consumption": { "type": "string" }
+          }
+        },
+        "estimated_cost": {
+          "type": "object",
+          "properties": {
+            "CNY": { "type": "number", "minimum": 0 },
+            "USD": { "type": "number", "minimum": 0 }
+          }
+        }
+      }
+    },
+    "printing": {
+      "type": "object",
+      "required": ["files", "material"],
+      "properties": {
+        "files": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["path", "quantity"],
+            "properties": {
+              "path": { "type": "string", "pattern": "^models/.+\\.(stl|3mf|step)$" },
+              "quantity": { "type": "integer", "minimum": 1, "maximum": 20 },
+              "material_override": { "type": "string" },
+              "color": { "type": "string" },
+              "notes": { "type": "string" }
+            }
+          },
+          "minItems": 1
+        },
+        "material": {
+          "type": "string",
+          "enum": ["PLA", "PLA+", "PETG", "ASA", "ABS", "TPU", "Nylon", "PC", "PETG-CF", "PLA-CF", "Nylon-CF"]
+        },
+        "layer_height": { "type": "string", "pattern": "^[0-9.]+mm$" },
+        "infill": { "type": "string", "pattern": "^[0-9]+%$" },
+        "supports": { "type": "boolean" },
+        "estimated_time": { "type": "string", "pattern": "^[0-9]+h([0-9]+m)?$" },
+        "estimated_filament": { "type": "string", "pattern": "^[0-9]+g$" },
+        "min_bed_size": {
+          "type": "array",
+          "items": { "type": "integer", "minimum": 50, "maximum": 500 },
+          "minItems": 2, "maxItems": 2
+        },
+        "print_orientation": { "type": "string" },
+        "nozzle_size": { "type": "string", "default": "0.4mm" },
+        "print_speed": { "type": "string" },
+        "bed_temp": { "type": "string" },
+        "nozzle_temp": { "type": "string" }
+      }
+    },
+    "physical": {
+      "type": "object",
+      "required": ["module_size", "dimensions"],
+      "properties": {
+        "module_size": { "type": "string", "enum": ["1U", "2U", "3U", "4U", "6U", "8U", "custom"] },
+        "dimensions": {
+          "type": "array",
+          "items": { "type": "number", "minimum": 5, "maximum": 500 },
+          "minItems": 3, "maxItems": 3
+        },
+        "weight": { "type": "string", "pattern": "^[0-9]+g$" },
+        "mounting": { "type": "string" },
+        "mounting_types": {
+          "type": "array",
+          "items": { "type": "string", "enum": ["desktop", "wall_mount", "din_rail", "magnetic", "clamp", "pole_mount", "ceiling", "vesa_75", "adhesive", "screw_plate"] }
+        },
+        "protection": { "type": "string", "enum": ["CF-P0", "CF-P1", "CF-P2", "CF-P3"] }
+      }
+    },
+    "electrical": {
+      "type": "object",
+      "properties": {
+        "logic_level": { "type": "string", "enum": ["3.3V", "5V"] },
+        "interfaces": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["type", "connector"],
+            "properties": {
+              "type": { "type": "string", "enum": ["i2c", "spi", "uart", "gpio", "power", "usb", "can", "rs485", "one-wire", "analog"] },
+              "connector": { "type": "string" },
+              "pinout": { "type": "array", "items": { "type": "string" } },
+              "direction": { "type": "string", "enum": ["in", "out", "bidirectional"] }
+            }
+          }
+        }
+      }
+    },
+    "communication": {
+      "type": "object",
+      "properties": {
+        "protocol": { "type": "string", "enum": ["mqtt", "http", "websocket", "ble", "zigbee", "lorawan", "espnow", "matter"] },
+        "topics": {
+          "type": "object",
+          "properties": {
+            "publish": { "type": "array", "items": { "type": "string" } },
+            "subscribe": { "type": "array", "items": { "type": "string" } }
+          }
+        },
+        "discovery": { "type": "boolean" },
+        "ota_update": { "type": "boolean" }
+      }
+    },
+    "software": {
+      "type": "object",
+      "properties": {
+        "firmware_platform": { "type": "string", "enum": ["arduino", "espidf", "micropython", "circuitpython", "zephyr", "platformio", "esphome", "tasmota", "linux"] },
+        "dependencies": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["name", "version"],
+            "properties": {
+              "name": { "type": "string" },
+              "version": { "type": "string" }
+            },
+            "additionalProperties": false
+          }
+        },
+        "openclaw_skill": { "type": "string" },
+        "build_command": { "type": "string" },
+        "flash_command": { "type": "string" }
+      }
+    },
+    "compatible_with": {
+      "type": "object",
+      "properties": {
+        "bases": { "type": "array", "items": { "type": "string" } },
+        "addons": { "type": "array", "items": { "type": "string" } },
+        "incompatible": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "completeness": {
+      "type": "object",
+      "properties": {
+        "has_models": { "type": "boolean" },
+        "has_wiring": { "type": "boolean" },
+        "has_firmware": { "type": "boolean" },
+        "has_agent": { "type": "boolean" },
+        "has_docs": { "type": "boolean" }
+      }
+    },
+    "thermal": {
+      "type": "object",
+      "properties": {
+        "class": { "type": "string", "enum": ["passive-none", "passive-fins", "passive-heatsink", "active-fan", "active-heatpipe"] },
+        "max_ambient": { "type": "string" },
+        "vent_area": { "type": "string" }
+      }
+    },
+    "waterproof": {
+      "type": "object",
+      "properties": {
+        "seal_type": { "type": "string", "enum": ["none", "gasket", "oring", "potting", "conformal-coating"] },
+        "cable_gland": { "type": "string" },
+        "drain_holes": { "type": "boolean" }
+      }
+    }
+  }
+}
