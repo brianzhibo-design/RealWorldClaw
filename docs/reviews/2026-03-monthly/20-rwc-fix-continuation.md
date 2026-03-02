@@ -32,8 +32,9 @@ Executor: feiyangyang (subagent)
 
 ## 新增 PR 链接
 
-- 待主代理从当前分支推送并创建（本次代码已准备在 `fix/issue-12`）。
-- 建议 PR 标题：`fix(tooling): add seed-components manifest schema validation with legacy adapter`
+- PR: https://github.com/brianzhibo-design/RealWorldClaw/pull/21
+- Branch: `fix/issue-12`
+- 标题: `fix(tooling): add seed-components manifest schema validation adapter`
 
 ---
 
