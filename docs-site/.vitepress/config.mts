@@ -178,6 +178,18 @@ export default defineConfig({
         },
       },
     },
+    ja: {
+      label: '日本語',
+      lang: 'ja-JP',
+      link: '/ja/',
+      themeConfig: {
+        nav: [
+          { text: 'クイックスタート', link: '/ja/' },
+          { text: 'ガイド', link: '/getting-started/introduction' },
+          { text: 'GitHub', link: 'https://github.com/brianzhibo-design/RealWorldClaw' },
+        ],
+      },
+    },
   },
 
   themeConfig: {
