@@ -276,6 +276,50 @@ class TestOrderMessages:
 
 # ─── 评价 ────────────────────────────────────────────────
 
+class TestOrderShippingAutoFlow:
+    def test_update_shipping_auto_sets_shipping_status(self):
+        _seed_world()
+        order = _create_order()
+        oid = order["order_id"]
+
+        # Maker accepts, then directly adds shipping info
+        resp = client.put(
+            f"/api/v1/orders/{oid}/accept",
+            json={"estimated_hours": 24},
+            headers=_auth(MAKER_KEY),
+        )
+        assert resp.status_code == 200
+
+        resp = client.put(
+            f"/api/v1/orders/{oid}/shipping",
+            json={"shipping_carrier": "顺丰", "shipping_tracking": "SF-AUTO-001"},
+            headers=_auth(MAKER_KEY),
+        )
+        assert resp.status_code == 200
+        body = resp.json()
+        assert body["status"] == "shipping"
+        assert body["shipping_tracking"] == "SF-AUTO-001"
+
+        with get_db() as db:
+            row = db.execute("SELECT status, shipping_tracking FROM orders WHERE id = ?", (oid,)).fetchone()
+            assert row["status"] == "shipping"
+            assert row["shipping_tracking"] == "SF-AUTO-001"
+
+    def test_update_shipping_rejects_invalid_status(self):
+        _seed_world()
+        order = _create_order()
+        oid = order["order_id"]
+
+        # pending 状态下不能录入物流信息
+        resp = client.put(
+            f"/api/v1/orders/{oid}/shipping",
+            json={"shipping_carrier": "顺丰", "shipping_tracking": "SF-BAD-001"},
+            headers=_auth(MAKER_KEY),
+        )
+        assert resp.status_code == 400
+        assert "Cannot add shipping info" in resp.json()["detail"]
+
+
 class TestOrderReview:
     def _complete_order(self) -> str:
         """走完整个流程到completed"""

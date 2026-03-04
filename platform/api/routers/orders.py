@@ -3,7 +3,7 @@
 核心隐私规则：
 - 买家永远看不到Maker真实身份/地址
 - Maker永远看不到买家真实身份/详细地址
-- Messages display "Customer"/"Maker"
+- Messages display "客户"/"制造商"
 
 订单类型：
 - print_only: 只打印零件，maker和builder都能接
@@ -42,7 +42,7 @@ router = APIRouter(prefix="/orders", tags=["orders"])
 
 PLATFORM_FEE_NORMAL = 0.0  # Free platform — makers keep 100%
 PLATFORM_FEE_EXPRESS = 0.0  # Free platform — makers keep 100%
-_ROLE_DISPLAY = {"customer": "Customer", "maker": "Maker", "platform": "Platform"}
+_ROLE_DISPLAY = {"customer": "客户", "maker": "制造商", "platform": "平台"}
 
 
 # ─── Helpers ─────────────────────────────────────────────
@@ -374,12 +374,21 @@ def update_shipping(order_id: str, body: OrderShippingUpdate, identity: dict = D
         if "maker" not in roles:
             raise HTTPException(status_code=403, detail="Only maker can add shipping info")
 
+        if order["status"] not in ("accepted", "printing", "assembling", "quality_check", "shipping"):
+            raise HTTPException(status_code=400, detail=f"Cannot add shipping info when order is {order['status']}")
+
+        # 自动发货：录入物流后，订单自动进入 shipping 状态
         db.execute(
-            "UPDATE orders SET shipping_carrier = ?, shipping_tracking = ?, updated_at = ? WHERE id = ?",
+            "UPDATE orders SET shipping_carrier = ?, shipping_tracking = ?, status = 'shipping', updated_at = ? WHERE id = ?",
             (body.shipping_carrier, body.shipping_tracking, now, order_id),
         )
 
-    return {"order_id": order_id, "shipping_carrier": body.shipping_carrier, "shipping_tracking": body.shipping_tracking}
+    return {
+        "order_id": order_id,
+        "status": "shipping",
+        "shipping_carrier": body.shipping_carrier,
+        "shipping_tracking": body.shipping_tracking,
+    }
 
 
 @router.post("/{order_id}/confirm")
