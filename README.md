@@ -1,10 +1,13 @@
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="brand/readme-hero-dark.svg">
-    <source media="(prefers-color-scheme: light)" srcset="brand/readme-hero-light.svg">
-    <img src="brand/readme-hero-dark.svg" alt="RealWorldClaw — The Open Manufacturing Network" width="100%">
+    <source media="(prefers-color-scheme: light)" srcset="brand/logo-dark.svg">
+    <img src="brand/logo-light.svg" alt="RealWorldClaw" width="200">
   </picture>
 </p>
+
+<h1 align="center">RealWorldClaw</h1>
+
+<p align="center"><strong>The Open Manufacturing Network</strong></p>
 
 <p align="center">
   <a href="https://github.com/brianzhibo-design/RealWorldClaw/actions/workflows/ci.yml"><img src="https://github.com/brianzhibo-design/RealWorldClaw/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
