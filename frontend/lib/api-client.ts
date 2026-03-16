@@ -291,7 +291,7 @@ function getToken(): string | null {
   return null;
 }
 
-function authHeaders(extra?: Record<string, string>): Record<string, string> {
+export function getAuthHeaders(extra?: Record<string, string>): Record<string, string> {
   const token = getToken();
   const headers: Record<string, string> = { ...extra };
   if (token) headers.Authorization = `Bearer ${token}`;
@@ -302,7 +302,7 @@ function authHeaders(extra?: Record<string, string>): Record<string, string> {
 
 export async function fetchOrders(type: 'public' | 'my' = 'public'): Promise<Order[]> {
   try {
-    const res = await fetchWithAuth(`${API_BASE}/orders?type=${type}`, { headers: authHeaders() });
+    const res = await fetchWithAuth(`${API_BASE}/orders?type=${type}`, { headers: getAuthHeaders() });
     if (!res.ok) return [];
     const data = await res.json();
     return data.orders || data;
@@ -313,7 +313,7 @@ export async function fetchOrders(type: 'public' | 'my' = 'public'): Promise<Ord
 
 export async function fetchAvailableOrders(): Promise<Order[]> {
   try {
-    const res = await fetchWithAuth(`${API_BASE}/orders/available`, { headers: authHeaders() });
+    const res = await fetchWithAuth(`${API_BASE}/orders/available`, { headers: getAuthHeaders() });
     if (!res.ok) return [];
     const data = await res.json();
     return Array.isArray(data) ? data : data.orders || [];
@@ -324,7 +324,7 @@ export async function fetchAvailableOrders(): Promise<Order[]> {
 
 export async function fetchAcceptedOrders(): Promise<Order[]> {
   try {
-    const res = await fetchWithAuth(`${API_BASE}/orders?status=accepted`, { headers: authHeaders() });
+    const res = await fetchWithAuth(`${API_BASE}/orders?status=accepted`, { headers: getAuthHeaders() });
     if (!res.ok) return [];
     const data = await res.json();
     return Array.isArray(data) ? data : data.orders || [];
@@ -337,7 +337,7 @@ export async function acceptOrder(orderId: string, estimatedHours: number = 24):
   try {
     const res = await fetchWithAuth(`${API_BASE}/orders/${orderId}/accept`, {
       method: 'PUT',
-      headers: authHeaders({ 'Content-Type': 'application/json' }),
+      headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
       body: JSON.stringify({ estimated_hours: estimatedHours }),
     });
     if (!res.ok) {
@@ -352,7 +352,7 @@ export async function acceptOrder(orderId: string, estimatedHours: number = 24):
 
 export async function fetchOrder(id: string): Promise<Order | null> {
   try {
-    const res = await fetchWithAuth(`${API_BASE}/orders/${id}`, { headers: authHeaders() });
+    const res = await fetchWithAuth(`${API_BASE}/orders/${id}`, { headers: getAuthHeaders() });
     if (!res.ok) return null;
     return await res.json();
   } catch {
@@ -373,7 +373,7 @@ export async function createOrder(data: {
   try {
     const res = await fetchWithAuth(`${API_BASE}/orders`, {
       method: 'POST',
-      headers: authHeaders({ 'Content-Type': 'application/json' }),
+      headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
       body: JSON.stringify(data),
     });
     if (!res.ok) {
@@ -394,7 +394,7 @@ export async function updateOrderStatus(
   try {
     const res = await fetchWithAuth(`${API_BASE}/orders/${orderId}/status`, {
       method: 'PUT',
-      headers: authHeaders({ 'Content-Type': 'application/json' }),
+      headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
       body: JSON.stringify({ status }),
     });
     if (!res.ok) return { success: false, error: 'Status update failed' };
@@ -408,7 +408,7 @@ export async function updateOrderStatus(
 
 export async function fetchNodes(): Promise<Node[]> {
   try {
-    const res = await fetchWithAuth(`${API_BASE}/nodes`, { headers: authHeaders() });
+    const res = await fetchWithAuth(`${API_BASE}/nodes`, { headers: getAuthHeaders() });
     if (!res.ok) return [];
     const data = await res.json();
     return data.nodes || data;
@@ -430,7 +430,7 @@ export async function registerNode(data: {
   try {
     const res = await fetchWithAuth(`${API_BASE}/nodes/register`, {
       method: 'POST',
-      headers: authHeaders({ 'Content-Type': 'application/json' }),
+      headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
       body: JSON.stringify(data),
     });
     if (!res.ok) {
@@ -452,7 +452,7 @@ export async function fetchStats(): Promise<{
   activeOrders?: number;
 } | null> {
   try {
-    const res = await fetchWithAuth(`${API_BASE}/stats`, { headers: authHeaders() });
+    const res = await fetchWithAuth(`${API_BASE}/stats`, { headers: getAuthHeaders() });
     if (!res.ok) return null;
     return await res.json();
   } catch {
@@ -475,7 +475,7 @@ export async function fetchCommunityPosts(
     ...(type && type !== '' && { type }),
   });
 
-  const res = await fetchWithAuth(`${API_BASE}/community/posts?${params}`, { headers: authHeaders() });
+  const res = await fetchWithAuth(`${API_BASE}/community/posts?${params}`, { headers: getAuthHeaders() });
   if (!res.ok) {
     let payload: unknown = null;
     try {
@@ -523,7 +523,7 @@ export async function createCommunityPost(data: {
   try {
     const res = await fetchWithAuth(`${API_BASE}/community/posts`, {
       method: 'POST',
-      headers: authHeaders({ 'Content-Type': 'application/json' }),
+      headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
       body: JSON.stringify(data),
     });
     if (!res.ok) {
@@ -545,7 +545,7 @@ export async function createComment(
   try {
     const res = await fetchWithAuth(`${API_BASE}/community/posts/${postId}/comments`, {
       method: 'POST',
-      headers: authHeaders({ 'Content-Type': 'application/json' }),
+      headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
       body: JSON.stringify({ content, parent_id: parentId }),
     });
     if (!res.ok) {
@@ -568,7 +568,7 @@ export async function votePost(
   try {
     const res = await fetchWithAuth(`${API_BASE}/community/posts/${postId}/vote`, {
       method: 'POST',
-      headers: authHeaders({ 'Content-Type': 'application/json' }),
+      headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
       body: JSON.stringify({ vote_type: voteType }),
     });
     if (!res.ok) {
@@ -588,7 +588,7 @@ export async function voteComment(
   try {
     const res = await fetchWithAuth(`${API_BASE}/community/comments/${commentId}/vote`, {
       method: 'POST',
-      headers: authHeaders({ 'Content-Type': 'application/json' }),
+      headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
       body: JSON.stringify({ vote_type: voteType }),
     });
     if (!res.ok) {

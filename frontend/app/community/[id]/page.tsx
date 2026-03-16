@@ -313,7 +313,7 @@ export default function PostDetailPage() {
                 {replyTo && (
                   <div className="mb-3 p-3 bg-slate-800/50 rounded-lg border border-slate-700 flex items-center justify-between">
                     <span className="text-sm text-slate-400">Replying to comment...</span>
-                    <button type="button" onClick={() => setReplyTo(null)} className="text-slate-400 hover:text-slate-300">✕</button>
+                    <button type="button" onClick={() => setReplyTo(null)} className="text-slate-400 hover:text-slate-300" aria-label="Cancel reply">✕</button>
                   </div>
                 )}
                 <textarea
