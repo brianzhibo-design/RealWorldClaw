@@ -47,7 +47,7 @@ jobs:
       - name: Install
         run: cd frontend && npm ci
       - name: Lint
-        run: cd frontend && npx next lint
+        run: cd frontend && npm run lint
       - name: Type Check
         run: cd frontend && npx tsc --noEmit
 
