@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 400">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#1e293b"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#38bdf8"/>
+      <stop offset="100%" stop-color="#818cf8"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <rect width="1200" height="400" fill="url(#bg)" rx="12"/>
+  <!-- Subtle grid dots -->
+  <g fill="#334155" opacity="0.3">
+    <circle cx="60" cy="60" r="1.5"/><circle cx="120" cy="60" r="1.5"/><circle cx="180" cy="60" r="1.5"/><circle cx="240" cy="60" r="1.5"/><circle cx="300" cy="60" r="1.5"/>
+    <circle cx="900" cy="60" r="1.5"/><circle cx="960" cy="60" r="1.5"/><circle cx="1020" cy="60" r="1.5"/><circle cx="1080" cy="60" r="1.5"/><circle cx="1140" cy="60" r="1.5"/>
+    <circle cx="60" cy="340" r="1.5"/><circle cx="120" cy="340" r="1.5"/><circle cx="180" cy="340" r="1.5"/><circle cx="240" cy="340" r="1.5"/><circle cx="300" cy="340" r="1.5"/>
+    <circle cx="900" cy="340" r="1.5"/><circle cx="960" cy="340" r="1.5"/><circle cx="1020" cy="340" r="1.5"/><circle cx="1080" cy="340" r="1.5"/><circle cx="1140" cy="340" r="1.5"/>
+  </g>
+  <!-- RW Logo Mark -->
+  <g transform="translate(80, 100)" filter="url(#glow)">
+    <path d="M 15 180 V 25 H 70 A 28 28 0 0 1 70 105 H 15 M 42 105 L 85 180" fill="none" stroke="#38bdf8" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M 110 25 L 128 180 L 160 100 L 192 180 L 210 25" fill="none" stroke="#38bdf8" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="15" cy="25" r="6" fill="#fff"/>
+    <circle cx="70" cy="65" r="6" fill="#fff"/>
+    <circle cx="85" cy="180" r="6" fill="#fff"/>
+    <circle cx="110" cy="25" r="6" fill="#fff"/>
+    <circle cx="160" cy="100" r="6" fill="#fff"/>
+    <circle cx="210" cy="25" r="6" fill="#fff"/>
+  </g>
+  <!-- Title -->
+  <text x="380" y="175" font-family="system-ui,-apple-system,'Segoe UI',sans-serif" font-size="56" font-weight="800" fill="#f1f5f9">RealWorld<tspan fill="#38bdf8">Claw</tspan></text>
+  <!-- Tagline -->
+  <text x="380" y="220" font-family="system-ui,-apple-system,'Segoe UI',sans-serif" font-size="18" fill="#94a3b8" letter-spacing="0.1em">THE OPEN MANUFACTURING NETWORK</text>
+  <!-- Subtitle -->
+  <text x="380" y="265" font-family="system-ui,-apple-system,'Segoe UI',sans-serif" font-size="16" fill="#64748b">Connect distributed manufacturing capacity. 3D printers, CNC, laser — on demand.</text>
+  <!-- Accent line -->
+  <rect x="380" y="235" width="60" height="3" rx="1.5" fill="url(#accent)"/>
+</svg>

@@ -1,198 +1,209 @@
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: light)" srcset="brand/logo-dark.svg">
-    <img src="brand/logo-light.svg" alt="RealWorldClaw" width="400">
+    <source media="(prefers-color-scheme: dark)" srcset="brand/readme-hero-dark.svg">
+    <source media="(prefers-color-scheme: light)" srcset="brand/readme-hero-light.svg">
+    <img src="brand/readme-hero-dark.svg" alt="RealWorldClaw — The Open Manufacturing Network" width="100%">
   </picture>
 </p>
-
-<p align="center"><strong>The distributed manufacturing network. Turn any idea into a physical object.</strong></p>
 
 <p align="center">
   <a href="https://github.com/brianzhibo-design/RealWorldClaw/actions/workflows/ci.yml"><img src="https://github.com/brianzhibo-design/RealWorldClaw/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <a href="https://github.com/brianzhibo-design/RealWorldClaw/actions/workflows/codeql.yml"><img src="https://github.com/brianzhibo-design/RealWorldClaw/actions/workflows/codeql.yml/badge.svg" alt="CodeQL"></a>
-  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue?style=flat" alt="License"></a>
-  <a href="https://github.com/brianzhibo-design/RealWorldClaw/releases"><img src="https://img.shields.io/github/v/release/brianzhibo-design/RealWorldClaw?include_prereleases&style=flat" alt="Release"></a>
-  <a href="https://github.com/brianzhibo-design/RealWorldClaw/stargazers"><img src="https://img.shields.io/github/stars/brianzhibo-design/RealWorldClaw?style=flat" alt="Stars"></a>
-  <a href="https://python.org"><img src="https://img.shields.io/badge/Python-3.11+-3776AB?logo=python&logoColor=white&style=flat" alt="Python"></a>
-  <a href="https://nextjs.org"><img src="https://img.shields.io/badge/Next.js-14-black?logo=next.js&style=flat" alt="Next.js"></a>
-  <a href="https://fastapi.tiangolo.com"><img src="https://img.shields.io/badge/FastAPI-0.135-009688?logo=fastapi&logoColor=white&style=flat" alt="FastAPI"></a>
-  <a href="docker-compose.yml"><img src="https://img.shields.io/badge/Docker-ready-2496ED?logo=docker&logoColor=white&style=flat" alt="Docker"></a>
-  <a href="https://github.com/brianzhibo-design/RealWorldClaw/graphs/contributors"><img src="https://img.shields.io/github/contributors/brianzhibo-design/RealWorldClaw?style=flat" alt="Contributors"></a>
+  <a href="https://github.com/brianzhibo-design/RealWorldClaw/releases"><img src="https://img.shields.io/github/v/release/brianzhibo-design/RealWorldClaw?include_prereleases" alt="Release"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="License"></a>
+  <a href="https://github.com/brianzhibo-design/RealWorldClaw/stargazers"><img src="https://img.shields.io/github/stars/brianzhibo-design/RealWorldClaw" alt="Stars"></a>
+  <a href="https://github.com/brianzhibo-design/RealWorldClaw/graphs/contributors"><img src="https://img.shields.io/github/contributors/brianzhibo-design/RealWorldClaw" alt="Contributors"></a>
 </p>
 
 <p align="center">
-  <a href="https://realworldclaw.com">Website</a> ·
-  <a href="PROJECT.md">Vision</a> ·
-  <a href="docs/ROADMAP.md">Roadmap</a> ·
-  <a href="docs/">Docs</a> ·
+  <a href="https://realworldclaw.com">Website</a> &nbsp;·&nbsp;
+  <a href="docs/ROADMAP.md">Roadmap</a> &nbsp;·&nbsp;
+  <a href="https://github.com/brianzhibo-design/RealWorldClaw/discussions">Discussions</a> &nbsp;·&nbsp;
   <a href="CONTRIBUTING.md">Contributing</a>
 </p>
 
----
+<br>
 
-RealWorldClaw is building the **cloud computing layer for manufacturing**.
+> **RealWorldClaw** connects distributed manufacturing capacity — 3D printers, CNC machines, laser cutters — into an on-demand network anyone can call. Think **AWS, but for manufacturing.**
 
-- **Designers** submit files and get parts produced.
-- **Makers** connect idle machines and earn from fulfilled orders.
-- **Agents & apps** call the API to move from digital designs to physical output.
+<br>
 
-### Why Now?
+## How It Works
 
-| Before | Now |
-|---|---|
-| Design was expensive and slow | AI drastically lowers design cost |
-| Manufacturing favored large batches | Modern fabrication enables economical small runs |
-| Global maker capacity stayed fragmented | RealWorldClaw networks that capacity on demand |
+<table>
+<tr>
+<td width="33%" align="center">
 
----
+**🎨 Designers**
 
-## 🚀 Quick Start
+Upload a 3D file, pick a material, get it manufactured and shipped.
 
-### Run Locally
+</td>
+<td width="33%" align="center">
+
+**🖨️ Makers**
+
+Register your machines, accept jobs, earn income from idle capacity.
+
+</td>
+<td width="33%" align="center">
+
+**🤖 Agents & Apps**
+
+Call the REST API to bring digital designs into the physical world.
+
+</td>
+</tr>
+</table>
+
+<br>
+
+## Quick Start
 
 ```bash
 git clone https://github.com/brianzhibo-design/RealWorldClaw.git
 cd RealWorldClaw
-
-# API (FastAPI)
-cd platform
-pip install -r requirements.txt
-python -m uvicorn api.main:app --reload
-
-# Web (Next.js)
-cd ../frontend
-npm install
-npm run dev
 ```
 
-Requirements: **Python 3.11+**, **Node 18+**
+<table>
+<tr>
+<td width="50%">
 
-### Docker
-
+**🐳 Docker (recommended)**
 ```bash
 docker compose up
 ```
+Backend → `localhost:8000` · Frontend → `localhost:3000`
 
-### API Examples
+</td>
+<td width="50%">
 
+**🔧 Manual**
 ```bash
-API=https://realworldclaw-api.fly.dev/api/v1
+# Backend
+cd platform && pip install -r requirements.txt
+python -m uvicorn api.main:app --reload
 
-# Health
-curl https://realworldclaw-api.fly.dev/health
-
-# Public spaces
-curl $API/spaces
-
-# API schema/docs
-open https://realworldclaw-api.fly.dev/docs
+# Frontend
+cd frontend && npm install && npm run dev
 ```
 
-For full API reference and workflows, see [docs/](docs/).
+</td>
+</tr>
+</table>
 
----
+> **Requirements:** Python 3.11+ · Node 18+ · [Full setup guide →](CONTRIBUTING.md#development-environment-setup)
 
-## 🔧 Features
+<br>
 
-- Manufacturing order system (submission, matching, fulfillment tracking)
-- Maker network with capabilities, materials, and service coverage
-- Matching engine (distance, material, reputation, and pricing signals)
-- Universal printer adapter (Bambu Lab, OctoPrint, Moonraker, PrusaLink)
-- FastAPI backend + Next.js frontend + automated CI quality gates
+## Features
 
----
+| Category | What's included |
+|---|---|
+| **Manufacturing** | Order system · Smart matching (distance + material + rating + price) · Fulfillment tracking |
+| **Maker Network** | Machine registration · Capability tags · Material catalogs · Privacy-first (anonymized identities) |
+| **Printer Adapters** | Bambu Lab · OctoPrint · Moonraker · PrusaLink |
+| **Platform** | FastAPI backend · Next.js frontend · JWT + RBAC · WebSocket real-time · Audit logging |
+| **Quality** | CI pipeline (5 jobs) · CodeQL scanning · Feature flags · Health probes |
 
-## 📐 Architecture
+<br>
+
+## Architecture
 
 ```mermaid
-graph TB
-    subgraph Frontend
-        A[Next.js · Vercel]
+graph LR
+    subgraph Client
+        A["🌐 Next.js Frontend"]
     end
-    subgraph API["REST API"]
-        B[FastAPI · JWT · RBAC · WebSocket]
+    subgraph API
+        B["⚡ FastAPI"]
+        B --> C["🔐 Auth · JWT · RBAC"]
     end
-    subgraph Services
-        C[Orders] --- D[Makers] --- E[Matching] --- F[Printer Adapter]
+    subgraph Core
+        D["📦 Orders"]
+        E["🏭 Makers"]
+        F["🎯 Matching Engine"]
+        G["🖨️ Printer Adapter"]
     end
-    subgraph Storage
-        G[(SQLite / PostgreSQL)]
+    subgraph Data
+        H[("💾 SQLite / Postgres")]
     end
-    A --> B --> Services --> G
-    F --> H[🖨️ 3D Printers]
-    F --> I[🔧 CNC / Laser]
+    A --> B
+    C --> D & E & F
+    D & E & F --> H
+    G --> I["Bambu Lab"]
+    G --> J["OctoPrint"]
+    G --> K["Moonraker"]
 ```
 
----
+<br>
 
-## 🗂️ Project Structure
+## Project Structure
 
-```text
+```
 RealWorldClaw/
-├── platform/           # Backend — FastAPI, 28+ API endpoints
-│   ├── api/            #   REST API, auth, models, routes
-│   ├── printer/        #   Universal printer adapter
-│   └── tests/          #   Unit & integration tests
-├── frontend/           # Web app — Next.js
-├── hardware/           # 3D models & PCB designs
-│   └── energy-core/    #   Energy Core (first product)
+├── platform/           # FastAPI backend (28+ endpoints, 300+ tests)
+├── frontend/           # Next.js web app
+├── hardware/           # 3D models & PCB designs (Energy Core)
 ├── firmware/           # ESP32 firmware (PlatformIO)
-├── docs/               # Documentation & specs
+├── docs/               # Specs, guides, API reference
 ├── docs-site/          # VitePress documentation site
-├── brand/              # Logo, OG images, brand assets
+├── brand/              # Logo, banners, brand assets
 ├── cli/                # CLI tools
 ├── sdk/                # Python SDK
-├── scripts/            # Automation & social media
-├── tools/              # Rendering & build tools
-├── docker-compose.yml  # One-command dev setup
-└── Makefile            # make dev / make test / make lint
+├── docker-compose.yml  # One-command dev environment
+└── Makefile            # make dev · make test · make lint
 ```
 
----
+<br>
 
-## ⚡ Energy Core
-
-Our first hardware product in this ecosystem: AI-native hardware designed for the RealWorldClaw network.
-
-- Hardware assets: [hardware/energy-core/](hardware/energy-core/)
-- System vision: [PROJECT.md](PROJECT.md)
-
----
-
-## 🗺️ Roadmap
-
-See [docs/ROADMAP.md](docs/ROADMAP.md) for active planning.
+## Roadmap
 
 | Phase | Focus | Status |
 |---|---|---|
-| Phase 0 | Core API + platform foundation | ✅ Live |
-| Phase 1 | Maker network + fulfillment workflows | 🟡 In Progress |
-| Phase 2 | AI-assisted optimization + multi-process expansion | ⚪ Planned |
+| **0** | Core API · Auth · Community · CI/CD | ✅ Live |
+| **1** | Maker network · Fulfillment workflows | 🟡 Active |
+| **2** | AI-assisted design · Multi-process | ⚪ Planned |
 
----
+See [docs/ROADMAP.md](docs/ROADMAP.md) for current sprint details.
 
-## 🤝 Contributing
+<br>
 
-Contributions are welcome from developers, makers, and designers.
+## Contributing
 
-- Start here: [CONTRIBUTING.md](CONTRIBUTING.md)
-- Open ideas and bugs: [GitHub Issues](https://github.com/brianzhibo-design/RealWorldClaw/issues)
-- Product discussions: [GitHub Discussions](https://github.com/brianzhibo-design/RealWorldClaw/discussions)
+We welcome contributions from developers, makers, and designers.
 
----
+<table>
+<tr>
+<td>
 
-## 📄 License
+🟢 **New here?** Start with a [good first issue](https://github.com/brianzhibo-design/RealWorldClaw/labels/good%20first%20issue)
 
-[MIT](LICENSE)
+📖 **Setup guide:** [CONTRIBUTING.md](CONTRIBUTING.md)
+
+💬 **Questions:** [GitHub Discussions](https://github.com/brianzhibo-design/RealWorldClaw/discussions)
+
+</td>
+</tr>
+</table>
+
+<br>
+
+## License
+
+[MIT](LICENSE) — use it, fork it, build on it.
 
 ---
 
 <p align="center">
-  <sub>Built with the belief that <b>anyone's idea deserves to become real</b>.</sub>
+  <sub>Built with the belief that <strong>anyone's idea deserves to become real</strong>.</sub>
 </p>
 
 <p align="center">
   <a href="https://star-history.com/#brianzhibo-design/RealWorldClaw&Date">
-    <img src="https://api.star-history.com/svg?repos=brianzhibo-design/RealWorldClaw&type=Date" width="500" alt="Star History">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=brianzhibo-design/RealWorldClaw&type=Date&theme=dark">
+      <img src="https://api.star-history.com/svg?repos=brianzhibo-design/RealWorldClaw&type=Date" width="500" alt="Star History">
+    </picture>
   </a>
 </p>
