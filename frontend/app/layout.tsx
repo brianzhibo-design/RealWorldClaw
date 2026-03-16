@@ -3,6 +3,7 @@ import type { Metadata, Viewport } from "next";
 import Header from "@/components/Header";
 import { MobileNavWrapper } from "@/components/layout/MobileNavWrapper";
 import { GoogleOAuthProvider } from '@react-oauth/google';
+import ErrorBoundary from "@/app/components/error-boundary";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -27,11 +28,14 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '';
+  const gaId = process.env.NEXT_PUBLIC_GA_ID || '';
 
   const content = (
     <>
       <Header />
-      <main className="pb-16 md:pb-0">{children}</main>
+      <ErrorBoundary>
+        <main className="pb-16 md:pb-0">{children}</main>
+      </ErrorBoundary>
       <MobileNavWrapper />
     </>
   );
@@ -39,6 +43,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <head>
+        {gaId && (
+          <>
+            <script async src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`} />
+            <script
+              dangerouslySetInnerHTML={{
+                __html: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','${gaId}');`,
+              }}
+            />
+          </>
+        )}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{

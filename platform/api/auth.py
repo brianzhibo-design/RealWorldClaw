@@ -6,7 +6,7 @@ import os
 
 from fastapi import Header, HTTPException
 
-from .api_keys import find_agent_by_api_key
+from .api_keys import find_agent_by_api_key, validate_api_key
 from .database import get_db
 
 _RWC_API_KEY = os.environ.get("RWC_API_KEY")
@@ -31,8 +31,11 @@ def require_auth(authorization: str = Header(...)) -> str:
     # Check hardcoded keys first
     if token in _VALID_API_KEYS:
         return token
-    # Then check database for agent API keys
+    # Then check managed API keys table and agent API keys
     with get_db() as db:
+        managed_key = validate_api_key(db, token)
+        if managed_key:
+            return token
         row = find_agent_by_api_key(db, token)
         if row:
             return token

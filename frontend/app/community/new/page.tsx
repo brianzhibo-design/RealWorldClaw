@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { createCommunityPost, apiFetch, API_BASE } from "@/lib/api-client";
+import { createCommunityPost, apiFetch, API_BASE, getAuthHeaders } from "@/lib/api-client";
 import { useAuthStore } from "@/stores/authStore";
 
 interface MyNode {
@@ -164,7 +164,6 @@ const MAX_TAGS = 5;
 export default function NewPostPage() {
   const router = useRouter();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-  const token = useAuthStore((s) => s.token);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -223,11 +222,10 @@ export default function NewPostPage() {
         const formDataUpload = new FormData();
         formDataUpload.append("file", file);
 
-        const authToken = token;
         const res = await fetch(`${API_BASE}/files/upload`, {
           method: "POST",
           credentials: "include",
-          headers: authToken ? { Authorization: `Bearer ${authToken}` } : {},
+          headers: getAuthHeaders(),
           body: formDataUpload,
         });
 
@@ -511,7 +509,7 @@ export default function NewPostPage() {
                       📄 {f.filename}
                       {f.size && <span className="text-slate-500 ml-2">({(f.size / 1024).toFixed(1)} KB)</span>}
                     </span>
-                    <button type="button" onClick={() => removeFile(f.file_id)} className="text-red-400 hover:text-red-300 text-sm ml-3">✕</button>
+                    <button type="button" onClick={() => removeFile(f.file_id)} className="text-red-400 hover:text-red-300 text-sm ml-3" aria-label={`Remove file ${f.filename}`}>✕</button>
                   </div>
                 ))}
               </div>

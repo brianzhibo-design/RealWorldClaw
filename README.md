@@ -10,9 +10,10 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/brianzhibo-design/RealWorldClaw/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/brianzhibo-design/RealWorldClaw/ci.yml?branch=main&style=for-the-badge" alt="CI"></a>
+  <a href="https://github.com/brianzhibo-design/RealWorldClaw/actions/workflows/ci.yml"><img src="https://github.com/brianzhibo-design/RealWorldClaw/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://github.com/brianzhibo-design/RealWorldClaw/actions/workflows/codeql.yml"><img src="https://github.com/brianzhibo-design/RealWorldClaw/actions/workflows/codeql.yml/badge.svg" alt="CodeQL"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue" alt="License"></a>
   <a href="https://github.com/brianzhibo-design/RealWorldClaw/releases"><img src="https://img.shields.io/github/v/release/brianzhibo-design/RealWorldClaw?include_prereleases&style=for-the-badge" alt="Release"></a>
-  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue?style=for-the-badge" alt="License"></a>
   <a href="https://github.com/brianzhibo-design/RealWorldClaw/stargazers"><img src="https://img.shields.io/github/stars/brianzhibo-design/RealWorldClaw?style=for-the-badge" alt="Stars"></a>
 </p>
 
@@ -81,6 +82,13 @@ Previous attempts lacked two catalysts that exist today: **AI-powered design** a
 - [ ] AI-assisted design optimization
 - [ ] Multi-process support (CNC, laser, injection molding)
 - [ ] Automated pricing engine
+
+## Monitoring
+
+- **API health endpoint**: `GET /health` → [realworldclaw-api.fly.dev/health](https://realworldclaw-api.fly.dev/health)
+- **Uptime monitoring**: recommend configuring UptimeRobot to monitor the health endpoint above.
+- **Fly.io alerts**: recommend enabling app alerts in the [Fly.io dashboard](https://fly.io/dashboard) for the deployed API service.
+- **Alerting docs**: see [docs/monitoring.md](docs/monitoring.md) for setup steps and suggested alert rules.
 
 ## Quick Start
 

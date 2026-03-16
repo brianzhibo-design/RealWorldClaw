@@ -212,6 +212,9 @@ def init_db():
                 )""",
                 "CREATE INDEX IF NOT EXISTS idx_agents_status ON agents(status)",
                 "CREATE INDEX IF NOT EXISTS idx_agents_name ON agents(name)",
+                "CREATE TABLE IF NOT EXISTS api_keys (key_id TEXT PRIMARY KEY, hashed_key TEXT UNIQUE NOT NULL, created_at TEXT NOT NULL, expires_at TEXT NOT NULL, revoked INTEGER NOT NULL DEFAULT 0, description TEXT NOT NULL DEFAULT '')",
+                "CREATE INDEX IF NOT EXISTS idx_api_keys_expires_at ON api_keys(expires_at)",
+                "CREATE INDEX IF NOT EXISTS idx_api_keys_revoked ON api_keys(revoked)",
             ]:
                 try:
                     db.execute(sql)
@@ -610,6 +613,20 @@ def init_db():
         # Add files and community tables
         db.executescript(FILES_TABLE_SQL)
         db.executescript(COMMUNITY_TABLES_SQL)
+
+        # Managed API keys lifecycle table
+        db.execute("""
+            CREATE TABLE IF NOT EXISTS api_keys (
+                key_id TEXT PRIMARY KEY,
+                hashed_key TEXT UNIQUE NOT NULL,
+                created_at TEXT NOT NULL,
+                expires_at TEXT NOT NULL,
+                revoked INTEGER NOT NULL DEFAULT 0,
+                description TEXT NOT NULL DEFAULT ''
+            )
+        """)
+        db.execute("CREATE INDEX IF NOT EXISTS idx_api_keys_expires_at ON api_keys(expires_at)")
+        db.execute("CREATE INDEX IF NOT EXISTS idx_api_keys_revoked ON api_keys(revoked)")
         
         # Migrate community_posts: add upvotes/downvotes if missing
         _safe_add_column(db, "community_posts", "upvotes INTEGER NOT NULL DEFAULT 0")
