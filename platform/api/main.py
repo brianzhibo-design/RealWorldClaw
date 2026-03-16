@@ -20,7 +20,7 @@ from .events import setup_event_handlers
 from .logging_config import setup_logging
 from .middleware import RequestLoggingMiddleware, AuditLogMiddleware
 from .rate_limit import RateLimitMiddleware
-from .routers import admin, agents, audit as audit_router, auth, community, components, developers, evolution, files, health, makers, match, messages, moderation, nodes, orders, proof, search, social, spaces, tags, ws
+from .routers import admin, agents, api_keys, audit as audit_router, auth, community, components, developers, evolution, files, health, makers, match, messages, moderation, nodes, orders, proof, search, social, spaces, tags, ws
 from .ws_manager import manager
 
 VERSION = "0.1.0"
@@ -77,6 +77,7 @@ app.include_router(health.router, prefix="/api/v1")
 app.include_router(admin.router, prefix="/api/v1")
 app.include_router(audit_router.router, prefix="/api/v1")
 app.include_router(auth.router, prefix="/api/v1")
+app.include_router(api_keys.router, prefix="/api/v1")
 app.include_router(agents.router, prefix="/api/v1")
 app.include_router(components.router, prefix="/api/v1")
 app.include_router(match.router, prefix="/api/v1")
