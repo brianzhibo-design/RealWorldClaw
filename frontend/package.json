@@ -46,7 +46,7 @@
     "@types/react-simple-maps": "^3.0.6",
     "@vitejs/plugin-react": "^6.0.1",
     "autoprefixer": "^10.4.27",
-    "eslint": "^8.57.0",
+    "eslint": "^10.0.3",
     "eslint-config-next": "^14.2.0",
     "jsdom": "^29.0.0",
     "postcss": "^8.4.38",
