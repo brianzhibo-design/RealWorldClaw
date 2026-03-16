@@ -1,13 +1,18 @@
-.PHONY: dev test lint validate
+.PHONY: dev test lint validate docker-up docker-down
 
 dev:
-	cd platform && pip install -r requirements.txt && python -m api.main
+	@echo "Starting backend..."
+	cd platform && uvicorn api.main:app --reload &
+	@echo "Starting frontend..."
+	cd frontend && npm run dev
 
 test:
-	cd platform && python -m pytest -v
+	cd platform && pytest
+	cd frontend && npm test
 
 lint:
 	cd platform && ruff check .
+	cd frontend && npm run lint
 
 validate:
 	python3 tools/manifest-validator/validate_seed_components.py
@@ -20,3 +25,9 @@ deploy-web:
 
 docker-dev:
 	docker-compose up --build
+
+docker-up:
+	docker compose up -d
+
+docker-down:
+	docker compose down

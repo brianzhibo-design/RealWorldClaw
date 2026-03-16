@@ -4,6 +4,9 @@ updates:
     directory: "/platform"
     schedule:
       interval: "weekly"
+    ignore:
+      - dependency-name: "bcrypt"
+        update-types: ["version-update:semver-major"]
     open-pull-requests-limit: 5
     labels:
       - "dependencies"
@@ -14,6 +17,12 @@ updates:
       interval: "weekly"
     ignore:
       - dependency-name: "next"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "react"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "react-dom"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "tailwindcss"
         update-types: ["version-update:semver-major"]
     open-pull-requests-limit: 5
     labels:
