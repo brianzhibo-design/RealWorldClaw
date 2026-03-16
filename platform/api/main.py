@@ -5,6 +5,8 @@ from __future__ import annotations
 import logging
 import os
 import traceback
+
+import sentry_sdk
 from datetime import datetime, timezone
 from contextlib import asynccontextmanager
 
@@ -36,6 +38,14 @@ async def lifespan(app: FastAPI):
     manager.stop_heartbeat()
     print("👋 Shutting down...")
 
+
+dsn = os.environ.get("SENTRY_DSN")
+if dsn:
+    sentry_sdk.init(
+        dsn=dsn,
+        traces_sample_rate=0.1,
+        environment=os.environ.get("ENVIRONMENT", "development"),
+    )
 
 app = FastAPI(
     title="RealWorldClaw Platform API",
