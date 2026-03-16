@@ -3,7 +3,7 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches: [main]
-    paths: ['landing/**', 'docs-site/**', 'docs/**']
+    paths: ['docs-site/**', 'docs/**']
   workflow_dispatch:
 
 permissions:
@@ -31,9 +31,7 @@ jobs:
 
       - name: Build site
         run: |
-          # Landing
           mkdir -p _site
-          cp -r landing/* _site/
 
           # Docs (VitePress)
           cd docs-site
