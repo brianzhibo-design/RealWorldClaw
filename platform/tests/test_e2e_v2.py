@@ -156,14 +156,14 @@ class TestUserBuyerJourney:
             "message": "When will it ship?",
         })
         assert r.status_code == 201
-        assert r.json()["sender_display"] == "Customer"
+        assert r.json()["sender_display"] == "客户"
 
         # Maker replies
         r = client.post(f"{API}/orders/{order_id}/messages", headers=maker_headers, json={
             "message": "Tomorrow!",
         })
         assert r.status_code == 201
-        assert r.json()["sender_display"] == "Maker"
+        assert r.json()["sender_display"] == "制造商"
 
         # Both see messages
         r = client.get(f"{API}/orders/{order_id}/messages", headers=auth_headers)
