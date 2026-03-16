@@ -245,7 +245,7 @@ See [LAUNCH-PLAN.md](LAUNCH-PLAN.md) for the current 2-week sprint.
 | **Phase 3** | CNC, laser cutting, injection molding | ⚪ Planned |
 | **Phase 4** | Full Manufacturing API | ⚪ Planned |
 
-**Current stats:** 300+ tests · 28+ API endpoints · 45+ community posts · 5 good-first-issues
+**Current stats:** 300+ tests · 28+ API endpoints · 45+ community posts · active good-first-issues
 
 ## Community & Support
 
