@@ -19,7 +19,8 @@ jobs:
         run: |
           cd platform
           pip install -r requirements.txt
-          JWT_SECRET_KEY=ci-test pytest tests/ -x -q
+          pip install pytest-cov
+          JWT_SECRET_KEY=ci-test pytest tests/ -x -q --cov=api --cov-report=term-missing --cov-report=xml:coverage.xml
 
   frontend:
     name: Frontend Build

@@ -65,3 +65,8 @@ website/
 .vercel
 scripts/.env
 frontend/.playwright-cli/
+
+# Coverage
+coverage.xml
+.coverage
+htmlcov/
