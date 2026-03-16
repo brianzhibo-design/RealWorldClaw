@@ -20,7 +20,7 @@
 <p align="center">
   <a href="https://realworldclaw.com">Website</a> ·
   <a href="PROJECT.md">Vision</a> ·
-  <a href="LAUNCH-PLAN.md">Roadmap</a> ·
+  <a href="docs/ROADMAP.md">Roadmap</a> ·
   <a href="docs/">Docs</a> ·
   <a href="CONTRIBUTING.md">Contributing</a>
 </p>
@@ -235,7 +235,7 @@ The difference between us and every 3D printing platform that came before: **the
 
 ## Roadmap
 
-See [LAUNCH-PLAN.md](LAUNCH-PLAN.md) for the current 2-week sprint.
+See [docs/ROADMAP.md](docs/ROADMAP.md) for the current 2-week sprint.
 
 | Phase | Focus | Status |
 |-------|-------|--------|

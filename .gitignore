@@ -50,11 +50,12 @@ build/
 platform/data/
 platform/logs/
 platform/uploads/
-archive/
+/archive/
 content/
 demo/
 seed-components/
 website/
+memory/
 
 # === 3D Files (large binaries — use GitHub Releases) ===
 *.3mf
