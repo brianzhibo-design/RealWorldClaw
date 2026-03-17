@@ -37,7 +37,7 @@
 - [ ] 3-6 KPI: 50+ Stars / 3+ 外部 PR
 
 ### 阶段四（3-6 月）→ 9.0+
-- [ ] 4-1 PostgreSQL
+- [x] 4-1 PostgreSQL (6dbb641)
 - [x] 4-2 Redis (72c8d03, cache layer + graceful fallback + docker-compose)
 - [ ] 4-3 K8s/多实例
 - [ ] 4-4 渗透测试
