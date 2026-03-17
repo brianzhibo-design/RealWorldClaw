@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { apiFetch } from "@/lib/api-client";
 
 function TypingEffect() {
@@ -78,16 +78,6 @@ interface Post {
   created_at: string;
 }
 
-interface Stats {
-  makers?: number;
-  orders?: number;
-  spaces?: number;
-  agents?: number;
-  components?: number;
-  total_makers?: number;
-  total_orders?: number;
-  total_spaces?: number;
-}
 
 function AnimatedLogo() {
   const [isLoaded, setIsLoaded] = useState(false);
@@ -197,61 +187,8 @@ function AnimatedLogo() {
   );
 }
 
-function AnimatedCounter({
-  target,
-  suffix = "",
-  prefix = "",
-}: {
-  target: number;
-  suffix?: string;
-  prefix?: string;
-}) {
-  const [count, setCount] = useState(0);
-  const ref = useRef(null);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          let start = 0;
-          const duration = 1600;
-          const increment = target / (duration / 50);
-
-          const timer = setInterval(() => {
-            start += increment;
-            if (start >= target) {
-              setCount(target);
-              clearInterval(timer);
-            } else {
-              setCount(Math.floor(start));
-            }
-          }, 50);
-
-          return () => clearInterval(timer);
-        }
-      },
-      { threshold: 0.5 }
-    );
-
-    if (ref.current) observer.observe(ref.current);
-    return () => observer.disconnect();
-  }, [target]);
-
-  return (
-    <div
-      ref={ref}
-      className="text-3xl font-bold bg-gradient-to-r from-[#10b981] to-[#22d3ee] bg-clip-text text-transparent"
-    >
-      {prefix}
-      {count}
-      {suffix}
-    </div>
-  );
-}
-
 export default function Home() {
   const [posts, setPosts] = useState<Post[]>([]);
-  const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -261,12 +198,7 @@ export default function Home() {
         setLoading(true);
         setError(null);
 
-        const [statsData, postsData] = await Promise.all([
-          apiFetch<Stats>("/stats"),
-          apiFetch<{ posts: Post[] }>("/community/posts?limit=4"),
-        ]);
-
-        setStats(statsData);
+        const postsData = await apiFetch<{ posts: Post[] }>("/community/posts?limit=4");
         setPosts(postsData.posts || []);
       } catch (err) {
         console.error("API error:", err);
@@ -385,34 +317,21 @@ export default function Home() {
             </a>
           </div>
 
-          <div className="flex flex-wrap gap-8 sm:gap-12 justify-center text-center">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8 text-center">
             {[
-              { key: "agents", label: "AI Agents", fallback: null },
-              { key: "makers", label: "Makers", fallback: "total_makers" },
-              { key: "orders", label: "Orders", fallback: "total_orders" },
-              { key: "components", label: "Nodes", fallback: null },
+              { value: "425+", label: "Commits" },
+              { value: "315", label: "Tests Passing" },
+              { value: "4", label: "Contributors" },
+              { value: "Apache 2.0", label: "License" },
             ].map((item) => (
-              <div key={item.key}>
-                {loading ? (
-                  <div className="text-3xl font-bold text-[#6b7280]">...</div>
-                ) : error ? (
-                  <div className="text-3xl font-bold text-[#ef4444]">?</div>
-                ) : stats &&
-                  ((stats as Record<string, number>)[item.key] ||
-                    (item.fallback && (stats as Record<string, number>)[item.fallback])) ? (
-                  <AnimatedCounter
-                    target={
-                      (stats as Record<string, number>)[item.key] ||
-                      (item.fallback
-                        ? (stats as Record<string, number>)[item.fallback]
-                        : 0) ||
-                      0
-                    }
-                  />
-                ) : (
-                  <div className="text-3xl font-bold text-[#6b7280]">0</div>
-                )}
-                <div className="text-sm text-[#6b7280] font-mono">{item.label}</div>
+              <div
+                key={item.label}
+                className="rounded-xl border border-[#2f3747] bg-[#1c2333]/70 px-5 py-6"
+              >
+                <div className="text-3xl font-bold bg-gradient-to-r from-[#10b981] to-[#22d3ee] bg-clip-text text-transparent">
+                  {item.value}
+                </div>
+                <div className="text-sm text-[#9ca3af] font-mono mt-2">{item.label}</div>
               </div>
             ))}
           </div>
@@ -429,32 +348,31 @@ export default function Home() {
             These metrics evaluate whether AI agents truly enter the physical world, not marketing KPI dashboards.
           </p>
 
-          <div className="grid md:grid-cols-3 gap-5 md:gap-6">
+          <div className="grid md:grid-cols-2 gap-5 md:gap-6">
             {[
               {
-                label: "Project Score",
-                value: "5.5/10",
-                desc: "Prototypes run, but reliability and repeatability are still below deployment threshold.",
+                label: "What's Working",
+                progress: 70,
+                desc: "Core community flows, docs, and reproducible engineering discussion are already live.",
               },
               {
-                label: "Decision Criteria",
-                value: "2/6",
-                desc: "2 passed, 3 partial, 1 not started — still in proof-building mode.",
-              },
-              {
-                label: "Current Blockers",
-                value: "2",
-                desc: "No complete hardware demo loop and limited external reproduction evidence.",
+                label: "What's Next",
+                progress: 45,
+                desc: "Expand hardware evidence depth and tighten closed-loop validation with more public demos.",
               },
             ].map((card) => (
               <div
                 key={card.label}
                 className="bg-[#1c2333] border border-[#3b4252] rounded-2xl p-6 md:p-7 hover:border-[#22d3ee]/60 hover:shadow-[0_0_30px_rgba(34,211,238,0.12)] transition-all duration-300"
               >
-                <div className="text-[#22d3ee] text-xs md:text-sm font-mono uppercase tracking-wider mb-3">{card.label}</div>
-                <div className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-[#10b981] to-[#22d3ee] bg-clip-text text-transparent mb-4">
-                  {card.value}
+                <div className="text-[#22d3ee] text-xs md:text-sm font-mono uppercase tracking-wider mb-4">{card.label}</div>
+                <div className="w-full h-2.5 bg-[#111827] rounded-full mb-4 overflow-hidden border border-[#2f3747]">
+                  <div
+                    className="h-full bg-gradient-to-r from-[#10b981] to-[#22d3ee]"
+                    style={{ width: `${card.progress}%` }}
+                  />
                 </div>
+                <div className="text-2xl font-bold text-[#e5e7eb] mb-3">{card.progress}%</div>
                 <p className="text-[#b0b8c1] text-sm leading-relaxed">{card.desc}</p>
               </div>
             ))}
