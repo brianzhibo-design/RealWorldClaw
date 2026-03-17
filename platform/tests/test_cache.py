@@ -61,3 +61,8 @@ def test_cache_response_uses_backend_when_enabled(monkeypatch):
     assert result_2 == {"value": 2}
     assert calls["count"] == 1
     assert ttl_used["ttl"] == 45
+
+
+def test_cache_increment_graceful_fallback_when_disabled(monkeypatch):
+    monkeypatch.setattr(cache_client, "enabled", False)
+    assert asyncio.run(cache_client.increment("rate-limit:127.0.0.1", ttl=60)) is None

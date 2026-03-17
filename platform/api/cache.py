@@ -9,7 +9,7 @@ import inspect
 import json
 import logging
 import os
-from typing import Any, Awaitable, Callable
+from typing import Any, Callable
 
 logger = logging.getLogger(__name__)
 
@@ -78,6 +78,20 @@ class CacheClient:
             await self._redis.set(key, payload, ex=ttl)
         except Exception:
             logger.debug("Redis set failed for key=%s", key, exc_info=True)
+
+    async def increment(self, key: str, ttl: int) -> int | None:
+        """Atomic increment helper for rate limiting counters."""
+        if not self.enabled or self._redis is None:
+            return None
+
+        try:
+            value = await self._redis.incr(key)
+            if value == 1:
+                await self._redis.expire(key, ttl)
+            return int(value)
+        except Exception:
+            logger.debug("Redis increment failed for key=%s", key, exc_info=True)
+            return None
 
 
 cache_client = CacheClient()
