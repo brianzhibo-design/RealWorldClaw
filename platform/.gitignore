@@ -12,3 +12,4 @@ data/
 venv/
 .ruff_cache/
 .pytest_cache/
+reports/*.json
