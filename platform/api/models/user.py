@@ -96,6 +96,11 @@ CREATE TABLE IF NOT EXISTS users (
     hashed_password TEXT NOT NULL,
     role TEXT NOT NULL DEFAULT 'user',
     is_active INTEGER NOT NULL DEFAULT 1,
+    oauth_provider TEXT,
+    oauth_id TEXT,
+    consent TEXT NOT NULL DEFAULT '{}',
+    deleted_at TEXT,
+    anonymized INTEGER NOT NULL DEFAULT 0,
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL
 );

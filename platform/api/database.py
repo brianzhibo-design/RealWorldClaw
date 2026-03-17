@@ -10,8 +10,12 @@ logger = logging.getLogger(__name__)
 from contextlib import contextmanager
 from pathlib import Path
 
+from .telemetry import get_tracer
+
 DATABASE_URL = os.environ.get("DATABASE_URL", "sqlite:///data/realworldclaw.db")
 USE_POSTGRES = DATABASE_URL.startswith("postgresql://") or DATABASE_URL.startswith("postgres://")
+
+_DB_TRACER = get_tracer("realworldclaw.db")
 
 
 def _resolve_sqlite_path(database_url: str) -> Path:
@@ -59,18 +63,24 @@ if USE_POSTGRES:
 
         def execute(self, sql, params=None):
             sql = self._translate_sql(sql)
-            if params:
-                self._cursor.execute(sql, params)
-            else:
-                self._cursor.execute(sql)
-            self.rowcount = self._cursor.rowcount
-            self.description = self._cursor.description
+            with _DB_TRACER.start_as_current_span("db.query") as span:
+                span.set_attribute("db.system", "postgresql")
+                span.set_attribute("db.statement", sql.strip()[:500])
+                if params:
+                    self._cursor.execute(sql, params)
+                else:
+                    self._cursor.execute(sql)
+                self.rowcount = self._cursor.rowcount
+                self.description = self._cursor.description
             return self
 
         def executemany(self, sql, params_list):
             sql = self._translate_sql(sql)
-            self._cursor.executemany(sql, params_list)
-            self.rowcount = self._cursor.rowcount
+            with _DB_TRACER.start_as_current_span("db.query_many") as span:
+                span.set_attribute("db.system", "postgresql")
+                span.set_attribute("db.statement", sql.strip()[:500])
+                self._cursor.executemany(sql, params_list)
+                self.rowcount = self._cursor.rowcount
             return self
 
         def fetchone(self):
@@ -134,6 +144,35 @@ if USE_POSTGRES:
             self._conn.close()
 
 
+class SqliteConnectionWrapper:
+    """Add db spans while preserving sqlite3.Connection behavior used by app code."""
+
+    def __init__(self, conn: sqlite3.Connection):
+        self._conn = conn
+
+    def execute(self, sql, params=None):
+        with _DB_TRACER.start_as_current_span("db.query") as span:
+            span.set_attribute("db.system", "sqlite")
+            span.set_attribute("db.statement", sql.strip()[:500])
+            if params is None:
+                return self._conn.execute(sql)
+            return self._conn.execute(sql, params)
+
+    def executemany(self, sql, params):
+        with _DB_TRACER.start_as_current_span("db.query_many") as span:
+            span.set_attribute("db.system", "sqlite")
+            span.set_attribute("db.statement", sql.strip()[:500])
+            return self._conn.executemany(sql, params)
+
+    def executescript(self, sql):
+        with _DB_TRACER.start_as_current_span("db.script") as span:
+            span.set_attribute("db.system", "sqlite")
+            return self._conn.executescript(sql)
+
+    def __getattr__(self, item):
+        return getattr(self._conn, item)
+
+
 def get_connection():
     if USE_POSTGRES:
         conn = psycopg2.connect(DATABASE_URL)
@@ -142,9 +181,10 @@ def get_connection():
         DB_PATH.parent.mkdir(parents=True, exist_ok=True)
         conn = sqlite3.connect(str(DB_PATH))
         conn.row_factory = sqlite3.Row
-        conn.execute("PRAGMA journal_mode=WAL")
-        conn.execute("PRAGMA foreign_keys=ON")
-        return conn
+        traced_conn = SqliteConnectionWrapper(conn)
+        traced_conn.execute("PRAGMA journal_mode=WAL")
+        traced_conn.execute("PRAGMA foreign_keys=ON")
+        return traced_conn
 
 
 @contextmanager
@@ -251,6 +291,9 @@ def init_db():
                 ("nodes", "country_code TEXT"),
                 ("users", "oauth_provider TEXT"),
                 ("users", "oauth_id TEXT"),
+                ("users", "consent TEXT NOT NULL DEFAULT '{}'"),
+                ("users", "deleted_at TEXT"),
+                ("users", "anonymized INTEGER NOT NULL DEFAULT 0"),
                 ("agents", "display_name TEXT"),
                 ("agents", "callback_url TEXT"),
                 ("agents", "description TEXT NOT NULL DEFAULT ''"),
@@ -664,6 +707,9 @@ def init_db():
         # OAuth columns
         _safe_add_column(db, "users", "oauth_provider TEXT")
         _safe_add_column(db, "users", "oauth_id TEXT")
+        _safe_add_column(db, "users", "consent TEXT NOT NULL DEFAULT '{}'" )
+        _safe_add_column(db, "users", "deleted_at TEXT")
+        _safe_add_column(db, "users", "anonymized INTEGER NOT NULL DEFAULT 0")
         _safe_add_column(db, "agents", "avatar_url TEXT")
         _safe_add_column(db, "agents", "display_name TEXT")
         _safe_add_column(db, "agents", "callback_url TEXT")
