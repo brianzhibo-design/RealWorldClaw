@@ -19,9 +19,10 @@ from .cache import close_cache, init_cache
 from .database import get_db, init_db
 from .events import setup_event_handlers
 from .logging_config import setup_logging
-from .middleware import RequestLoggingMiddleware, AuditLogMiddleware
+from .middleware import RequestLoggingMiddleware, AuditLogMiddleware, SLOMonitoringMiddleware, register_slo_routes
 from .rate_limit import RateLimitMiddleware
-from .routers import admin, agents, api_keys, audit as audit_router, auth, community, components, developers, evolution, files, health, makers, match, messages, moderation, nodes, orders, proof, search, simulator, social, spaces, tags, ws
+from .routers import admin, agents, api_keys, audit as audit_router, auth, community, components, developers, evolution, files, gdpr, health, makers, match, messages, moderation, nodes, orders, proof, search, simulator, social, spaces, tags, ws
+from .telemetry import init_telemetry
 from .ws_manager import manager
 
 VERSION = "0.1.0"
@@ -30,6 +31,7 @@ VERSION = "0.1.0"
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     setup_logging()
+    init_telemetry(app)
     init_db()
     init_audit_table()
     setup_event_handlers()
@@ -70,10 +72,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Rate limiting & request logging middleware (order matters: rate limit first)
+# Rate limiting & request logging middleware (order matters: last added runs first)
 app.add_middleware(RequestLoggingMiddleware)
 app.add_middleware(AuditLogMiddleware)
 app.add_middleware(RateLimitMiddleware)
+app.add_middleware(SLOMonitoringMiddleware)
 
 # Register routers under /api/v1
 app.include_router(health.router, prefix="/api/v1")
@@ -94,12 +97,14 @@ app.include_router(spaces.router, prefix="/api/v1")
 app.include_router(ws.router, prefix="/api/v1")
 app.include_router(simulator.router, prefix="/api/v1")
 app.include_router(files.router, prefix="/api/v1")
+app.include_router(gdpr.router, prefix="/api/v1")
 app.include_router(search.router, prefix="/api/v1")
 app.include_router(tags.router, prefix="/api/v1")
 app.include_router(community.router, prefix="/api/v1")
 app.include_router(messages.router, prefix="/api/v1")
 app.include_router(moderation.router, prefix="/api/v1")
 app.include_router(developers.router, prefix="/api/v1")
+register_slo_routes(app)
 
 
 @app.exception_handler(Exception)
