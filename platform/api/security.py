@@ -6,8 +6,8 @@ import os
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 
+import bcrypt
 from jose import jwt
-from passlib.context import CryptContext
 
 SECRET_KEY = os.environ.get("JWT_SECRET_KEY")
 if not SECRET_KEY:
@@ -18,16 +18,31 @@ if not SECRET_KEY:
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 15
 REFRESH_TOKEN_EXPIRE_DAYS = 7
+BCRYPT_ROUNDS = 12
+BCRYPT_MAX_PASSWORD_BYTES = 72
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+def _normalize_password(password: str) -> bytes:
+    """Encode to UTF-8 and truncate to bcrypt's 72-byte limit.
+
+    bcrypt 5.x raises on inputs over 72 bytes. Older bcrypt/passlib stacks
+    effectively treated bcrypt passwords as 72-byte inputs, so we normalize
+    here to preserve compatibility for existing users and old hashes.
+    """
+    return password.encode("utf-8")[:BCRYPT_MAX_PASSWORD_BYTES]
 
 
 def hash_password(password: str) -> str:
-    return pwd_context.hash(password)
+    normalized = _normalize_password(password)
+    hashed = bcrypt.hashpw(normalized, bcrypt.gensalt(rounds=BCRYPT_ROUNDS))
+    return hashed.decode("utf-8")
 
 
 def verify_password(plain: str, hashed: str) -> bool:
-    return pwd_context.verify(plain, hashed)
+    try:
+        return bcrypt.checkpw(_normalize_password(plain), hashed.encode("utf-8"))
+    except (ValueError, TypeError):
+        return False
 
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
