@@ -41,9 +41,9 @@
 - [x] 4-2 Redis (72c8d03, cache layer + graceful fallback + docker-compose)
 - [ ] 4-3 K8s/多实例
 - [ ] 4-4 渗透测试
-- [ ] 4-5 SLO 定义
-- [ ] 4-6 OpenTelemetry
-- [ ] 4-7 GDPR 接口
+- [x] 4-5 SLO (63e6196, docs + middleware + /health/slo + /metrics)
+- [x] 4-6 OpenTelemetry (362ed37, FastAPI auto-instrument + OTLP exporter + graceful fallback)
+- [x] 4-7 GDPR (1d2468b, export/delete/consent endpoints + Alembic migration)
 - [ ] 4-8 KPI: 100+ Stars / 10+ 贡献者
 
 ### 更新日志
