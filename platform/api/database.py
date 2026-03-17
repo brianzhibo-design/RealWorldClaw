@@ -10,10 +10,22 @@ logger = logging.getLogger(__name__)
 from contextlib import contextmanager
 from pathlib import Path
 
-DATABASE_URL = os.environ.get("DATABASE_URL")
-USE_POSTGRES = DATABASE_URL is not None and DATABASE_URL.startswith("postgres")
+DATABASE_URL = os.environ.get("DATABASE_URL", "sqlite:///data/realworldclaw.db")
+USE_POSTGRES = DATABASE_URL.startswith("postgresql://") or DATABASE_URL.startswith("postgres://")
 
-DB_PATH = Path(__file__).parent.parent / "data" / "realworldclaw.db"
+
+def _resolve_sqlite_path(database_url: str) -> Path:
+    if not database_url.startswith("sqlite:///"):
+        return Path(__file__).parent.parent / "data" / "realworldclaw.db"
+
+    raw_path = database_url.replace("sqlite:///", "", 1)
+    path = Path(raw_path)
+    if not path.is_absolute():
+        path = Path(__file__).parent.parent / raw_path
+    return path
+
+
+DB_PATH = _resolve_sqlite_path(DATABASE_URL)
 
 if USE_POSTGRES:
     import psycopg2

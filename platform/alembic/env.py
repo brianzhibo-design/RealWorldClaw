@@ -11,7 +11,9 @@ from alembic import context
 config = context.config
 
 # Read database URL from env var; fallback to local sqlite for development.
-database_url = os.getenv("DATABASE_URL", "sqlite:///./rwc.db")
+database_url = os.getenv("DATABASE_URL", "sqlite:///./data/realworldclaw.db")
+if database_url.startswith("postgres://"):
+    database_url = database_url.replace("postgres://", "postgresql://", 1)
 config.set_main_option("sqlalchemy.url", database_url)
 
 # Interpret the config file for Python logging.
