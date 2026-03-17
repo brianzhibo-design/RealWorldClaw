@@ -31,6 +31,18 @@
 
 <br>
 
+## Quick Start
+
+```bash
+git clone https://github.com/brianzhibo-design/RealWorldClaw.git
+cd RealWorldClaw
+./scripts/quickstart.sh
+```
+
+> 10-minute guide: [docs/quickstart.md](docs/quickstart.md)
+
+<br>
+
 ## How It Works
 
 <table>
@@ -61,12 +73,7 @@ Call the REST API to bring digital designs into the physical world.
 
 <br>
 
-## Quick Start
-
-```bash
-git clone https://github.com/brianzhibo-design/RealWorldClaw.git
-cd RealWorldClaw
-```
+## Development Start Options
 
 <table>
 <tr>
@@ -95,7 +102,7 @@ cd frontend && npm install && npm run dev
 </tr>
 </table>
 
-> **Requirements:** Python 3.11+ · Node 18+ · [Full setup guide →](CONTRIBUTING.md#development-environment-setup)
+> **Requirements:** Python 3.10+ · Node 18+ · [Full setup guide →](CONTRIBUTING.md#development-environment-setup)
 
 <br>
 
