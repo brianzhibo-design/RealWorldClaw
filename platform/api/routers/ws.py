@@ -7,15 +7,22 @@ import json
 import logging
 
 from fastapi import APIRouter, Query, WebSocket, WebSocketDisconnect
+from pydantic import BaseModel, Field
 from jose import JWTError
 
 from ..security import decode_token
 from ..ws_manager import manager
 
 logger = logging.getLogger(__name__)
-router = APIRouter(prefix="/ws", tags=["websocket"])
+router = APIRouter(prefix="/ws", tags=["Simulator"])
 
 AUTH_FIRST_MSG_TIMEOUT_SECONDS = 5
+
+
+class WebSocketDocResponse(BaseModel):
+    endpoint: str = Field(..., examples=["/api/v1/ws/orders/{user_id}"])
+    auth: str = Field(..., examples=["JWT access token via ?token= or first auth frame"])
+    message_format: dict = Field(..., examples=[{"type": "auth", "token": "<jwt>"}])
 
 
 async def _safe_close(ws: WebSocket, *, code: int, reason: str) -> None:
@@ -129,6 +136,32 @@ async def _ws_loop(ws: WebSocket, channel: str, target_id: str, token: str | Non
         logger.exception("WS error: channel=%s target=%s", channel, target_id)
     finally:
         manager.disconnect(conn)
+
+
+@router.get(
+    "/docs",
+    response_model=list[WebSocketDocResponse],
+    summary="WebSocket connection guide",
+    description="Document auth handshake and available WebSocket channels. WebSocket routes are not shown in OpenAPI by default.",
+)
+def websocket_docs():
+    return [
+        {
+            "endpoint": "/api/v1/ws/printer/{printer_id}",
+            "auth": "JWT access token via query token or first auth frame",
+            "message_format": {"type": "auth", "token": "<access_token>"},
+        },
+        {
+            "endpoint": "/api/v1/ws/orders/{user_id}",
+            "auth": "JWT access token required",
+            "message_format": {"type": "pong"},
+        },
+        {
+            "endpoint": "/api/v1/ws/notifications/{user_id}",
+            "auth": "JWT access token required",
+            "message_format": {"type": "pong"},
+        },
+    ]
 
 
 @router.websocket("/printer/{printer_id}")

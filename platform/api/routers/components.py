@@ -11,7 +11,7 @@ from ..database import get_db
 from ..models.schemas import ComponentCreate, ComponentResponse
 from ..deps import get_authenticated_identity
 
-router = APIRouter(prefix="/components", tags=["components"])
+router = APIRouter(prefix="/components", tags=["Components"])
 
 
 def _row_to_component(row) -> ComponentResponse:

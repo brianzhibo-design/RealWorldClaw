@@ -52,10 +52,27 @@ if dsn:
         environment=os.environ.get("ENVIRONMENT", "development"),
     )
 
+OPENAPI_TAGS = [
+    {"name": "Auth", "description": "Authentication and OAuth flows."},
+    {"name": "GDPR", "description": "Privacy, consent management, and data export/deletion."},
+    {"name": "Health", "description": "Liveness, readiness, diagnostics and SLO metrics."},
+    {"name": "Simulator", "description": "WebSocket simulator and real-time stream docs."},
+    {"name": "Components", "description": "3D component catalog and publishing APIs."},
+]
+
 app = FastAPI(
     title="RealWorldClaw Platform API",
-    description="Agent-driven 3D printing component platform — Maker Network",
+    description="""
+RealWorldClaw backend API for maker collaboration, component publishing, orders, and realtime simulation.
+
+- Interactive docs: `/docs`
+- ReDoc: `/redoc`
+- API base path: `/api/v1`
+""".strip(),
     version=VERSION,
+    contact={"name": "RealWorldClaw Platform Team", "email": "support@realworldclaw.com"},
+    license_info={"name": "MIT", "url": "https://opensource.org/licenses/MIT"},
+    openapi_tags=OPENAPI_TAGS,
     lifespan=lifespan,
 )
 
@@ -120,17 +137,17 @@ async def global_exception_handler(request: Request, exc: Exception):
     return JSONResponse(status_code=500, content={"detail": "Internal Server Error"})
 
 
-@app.get("/")
+@app.get("/", tags=["Health"], summary="API root", description="Service metadata and welcome payload.", response_model=dict)
 def root():
     return {"name": "RealWorldClaw", "version": VERSION, "message": "🐾 Welcome to RealWorldClaw!"}
 
 
-@app.get("/health")
+@app.get("/health", tags=["Health"], summary="Root health check", description="Quick health endpoint outside `/api/v1` for uptime checks.", response_model=dict)
 def health():
     return {"status": "ok", "version": VERSION}
 
 
-@app.get("/api/v1/stats")
+@app.get("/api/v1/stats", tags=["Health"], summary="Platform aggregate stats", description="High-level counts for core entities and today's activity.", response_model=dict)
 def stats():
     """Return counts of components, agents, and today's activity."""
     with get_db() as db:

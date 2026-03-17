@@ -43,7 +43,7 @@ def _conflict_from_user_integrity_error(exc: Exception) -> HTTPException | None:
     return HTTPException(status_code=409, detail="User already exists")
 
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from google.oauth2 import id_token as google_id_token
 from google.auth.transport import requests as google_auth_requests
 from pydantic import BaseModel, Field
@@ -68,11 +68,31 @@ from ..security import (
 )
 from ..telemetry import get_tracer
 
-router = APIRouter(prefix="/auth", tags=["auth"])
+router = APIRouter(prefix="/auth", tags=["Auth"])
 _AUTH_TRACER = get_tracer("realworldclaw.auth.router")
 
 
-@router.post("/register", response_model=AuthResponse, status_code=201)
+class MessageResponse(BaseModel):
+    message: str = Field(..., examples=["Logged out successfully"])
+
+
+class AccountDeleteResponse(BaseModel):
+    message: str = Field(..., examples=["Account deleted. Your data has been removed."])
+
+
+class ChangePasswordRequest(BaseModel):
+    current_password: str = Field(..., examples=["OldPassword123"])
+    new_password: str = Field(..., min_length=8, examples=["NewSecurePass123"])
+
+
+@router.post(
+    "/register",
+    response_model=AuthResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Register a new user",
+    description="Create a user account with email/username/password and immediately return access + refresh tokens.",
+    responses={409: {"description": "Email or username already exists"}, 429: {"description": "Too many registration attempts"}},
+)
 def register(req: UserRegisterRequest):
     with _AUTH_TRACER.start_as_current_span("auth.register"):
         if not _rate_check(f"reg:{req.email}", max_calls=5, window_sec=3600):
@@ -109,7 +129,13 @@ def register(req: UserRegisterRequest):
         )
 
 
-@router.post("/login", response_model=AuthResponse)
+@router.post(
+    "/login",
+    response_model=AuthResponse,
+    summary="Login with email or username",
+    description="Authenticate a user account and return fresh access/refresh JWT tokens.",
+    responses={401: {"description": "Invalid credentials"}, 403: {"description": "Account deactivated"}, 429: {"description": "Too many login attempts"}},
+)
 def login(req: UserLoginRequest):
     with _AUTH_TRACER.start_as_current_span("auth.login"):
         login_key = f"login:{req.email or req.username}"
@@ -139,7 +165,13 @@ def login(req: UserLoginRequest):
         )
 
 
-@router.post("/refresh", response_model=TokenResponse)
+@router.post(
+    "/refresh",
+    response_model=TokenResponse,
+    summary="Refresh access token",
+    description="Issue a new token pair from a valid refresh token.",
+    responses={401: {"description": "Invalid/expired refresh token or inactive user"}},
+)
 def refresh(req: RefreshRequest):
     from jose import JWTError
 
@@ -165,12 +197,24 @@ def refresh(req: RefreshRequest):
         )
 
 
-@router.get("/me", response_model=UserResponse)
+@router.get(
+    "/me",
+    response_model=UserResponse,
+    summary="Get current user profile",
+    description="Return the authenticated user profile derived from bearer token.",
+    responses={401: {"description": "Unauthorized"}},
+)
 def get_me(user: dict = Depends(get_current_user)):
     return _user_response(user)
 
 
-@router.put("/me", response_model=UserResponse)
+@router.put(
+    "/me",
+    response_model=UserResponse,
+    summary="Update current user profile",
+    description="Update username and/or email for the authenticated account.",
+    responses={401: {"description": "Unauthorized"}, 409: {"description": "Email/username conflict"}},
+)
 def update_me(req: UserUpdateRequest, user: dict = Depends(get_current_user)):
     updates = {}
     if req.username is not None:
@@ -201,13 +245,14 @@ def update_me(req: UserUpdateRequest, user: dict = Depends(get_current_user)):
     return _user_response(row)
 
 
-class _ChangePasswordRequest(BaseModel):
-    current_password: str
-    new_password: str = Field(..., min_length=8)
-
-
-@router.post("/change-password")
-def change_password(req: _ChangePasswordRequest, user: dict = Depends(get_current_user)):
+@router.post(
+    "/change-password",
+    response_model=MessageResponse,
+    summary="Change account password",
+    description="Change password for authenticated user after validating current password.",
+    responses={400: {"description": "Current password mismatch"}, 401: {"description": "Unauthorized"}},
+)
+def change_password(req: ChangePasswordRequest, user: dict = Depends(get_current_user)):
     if not verify_password(req.current_password, user["hashed_password"]):
         raise HTTPException(status_code=400, detail="Current password is incorrect")
 
@@ -219,12 +264,23 @@ def change_password(req: _ChangePasswordRequest, user: dict = Depends(get_curren
     return {"message": "Password updated successfully"}
 
 
-@router.post("/logout")
+@router.post(
+    "/logout",
+    response_model=MessageResponse,
+    summary="Logout (stateless)",
+    description="Return logout acknowledgement. JWT revocation is handled client-side or by token rotation strategy.",
+)
 def logout():
     return {"message": "Logged out successfully"}
 
 
-@router.delete("/me")
+@router.delete(
+    "/me",
+    response_model=AccountDeleteResponse,
+    summary="Permanently delete account",
+    description="Delete the authenticated user and dependent data records from platform tables.",
+    responses={401: {"description": "Unauthorized"}},
+)
 def delete_account(user: dict = Depends(get_current_user)):
     """Delete user account and associated records."""
     user_id = user["id"]
@@ -303,10 +359,16 @@ def _build_auth_response(row: dict) -> AuthResponse:
 # ── GitHub OAuth ──────────────────────────────────────────────
 
 class GitHubAuthRequest(BaseModel):
-    code: str
+    code: str = Field(..., examples=["1a2b3c4d5e6f"])
 
 
-@router.post("/github", response_model=AuthResponse)
+@router.post(
+    "/github",
+    response_model=AuthResponse,
+    summary="Authenticate via GitHub OAuth",
+    description="Exchange GitHub authorization code for user identity and return platform tokens.",
+    responses={400: {"description": "No primary email from GitHub"}, 401: {"description": "GitHub OAuth failed"}},
+)
 def github_auth(req: GitHubAuthRequest):
     with _AUTH_TRACER.start_as_current_span("auth.oauth.github"):
         client_id = os.environ.get("GITHUB_CLIENT_ID", "")
@@ -358,10 +420,16 @@ def github_auth(req: GitHubAuthRequest):
 # ── Google OAuth ──────────────────────────────────────────────
 
 class GoogleAuthRequest(BaseModel):
-    credential: str  # Google authorization code or ID token (JWT)
+    credential: str = Field(..., examples=["4/0AeaYSH...", "eyJhbGciOi..."])  # Google authorization code or ID token (JWT)
 
 
-@router.post("/google", response_model=AuthResponse)
+@router.post(
+    "/google",
+    response_model=AuthResponse,
+    summary="Authenticate via Google OAuth",
+    description="Accept Google auth code or ID token, verify identity, then issue platform JWT tokens.",
+    responses={400: {"description": "Invalid Google credential payload"}, 401: {"description": "Google OAuth failed"}},
+)
 def google_auth(req: GoogleAuthRequest):
     with _AUTH_TRACER.start_as_current_span("auth.oauth.google"):
         client_id = os.environ.get("GOOGLE_CLIENT_ID", "")

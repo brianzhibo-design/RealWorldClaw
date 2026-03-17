@@ -6,19 +6,42 @@ from datetime import datetime, timezone
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from ..database import get_db
 from ..deps import get_current_user
 
-router = APIRouter(prefix="/gdpr", tags=["gdpr"])
+router = APIRouter(prefix="/gdpr", tags=["GDPR"])
 
 
 class ConsentUpdateRequest(BaseModel):
-    consent: dict[str, bool]
+    consent: dict[str, bool] = Field(..., examples=[{"analytics": True, "marketing": False}])
 
 
-@router.get("/consent")
+class ConsentResponse(BaseModel):
+    user_id: str = Field(..., examples=["usr_abc123def456"])
+    consent: dict[str, bool] = Field(..., examples=[{"analytics": True, "marketing": False}])
+    updated_at: str | None = Field(default=None, examples=["2026-03-17T10:22:33+00:00"])
+
+
+class ConsentUpdateResponse(ConsentResponse):
+    message: str = Field(..., examples=["Consent updated"])
+
+
+class GDPRDeleteResponse(BaseModel):
+    message: str = Field(..., examples=["Account anonymized (soft deleted)"])
+    user_id: str
+    deleted_at: str
+    anonymized: bool
+
+
+@router.get(
+    "/consent",
+    response_model=ConsentResponse,
+    summary="Get GDPR consent preferences",
+    description="Return current authenticated user's consent flags.",
+    responses={401: {"description": "Unauthorized"}},
+)
 def get_consent(user: dict = Depends(get_current_user)):
     return {
         "user_id": user["id"],
@@ -27,7 +50,13 @@ def get_consent(user: dict = Depends(get_current_user)):
     }
 
 
-@router.post("/consent")
+@router.post(
+    "/consent",
+    response_model=ConsentUpdateResponse,
+    summary="Update GDPR consent preferences",
+    description="Persist consent flags for the authenticated user.",
+    responses={401: {"description": "Unauthorized"}},
+)
 def update_consent(req: ConsentUpdateRequest, user: dict = Depends(get_current_user)):
     now = datetime.now(timezone.utc).isoformat()
     serialized = _serialize_consent(req.consent)
@@ -46,7 +75,13 @@ def update_consent(req: ConsentUpdateRequest, user: dict = Depends(get_current_u
     }
 
 
-@router.get("/export")
+@router.get(
+    "/export",
+    response_model=dict[str, Any],
+    summary="Export personal data bundle",
+    description="Generate GDPR export payload containing user profile and related datasets.",
+    responses={401: {"description": "Unauthorized"}},
+)
 def export_my_data(user: dict = Depends(get_current_user)):
     user_id = user["id"]
 
@@ -89,7 +124,13 @@ def export_my_data(user: dict = Depends(get_current_user)):
     return export_data
 
 
-@router.delete("/delete")
+@router.delete(
+    "/delete",
+    response_model=GDPRDeleteResponse,
+    summary="Anonymize account (soft delete)",
+    description="Anonymize personally identifiable fields and disable account while retaining referential integrity.",
+    responses={400: {"description": "Already anonymized"}, 401: {"description": "Unauthorized"}},
+)
 def soft_delete_account(user: dict = Depends(get_current_user)):
     if user.get("anonymized"):
         raise HTTPException(status_code=400, detail="Account already anonymized")

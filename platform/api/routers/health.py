@@ -15,18 +15,18 @@ from fastapi import APIRouter
 
 from ..database import DB_PATH, get_db
 
-router = APIRouter(tags=["health"])
+router = APIRouter(tags=["Health"])
 
 _START_TIME = time.time()
 
 
-@router.get("/health")
+@router.get("/health", summary="Liveness probe", description="Basic process liveness check.", response_model=dict)
 def health_basic():
     """Basic liveness check."""
     return {"status": "ok"}
 
 
-@router.get("/health/detailed")
+@router.get("/health/detailed", summary="Detailed health snapshot", description="Database, disk, memory and runtime process health.", response_model=dict)
 def health_detailed():
     """Detailed health: DB, disk, memory, uptime."""
     # Database
@@ -72,7 +72,7 @@ def health_detailed():
     }
 
 
-@router.get("/readiness")
+@router.get("/readiness", summary="Readiness probe", description="Dependency readiness check used by orchestration platforms.", response_model=dict)
 def readiness():
     """Readiness probe — checks critical dependencies."""
     checks = {}

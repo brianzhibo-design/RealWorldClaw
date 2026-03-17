@@ -18,9 +18,9 @@ class UserRole(str, enum.Enum):
 # ─── Request / Response schemas ──────────────────────────
 
 class UserRegisterRequest(BaseModel):
-    email: str = Field(..., min_length=5)
-    username: str = Field(..., min_length=3, max_length=32, pattern=r"^[a-zA-Z0-9_-]+$")
-    password: str = Field(..., min_length=8)
+    email: str = Field(..., min_length=5, examples=["maker@example.com"])
+    username: str = Field(..., min_length=3, max_length=32, pattern=r"^[a-zA-Z0-9_-]+$", examples=["maker_wolf"])
+    password: str = Field(..., min_length=8, examples=["StrongPass123"])
 
     @field_validator("email")
     @classmethod
@@ -31,9 +31,9 @@ class UserRegisterRequest(BaseModel):
 
 
 class UserLoginRequest(BaseModel):
-    email: Optional[str] = None
-    username: Optional[str] = None
-    password: str
+    email: Optional[str] = Field(default=None, examples=["maker@example.com"])
+    username: Optional[str] = Field(default=None, examples=["maker_wolf"])
+    password: str = Field(..., examples=["StrongPass123"])
 
     @field_validator("email")
     @classmethod
@@ -45,8 +45,8 @@ class UserLoginRequest(BaseModel):
 
 
 class UserUpdateRequest(BaseModel):
-    username: Optional[str] = Field(None, min_length=3, max_length=32)
-    email: Optional[str] = None
+    username: Optional[str] = Field(None, min_length=3, max_length=32, examples=["new_name"])
+    email: Optional[str] = Field(default=None, examples=["new@example.com"])
 
     @field_validator("email")
     @classmethod
@@ -83,7 +83,7 @@ class AuthResponse(BaseModel):
 
 
 class RefreshRequest(BaseModel):
-    refresh_token: str
+    refresh_token: str = Field(..., examples=["eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."])
 
 
 # ─── DB schema creation ─────────────────────────────────

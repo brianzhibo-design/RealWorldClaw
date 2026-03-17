@@ -140,10 +140,23 @@ class SLOMonitoringMiddleware(BaseHTTPMiddleware):
 def register_slo_routes(app: FastAPI) -> None:
     """Expose SLO health endpoint and optional Prometheus metrics endpoint."""
 
-    @app.get("/api/v1/health/slo", tags=["health"])
+    @app.get(
+        "/api/v1/health/slo",
+        tags=["Health"],
+        summary="SLO metrics snapshot",
+        description="In-memory SLO indicators including request volume, 5xx error rate, and p99 latency.",
+        response_model=dict,
+        responses={200: {"description": "Current SLO snapshot"}},
+    )
     def slo_health() -> JSONResponse:
         return JSONResponse(content=slo_metrics_store.snapshot())
 
-    @app.get("/metrics", tags=["health"])
+    @app.get(
+        "/metrics",
+        tags=["Health"],
+        summary="Prometheus metrics",
+        description="Prometheus text exposition for SLO counters and gauges.",
+        response_class=PlainTextResponse,
+    )
     def metrics() -> PlainTextResponse:
         return PlainTextResponse(content=slo_metrics_store.prometheus())
