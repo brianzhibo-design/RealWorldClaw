@@ -66,98 +66,103 @@ from ..security import (
     hash_password,
     verify_password,
 )
+from ..telemetry import get_tracer
 
 router = APIRouter(prefix="/auth", tags=["auth"])
+_AUTH_TRACER = get_tracer("realworldclaw.auth.router")
 
 
 @router.post("/register", response_model=AuthResponse, status_code=201)
 def register(req: UserRegisterRequest):
-    if not _rate_check(f"reg:{req.email}", max_calls=5, window_sec=3600):
-        raise HTTPException(status_code=429, detail="Too many registration attempts. Try again later.")
-    now = datetime.now(timezone.utc).isoformat()
-    user_id = f"usr_{uuid.uuid4().hex[:12]}"
-    hashed = hash_password(req.password)
+    with _AUTH_TRACER.start_as_current_span("auth.register"):
+        if not _rate_check(f"reg:{req.email}", max_calls=5, window_sec=3600):
+            raise HTTPException(status_code=429, detail="Too many registration attempts. Try again later.")
+        now = datetime.now(timezone.utc).isoformat()
+        user_id = f"usr_{uuid.uuid4().hex[:12]}"
+        hashed = hash_password(req.password)
 
-    with get_db() as db:
-        # Check duplicates
-        if db.execute("SELECT 1 FROM users WHERE email = ?", (req.email,)).fetchone():
-            raise HTTPException(status_code=409, detail="Email already registered")
-        if db.execute("SELECT 1 FROM users WHERE username = ?", (req.username,)).fetchone():
-            raise HTTPException(status_code=409, detail="Username already taken")
+        with get_db() as db:
+            # Check duplicates
+            if db.execute("SELECT 1 FROM users WHERE email = ?", (req.email,)).fetchone():
+                raise HTTPException(status_code=409, detail="Email already registered")
+            if db.execute("SELECT 1 FROM users WHERE username = ?", (req.username,)).fetchone():
+                raise HTTPException(status_code=409, detail="Username already taken")
 
-        try:
-            db.execute(
-                """INSERT INTO users (id, email, username, hashed_password, role, is_active, created_at, updated_at)
-                   VALUES (?, ?, ?, ?, 'user', 1, ?, ?)""",
-                (user_id, req.email, req.username, hashed, now, now),
-            )
-        except Exception as exc:
-            conflict = _conflict_from_user_integrity_error(exc)
-            if conflict:
-                raise conflict
-            raise
-        row = db.execute("SELECT * FROM users WHERE id = ?", (user_id,)).fetchone()
+            try:
+                db.execute(
+                    """INSERT INTO users (id, email, username, hashed_password, role, is_active, created_at, updated_at)
+                       VALUES (?, ?, ?, ?, 'user', 1, ?, ?)""",
+                    (user_id, req.email, req.username, hashed, now, now),
+                )
+            except Exception as exc:
+                conflict = _conflict_from_user_integrity_error(exc)
+                if conflict:
+                    raise conflict
+                raise
+            row = db.execute("SELECT * FROM users WHERE id = ?", (user_id,)).fetchone()
 
-    token_data = {"sub": user_id, "role": "user"}
-    return AuthResponse(
-        access_token=create_access_token(token_data),
-        refresh_token=create_refresh_token(token_data),
-        user=_user_response(row),
-    )
+        token_data = {"sub": user_id, "role": "user"}
+        return AuthResponse(
+            access_token=create_access_token(token_data),
+            refresh_token=create_refresh_token(token_data),
+            user=_user_response(row),
+        )
 
 
 @router.post("/login", response_model=AuthResponse)
 def login(req: UserLoginRequest):
-    login_key = f"login:{req.email or req.username}"
-    if not _rate_check(login_key, max_calls=20, window_sec=300):
-        raise HTTPException(status_code=429, detail="Too many login attempts. Try again in 5 minutes.")
+    with _AUTH_TRACER.start_as_current_span("auth.login"):
+        login_key = f"login:{req.email or req.username}"
+        if not _rate_check(login_key, max_calls=20, window_sec=300):
+            raise HTTPException(status_code=429, detail="Too many login attempts. Try again in 5 minutes.")
 
-    with get_db() as db:
-        if req.email:
-            row = db.execute("SELECT * FROM users WHERE email = ?", (req.email.lower().strip(),)).fetchone()
-        elif req.username:
-            row = db.execute("SELECT * FROM users WHERE username = ?", (req.username,)).fetchone()
-        else:
-            raise HTTPException(status_code=400, detail="Email or username required")
+        with get_db() as db:
+            if req.email:
+                row = db.execute("SELECT * FROM users WHERE email = ?", (req.email.lower().strip(),)).fetchone()
+            elif req.username:
+                row = db.execute("SELECT * FROM users WHERE username = ?", (req.username,)).fetchone()
+            else:
+                raise HTTPException(status_code=400, detail="Email or username required")
 
-    if not row or not verify_password(req.password, row["hashed_password"]):
-        time.sleep(1)  # Brute-force delay
-        logger.warning("Failed login attempt for %s", req.email or req.username)
-        raise HTTPException(status_code=401, detail="Invalid credentials")
-    if not row["is_active"]:
-        raise HTTPException(status_code=403, detail="Account deactivated")
+        if not row or not verify_password(req.password, row["hashed_password"]):
+            time.sleep(1)  # Brute-force delay
+            logger.warning("Failed login attempt for %s", req.email or req.username)
+            raise HTTPException(status_code=401, detail="Invalid credentials")
+        if not row["is_active"]:
+            raise HTTPException(status_code=403, detail="Account deactivated")
 
-    token_data = {"sub": row["id"], "role": row["role"]}
-    return AuthResponse(
-        access_token=create_access_token(token_data),
-        refresh_token=create_refresh_token(token_data),
-        user=_user_response(row),
-    )
+        token_data = {"sub": row["id"], "role": row["role"]}
+        return AuthResponse(
+            access_token=create_access_token(token_data),
+            refresh_token=create_refresh_token(token_data),
+            user=_user_response(row),
+        )
 
 
 @router.post("/refresh", response_model=TokenResponse)
 def refresh(req: RefreshRequest):
     from jose import JWTError
 
-    try:
-        payload = decode_token(req.refresh_token)
-    except JWTError:
-        raise HTTPException(status_code=401, detail="Invalid or expired refresh token")
+    with _AUTH_TRACER.start_as_current_span("auth.refresh"):
+        try:
+            payload = decode_token(req.refresh_token)
+        except JWTError:
+            raise HTTPException(status_code=401, detail="Invalid or expired refresh token")
 
-    if payload.get("type") != "refresh":
-        raise HTTPException(status_code=401, detail="Not a refresh token")
+        if payload.get("type") != "refresh":
+            raise HTTPException(status_code=401, detail="Not a refresh token")
 
-    user_id = payload.get("sub")
-    with get_db() as db:
-        row = db.execute("SELECT * FROM users WHERE id = ?", (user_id,)).fetchone()
-    if not row or not row["is_active"]:
-        raise HTTPException(status_code=401, detail="User not found or deactivated")
+        user_id = payload.get("sub")
+        with get_db() as db:
+            row = db.execute("SELECT * FROM users WHERE id = ?", (user_id,)).fetchone()
+        if not row or not row["is_active"]:
+            raise HTTPException(status_code=401, detail="User not found or deactivated")
 
-    token_data = {"sub": row["id"], "role": row["role"]}
-    return TokenResponse(
-        access_token=create_access_token(token_data),
-        refresh_token=create_refresh_token(token_data),
-    )
+        token_data = {"sub": row["id"], "role": row["role"]}
+        return TokenResponse(
+            access_token=create_access_token(token_data),
+            refresh_token=create_refresh_token(token_data),
+        )
 
 
 @router.get("/me", response_model=UserResponse)
@@ -303,50 +308,51 @@ class GitHubAuthRequest(BaseModel):
 
 @router.post("/github", response_model=AuthResponse)
 def github_auth(req: GitHubAuthRequest):
-    client_id = os.environ.get("GITHUB_CLIENT_ID", "")
-    client_secret = os.environ.get("GITHUB_CLIENT_SECRET", "")
+    with _AUTH_TRACER.start_as_current_span("auth.oauth.github"):
+        client_id = os.environ.get("GITHUB_CLIENT_ID", "")
+        client_secret = os.environ.get("GITHUB_CLIENT_SECRET", "")
 
-    # Exchange code for access token
-    token_resp = httpx.post(
-        "https://github.com/login/oauth/access_token",
-        json={"client_id": client_id, "client_secret": client_secret, "code": req.code},
-        headers={"Accept": "application/json"},
-        timeout=15,
-    )
-    token_data = token_resp.json()
-    access_token = token_data.get("access_token")
-    if not access_token:
-        raise HTTPException(status_code=401, detail=f"GitHub OAuth failed: {token_data.get('error_description', 'unknown')}")
-
-    headers = {"Authorization": f"Bearer {access_token}", "Accept": "application/json"}
-
-    # Get user info
-    user_resp = httpx.get("https://api.github.com/user", headers=headers, timeout=10)
-    if user_resp.status_code != 200:
-        raise HTTPException(status_code=401, detail="Failed to fetch GitHub user")
-    gh_user = user_resp.json()
-
-    # Get primary email
-    email = gh_user.get("email")
-    if not email:
-        emails_resp = httpx.get("https://api.github.com/user/emails", headers=headers, timeout=10)
-        if emails_resp.status_code == 200:
-            for e in emails_resp.json():
-                if e.get("primary"):
-                    email = e["email"]
-                    break
-    if not email:
-        raise HTTPException(status_code=400, detail="No email associated with GitHub account")
-
-    with get_db() as db:
-        row = _oauth_find_or_create(
-            db,
-            email=email.lower().strip(),
-            username=gh_user.get("login", ""),
-            oauth_provider="github",
-            oauth_id=str(gh_user["id"]),
+        # Exchange code for access token
+        token_resp = httpx.post(
+            "https://github.com/login/oauth/access_token",
+            json={"client_id": client_id, "client_secret": client_secret, "code": req.code},
+            headers={"Accept": "application/json"},
+            timeout=15,
         )
-    return _build_auth_response(row)
+        token_data = token_resp.json()
+        access_token = token_data.get("access_token")
+        if not access_token:
+            raise HTTPException(status_code=401, detail=f"GitHub OAuth failed: {token_data.get('error_description', 'unknown')}")
+
+        headers = {"Authorization": f"Bearer {access_token}", "Accept": "application/json"}
+
+        # Get user info
+        user_resp = httpx.get("https://api.github.com/user", headers=headers, timeout=10)
+        if user_resp.status_code != 200:
+            raise HTTPException(status_code=401, detail="Failed to fetch GitHub user")
+        gh_user = user_resp.json()
+
+        # Get primary email
+        email = gh_user.get("email")
+        if not email:
+            emails_resp = httpx.get("https://api.github.com/user/emails", headers=headers, timeout=10)
+            if emails_resp.status_code == 200:
+                for e in emails_resp.json():
+                    if e.get("primary"):
+                        email = e["email"]
+                        break
+        if not email:
+            raise HTTPException(status_code=400, detail="No email associated with GitHub account")
+
+        with get_db() as db:
+            row = _oauth_find_or_create(
+                db,
+                email=email.lower().strip(),
+                username=gh_user.get("login", ""),
+                oauth_provider="github",
+                oauth_id=str(gh_user["id"]),
+            )
+        return _build_auth_response(row)
 
 
 # ── Google OAuth ──────────────────────────────────────────────
@@ -357,64 +363,65 @@ class GoogleAuthRequest(BaseModel):
 
 @router.post("/google", response_model=AuthResponse)
 def google_auth(req: GoogleAuthRequest):
-    client_id = os.environ.get("GOOGLE_CLIENT_ID", "")
-    client_secret = os.environ.get("GOOGLE_CLIENT_SECRET", "")
+    with _AUTH_TRACER.start_as_current_span("auth.oauth.google"):
+        client_id = os.environ.get("GOOGLE_CLIENT_ID", "")
+        client_secret = os.environ.get("GOOGLE_CLIENT_SECRET", "")
 
-    # Try as authorization code first (from OAuth redirect flow)
-    idinfo = None
-    if not req.credential.startswith("eyJ"):  # Not a JWT → treat as auth code
-        try:
-            token_resp = httpx.post(
-                "https://oauth2.googleapis.com/token",
-                data={
-                    "code": req.credential,
-                    "client_id": client_id,
-                    "client_secret": client_secret,
-                    "redirect_uri": os.environ.get("GOOGLE_REDIRECT_URI", "https://realworldclaw.com/auth/callback/google"),
-                    "grant_type": "authorization_code",
-                },
-                timeout=15,
+        # Try as authorization code first (from OAuth redirect flow)
+        idinfo = None
+        if not req.credential.startswith("eyJ"):  # Not a JWT → treat as auth code
+            try:
+                token_resp = httpx.post(
+                    "https://oauth2.googleapis.com/token",
+                    data={
+                        "code": req.credential,
+                        "client_id": client_id,
+                        "client_secret": client_secret,
+                        "redirect_uri": os.environ.get("GOOGLE_REDIRECT_URI", "https://realworldclaw.com/auth/callback/google"),
+                        "grant_type": "authorization_code",
+                    },
+                    timeout=15,
+                )
+                token_data = token_resp.json()
+                id_token_str = token_data.get("id_token")
+                if not id_token_str:
+                    raise HTTPException(status_code=401, detail=f"Google OAuth failed: {token_data.get('error_description', token_data.get('error', 'unknown'))}")
+                # Verify the id_token
+                idinfo = google_id_token.verify_oauth2_token(
+                    id_token_str, google_auth_requests.Request(), client_id
+                )
+            except HTTPException:
+                raise
+            except Exception as e:
+                raise HTTPException(status_code=401, detail=f"Google OAuth code exchange failed: {str(e)}")
+        else:
+            # Direct ID token (from Google Sign-In button)
+            try:
+                idinfo = google_id_token.verify_oauth2_token(
+                    req.credential, google_auth_requests.Request(), client_id
+                )
+            except ValueError:
+                raise HTTPException(status_code=400, detail="Invalid Google ID token")
+
+        if not idinfo:
+            raise HTTPException(status_code=400, detail="Could not verify Google identity")
+
+        email = idinfo.get("email")
+        if not email:
+            raise HTTPException(status_code=400, detail="No email in Google token")
+
+        name = idinfo.get("name", email.split("@")[0])
+        google_id = idinfo.get("sub", "")
+
+        with get_db() as db:
+            row = _oauth_find_or_create(
+                db,
+                email=email.lower().strip(),
+                username=name,
+                oauth_provider="google",
+                oauth_id=google_id,
             )
-            token_data = token_resp.json()
-            id_token_str = token_data.get("id_token")
-            if not id_token_str:
-                raise HTTPException(status_code=401, detail=f"Google OAuth failed: {token_data.get('error_description', token_data.get('error', 'unknown'))}")
-            # Verify the id_token
-            idinfo = google_id_token.verify_oauth2_token(
-                id_token_str, google_auth_requests.Request(), client_id
-            )
-        except HTTPException:
-            raise
-        except Exception as e:
-            raise HTTPException(status_code=401, detail=f"Google OAuth code exchange failed: {str(e)}")
-    else:
-        # Direct ID token (from Google Sign-In button)
-        try:
-            idinfo = google_id_token.verify_oauth2_token(
-                req.credential, google_auth_requests.Request(), client_id
-            )
-        except ValueError:
-            raise HTTPException(status_code=400, detail="Invalid Google ID token")
-
-    if not idinfo:
-        raise HTTPException(status_code=400, detail="Could not verify Google identity")
-
-    email = idinfo.get("email")
-    if not email:
-        raise HTTPException(status_code=400, detail="No email in Google token")
-
-    name = idinfo.get("name", email.split("@")[0])
-    google_id = idinfo.get("sub", "")
-
-    with get_db() as db:
-        row = _oauth_find_or_create(
-            db,
-            email=email.lower().strip(),
-            username=name,
-            oauth_provider="google",
-            oauth_id=google_id,
-        )
-    return _build_auth_response(row)
+        return _build_auth_response(row)
 
 
 def _user_response(row) -> UserResponse:

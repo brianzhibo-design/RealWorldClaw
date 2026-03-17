@@ -41,11 +41,22 @@ services:
       - PYTHONUNBUFFERED=1
       - DATABASE_URL=${DATABASE_URL:-postgresql://${POSTGRES_USER:-realworldclaw}:${POSTGRES_PASSWORD:-realworldclaw}@postgres:5432/${POSTGRES_DB:-realworldclaw}}
       - REDIS_URL=${REDIS_URL:-redis://redis:6379/0}
+      - OTEL_EXPORTER_OTLP_ENDPOINT=${OTEL_EXPORTER_OTLP_ENDPOINT:-http://jaeger:4317}
+      - OTEL_SERVICE_NAME=${OTEL_SERVICE_NAME:-realworldclaw-platform-api}
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
+      jaeger:
+        condition: service_started
+    restart: unless-stopped
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.58
+    ports:
+      - "16686:16686" # Jaeger UI
+      - "4317:4317"   # OTLP gRPC
     restart: unless-stopped
 
 volumes:
