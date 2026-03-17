@@ -4,12 +4,14 @@ from collections import defaultdict
 
 from fastapi import APIRouter, Query
 
+from ..cache import cache_response
 from ..database import get_db
 
 router = APIRouter(prefix="/tags", tags=["tags"])
 
 
 @router.get("")
+@cache_response(ttl=60)
 async def list_tags(category: str | None = Query(None, description="craft/material/equipment/scene")):
     with get_db() as db:
         if category:

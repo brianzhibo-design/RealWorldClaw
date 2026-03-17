@@ -15,6 +15,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from .audit import init_audit_table
+from .cache import close_cache, init_cache
 from .database import get_db, init_db
 from .events import setup_event_handlers
 from .logging_config import setup_logging
@@ -32,10 +33,12 @@ async def lifespan(app: FastAPI):
     init_db()
     init_audit_table()
     setup_event_handlers()
+    await init_cache()
     manager.start_heartbeat()
     print("🐾 RealWorldClaw API ready!")
     yield
     manager.stop_heartbeat()
+    await close_cache()
     print("👋 Shutting down...")
 
 

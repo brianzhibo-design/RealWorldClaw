@@ -18,3 +18,4 @@ psycopg2-binary>=2.9.9
 alembic>=1.13.0
 sqlalchemy>=2.0.0
 pytest-cov
+redis[hiredis]>=5.0.0
