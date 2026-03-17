@@ -6,6 +6,7 @@ import Link from "next/link";
 import { MessageSquare, Globe, Bot, Package, ArrowRight, Loader2, Settings, Layers } from "lucide-react";
 import { useAuthStore } from "@/stores/authStore";
 import { apiFetch } from "@/lib/api-client";
+import SimulatorPanel from "@/components/SimulatorPanel";
 
 interface DashboardStats {
   myPosts: number;
@@ -111,6 +112,8 @@ export default function DashboardPage() {
           </h1>
           <p className="text-slate-400 text-sm">Your activity on RealWorldClaw</p>
         </div>
+
+        <SimulatorPanel />
 
         {/* Stats */}
         <div className="grid grid-cols-2 gap-4 mb-8">
