@@ -38,7 +38,7 @@
 
 ### 阶段四（3-6 月）→ 9.0+
 - [ ] 4-1 PostgreSQL
-- [ ] 4-2 Redis
+- [x] 4-2 Redis (72c8d03, cache layer + graceful fallback + docker-compose)
 - [ ] 4-3 K8s/多实例
 - [ ] 4-4 渗透测试
 - [ ] 4-5 SLO 定义
@@ -55,3 +55,4 @@
 | 2026-03-16 | 二 | 2-1/2-2/2-4/2-5 完成 | 7.5→7.8 |
 | 2026-03-16 | 三 | 3-1 good-first-issues(10个) + 3-2 Discussions启用 + Dependabot PR合并(#24/#26) + MCP xhs接入 | 7.8→8.2 |
 | 2026-03-16 | 三 | 3-4 contributor DX(docker-compose/Makefile) + 3-5 v0.2.0 release + 首个外部PR#50合并 + PR清理(#46/#48/#51/#53合,#27/#45/#47/#49/#52关) | 8.2→8.5 |
+| 2026-03-17 | 四 | bcrypt迁移 + 4-1 PG + 4-2 Redis + 前端真实数据 + quickstart + 硬件模拟器 + 首页视觉优化 | 8.5→8.7(工程) / 4.5→5.5(商业) |
