@@ -8,7 +8,7 @@ import logging
 
 from fastapi import APIRouter, Query, WebSocket, WebSocketDisconnect
 from pydantic import BaseModel, Field
-from jose import JWTError
+from jwt import InvalidTokenError as JWTError
 
 from ..security import decode_token
 from ..ws_manager import manager

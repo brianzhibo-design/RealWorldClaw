@@ -7,7 +7,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Optional
 
 import bcrypt
-from jose import jwt
+import jwt
 
 SECRET_KEY = os.environ.get("JWT_SECRET_KEY")
 if not SECRET_KEY:

@@ -15,7 +15,7 @@ from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Query
 
-from jose import JWTError
+from jwt import InvalidTokenError as JWTError
 
 from ..api_keys import find_agent_by_api_key
 from ..database import get_db

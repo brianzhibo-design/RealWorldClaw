@@ -173,7 +173,7 @@ def login(req: UserLoginRequest):
     responses={401: {"description": "Invalid/expired refresh token or inactive user"}},
 )
 def refresh(req: RefreshRequest):
-    from jose import JWTError
+    from jwt import InvalidTokenError as JWTError
 
     with _AUTH_TRACER.start_as_current_span("auth.refresh"):
         try:
