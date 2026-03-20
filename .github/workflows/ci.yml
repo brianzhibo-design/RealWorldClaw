@@ -16,11 +16,14 @@ jobs:
         with:
           python-version: "3.12"
       - name: Install dependencies and run tests
+        env:
+          JWT_SECRET_KEY: ci-test
+          RWC_API_KEY_SECRET: test-ci-api-key-secret
         run: |
           cd platform
           pip install -r requirements.txt
           pip install pytest-cov
-          JWT_SECRET_KEY=ci-test pytest tests/ -x -q --cov=api --cov-report=term-missing --cov-report=xml:coverage.xml
+          pytest tests/ -x -q --cov=api --cov-report=term-missing --cov-report=xml:coverage.xml
 
   frontend:
     name: Frontend Build
