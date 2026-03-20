@@ -11,7 +11,12 @@ from datetime import datetime, timedelta, timezone
 
 HASH_PREFIX = "hmac-sha256$"
 
-_API_KEY_SECRET = os.environ.get("RWC_API_KEY_SECRET", "rwc-default-key-secret")
+_API_KEY_SECRET = os.environ.get("RWC_API_KEY_SECRET")
+if not _API_KEY_SECRET:
+    raise RuntimeError(
+        "FATAL: RWC_API_KEY_SECRET environment variable is not set. "
+        "Refusing to start with insecure/default API key secret."
+    )
 
 
 def _utcnow() -> datetime:
