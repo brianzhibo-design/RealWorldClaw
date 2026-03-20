@@ -97,7 +97,9 @@ def test_order_creation_flow(customer_auth, maker_auth, maker_profile_id):
         "delivery_address": "Tech Park Road 1",
         "urgency": "normal",
         "notes": "e2e order flow",
-        "auto_match": True,
+        # Keep order unassigned first, then claim with the maker created in this test.
+        # This avoids flakiness when auto-match picks an unrelated existing maker.
+        "auto_match": False,
     }
 
     # 1) create order
@@ -114,14 +116,13 @@ def test_order_creation_flow(customer_auth, maker_auth, maker_profile_id):
     assert customer_view["id"] == order_id
     assert customer_view["status"] == "pending"
 
-    # 3) assign to maker (accept)
-    r = requests.put(
-        _url(f"/orders/{order_id}/accept"),
-        json={"estimated_hours": 6},
+    # 3) assign to maker (claim)
+    r = requests.post(
+        _url(f"/orders/{order_id}/claim"),
         headers=maker_auth,
         timeout=TIMEOUT,
     )
-    assert r.status_code == 200, f"accept order failed: {r.status_code} {r.text}"
+    assert r.status_code == 200, f"claim order failed: {r.status_code} {r.text}"
     assert r.json()["status"] == "accepted"
 
     # 4) complete order via valid transition path
