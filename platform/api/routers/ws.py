@@ -66,11 +66,13 @@ async def _authenticate_ws(ws: WebSocket, token: str | None) -> dict | None:
             await _safe_close(ws, code=4001, reason="Invalid auth payload")
             return None
 
-        if not first_msg.get("token"):
-            await _safe_close(ws, code=4001, reason="Missing token")
-            return None
-
-        incoming_token = first_msg["token"]
+        if first_msg.get("token"):
+            incoming_token = first_msg["token"]
+        else:
+            incoming_token = ws.cookies.get("rwc_token")
+            if not incoming_token:
+                await _safe_close(ws, code=4001, reason="Missing token")
+                return None
 
     try:
         payload = decode_token(incoming_token)

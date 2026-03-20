@@ -584,6 +584,18 @@ def test_ws_accepts_connection_with_first_auth_message_token(client):
         ws.send_json({"type": "pong"})
 
 
+def test_ws_accepts_connection_with_cookie_when_first_auth_message_has_no_token(client):
+    headers, user_id = _register_and_get_headers(client, email="wscookie@test.com", username="ws_cookie_user")
+    token = headers["Authorization"].split(" ", 1)[1]
+
+    with client.websocket_connect(
+        f"{API}/ws/orders/{user_id}",
+        headers={"cookie": f"rwc_token={token}"},
+    ) as ws:
+        ws.send_json({"type": "auth"})
+        ws.send_json({"type": "pong"})
+
+
 def test_ws_rejects_connection_with_invalid_first_auth_message(client):
     _, user_id = _register_and_get_headers(client, email="wsauthbad@test.com", username="ws_auth_bad_user")
 

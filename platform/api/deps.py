@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Callable
 
-from fastapi import Depends, Header, HTTPException
+from fastapi import Depends, Header, HTTPException, Request
 from jwt import InvalidTokenError as JWTError
 
 from .api_keys import find_agent_by_api_key
@@ -12,11 +12,28 @@ from .database import get_db
 from .security import decode_token
 
 
-def get_current_user(authorization: str = Header(...)) -> dict:
-    """Extract and validate JWT from Authorization header. Returns user dict."""
-    if not authorization.startswith("Bearer "):
-        raise HTTPException(status_code=401, detail="Invalid authorization header format")
-    token = authorization.removeprefix("Bearer ")
+def get_current_user(
+    request: Request,
+    authorization: str | None = Header(default=None),
+) -> dict:
+    """Extract and validate JWT from Authorization header or auth cookie. Returns user dict."""
+    token: str | None = None
+
+    # Backward compatibility for direct function calls in tests:
+    # get_current_user("Bearer <token>")
+    if isinstance(request, str) and not isinstance(authorization, str):
+        authorization = request
+        request = None
+
+    if authorization:
+        if not authorization.startswith("Bearer "):
+            raise HTTPException(status_code=401, detail="Invalid authorization header format")
+        token = authorization.removeprefix("Bearer ")
+    elif request is not None:
+        token = request.cookies.get("rwc_token")
+
+    if not token:
+        raise HTTPException(status_code=401, detail="Missing credentials")
     try:
         payload = decode_token(token)
     except JWTError:
@@ -81,6 +98,7 @@ def _resolve_bearer_identity(token: str) -> dict | None:
 
 
 def get_authenticated_identity(
+    request: Request,
     authorization: str | None = Header(default=None),
     x_agent_api_key: str | None = Header(default=None, alias="x-agent-api-key"),
 ) -> dict:
@@ -97,10 +115,15 @@ def get_authenticated_identity(
         if agent:
             return agent
 
+    token: str | None = None
     if authorization:
         if not authorization.startswith("Bearer "):
             raise HTTPException(status_code=401, detail="Invalid authorization header format")
         token = authorization.removeprefix("Bearer ")
+    else:
+        token = request.cookies.get("rwc_token")
+
+    if token:
         identity = _resolve_bearer_identity(token)
         if identity:
             return identity

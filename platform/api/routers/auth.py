@@ -43,7 +43,7 @@ def _conflict_from_user_integrity_error(exc: Exception) -> HTTPException | None:
     return HTTPException(status_code=409, detail="User already exists")
 
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 from google.oauth2 import id_token as google_id_token
 from google.auth.transport import requests as google_auth_requests
 from pydantic import BaseModel, Field
@@ -136,7 +136,7 @@ def register(req: UserRegisterRequest):
     description="Authenticate a user account and return fresh access/refresh JWT tokens.",
     responses={401: {"description": "Invalid credentials"}, 403: {"description": "Account deactivated"}, 429: {"description": "Too many login attempts"}},
 )
-def login(req: UserLoginRequest):
+def login(req: UserLoginRequest, response: Response):
     with _AUTH_TRACER.start_as_current_span("auth.login"):
         login_key = f"login:{req.email or req.username}"
         if not _rate_check(login_key, max_calls=20, window_sec=300):
@@ -158,8 +158,18 @@ def login(req: UserLoginRequest):
             raise HTTPException(status_code=403, detail="Account deactivated")
 
         token_data = {"sub": row["id"], "role": row["role"]}
+        access_token = create_access_token(token_data)
+        response.set_cookie(
+            key="rwc_token",
+            value=access_token,
+            httponly=True,
+            secure=True,
+            samesite="lax",
+            max_age=86400,
+            path="/",
+        )
         return AuthResponse(
-            access_token=create_access_token(token_data),
+            access_token=access_token,
             refresh_token=create_refresh_token(token_data),
             user=_user_response(row),
         )
@@ -270,7 +280,8 @@ def change_password(req: ChangePasswordRequest, user: dict = Depends(get_current
     summary="Logout (stateless)",
     description="Return logout acknowledgement. JWT revocation is handled client-side or by token rotation strategy.",
 )
-def logout():
+def logout(response: Response):
+    response.delete_cookie("rwc_token", path="/")
     return {"message": "Logged out successfully"}
 
 

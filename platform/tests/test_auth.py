@@ -87,6 +87,7 @@ class TestLogin:
         assert "access_token" in data
         assert "refresh_token" in data
         assert data["token_type"] == "bearer"
+        assert r.cookies.get("rwc_token") == data["access_token"]
 
     def test_login_wrong_password(self):
         _register()
@@ -118,6 +119,18 @@ class TestMe:
                        json={"username": "newname"})
         assert r.status_code == 200
         assert r.json()["username"] == "newname"
+
+    def test_get_me_with_cookie(self):
+        _register()
+        login_resp = _login()
+        cookie_token = login_resp.cookies.get("rwc_token")
+        assert cookie_token
+
+        cookie_client = TestClient(app)
+        cookie_client.cookies.set("rwc_token", cookie_token)
+        r = cookie_client.get("/api/v1/auth/me")
+        assert r.status_code == 200
+        assert r.json()["email"] == "test@example.com"
 
     def test_no_token_401(self):
         r = client.get("/api/v1/auth/me")
@@ -214,5 +227,10 @@ class TestRBAC:
 
 class TestLogout:
     def test_logout(self):
+        _register()
+        _login()
+        assert client.cookies.get("rwc_token")
+
         r = client.post("/api/v1/auth/logout")
         assert r.status_code == 200
+        assert not client.cookies.get("rwc_token")
