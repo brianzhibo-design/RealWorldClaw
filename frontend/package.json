@@ -36,6 +36,9 @@
     "tailwindcss-animate": "^1.0.7",
     "zustand": "^5.0.12"
   },
+  "overrides": {
+    "glob": "10.5.0"
+  },
   "devDependencies": {
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
