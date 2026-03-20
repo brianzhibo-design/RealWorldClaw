@@ -1,0 +1,94 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-realworldclaw}
+      POSTGRES_USER: ${POSTGRES_USER:-realworldclaw}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-realworldclaw}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-realworldclaw} -d ${POSTGRES_DB:-realworldclaw}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    restart: unless-stopped
+
+  platform-1:
+    build:
+      context: ../platform
+      dockerfile: Dockerfile
+    environment:
+      PYTHONUNBUFFERED: "1"
+      DATABASE_URL: ${DATABASE_URL:-postgresql://${POSTGRES_USER:-realworldclaw}:${POSTGRES_PASSWORD:-realworldclaw}@postgres:5432/${POSTGRES_DB:-realworldclaw}}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+      OTEL_SERVICE_NAME: ${OTEL_SERVICE_NAME:-realworldclaw-platform-api}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health').read()"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
+
+  platform-2:
+    build:
+      context: ../platform
+      dockerfile: Dockerfile
+    environment:
+      PYTHONUNBUFFERED: "1"
+      DATABASE_URL: ${DATABASE_URL:-postgresql://${POSTGRES_USER:-realworldclaw}:${POSTGRES_PASSWORD:-realworldclaw}@postgres:5432/${POSTGRES_DB:-realworldclaw}}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+      OTEL_SERVICE_NAME: ${OTEL_SERVICE_NAME:-realworldclaw-platform-api}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health').read()"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:1.27-alpine
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      platform-1:
+        condition: service_healthy
+      platform-2:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1/health >/dev/null 2>&1 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
