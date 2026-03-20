@@ -309,7 +309,7 @@ class TestErrorScenarios:
 
     def test_unauthorized_access(self, client):
         r = client.get(f"{API}/auth/me")
-        assert r.status_code == 422  # missing header
+        assert r.status_code == 401  # missing credentials
 
         r = client.get(f"{API}/auth/me", headers={"Authorization": "Bearer invalid-token"})
         assert r.status_code == 401
