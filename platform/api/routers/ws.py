@@ -6,7 +6,7 @@ import asyncio
 import json
 import logging
 
-from fastapi import APIRouter, Query, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from pydantic import BaseModel, Field
 from jwt import InvalidTokenError as JWTError
 
@@ -21,7 +21,7 @@ AUTH_FIRST_MSG_TIMEOUT_SECONDS = 5
 
 class WebSocketDocResponse(BaseModel):
     endpoint: str = Field(..., examples=["/api/v1/ws/orders/{user_id}"])
-    auth: str = Field(..., examples=["JWT access token via ?token= or first auth frame"])
+    auth: str = Field(..., examples=["JWT access token via first auth frame or cookie fallback"])
     message_format: dict = Field(..., examples=[{"type": "auth", "token": "<jwt>"}])
 
 
@@ -33,46 +33,45 @@ async def _safe_close(ws: WebSocket, *, code: int, reason: str) -> None:
         pass
 
 
-async def _authenticate_ws(ws: WebSocket, token: str | None) -> dict | None:
+async def _authenticate_ws(ws: WebSocket) -> dict | None:
     """Validate JWT token for WebSocket. Returns payload or None.
 
-    Supports two auth modes for backward compatibility:
-    1) Query token: ws://.../ws/...?...&token=<jwt>
-    2) First message auth: {"type":"auth","token":"<jwt>"}
+    Auth modes:
+    1) First message auth: {"type":"auth","token":"<jwt>"}
+    2) Cookie fallback when first auth message omits token
     """
-    incoming_token = token
+    incoming_token: str | None = None
 
-    if not incoming_token:
-        await ws.accept()
-        try:
-            first_msg = await asyncio.wait_for(
-                ws.receive_json(),
-                timeout=AUTH_FIRST_MSG_TIMEOUT_SECONDS,
-            )
-        except WebSocketDisconnect:
-            return None
-        except asyncio.TimeoutError:
-            await _safe_close(ws, code=4001, reason="Auth timeout")
-            return None
-        except (json.JSONDecodeError, ValueError):
-            await _safe_close(ws, code=4001, reason="Invalid auth payload")
-            return None
+    await ws.accept()
+    try:
+        first_msg = await asyncio.wait_for(
+            ws.receive_json(),
+            timeout=AUTH_FIRST_MSG_TIMEOUT_SECONDS,
+        )
+    except WebSocketDisconnect:
+        return None
+    except asyncio.TimeoutError:
+        await _safe_close(ws, code=4001, reason="Auth timeout")
+        return None
+    except (json.JSONDecodeError, ValueError):
+        await _safe_close(ws, code=4001, reason="Invalid auth payload")
+        return None
 
-        if not isinstance(first_msg, dict):
-            await _safe_close(ws, code=4001, reason="Invalid auth payload")
-            return None
+    if not isinstance(first_msg, dict):
+        await _safe_close(ws, code=4001, reason="Invalid auth payload")
+        return None
 
-        if first_msg.get("type") != "auth":
-            await _safe_close(ws, code=4001, reason="Invalid auth payload")
-            return None
+    if first_msg.get("type") != "auth":
+        await _safe_close(ws, code=4001, reason="Invalid auth payload")
+        return None
 
-        if first_msg.get("token"):
-            incoming_token = first_msg["token"]
-        else:
-            incoming_token = ws.cookies.get("rwc_token")
-            if not incoming_token:
-                await _safe_close(ws, code=4001, reason="Missing token")
-                return None
+    if first_msg.get("token"):
+        incoming_token = first_msg["token"]
+    else:
+        incoming_token = ws.cookies.get("rwc_token")
+        if not incoming_token:
+            await _safe_close(ws, code=4001, reason="Missing token")
+            return None
 
     try:
         payload = decode_token(incoming_token)
@@ -114,8 +113,8 @@ async def _check_ws_authorization(ws: WebSocket, channel: str, target_id: str, p
     return True
 
 
-async def _ws_loop(ws: WebSocket, channel: str, target_id: str, token: str | None) -> None:
-    payload = await _authenticate_ws(ws, token)
+async def _ws_loop(ws: WebSocket, channel: str, target_id: str) -> None:
+    payload = await _authenticate_ws(ws)
     if not payload:
         return
 
@@ -150,7 +149,7 @@ def websocket_docs():
     return [
         {
             "endpoint": "/api/v1/ws/printer/{printer_id}",
-            "auth": "JWT access token via query token or first auth frame",
+            "auth": "JWT access token via first auth frame or cookie fallback",
             "message_format": {"type": "auth", "token": "<access_token>"},
         },
         {
@@ -167,15 +166,15 @@ def websocket_docs():
 
 
 @router.websocket("/printer/{printer_id}")
-async def ws_printer(websocket: WebSocket, printer_id: str, token: str | None = Query(None)):
-    await _ws_loop(websocket, "printer", printer_id, token)
+async def ws_printer(websocket: WebSocket, printer_id: str):
+    await _ws_loop(websocket, "printer", printer_id)
 
 
 @router.websocket("/orders/{user_id}")
-async def ws_orders(websocket: WebSocket, user_id: str, token: str | None = Query(None)):
-    await _ws_loop(websocket, "orders", user_id, token)
+async def ws_orders(websocket: WebSocket, user_id: str):
+    await _ws_loop(websocket, "orders", user_id)
 
 
 @router.websocket("/notifications/{user_id}")
-async def ws_notifications(websocket: WebSocket, user_id: str, token: str | None = Query(None)):
-    await _ws_loop(websocket, "notifications", user_id, token)
+async def ws_notifications(websocket: WebSocket, user_id: str):
+    await _ws_loop(websocket, "notifications", user_id)

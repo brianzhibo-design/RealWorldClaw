@@ -542,11 +542,12 @@ def test_ws_rejects_connection_when_token_missing(client):
     assert exc.value.code == 4001
 
 
-def test_ws_accepts_connection_with_valid_query_token(client):
+def test_ws_accepts_connection_with_valid_first_auth_message_token(client):
     headers, user_id = _register_and_get_headers(client, email="ws@test.com", username="ws_user")
     token = headers["Authorization"].split(" ", 1)[1]
 
-    with client.websocket_connect(f"{API}/ws/orders/{user_id}?token={token}") as ws:
+    with client.websocket_connect(f"{API}/ws/orders/{user_id}") as ws:
+        ws.send_json({"type": "auth", "token": token})
         ws.send_json({"type": "pong"})
 
 
@@ -558,7 +559,8 @@ def test_ws_accepts_notifications_subscription_for_token_owner(client):
     )
     token = headers["Authorization"].split(" ", 1)[1]
 
-    with client.websocket_connect(f"{API}/ws/notifications/{user_id}?token={token}") as ws:
+    with client.websocket_connect(f"{API}/ws/notifications/{user_id}") as ws:
+        ws.send_json({"type": "auth", "token": token})
         ws.send_json({"type": "pong"})
 
 
@@ -657,9 +659,10 @@ def test_ws_rejects_cross_user_notifications_subscription(client):
     _, user_b = _register_and_get_headers(client, email="wsuserb@test.com", username="ws_user_b")
     token_a = headers_a["Authorization"].split(" ", 1)[1]
 
-    with pytest.raises(WebSocketDisconnect) as exc:
-        with client.websocket_connect(f"{API}/ws/notifications/{user_b}?token={token_a}"):
-            pass
+    with client.websocket_connect(f"{API}/ws/notifications/{user_b}") as ws:
+        ws.send_json({"type": "auth", "token": token_a})
+        with pytest.raises(WebSocketDisconnect) as exc:
+            ws.receive_json()
 
     assert exc.value.code == 4003
 
@@ -669,9 +672,10 @@ def test_ws_rejects_cross_user_orders_subscription(client):
     _, user_b = _register_and_get_headers(client, email="wsorderb@test.com", username="ws_order_user_b")
     token_a = headers_a["Authorization"].split(" ", 1)[1]
 
-    with pytest.raises(WebSocketDisconnect) as exc:
-        with client.websocket_connect(f"{API}/ws/orders/{user_b}?token={token_a}"):
-            pass
+    with client.websocket_connect(f"{API}/ws/orders/{user_b}") as ws:
+        ws.send_json({"type": "auth", "token": token_a})
+        with pytest.raises(WebSocketDisconnect) as exc:
+            ws.receive_json()
 
     assert exc.value.code == 4003
 
@@ -681,9 +685,10 @@ def test_ws_rejects_cross_user_printer_subscription(client):
     _, user_b = _register_and_get_headers(client, email="wsprinterb@test.com", username="ws_printer_user_b")
     token_a = headers_a["Authorization"].split(" ", 1)[1]
 
-    with pytest.raises(WebSocketDisconnect) as exc:
-        with client.websocket_connect(f"{API}/ws/printer/{user_b}?token={token_a}"):
-            pass
+    with client.websocket_connect(f"{API}/ws/printer/{user_b}") as ws:
+        ws.send_json({"type": "auth", "token": token_a})
+        with pytest.raises(WebSocketDisconnect) as exc:
+            ws.receive_json()
 
     assert exc.value.code == 4003
 
@@ -696,7 +701,8 @@ def test_ws_accepts_printer_subscription_for_token_owner(client):
     )
     token = headers["Authorization"].split(" ", 1)[1]
 
-    with client.websocket_connect(f"{API}/ws/printer/{user_id}?token={token}") as ws:
+    with client.websocket_connect(f"{API}/ws/printer/{user_id}") as ws:
+        ws.send_json({"type": "auth", "token": token})
         ws.send_json({"type": "pong"})
 
 
