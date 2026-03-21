@@ -15,17 +15,10 @@ export async function apiFetch<T>(
   path: string,
   options?: RequestInit
 ): Promise<T> {
-  const token = getToken();
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
     ...(options?.headers as Record<string, string>),
   };
-
-  // Primary auth path: backend-set HttpOnly cookie (sent automatically via credentials: "include").
-  // Bearer token is kept as a temporary legacy fallback only.
-  if (token) {
-    headers["Authorization"] = `Bearer ${token}`;
-  }
 
   const res = await fetchWithAuth(`${API_BASE}${path}`, {
     ...options,
@@ -138,11 +131,7 @@ export function useWebSocket(
   const reconnectRef = useRef(0);
 
   const connect = useCallback(() => {
-    const token = getToken();
-    const wsUrl = token
-      ? `${WS_BASE}?token=${encodeURIComponent(token)}` // legacy fallback
-      : WS_BASE; // prefer cookie-based session when backend supports it
-    const ws = new WebSocket(wsUrl);
+    const ws = new WebSocket(WS_BASE);
     wsRef.current = ws;
 
     ws.onopen = () => {
@@ -269,33 +258,10 @@ export interface CommunityComment {
   upvotes: number;
 }
 
-// ─── Helper: get token (dual-read) ───────────────────
-
-function getToken(): string | null {
-  const { token: storeToken, tokenExpiresAt } = useAuthStore.getState();
-  if (storeToken) {
-    if (!tokenExpiresAt || Date.now() < tokenExpiresAt) return storeToken;
-    useAuthStore.getState().logout();
-    return null;
-  }
-
-  if (typeof window !== "undefined") {
-    const token = localStorage.getItem("auth_token");
-    const expiryRaw = localStorage.getItem("auth_token_expires_at");
-    const expiry = expiryRaw ? Number(expiryRaw) : null;
-    if (token && (!expiry || Date.now() < expiry)) return token;
-    localStorage.removeItem("auth_token");
-    localStorage.removeItem("auth_token_expires_at");
-  }
-
-  return null;
-}
+// ─── Helper: auth headers ────────────────────────────
 
 export function getAuthHeaders(extra?: Record<string, string>): Record<string, string> {
-  const token = getToken();
-  const headers: Record<string, string> = { ...extra };
-  if (token) headers.Authorization = `Bearer ${token}`;
-  return headers;
+  return { ...(extra || {}) };
 }
 
 // ─── Order API functions (migrated from api.ts) ──────

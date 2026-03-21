@@ -42,7 +42,7 @@ export default function LoginPage() {
         ? await loginAPI(email, password)
         : await loginAPI("", password, email);
 
-      login(res.access_token, {
+      login(null, {
         id: res.user.id,
         username: res.user.username,
         email: res.user.email,

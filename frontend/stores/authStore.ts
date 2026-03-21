@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { API_BASE } from "@/lib/api-client";
 
 export interface User {
   id: string;
@@ -22,22 +23,6 @@ interface AuthState {
 const LEGACY_TOKEN_KEY = "auth_token";
 const LEGACY_TOKEN_EXP_KEY = "auth_token_expires_at";
 
-function getJwtExpiry(token: string): number | null {
-  try {
-    const payload = token.split(".")[1];
-    if (!payload) return null;
-    const decoded = JSON.parse(atob(payload.replace(/-/g, "+").replace(/_/g, "/"))) as { exp?: number };
-    return typeof decoded.exp === "number" ? decoded.exp * 1000 : null;
-  } catch {
-    return null;
-  }
-}
-
-function isTokenExpired(expiryMs: number | null): boolean {
-  if (!expiryMs) return false;
-  return Date.now() >= expiryMs;
-}
-
 export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
@@ -45,43 +30,20 @@ export const useAuthStore = create<AuthState>()(
       tokenExpiresAt: null,
       user: null,
       isAuthenticated: false,
-      login: (token, user) => {
-        // Security migration note:
-        // Preferred auth mode is HttpOnly secure cookie set by backend.
-        // Frontend should not store JWT in JS-accessible storage because XSS can exfiltrate it.
-        // The localStorage fallback below is temporary for backward compatibility only.
-        let nextToken: string | null = null;
-        let tokenExpiresAt: number | null = null;
-
-        if (token) {
-          tokenExpiresAt = getJwtExpiry(token);
-          if (!isTokenExpired(tokenExpiresAt)) {
-            nextToken = token;
-          }
-        }
-
-        if (typeof window !== "undefined") {
-          if (nextToken) {
-            localStorage.setItem(LEGACY_TOKEN_KEY, nextToken);
-            if (tokenExpiresAt) {
-              localStorage.setItem(LEGACY_TOKEN_EXP_KEY, String(tokenExpiresAt));
-            } else {
-              localStorage.removeItem(LEGACY_TOKEN_EXP_KEY);
-            }
-          } else {
-            localStorage.removeItem(LEGACY_TOKEN_KEY);
-            localStorage.removeItem(LEGACY_TOKEN_EXP_KEY);
-          }
-        }
-
+      login: (_token, user) => {
         set({
-          token: nextToken,
-          tokenExpiresAt,
+          token: null,
+          tokenExpiresAt: null,
           user,
           isAuthenticated: true,
         });
       },
       logout: () => {
+        void fetch(`${API_BASE}/auth/logout`, {
+          method: "POST",
+          credentials: "include",
+        }).catch(() => undefined);
+
         if (typeof window !== "undefined") {
           // Thorough cleanup to reduce residual token/session risk.
           localStorage.removeItem(LEGACY_TOKEN_KEY);
@@ -96,22 +58,10 @@ export const useAuthStore = create<AuthState>()(
     {
       name: "rwc-auth",
       onRehydrateStorage: () => (state) => {
-        if (!state || typeof window === "undefined") return;
+        if (!state) return;
 
-        const fallbackToken = localStorage.getItem(LEGACY_TOKEN_KEY);
-        const expiryRaw = localStorage.getItem(LEGACY_TOKEN_EXP_KEY);
-        const expiry = expiryRaw ? Number(expiryRaw) : null;
-
-        if (fallbackToken && !isTokenExpired(expiry)) {
-          state.token = fallbackToken;
-          state.tokenExpiresAt = expiry;
-          state.isAuthenticated = true;
-        } else {
-          localStorage.removeItem(LEGACY_TOKEN_KEY);
-          localStorage.removeItem(LEGACY_TOKEN_EXP_KEY);
-          state.token = null;
-          state.tokenExpiresAt = null;
-        }
+        state.token = null;
+        state.tokenExpiresAt = null;
       },
     }
   )

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { API_BASE } from "@/lib/api-client";
+import { useAuthStore } from "@/stores/authStore";
 
 interface VoteButtonsProps {
   upvotes: number;
@@ -21,16 +22,17 @@ export default function VoteButtons({
   const [currentVote, setCurrentVote] = useState(userVote);
   const [voteCount, setVoteCount] = useState(upvotes - downvotes);
   const [loading, setLoading] = useState(false);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
 
   const handleVote = async (voteType: 'up' | 'down') => {
-    const token = localStorage.getItem("auth_token") || localStorage.getItem("token");
-    if (!token) return;
+    if (!isAuthenticated) return;
 
     setLoading(true);
     try {
       const res = await fetch(`${API_BASE}/community/posts/${postId}/vote`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ vote_type: voteType })
       });
       if (res.ok) {
