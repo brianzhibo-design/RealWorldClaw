@@ -36,7 +36,7 @@ interface Notification {
   read: boolean;
 }
 
-function NotificationBell({ userId, token }: { userId: string; token: string }) {
+function NotificationBell({ userId }: { userId: string }) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [open, setOpen] = useState(false);
   const wsRef = useRef<WebSocket | null>(null);
@@ -45,11 +45,11 @@ function NotificationBell({ userId, token }: { userId: string; token: string }) 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
   useEffect(() => {
-    if (!userId || !token) return;
+    if (!userId) return;
 
     const apiBase = process.env.NEXT_PUBLIC_API_URL || 'https://realworldclaw-api.fly.dev/api/v1';
     const wsBase = apiBase.replace(/^http/, 'ws');
-    const wsUrl = `${wsBase}/ws/notifications/${userId}?token=${token}`;
+    const wsUrl = `${wsBase}/ws/notifications/${userId}`;
     try {
       const ws = new WebSocket(wsUrl);
       wsRef.current = ws;
@@ -83,7 +83,7 @@ function NotificationBell({ userId, token }: { userId: string; token: string }) 
     } catch {
       // WebSocket not available — graceful degradation
     }
-  }, [userId, token]);
+  }, [userId]);
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -228,7 +228,7 @@ export default function Header() {
                 </Link>
               </Button>
               
-              <NotificationBell userId={user.id} token={useAuthStore.getState().token || ""} />
+              <NotificationBell userId={user.id} />
 
               <DropdownMenu>
                 <DropdownMenuTrigger 

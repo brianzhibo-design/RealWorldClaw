@@ -20,8 +20,6 @@ interface AuthState {
   setUser: (user: User) => void;
 }
 
-const LEGACY_TOKEN_KEY = "auth_token";
-const LEGACY_TOKEN_EXP_KEY = "auth_token_expires_at";
 
 export const useAuthStore = create<AuthState>()(
   persist(
@@ -45,9 +43,6 @@ export const useAuthStore = create<AuthState>()(
         }).catch(() => undefined);
 
         if (typeof window !== "undefined") {
-          // Thorough cleanup to reduce residual token/session risk.
-          localStorage.removeItem(LEGACY_TOKEN_KEY);
-          localStorage.removeItem(LEGACY_TOKEN_EXP_KEY);
           localStorage.removeItem("rwc-auth");
           sessionStorage.clear();
         }
