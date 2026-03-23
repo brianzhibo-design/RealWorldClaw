@@ -120,6 +120,7 @@ export default function SimulatorPanel() {
 
         socket.onopen = () => {
           if (!isMounted) return;
+          socket?.send(JSON.stringify({ type: "auth" }));
           retryCountRef.current = 0;
           setStatus("connected");
         };

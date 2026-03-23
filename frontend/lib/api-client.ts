@@ -137,6 +137,7 @@ export function useWebSocket(
     ws.onopen = () => {
       setConnected(true);
       reconnectRef.current = 0;
+      ws.send(JSON.stringify({ type: "auth" }));
       // Subscribe to channels
       channels.forEach((ch) => {
         ws.send(JSON.stringify({ action: "subscribe", channel: ch }));

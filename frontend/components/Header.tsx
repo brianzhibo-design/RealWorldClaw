@@ -54,6 +54,10 @@ function NotificationBell({ userId }: { userId: string }) {
       const ws = new WebSocket(wsUrl);
       wsRef.current = ws;
 
+      ws.onopen = () => {
+        ws.send(JSON.stringify({ type: "auth" }));
+      };
+
       ws.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data);
