@@ -22,6 +22,7 @@ from .logging_config import setup_logging
 from .middleware import RequestLoggingMiddleware, AuditLogMiddleware, SLOMonitoringMiddleware, register_slo_routes
 from .rate_limit import RateLimitMiddleware
 from .routers import admin, agents, api_keys, audit as audit_router, auth, community, components, developers, evolution, files, gdpr, health, makers, match, messages, moderation, nodes, orders, proof, search, simulator, social, spaces, tags, ws
+from .routers import mcp as mcp_router
 from .telemetry import init_telemetry
 from .ws_manager import manager
 
@@ -121,6 +122,7 @@ app.include_router(community.router, prefix="/api/v1")
 app.include_router(messages.router, prefix="/api/v1")
 app.include_router(moderation.router, prefix="/api/v1")
 app.include_router(developers.router, prefix="/api/v1")
+app.include_router(mcp_router.router)
 register_slo_routes(app)
 
 
