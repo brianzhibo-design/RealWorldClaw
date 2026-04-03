@@ -10,6 +10,17 @@ Implemented MCP tools:
 - `read_sensor` — read device telemetry (optionally filter by sensor type)
 - `control_device` — send control commands to a device
 - `device_info` — get detailed status for a device
+- `query_audit_log` — query in-memory audit logs with device/action/time filters
+- `emergency_stop` — stop one device or all devices immediately and record audit trail
+- `get_permissions` — resolve agent permission level and allowed actions for a device
+
+## Security features (MCP v2)
+
+- **Permission levels**: `readonly` / `restricted` / `full`
+- **High-risk guardrail**: in `restricted` mode, high-risk commands (`firmware_update`, `factory_reset`) require `confirmation_token`
+- **Rate limiting**: max **10 commands/minute** per `(agent_id, device_id)`
+- **Audit logging**: all control and emergency operations are written to in-memory audit log
+- **Emergency control**: supports per-device or global emergency stop with mandatory reason
 
 ## Requirements
 

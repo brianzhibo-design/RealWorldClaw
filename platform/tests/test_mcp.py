@@ -4,7 +4,7 @@ Tests:
 - GET /.well-known/mcp.json  — discovery
 - POST /mcp initialize
 - POST /mcp tools/list
-- POST /mcp tools/call (list_devices, read_sensor, execute_command)
+- POST /mcp tools/call (list_devices, read_sensor, execute_command, query_audit_log, emergency_stop, get_permissions)
 - POST /mcp unknown method → error
 """
 
@@ -53,12 +53,25 @@ class TestMCPDiscovery:
     def test_discovery_tool_names(self, mcp_client):
         data = mcp_client.get("/.well-known/mcp.json").json()
         names = {t["name"] for t in data["tools"]}
-        assert {"list_devices", "read_sensor", "execute_command"}.issubset(names)
+        assert {
+            "list_devices",
+            "read_sensor",
+            "execute_command",
+            "query_audit_log",
+            "emergency_stop",
+            "get_permissions",
+        }.issubset(names)
 
     def test_discovery_tools_have_input_schema(self, mcp_client):
         data = mcp_client.get("/.well-known/mcp.json").json()
         for tool in data["tools"]:
             assert "inputSchema" in tool, f"Tool {tool['name']} missing inputSchema"
+
+    def test_discovery_has_security_capabilities(self, mcp_client):
+        data = mcp_client.get("/.well-known/mcp.json").json()
+        security = data["capabilities"]["security"]
+        assert security["rateLimit"]["limit"] == 10
+        assert "restricted" in security["permissionLevels"]
 
 
 # ---------------------------------------------------------------------------
@@ -192,6 +205,62 @@ class TestMCPToolsCall:
         assert result["device_id"] == "device-001"
         assert result["command"] == "reboot"
         assert result["status"] == "accepted"
+
+    # query_audit_log
+    def test_query_audit_log_returns_200(self, mcp_client):
+        resp = self._call(mcp_client, "query_audit_log", {"limit": 10})
+        assert resp.status_code == 200
+
+    # emergency_stop
+    def test_emergency_stop_returns_audit(self, mcp_client):
+        data = self._call(
+            mcp_client,
+            "emergency_stop",
+            {"reason": "manual stop", "device_id": "device-001"},
+        ).json()
+        result = data["result"]["result"]
+        assert result["status"] == "stopped"
+        assert result["audit"]["action_type"] == "emergency_stop"
+
+    # get_permissions
+    def test_get_permissions_returns_level(self, mcp_client):
+        data = self._call(
+            mcp_client,
+            "get_permissions",
+            {"device_id": "device-001", "agent_id": "qa_viewer"},
+        ).json()
+        result = data["result"]["result"]
+        assert result["permission_level"] == "readonly"
+        assert "execute_command" not in result["allowed_actions"]
+
+    def test_execute_command_restricted_high_risk_denied_without_token(self, mcp_client):
+        data = self._call(
+            mcp_client,
+            "execute_command",
+            {
+                "device_id": "device-001",
+                "command": "firmware_update",
+                "permission_level": "restricted",
+            },
+        ).json()
+        result = data["result"]["result"]
+        assert result["status"] == "denied"
+
+    def test_execute_command_rate_limit(self, mcp_client):
+        for _ in range(10):
+            res = self._call(
+                mcp_client,
+                "execute_command",
+                {"device_id": "device-001", "command": "reboot", "agent_id": "agent-x"},
+            ).json()
+            assert res["result"]["result"]["status"] == "accepted"
+
+        blocked = self._call(
+            mcp_client,
+            "execute_command",
+            {"device_id": "device-001", "command": "reboot", "agent_id": "agent-x"},
+        ).json()
+        assert blocked["result"]["result"]["status"] == "rate_limited"
 
     # unknown tool
     def test_unknown_tool_returns_error(self, mcp_client):
